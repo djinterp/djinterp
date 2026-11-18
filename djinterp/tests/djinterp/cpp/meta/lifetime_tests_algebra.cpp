@@ -25,14 +25,14 @@ tests_algebra_enum_bit_values
 */
 bool tests_algebra_enum_bit_values()
 {
-    D_LT_CHECK(static_cast<unsigned>(lifetime::none) == 0u);
-    D_LT_CHECK(static_cast<unsigned>(lifetime::compile_time) == 1u);
-    D_LT_CHECK(static_cast<unsigned>(lifetime::runtime) == 2u);
-    D_LT_CHECK(static_cast<unsigned>(lifetime::both) == 3u);
+    D_LT_CHECK(static_cast<unsigned>(DLifetime::none) == 0u);
+    D_LT_CHECK(static_cast<unsigned>(DLifetime::compile_time) == 1u);
+    D_LT_CHECK(static_cast<unsigned>(DLifetime::runtime) == 2u);
+    D_LT_CHECK(static_cast<unsigned>(DLifetime::both) == 3u);
 
-    D_LT_CHECK(static_cast<unsigned>(lifetime::both) ==
-               (static_cast<unsigned>(lifetime::compile_time) |
-                static_cast<unsigned>(lifetime::runtime)));
+    D_LT_CHECK(static_cast<unsigned>(DLifetime::both) ==
+               (static_cast<unsigned>(DLifetime::compile_time) |
+                static_cast<unsigned>(DLifetime::runtime)));
 
     return true;
 }
@@ -49,7 +49,7 @@ tests_algebra_meet_is_bitwise_and
 bool tests_algebra_meet_is_bitwise_and()
 {
     std::size_t n = 0;
-    const lifetime::value* vals = all_lifetimes(n);
+    const DLifetime::value* vals = all_lifetimes(n);
 
     for (std::size_t i = 0; i < n; ++i)
     {
@@ -63,12 +63,12 @@ bool tests_algebra_meet_is_bitwise_and()
     }
 
     // representative cases
-    D_LT_CHECK(lifetime_meet(lifetime::both, lifetime::runtime) == lifetime::runtime);
-    D_LT_CHECK(lifetime_meet(lifetime::compile_time, lifetime::runtime) ==
-               lifetime::none);
+    D_LT_CHECK(lifetime_meet(DLifetime::both, DLifetime::runtime) == DLifetime::runtime);
+    D_LT_CHECK(lifetime_meet(DLifetime::compile_time, DLifetime::runtime) ==
+               DLifetime::none);
 
-    static_assert(lifetime_meet(lifetime::both, lifetime::compile_time) ==
-                      lifetime::compile_time,
+    static_assert(lifetime_meet(DLifetime::both, DLifetime::compile_time) ==
+                      DLifetime::compile_time,
                   "meet is constexpr");
 
     return true;
@@ -86,7 +86,7 @@ tests_algebra_join_is_bitwise_or
 bool tests_algebra_join_is_bitwise_or()
 {
     std::size_t n = 0;
-    const lifetime::value* vals = all_lifetimes(n);
+    const DLifetime::value* vals = all_lifetimes(n);
 
     for (std::size_t i = 0; i < n; ++i)
     {
@@ -99,12 +99,12 @@ bool tests_algebra_join_is_bitwise_or()
         }
     }
 
-    D_LT_CHECK(lifetime_join(lifetime::compile_time, lifetime::runtime) ==
-               lifetime::both);
-    D_LT_CHECK(lifetime_join(lifetime::none, lifetime::runtime) == lifetime::runtime);
+    D_LT_CHECK(lifetime_join(DLifetime::compile_time, DLifetime::runtime) ==
+               DLifetime::both);
+    D_LT_CHECK(lifetime_join(DLifetime::none, DLifetime::runtime) == DLifetime::runtime);
 
-    static_assert(lifetime_join(lifetime::compile_time, lifetime::runtime) ==
-                      lifetime::both,
+    static_assert(lifetime_join(DLifetime::compile_time, DLifetime::runtime) ==
+                      DLifetime::both,
                   "join is constexpr");
 
     return true;
@@ -122,16 +122,16 @@ tests_algebra_meet_lattice_laws
 bool tests_algebra_meet_lattice_laws()
 {
     std::size_t n = 0;
-    const lifetime::value* vals = all_lifetimes(n);
+    const DLifetime::value* vals = all_lifetimes(n);
 
     for (std::size_t i = 0; i < n; ++i)
     {
         // idempotence
         D_LT_CHECK(lifetime_meet(vals[i], vals[i]) == vals[i]);
         // both as identity
-        D_LT_CHECK(lifetime_meet(vals[i], lifetime::both) == vals[i]);
+        D_LT_CHECK(lifetime_meet(vals[i], DLifetime::both) == vals[i]);
         // none as absorbing
-        D_LT_CHECK(lifetime_meet(vals[i], lifetime::none) == lifetime::none);
+        D_LT_CHECK(lifetime_meet(vals[i], DLifetime::none) == DLifetime::none);
 
         for (std::size_t j = 0; j < n; ++j)
         {
@@ -156,13 +156,13 @@ tests_algebra_join_lattice_laws
 bool tests_algebra_join_lattice_laws()
 {
     std::size_t n = 0;
-    const lifetime::value* vals = all_lifetimes(n);
+    const DLifetime::value* vals = all_lifetimes(n);
 
     for (std::size_t i = 0; i < n; ++i)
     {
         D_LT_CHECK(lifetime_join(vals[i], vals[i]) == vals[i]);
-        D_LT_CHECK(lifetime_join(vals[i], lifetime::none) == vals[i]);
-        D_LT_CHECK(lifetime_join(vals[i], lifetime::both) == lifetime::both);
+        D_LT_CHECK(lifetime_join(vals[i], DLifetime::none) == vals[i]);
+        D_LT_CHECK(lifetime_join(vals[i], DLifetime::both) == DLifetime::both);
 
         for (std::size_t j = 0; j < n; ++j)
         {
@@ -185,12 +185,12 @@ tests_algebra_make_lifetime_from_stage_facts
 */
 bool tests_algebra_make_lifetime_from_stage_facts()
 {
-    D_LT_CHECK(make_lifetime(true, true) == lifetime::both);
-    D_LT_CHECK(make_lifetime(true, false) == lifetime::compile_time);
-    D_LT_CHECK(make_lifetime(false, true) == lifetime::runtime);
-    D_LT_CHECK(make_lifetime(false, false) == lifetime::none);
+    D_LT_CHECK(make_lifetime(true, true) == DLifetime::both);
+    D_LT_CHECK(make_lifetime(true, false) == DLifetime::compile_time);
+    D_LT_CHECK(make_lifetime(false, true) == DLifetime::runtime);
+    D_LT_CHECK(make_lifetime(false, false) == DLifetime::none);
 
-    static_assert(make_lifetime(true, true) == lifetime::both, "make_lifetime constexpr");
+    static_assert(make_lifetime(true, true) == DLifetime::both, "make_lifetime constexpr");
 
     return true;
 }
@@ -207,27 +207,27 @@ tests_algebra_stage_predicates
 bool tests_algebra_stage_predicates()
 {
     // is_compile_time
-    D_LT_CHECK(is_compile_time(lifetime::compile_time));
-    D_LT_CHECK(is_compile_time(lifetime::both));
-    D_LT_CHECK(!is_compile_time(lifetime::runtime));
-    D_LT_CHECK(!is_compile_time(lifetime::none));
+    D_LT_CHECK(is_compile_time(DLifetime::compile_time));
+    D_LT_CHECK(is_compile_time(DLifetime::both));
+    D_LT_CHECK(!is_compile_time(DLifetime::runtime));
+    D_LT_CHECK(!is_compile_time(DLifetime::none));
 
     // is_runtime
-    D_LT_CHECK(is_runtime(lifetime::runtime));
-    D_LT_CHECK(is_runtime(lifetime::both));
-    D_LT_CHECK(!is_runtime(lifetime::compile_time));
-    D_LT_CHECK(!is_runtime(lifetime::none));
+    D_LT_CHECK(is_runtime(DLifetime::runtime));
+    D_LT_CHECK(is_runtime(DLifetime::both));
+    D_LT_CHECK(!is_runtime(DLifetime::compile_time));
+    D_LT_CHECK(!is_runtime(DLifetime::none));
 
     // is_both
-    D_LT_CHECK(is_both(lifetime::both));
-    D_LT_CHECK(!is_both(lifetime::compile_time));
-    D_LT_CHECK(!is_both(lifetime::runtime));
-    D_LT_CHECK(!is_both(lifetime::none));
+    D_LT_CHECK(is_both(DLifetime::both));
+    D_LT_CHECK(!is_both(DLifetime::compile_time));
+    D_LT_CHECK(!is_both(DLifetime::runtime));
+    D_LT_CHECK(!is_both(DLifetime::none));
 
     // is_none
-    D_LT_CHECK(is_none(lifetime::none));
-    D_LT_CHECK(!is_none(lifetime::both));
-    D_LT_CHECK(!is_none(lifetime::compile_time));
+    D_LT_CHECK(is_none(DLifetime::none));
+    D_LT_CHECK(!is_none(DLifetime::both));
+    D_LT_CHECK(!is_none(DLifetime::compile_time));
 
     return true;
 }
@@ -244,16 +244,16 @@ tests_algebra_exclusive_stage_predicates
 bool tests_algebra_exclusive_stage_predicates()
 {
     // is_compile_time_only
-    D_LT_CHECK(is_compile_time_only(lifetime::compile_time));
-    D_LT_CHECK(!is_compile_time_only(lifetime::both));
-    D_LT_CHECK(!is_compile_time_only(lifetime::runtime));
-    D_LT_CHECK(!is_compile_time_only(lifetime::none));
+    D_LT_CHECK(is_compile_time_only(DLifetime::compile_time));
+    D_LT_CHECK(!is_compile_time_only(DLifetime::both));
+    D_LT_CHECK(!is_compile_time_only(DLifetime::runtime));
+    D_LT_CHECK(!is_compile_time_only(DLifetime::none));
 
     // is_runtime_only
-    D_LT_CHECK(is_runtime_only(lifetime::runtime));
-    D_LT_CHECK(!is_runtime_only(lifetime::both));
-    D_LT_CHECK(!is_runtime_only(lifetime::compile_time));
-    D_LT_CHECK(!is_runtime_only(lifetime::none));
+    D_LT_CHECK(is_runtime_only(DLifetime::runtime));
+    D_LT_CHECK(!is_runtime_only(DLifetime::both));
+    D_LT_CHECK(!is_runtime_only(DLifetime::compile_time));
+    D_LT_CHECK(!is_runtime_only(DLifetime::none));
 
     return true;
 }
@@ -269,10 +269,10 @@ tests_algebra_lifetime_name_spellings
 */
 bool tests_algebra_lifetime_name_spellings()
 {
-    D_LT_CHECK(std::strcmp(lifetime_name(lifetime::both), "both") == 0);
-    D_LT_CHECK(std::strcmp(lifetime_name(lifetime::compile_time), "compile_time") == 0);
-    D_LT_CHECK(std::strcmp(lifetime_name(lifetime::runtime), "runtime") == 0);
-    D_LT_CHECK(std::strcmp(lifetime_name(lifetime::none), "none") == 0);
+    D_LT_CHECK(std::strcmp(lifetime_name(DLifetime::both), "both") == 0);
+    D_LT_CHECK(std::strcmp(lifetime_name(DLifetime::compile_time), "compile_time") == 0);
+    D_LT_CHECK(std::strcmp(lifetime_name(DLifetime::runtime), "runtime") == 0);
+    D_LT_CHECK(std::strcmp(lifetime_name(DLifetime::none), "none") == 0);
 
     return true;
 }

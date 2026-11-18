@@ -205,7 +205,7 @@ struct DRoConstIndex
 struct DRoTagged
 {
     using value_type = int;
-    using capability = read_only;
+    using capability = DReadOnly;
 
     const int* begin() const;
 };
@@ -217,7 +217,7 @@ struct DRoTagged
 struct DRoTaggedOverride
 {
     using value_type = int;
-    using capability = read_only;
+    using capability = DReadOnly;
 
     const int& operator[](
         std::size_t _i
@@ -238,7 +238,7 @@ struct DRoTaggedOverride
 struct DRoTaggedElsewhere
 {
     using value_type = int;
-    using capability = write_only;
+    using capability = DWriteOnly;
 
     const int* begin() const;
 };

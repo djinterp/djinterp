@@ -109,11 +109,11 @@ NS_DJINTERP
 //  file_encoding
 // ================================================================
 
-// file_encoding
+// DFileEncoding
 //   enum: identifies the text encoding of a file's content. Detection is
 // heuristic — these values represent the best guess from a BOM or byte-pattern
 // scan.
-enum file_encoding : re_std::uint8_t
+enum DFileEncoding : re_std::uint8_t
 {
     file_encoding_unknown       = 0,
 
@@ -141,6 +141,9 @@ enum file_encoding : re_std::uint8_t
     file_encoding_binary        = 255
 };
 
+// old name, until 0.9.0-rc.1
+using file_encoding = DFileEncoding;
+
 
 // ================================================================
 //  file_encoding utilities
@@ -150,7 +153,7 @@ enum file_encoding : re_std::uint8_t
 //   returns a human-readable name for the given encoding.
 D_STATIC_INLINE
 const char* file_encoding_name(
-    file_encoding _enc
+    DFileEncoding _enc
 )
 {
     switch (_enc)
@@ -178,7 +181,7 @@ const char* file_encoding_name(
 //   returns true if the encoding is a Unicode variant.
 D_STATIC_INLINE
 bool file_encoding_is_unicode(
-    file_encoding _enc
+    DFileEncoding _enc
 )
 {
     return (_enc >= file_encoding_utf8 &&
@@ -189,7 +192,7 @@ bool file_encoding_is_unicode(
 //   examines the first bytes of a buffer and returns the encoding indicated by
 // a byte-order mark, or file_encoding_unknown if no BOM is found.
 D_STATIC_INLINE
-file_encoding detect_bom(
+DFileEncoding detect_bom(
     const unsigned char* _data,
     std::size_t          _len
 )
@@ -244,7 +247,7 @@ file_encoding detect_bom(
 //  file_attr_flag
 // ================================================================
 
-// file_attr_flag
+// DFileAttrFlag
 //   enum: bitfield of file attributes. The values are chosen
 // to map directly to NTFS FILE_ATTRIBUTE_* constants where applicable, with
 // POSIX-only flags occupying the upper bits.
@@ -252,7 +255,7 @@ file_encoding detect_bom(
 // On Windows these come from GetFileAttributesW or
 // WIN32_FIND_DATA::dwFileAttributes. On POSIX they are synthesized from struct
 // stat::st_mode.
-enum file_attr_flag : re_std::uint32_t
+enum DFileAttrFlag : re_std::uint32_t
 {
     // --------------------------------------------------------
     //  NTFS-mapped flags (low 16 bits)
@@ -380,6 +383,9 @@ enum file_attr_flag : re_std::uint32_t
     file_attr_none              = 0x00000000
 };
 
+// old name, until 0.9.0-rc.1
+using file_attr_flag = DFileAttrFlag;
+
 // D_FILE_ATTR_HAS
 //   macro: tests whether a flag set contains a specific flag.
 #define D_FILE_ATTR_HAS(_flags, _flag) \
@@ -390,7 +396,7 @@ enum file_attr_flag : re_std::uint32_t
 //  file_detail
 // ================================================================
 
-// file_detail
+// DFileDetail
 //   enum: identifies a category of extended file metadata from the Windows
 // Shell property system. On POSIX, a subset of these can be populated from
 // xattr, EXIF, ID3, or similar sources — most will simply report as
@@ -399,7 +405,7 @@ enum file_attr_flag : re_std::uint32_t
 //
 // The enumerators below correspond to the columns available in the Windows
 // Explorer "Choose Details" dialog.
-enum file_detail : re_std::uint16_t
+enum DFileDetail : re_std::uint16_t
 {
     // --------------------------------------------------------
     //  core / filesystem (0x00–)
@@ -590,15 +596,18 @@ enum file_detail : re_std::uint16_t
     file_detail_none                    = 0x0000
 };
 
+// old name, until 0.9.0-rc.1
+using file_detail = DFileDetail;
+
 
 // ================================================================
 //  file_detail_group
 // ================================================================
 
-// file_detail_group
+// DFileDetailGroup
 //   enum: the domain group that a file_detail belongs to. Derived by masking
 // the high byte of the file_detail value.
-enum file_detail_group : re_std::uint8_t
+enum DFileDetailGroup : re_std::uint8_t
 {
     file_detail_group_core          = 0x00,
     file_detail_group_document      = 0x01,
@@ -612,11 +621,14 @@ enum file_detail_group : re_std::uint8_t
     file_detail_group_unknown       = 0xFF
 };
 
+// old name, until 0.9.0-rc.1
+using file_detail_group = DFileDetailGroup;
+
 // file_detail_to_group
 //   returns the group of a file_detail value.
 D_STATIC_INLINE
-file_detail_group file_detail_to_group(
-    file_detail _detail
+DFileDetailGroup file_detail_to_group(
+    DFileDetail _detail
 )
 {
     re_std::uint8_t high = static_cast<re_std::uint8_t>(
@@ -625,7 +637,7 @@ file_detail_group file_detail_to_group(
 
     if (high <= 0x08)
     {
-        return static_cast<file_detail_group>(high);
+        return static_cast<DFileDetailGroup>(high);
     }
 
     return file_detail_group_unknown;
@@ -635,7 +647,7 @@ file_detail_group file_detail_to_group(
 //   returns a human-readable name for the given group.
 D_STATIC_INLINE
 const char* file_detail_group_name(
-    file_detail_group _group
+    DFileDetailGroup _group
 )
 {
     switch (_group)
@@ -658,11 +670,11 @@ const char* file_detail_group_name(
 //  file_timestamps
 // ================================================================
 
-// file_timestamps
+// DFileTimestamps
 //   struct: platform-independent timestamp representation. All values are in
 // nanoseconds since the Unix epoch (1970-01-01T00:00:00Z). A value of 0
 // indicates "not available".
-struct file_timestamps
+struct DFileTimestamps
 {
     re_std::uint64_t created;        // birth time (btime)
     re_std::uint64_t modified;       // last data modification
@@ -670,7 +682,7 @@ struct file_timestamps
     re_std::uint64_t changed;        // last metadata change (POSIX ctime)
 
     // file_timestamps (default)
-    file_timestamps
+    DFileTimestamps
     ()
         : created   (0),
           modified  (0),
@@ -679,25 +691,28 @@ struct file_timestamps
     {}
 };
 
+// old name, until 0.9.0-rc.1
+using file_timestamps = DFileTimestamps;
+
 
 // ================================================================
 //  file_metadata
 // ================================================================
 
-// file_metadata
+// DFileMetadata
 //   struct: composite descriptor holding all portable file attributes.
 // Fixed-size and trivially copyable —
 // suitable for storage in arena_node payloads alongside or replacing
 // file_entry.
-struct file_metadata
+struct DFileMetadata
 {
     // --------------------------------------------------------
     //  core
     // --------------------------------------------------------
     re_std::uint64_t    size;
-    file_timestamps     timestamps;
+    DFileTimestamps     timestamps;
     re_std::uint32_t    attr_flags;     // OR'd file_attr_flag
-    file_encoding       encoding;
+    DFileEncoding       encoding;
 
     // --------------------------------------------------------
     //  permissions (POSIX)
@@ -719,7 +734,7 @@ struct file_metadata
     re_std::uint8_t     _pad[3];
 
     // file_metadata (default)
-    file_metadata
+    DFileMetadata
     ()
         : size          (0),
           timestamps    (),
@@ -741,7 +756,7 @@ struct file_metadata
     // has_flag
     //   returns true if the specified attribute flag is set.
     bool has_flag(
-        file_attr_flag _flag
+        DFileAttrFlag _flag
     ) const
     {
         return D_FILE_ATTR_HAS(attr_flags, _flag);
@@ -772,19 +787,22 @@ struct file_metadata
     bool is_executable() const { return has_flag(file_attr_executable); }
 };
 
+// old name, until 0.9.0-rc.1
+using file_metadata = DFileMetadata;
+
 
 // ================================================================
 //  basic_file_attributes (population)
 // ================================================================
 
-// basic_file_attributes
+// DBasicFileAttributes
 //   class: metadata population, parameterized on a populator policy. The
 // populator supplies populate_impl(path, out); this class adds the public,
 // OS-independent surface (the populate() entry points and the
 // encoding-detection helpers). file_attributes<OS> below binds a concrete
 // populator chosen by an operating_system selector.
 template<typename Populator>
-class basic_file_attributes
+class DBasicFileAttributes
 {
 public:
 
@@ -800,10 +818,10 @@ public:
     static
     bool populate(
         const char*    _path,
-        file_metadata& _out
+        DFileMetadata& _out
     )
     {
-        _out = file_metadata();
+        _out = DFileMetadata();
 
         return Populator::populate_impl(_path, _out);
     }
@@ -812,7 +830,7 @@ public:
     static
     bool populate(
         const std::string& _path,
-        file_metadata&     _out
+        DFileMetadata&     _out
     )
     {
         return populate(_path.c_str(), _out);
@@ -828,13 +846,13 @@ public:
     // thorough heuristic (byte-frequency, UTF-8 validation) can be layered on
     // top.
     static
-    file_encoding detect_encoding(
+    DFileEncoding detect_encoding(
         const unsigned char* _data,
         std::size_t          _len
     )
     {
         // try BOM first.
-        file_encoding bom = detect_bom(_data, _len);
+        DFileEncoding bom = detect_bom(_data, _len);
 
         if (bom != file_encoding_unknown)
         {
@@ -913,6 +931,10 @@ public:
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Populator>
+using basic_file_attributes = DBasicFileAttributes<Populator>;
+
 
 // ================================================================
 //  win32_attr_populator
@@ -920,10 +942,10 @@ public:
 
 #if D_FILESYS_ENABLE_WINDOWS && defined(_WIN32)
 
-// win32_attr_populator
+// DWin32AttrPopulator
 //   policy: populates file_metadata from Win32 queries (GetFileAttributesExW +
 // GetFileInformationByHandle).
-struct win32_attr_populator
+struct DWin32AttrPopulator
 {
     // ============================================
     //  Win32 constants
@@ -1040,7 +1062,7 @@ struct win32_attr_populator
     D_STATIC_INLINE
     bool populate_impl(
         const char*    _path,
-        file_metadata& _out
+        DFileMetadata& _out
     )
     {
         std::wstring wide = widen(_path);
@@ -1120,6 +1142,9 @@ struct win32_attr_populator
     }
 };
 
+// old name, until 0.9.0-rc.1
+using win32_attr_populator = DWin32AttrPopulator;
+
 #endif  // D_FILESYS_ENABLE_WINDOWS && _WIN32
 
 
@@ -1131,12 +1156,12 @@ struct win32_attr_populator
       D_FILESYS_ENABLE_LINUX || D_FILESYS_ENABLE_APPLE || \
       D_FILESYS_ENABLE_IOS ) && !defined(_WIN32)
 
-// posix_attr_populator
+// DPosixAttrPopulator
 //   policy: populates file_metadata from POSIX queries (lstat plus optional
 // listxattr). Birth time is filled on platforms that expose it (macOS
 // st_birthtimespec); plain Linux leaves created == 0 unless a statx layer is
 // added separately.
-struct posix_attr_populator
+struct DPosixAttrPopulator
 {
     // ============================================
     //  POSIX implementation
@@ -1158,7 +1183,7 @@ struct posix_attr_populator
     D_STATIC_INLINE
     bool populate_impl(
         const char*    _path,
-        file_metadata& _out
+        DFileMetadata& _out
     )
     {
         struct stat st;
@@ -1294,6 +1319,9 @@ struct posix_attr_populator
     }
 };
 
+// old name, until 0.9.0-rc.1
+using posix_attr_populator = DPosixAttrPopulator;
+
 #endif  // posix family enabled && !_WIN32
 
 
@@ -1301,23 +1329,26 @@ struct posix_attr_populator
 //  null_attr_populator
 // ================================================================
 
-// null_attr_populator
+// DNullAttrPopulator
 //   policy: the fallback populator. Compiles everywhere and reports failure
 // (leaving _out default-constructed). Bound to
 // operating_system::none, and used as the dependent type past the
 // disabled-selector static_assert below so diagnostics stay focused.
-struct null_attr_populator
+struct DNullAttrPopulator
 {
     static bool
     populate_impl
     (
         const char*    /*_path*/,
-        file_metadata& /*_out*/
+        DFileMetadata& /*_out*/
     )
     {
         return false;
     }
 };
+
+// old name, until 0.9.0-rc.1
+using null_attr_populator = DNullAttrPopulator;
 
 
 // ================================================================
@@ -1327,7 +1358,7 @@ struct null_attr_populator
 // disabled_attr_backend_selected
 //   trait: dependent-false helper so the primary attr_populator template
 // static_asserts only when actually instantiated.
-template<operating_system OS>
+template<DOperatingSystem OS>
 struct disabled_attr_backend_selected
 {
     static constexpr bool value = false;
@@ -1336,7 +1367,7 @@ struct disabled_attr_backend_selected
 // attr_populator (primary)
 //   Reached only for selectors whose backend was NOT enabled for this build.
 // Instantiating it is a hard error with remediation guidance.
-template<operating_system OS>
+template<DOperatingSystem OS>
 struct attr_populator
 {
     static_assert(
@@ -1347,12 +1378,12 @@ struct attr_populator
         "defining the matching D_CFG_FILESYS_ALLOW_* flag (per-OS, OS-group, "
         "or the master D_CFG_FILESYS_ALLOW_FOREIGN). See cfg_filesys.h.");
 
-    using type = null_attr_populator;
+    using type = DNullAttrPopulator;
 };
 
 // `none` is always available: an explicit no-op populator.
-template<> struct attr_populator<operating_system::none>
-{ using type = null_attr_populator; };
+template<> struct attr_populator<DOperatingSystem::none>
+{ using type = DNullAttrPopulator; };
 
 // The Win32 and POSIX populators are real types only on their native host
 // (they wrap host-only APIs). A selector is mapped to its real populator when
@@ -1362,66 +1393,66 @@ template<> struct attr_populator<operating_system::none>
 // no-op (matching the off-platform stub behavior of the file_tree scanners).
 
 #if D_FILESYS_ENABLE_WINDOWS && defined(_WIN32)
-    template<> struct attr_populator<operating_system::windows>
-    { using type = win32_attr_populator; };
-    template<> struct attr_populator<operating_system::windows10>
-    { using type = win32_attr_populator; };
-    template<> struct attr_populator<operating_system::windows11>
-    { using type = win32_attr_populator; };
+    template<> struct attr_populator<DOperatingSystem::windows>
+    { using type = DWin32AttrPopulator; };
+    template<> struct attr_populator<DOperatingSystem::windows10>
+    { using type = DWin32AttrPopulator; };
+    template<> struct attr_populator<DOperatingSystem::windows11>
+    { using type = DWin32AttrPopulator; };
 #elif D_FILESYS_ENABLE_WINDOWS
     // enabled (cross-named) but not the native host: no Win32 API here.
-    template<> struct attr_populator<operating_system::windows>
-    { using type = null_attr_populator; };
-    template<> struct attr_populator<operating_system::windows10>
-    { using type = null_attr_populator; };
-    template<> struct attr_populator<operating_system::windows11>
-    { using type = null_attr_populator; };
+    template<> struct attr_populator<DOperatingSystem::windows>
+    { using type = DNullAttrPopulator; };
+    template<> struct attr_populator<DOperatingSystem::windows10>
+    { using type = DNullAttrPopulator; };
+    template<> struct attr_populator<DOperatingSystem::windows11>
+    { using type = DNullAttrPopulator; };
 #endif
 
 #if !defined(_WIN32)
     #if D_FILESYS_ENABLE_POSIX
-        template<> struct attr_populator<operating_system::posix>
-        { using type = posix_attr_populator; };
+        template<> struct attr_populator<DOperatingSystem::posix>
+        { using type = DPosixAttrPopulator; };
     #endif
     #if D_FILESYS_ENABLE_BSD
-        template<> struct attr_populator<operating_system::bsd>
-        { using type = posix_attr_populator; };
+        template<> struct attr_populator<DOperatingSystem::bsd>
+        { using type = DPosixAttrPopulator; };
     #endif
     #if D_FILESYS_ENABLE_LINUX
-        template<> struct attr_populator<operating_system::linux_generic>
-        { using type = posix_attr_populator; };
+        template<> struct attr_populator<DOperatingSystem::linux_generic>
+        { using type = DPosixAttrPopulator; };
     #endif
     #if D_FILESYS_ENABLE_APPLE
-        template<> struct attr_populator<operating_system::apple>
-        { using type = posix_attr_populator; };
+        template<> struct attr_populator<DOperatingSystem::apple>
+        { using type = DPosixAttrPopulator; };
     #endif
     #if D_FILESYS_ENABLE_IOS
-        template<> struct attr_populator<operating_system::ios>
-        { using type = posix_attr_populator; };
+        template<> struct attr_populator<DOperatingSystem::ios>
+        { using type = DPosixAttrPopulator; };
     #endif
 #else
     // On Windows, the posix-family selectors are foreign. If enabled
     // (cross-named) they map to the null populator; if not enabled they fall
     // through to the asserting primary template.
     #if D_FILESYS_ENABLE_POSIX
-        template<> struct attr_populator<operating_system::posix>
-        { using type = null_attr_populator; };
+        template<> struct attr_populator<DOperatingSystem::posix>
+        { using type = DNullAttrPopulator; };
     #endif
     #if D_FILESYS_ENABLE_BSD
-        template<> struct attr_populator<operating_system::bsd>
-        { using type = null_attr_populator; };
+        template<> struct attr_populator<DOperatingSystem::bsd>
+        { using type = DNullAttrPopulator; };
     #endif
     #if D_FILESYS_ENABLE_LINUX
-        template<> struct attr_populator<operating_system::linux_generic>
-        { using type = null_attr_populator; };
+        template<> struct attr_populator<DOperatingSystem::linux_generic>
+        { using type = DNullAttrPopulator; };
     #endif
     #if D_FILESYS_ENABLE_APPLE
-        template<> struct attr_populator<operating_system::apple>
-        { using type = null_attr_populator; };
+        template<> struct attr_populator<DOperatingSystem::apple>
+        { using type = DNullAttrPopulator; };
     #endif
     #if D_FILESYS_ENABLE_IOS
-        template<> struct attr_populator<operating_system::ios>
-        { using type = null_attr_populator; };
+        template<> struct attr_populator<DOperatingSystem::ios>
+        { using type = DNullAttrPopulator; };
     #endif
 #endif
 
@@ -1431,37 +1462,37 @@ NS_INTERNAL
     // detected_attr_os
     //   resolves the native operating_system selector for this build, matching
     // the native backend cfg_filesys.h forced on.
-    D_STATIC_CONSTEXPR operating_system detected_attr_os =
+    D_STATIC_CONSTEXPR DOperatingSystem detected_attr_os =
 #if   D_FILESYS_NATIVE_WINDOWS
-        operating_system::windows;
+        DOperatingSystem::windows;
 #elif D_FILESYS_NATIVE_IOS
-        operating_system::ios;
+        DOperatingSystem::ios;
 #elif D_FILESYS_NATIVE_APPLE
-        operating_system::apple;
+        DOperatingSystem::apple;
 #elif D_FILESYS_NATIVE_LINUX
-        operating_system::linux_generic;
+        DOperatingSystem::linux_generic;
 #elif D_FILESYS_NATIVE_BSD
-        operating_system::bsd;
+        DOperatingSystem::bsd;
 #elif D_FILESYS_NATIVE_POSIX
-        operating_system::posix;
+        DOperatingSystem::posix;
 #else
-        operating_system::none;
+        DOperatingSystem::none;
 #endif
 
     // resolve_attr_os
     //   maps a selector onto its populator, routing automatic through the
     // detected native selector.
-    template<operating_system OS>
+    template<DOperatingSystem OS>
     struct resolve_attr_os
     {
         using type = typename attr_populator<OS>::type;
     };
 
     // resolve_attr_os<operating_system::automatic>
-    //   trait: the `operating_system::automatic` case; it maps to `typename
+    //   trait: the `DOperatingSystem::automatic` case; it maps to `typename
     // attr_populator<detected_attr_os>::type`.
     template<>
-    struct resolve_attr_os<operating_system::automatic>
+    struct resolve_attr_os<DOperatingSystem::automatic>
     {
         using type = typename attr_populator<detected_attr_os>::type;
     };
@@ -1473,7 +1504,7 @@ NS_END  // internal
 //  file_attributes
 // ================================================================
 
-// file_attributes
+// DFileAttributes
 //   alias: the public, OS-parameterized attribute populator. Selects the
 // populator backend named by OS (defaulting to the detected backend) and
 // exposes basic_file_attributes' surface: populate() and the static
@@ -1489,15 +1520,22 @@ NS_END  // internal
 //
 //   // explicit (requires opt-in if foreign):
 //   file_attributes<operating_system::windows>::populate(p, m);
-template<operating_system OS = operating_system::automatic>
-using file_attributes =
-    basic_file_attributes<
+template<DOperatingSystem OS = DOperatingSystem::automatic>
+using DFileAttributes =
+    DBasicFileAttributes<
         typename internal::resolve_attr_os<OS>::type>;
 
+// old name, until 0.9.0-rc.1
+template<DOperatingSystem OS = DOperatingSystem::automatic>
+using file_attributes = DFileAttributes<OS>;
 
-// file_attributes_default
+
+// DFileAttributesDefault
 //   type: the detected-backend populator under a plain non-template name.
-using file_attributes_default = file_attributes<operating_system::automatic>;
+using DFileAttributesDefault = DFileAttributes<DOperatingSystem::automatic>;
+
+// old name, until 0.9.0-rc.1
+using file_attributes_default = DFileAttributesDefault;
 
 
 NS_END  // djinterp

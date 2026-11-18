@@ -51,33 +51,33 @@ bool tests_read_only_delegates()
     // the predicate is the baseline's verdict, restated
     D_RO_CHECK(is_read_only_container<DRoObserver>::value
                    == ( access_capability_of<DRoObserver>::value
-                            == access_capability::read_only ));
+                            == DAccessCapability::read_only ));
     D_RO_CHECK(is_read_only_container<DRoSink>::value
                    == ( access_capability_of<DRoSink>::value
-                            == access_capability::read_only ));
+                            == DAccessCapability::read_only ));
     D_RO_CHECK(is_read_only_container<DRoBoth>::value
                    == ( access_capability_of<DRoBoth>::value
-                            == access_capability::read_only ));
+                            == DAccessCapability::read_only ));
     D_RO_CHECK(is_read_only_container<DRoInert>::value
                    == ( access_capability_of<DRoInert>::value
-                            == access_capability::read_only ));
+                            == DAccessCapability::read_only ));
     D_RO_CHECK(is_read_only_container<DRoVector>::value
                    == ( access_capability_of<DRoVector>::value
-                            == access_capability::read_only ));
+                            == DAccessCapability::read_only ));
     D_RO_CHECK(is_read_only_container<DRoSet>::value
                    == ( access_capability_of<DRoSet>::value
-                            == access_capability::read_only ));
+                            == DAccessCapability::read_only ));
     D_RO_CHECK(is_read_only_container<DRoPair>::value
                    == ( access_capability_of<DRoPair>::value
-                            == access_capability::read_only ));
+                            == DAccessCapability::read_only ));
 
     // where the two signals contradict one another
     D_RO_CHECK(is_read_only_container<DRoTaggedOverride>::value
                    == ( access_capability_of<DRoTaggedOverride>::value
-                            == access_capability::read_only ));
+                            == DAccessCapability::read_only ));
     D_RO_CHECK(is_read_only_container<DRoTaggedElsewhere>::value
                    == ( access_capability_of<DRoTaggedElsewhere>::value
-                            == access_capability::read_only ));
+                            == DAccessCapability::read_only ));
 
     // ... and the two carriers land on opposite verdicts, so the agreement
     // above is not vacuous
@@ -94,7 +94,7 @@ bool tests_read_only_delegates()
     // agreement holds on a carrier whose classification turns on an alias
     D_RO_CHECK(is_read_only_container<DRoMetadataOnly>::value
                    == ( access_capability_of<DRoMetadataOnly>::value
-                            == access_capability::read_only ));
+                            == DAccessCapability::read_only ));
 
     return ok;
 }
@@ -139,11 +139,11 @@ bool tests_read_only_lattice_exclusivity()
     D_RO_CHECK(   ( is_read_only_container<DRoSink>::value  == false )
                && ( is_read_write_container<DRoSink>::value == false )
                && ( access_capability_of<DRoSink>::value
-                        == access_capability::write_only ));
+                        == DAccessCapability::write_only ));
     D_RO_CHECK(   ( is_read_only_container<DRoInert>::value  == false )
                && ( is_read_write_container<DRoInert>::value == false )
                && ( access_capability_of<DRoInert>::value
-                        == access_capability::none ));
+                        == DAccessCapability::none ));
     D_RO_CHECK(access_capability_of<DRoSink>::value
                    != access_capability_of<DRoInert>::value);
 
@@ -287,20 +287,20 @@ bool tests_read_only_tag_agreement()
     bool ok = true;
 
     // the tag is read_only exactly when the predicate holds
-    D_RO_CHECK(std::is_same<access_tag_of_t<DRoObserver>, read_only>::value
+    D_RO_CHECK(std::is_same<access_tag_of_t<DRoObserver>, DReadOnly>::value
                    == is_read_only_container<DRoObserver>::value);
-    D_RO_CHECK(std::is_same<access_tag_of_t<DRoView>, read_only>::value
+    D_RO_CHECK(std::is_same<access_tag_of_t<DRoView>, DReadOnly>::value
                    == is_read_only_container<DRoView>::value);
     D_RO_CHECK(std::is_same<access_tag_of_t<DRoTaggedOverride>,
-                            read_only>::value
+                            DReadOnly>::value
                    == is_read_only_container<DRoTaggedOverride>::value);
-    D_RO_CHECK(std::is_same<access_tag_of_t<DRoSink>, read_only>::value
+    D_RO_CHECK(std::is_same<access_tag_of_t<DRoSink>, DReadOnly>::value
                    == is_read_only_container<DRoSink>::value);
-    D_RO_CHECK(std::is_same<access_tag_of_t<DRoBoth>, read_only>::value
+    D_RO_CHECK(std::is_same<access_tag_of_t<DRoBoth>, DReadOnly>::value
                    == is_read_only_container<DRoBoth>::value);
-    D_RO_CHECK(std::is_same<access_tag_of_t<DRoInert>, read_only>::value
+    D_RO_CHECK(std::is_same<access_tag_of_t<DRoInert>, DReadOnly>::value
                    == is_read_only_container<DRoInert>::value);
-    D_RO_CHECK(std::is_same<access_tag_of_t<DRoVector>, read_only>::value
+    D_RO_CHECK(std::is_same<access_tag_of_t<DRoVector>, DReadOnly>::value
                    == is_read_only_container<DRoVector>::value);
 
     // the tag's bits match the classification
@@ -313,9 +313,9 @@ bool tests_read_only_tag_agreement()
 
     // the other capabilities re-emit something else
     D_RO_STATIC_CHECK(
-        std::is_same<access_tag_of_t<DRoSink>, write_only>::value);
+        std::is_same<access_tag_of_t<DRoSink>, DWriteOnly>::value);
     D_RO_STATIC_CHECK(
-        std::is_same<access_tag_of_t<DRoBoth>, read_write>::value);
+        std::is_same<access_tag_of_t<DRoBoth>, DReadWrite>::value);
     D_RO_STATIC_CHECK(std::is_same<access_tag_of_t<DRoInert>, void>::value);
 
     return ok;

@@ -87,42 +87,42 @@ bool tests_observed_access_stage_of()
     bool ok = true;
 
     // static size -> both
-    D_OC_CHECK(observed_access_stage_of<DOctArray>::value == lifetime::both);
-    D_OC_CHECK(observed_access_stage_of<DOctPair>::value  == lifetime::both);
+    D_OC_CHECK(observed_access_stage_of<DOctArray>::value == DLifetime::both);
+    D_OC_CHECK(observed_access_stage_of<DOctPair>::value  == DLifetime::both);
     D_OC_CHECK(observed_access_stage_of<DOctStaticSizedBare>::value
-                   == lifetime::both);
+                   == DLifetime::both);
     D_OC_CHECK(observed_access_stage_of<DOctStaticSizedSize>::value
-                   == lifetime::both);
+                   == DLifetime::both);
 
     // everything else -> runtime
     D_OC_CHECK(observed_access_stage_of<DOctVector>::value
-                   == lifetime::runtime);
+                   == DLifetime::runtime);
     D_OC_CHECK(observed_access_stage_of<DOctSet>::value
-                   == lifetime::runtime);
+                   == DLifetime::runtime);
     D_OC_CHECK(observed_access_stage_of<DOctNested>::value
-                   == lifetime::runtime);
+                   == DLifetime::runtime);
     D_OC_CHECK(observed_access_stage_of<DOctString>::value
-                   == lifetime::runtime);
+                   == DLifetime::runtime);
     D_OC_CHECK(observed_access_stage_of<DOctBare>::value
-                   == lifetime::runtime);
+                   == DLifetime::runtime);
     D_OC_CHECK(observed_access_stage_of<int>::value
-                   == lifetime::runtime);
+                   == DLifetime::runtime);
     D_OC_CHECK(observed_access_stage_of<DOctRawArray>::value
-                   == lifetime::runtime);
+                   == DLifetime::runtime);
 
     // the stage tracks the helper exactly
     D_OC_CHECK(( internal::has_static_size_helper<DOctArray>::value )
                    == ( observed_access_stage_of<DOctArray>::value
-                            == lifetime::both ));
+                            == DLifetime::both ));
     D_OC_CHECK(( internal::has_static_size_helper<DOctVector>::value )
                    == ( observed_access_stage_of<DOctVector>::value
-                            == lifetime::both ));
+                            == DLifetime::both ));
     D_OC_CHECK(( internal::has_static_size_helper<DOctPair>::value )
                    == ( observed_access_stage_of<DOctPair>::value
-                            == lifetime::both ));
+                            == DLifetime::both ));
     D_OC_CHECK(( internal::has_static_size_helper<DOctBare>::value )
                    == ( observed_access_stage_of<DOctBare>::value
-                            == lifetime::both ));
+                            == DLifetime::both ));
 
     return ok;
 }
@@ -145,23 +145,23 @@ bool tests_observational_stage_of()
 
     // both compile-observable
     D_OC_CHECK((observational_stage_of<DOctArray, DOctArray>::value
-                    == lifetime::both));
+                    == DLifetime::both));
     D_OC_CHECK((observational_stage_of<DOctArray, DOctPair>::value
-                    == lifetime::both));
+                    == DLifetime::both));
     D_OC_CHECK((observational_stage_of<DOctStaticSizedBare,
-                                       DOctArray>::value == lifetime::both));
+                                       DOctArray>::value == DLifetime::both));
 
     // one runtime operand drags the pair down, in either order
     D_OC_CHECK((observational_stage_of<DOctArray, DOctVector>::value
-                    == lifetime::runtime));
+                    == DLifetime::runtime));
     D_OC_CHECK((observational_stage_of<DOctVector, DOctArray>::value
-                    == lifetime::runtime));
+                    == DLifetime::runtime));
 
     // neither compile-observable
     D_OC_CHECK((observational_stage_of<DOctVector, DOctSet>::value
-                    == lifetime::runtime));
+                    == DLifetime::runtime));
     D_OC_CHECK((observational_stage_of<DOctBare, DOctBare>::value
-                    == lifetime::runtime));
+                    == DLifetime::runtime));
 
     // the definitional identity
     D_OC_CHECK((oct_stage_is_meet<DOctArray,  DOctArray>()));
@@ -268,32 +268,32 @@ bool tests_stage_range()
 
     // the single-type stage is one of two values
     D_OC_CHECK(   ( observed_access_stage_of<DOctArray>::value
-                        == lifetime::both )
+                        == DLifetime::both )
                || ( observed_access_stage_of<DOctArray>::value
-                        == lifetime::runtime ));
+                        == DLifetime::runtime ));
     D_OC_CHECK(   ( observed_access_stage_of<DOctVector>::value
-                        == lifetime::both )
+                        == DLifetime::both )
                || ( observed_access_stage_of<DOctVector>::value
-                        == lifetime::runtime ));
+                        == DLifetime::runtime ));
     D_OC_CHECK(observed_access_stage_of<DOctArray>::value
-                   != lifetime::compile_time);
-    D_OC_CHECK(observed_access_stage_of<DOctArray>::value != lifetime::none);
+                   != DLifetime::compile_time);
+    D_OC_CHECK(observed_access_stage_of<DOctArray>::value != DLifetime::none);
     D_OC_CHECK(observed_access_stage_of<DOctVector>::value
-                   != lifetime::compile_time);
-    D_OC_CHECK(observed_access_stage_of<DOctVector>::value != lifetime::none);
-    D_OC_CHECK(observed_access_stage_of<DOctBare>::value   != lifetime::none);
+                   != DLifetime::compile_time);
+    D_OC_CHECK(observed_access_stage_of<DOctVector>::value != DLifetime::none);
+    D_OC_CHECK(observed_access_stage_of<DOctBare>::value   != DLifetime::none);
 
     // and so is the pair's
     D_OC_CHECK((observational_stage_of<DOctArray, DOctArray>::value
-                    != lifetime::none));
+                    != DLifetime::none));
     D_OC_CHECK((observational_stage_of<DOctArray, DOctVector>::value
-                    != lifetime::none));
+                    != DLifetime::none));
     D_OC_CHECK((observational_stage_of<DOctVector, DOctVector>::value
-                    != lifetime::none));
+                    != DLifetime::none));
     D_OC_CHECK((observational_stage_of<DOctArray, DOctArray>::value
-                    != lifetime::compile_time));
+                    != DLifetime::compile_time));
     D_OC_CHECK((observational_stage_of<DOctArray, DOctVector>::value
-                    != lifetime::compile_time));
+                    != DLifetime::compile_time));
 
     // every comparison is at least runtime-capable
     D_OC_CHECK(is_runtime(observational_stage_of<DOctArray,
@@ -333,37 +333,37 @@ bool tests_stage_level_orthogonality()
 
     // fine level, compile-observable
     D_OC_CHECK(   ( observational_level_of<DOctArray>::value
-                        == observational_level::seq )
+                        == DObservationalLevel::seq )
                && ( observed_access_stage_of<DOctArray>::value
-                        == lifetime::both ));
+                        == DLifetime::both ));
 
     // fine level, runtime only
     D_OC_CHECK(   ( observational_level_of<DOctVector>::value
-                        == observational_level::seq )
+                        == DObservationalLevel::seq )
                && ( observed_access_stage_of<DOctVector>::value
-                        == lifetime::runtime ));
+                        == DLifetime::runtime ));
 
     // coarsest level, compile-observable
     D_OC_CHECK(   ( observational_level_of<DOctPair>::value
-                        == observational_level::none )
+                        == DObservationalLevel::none )
                && ( observed_access_stage_of<DOctPair>::value
-                        == lifetime::both ));
+                        == DLifetime::both ));
     D_OC_CHECK(   ( observational_level_of<DOctStaticSizedBare>::value
-                        == observational_level::none )
+                        == DObservationalLevel::none )
                && ( observed_access_stage_of<DOctStaticSizedBare>::value
-                        == lifetime::both ));
+                        == DLifetime::both ));
 
     // coarsest level, runtime only
     D_OC_CHECK(   ( observational_level_of<DOctBare>::value
-                        == observational_level::none )
+                        == DObservationalLevel::none )
                && ( observed_access_stage_of<DOctBare>::value
-                        == lifetime::runtime ));
+                        == DLifetime::runtime ));
 
     // a comparison may be settled at compile time and settle nothing
     D_OC_CHECK((is_compile_time_comparison<DOctPair, DOctPair>::value
                     == true));
     D_OC_CHECK((shared_observational_level<DOctPair, DOctPair>::value
-                    == observational_level::none));
+                    == DObservationalLevel::none));
 
     // moving one axis leaves the other alone: same level, differing stage
     D_OC_CHECK(   ( observational_level_of<DOctStaticSizedSize>::value
@@ -394,15 +394,15 @@ bool tests_stage_cv_ref()
 {
     bool ok = true;
 
-    D_OC_CV_REF_AGREE(observed_access_stage_of, DOctArray,  lifetime::both);
-    D_OC_CV_REF_AGREE(observed_access_stage_of, DOctPair,   lifetime::both);
-    D_OC_CV_REF_AGREE(observed_access_stage_of, DOctVector, lifetime::runtime);
-    D_OC_CV_REF_AGREE(observed_access_stage_of, DOctBare,   lifetime::runtime);
+    D_OC_CV_REF_AGREE(observed_access_stage_of, DOctArray,  DLifetime::both);
+    D_OC_CV_REF_AGREE(observed_access_stage_of, DOctPair,   DLifetime::both);
+    D_OC_CV_REF_AGREE(observed_access_stage_of, DOctVector, DLifetime::runtime);
+    D_OC_CV_REF_AGREE(observed_access_stage_of, DOctBare,   DLifetime::runtime);
 
     D_OC_CV_REF_PAIR_AGREE(observational_stage_of, DOctArray, DOctArray,
-                           lifetime::both);
+                           DLifetime::both);
     D_OC_CV_REF_PAIR_AGREE(observational_stage_of, DOctArray, DOctVector,
-                           lifetime::runtime);
+                           DLifetime::runtime);
 
     D_OC_CV_REF_PAIR_AGREE(is_compile_time_comparison, DOctArray, DOctArray,
                            true);
@@ -412,7 +412,7 @@ bool tests_stage_cv_ref()
     // both operands volatile at once
     D_OC_CHECK((observational_stage_of<volatile DOctArray,
                                        volatile DOctArray>::value
-                    == lifetime::both));
+                    == DLifetime::both));
     D_OC_CHECK((is_compile_time_comparison<const volatile DOctArray,
                                            DOctArray&&>::value == true));
 
@@ -435,16 +435,16 @@ bool tests_stage_companions()
     // the _t aliases are the integral_constants, exactly
     D_OC_STATIC_CHECK(
         std::is_same<observed_access_stage_of_t<DOctArray>,
-                     std::integral_constant<lifetime::value,
-                                            lifetime::both> >::value);
+                     std::integral_constant<DLifetime::value,
+                                            DLifetime::both> >::value);
     D_OC_STATIC_CHECK(
         std::is_same<observed_access_stage_of_t<DOctVector>,
-                     std::integral_constant<lifetime::value,
-                                            lifetime::runtime> >::value);
+                     std::integral_constant<DLifetime::value,
+                                            DLifetime::runtime> >::value);
     D_OC_STATIC_CHECK(
         std::is_same<observational_stage_of_t<DOctArray, DOctVector>,
-                     std::integral_constant<lifetime::value,
-                                            lifetime::runtime> >::value);
+                     std::integral_constant<DLifetime::value,
+                                            DLifetime::runtime> >::value);
 
     // ... and carry the same values the traits report
     D_OC_CHECK(observed_access_stage_of_t<DOctPair>::value
@@ -454,13 +454,13 @@ bool tests_stage_companions()
 
     // usable in a constant expression
     D_OC_STATIC_CHECK(observed_access_stage_of<DOctArray>::value
-                          == lifetime::both);
+                          == DLifetime::both);
     D_OC_STATIC_CHECK(
         (is_compile_time_comparison<DOctArray, DOctArray>::value));
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
-    D_OC_STATIC_CHECK(observed_access_stage_of_v<DOctArray> == lifetime::both);
+    D_OC_STATIC_CHECK(observed_access_stage_of_v<DOctArray> == DLifetime::both);
     D_OC_STATIC_CHECK((is_compile_time_comparison_v<DOctArray, DOctArray>));
 
     D_OC_CHECK(observed_access_stage_of_v<DOctVector>

@@ -118,23 +118,23 @@ NS_DJINTERP
 // I.   parse_grid_options
 // ===========================================================================
 
-// parse_grid_options
+// DParseGridOptions
 //   struct: the text dialect's knobs -- the runtime face of the policy
 // surface. The option pack fixes these at compile time (table_options.hpp);
 // this carries the same grades for text whose strictness is only known when it
 // is read.
-struct parse_grid_options
+struct DParseGridOptions
 {
     char             delimiter;       // the cell delimiter
     char             separator_fill;  // the fill that marks a separator line
-    table_strictness cell_count;      // how strictly a row must cover the columns
-    trim_policy      trim;            // whether cell text is trimmed
+    DTableStrictness cell_count;      // how strictly a row must cover the columns
+    DTrimPolicy      trim;            // whether cell text is trimmed
     bool             skip_blank;      // ignore blank lines between rows
 
     //   Every field is READ from the resolved config: the characters so render
     // and parse cannot drift apart, and the grades so the runtime dialect
     // starts where the compile-time defaults do. One knob, one home.
-    parse_grid_options()
+    DParseGridOptions()
         : delimiter(D_INTERNAL_TABLE_DELIMITER),
           separator_fill(D_INTERNAL_TABLE_SEPARATOR_FILL),
           cell_count(default_cell_count),
@@ -143,23 +143,26 @@ struct parse_grid_options
     {}
 };
 
+// old name, until 0.9.0-rc.1
+using parse_grid_options = DParseGridOptions;
+
 
 // ===========================================================================
 // II.  grid_line
 // ===========================================================================
 
-// grid_line
+// DGridLine
 //   struct: one scanned line of the grid -- where its delimiters fell and what
 // lay between them. The delimiter OFFSETS are the load-bearing part: they are
 // what the spans are read from.
-struct grid_line
+struct DGridLine
 {
     std::vector<std::size_t> delimiters;   // the delimiter column offsets
     std::vector<std::string> cells;        // the text between them
     std::size_t              line_offset;  // where the line began in the input
     bool                     is_separator; // a rule line, not a row
 
-    grid_line()
+    DGridLine()
         : delimiters(),
           cells(),
           line_offset(0),
@@ -172,6 +175,9 @@ struct grid_line
         return cells.size();
     }
 };
+
+// old name, until 0.9.0-rc.1
+using grid_line = DGridLine;
 
 
 // ===========================================================================
@@ -221,7 +227,7 @@ NS_INTERNAL
     inline
     bool looks_like_separator(
         const std::string&        _line,
-        const parse_grid_options& _opts
+        const DParseGridOptions& _opts
     )
     {
         bool _saw_fill = false;
@@ -253,13 +259,13 @@ NS_END  // internal
 //   function: one line of the grid -- its delimiter offsets and the text
 // between them. The offsets are recorded RELATIVE TO THE LINE, which is the
 // coordinate the spans are read in.
-D_NODISCARD inline grid_line scan_line(
+D_NODISCARD inline DGridLine scan_line(
     const std::string&        _line,
     std::size_t               _line_offset,
-    const parse_grid_options& _opts = parse_grid_options()
+    const DParseGridOptions& _opts = DParseGridOptions()
 )
 {
-    grid_line _g;
+    DGridLine _g;
 
     _g.line_offset  = _line_offset;
     _g.is_separator = internal::looks_like_separator(_line, _opts);
@@ -281,7 +287,7 @@ D_NODISCARD inline grid_line scan_line(
 
         std::string _text = _line.substr(_b, _e - _b);
 
-        if (_opts.trim == trim_policy::trim)
+        if (_opts.trim == DTrimPolicy::trim)
         {
             _text = internal::grid_trim(_text);
         }
@@ -295,12 +301,12 @@ D_NODISCARD inline grid_line scan_line(
 // scan_grid
 //   function: the input's lines, scanned. Blank lines are skipped when the
 // dialect says so; every other line becomes a grid_line, separator or not.
-D_NODISCARD inline std::vector<grid_line> scan_grid(
+D_NODISCARD inline std::vector<DGridLine> scan_grid(
     parse::parse_state<char>& _state,
-    const parse_grid_options& _opts = parse_grid_options()
+    const DParseGridOptions& _opts = DParseGridOptions()
 )
 {
-    std::vector<grid_line> _lines;
+    std::vector<DGridLine> _lines;
 
     // walk the residual Σ*, a line at a time, advancing the state as we go
     while (!_state.at_end())
@@ -332,7 +338,7 @@ D_NODISCARD inline std::vector<grid_line> scan_grid(
             }
         }
 
-        const grid_line _g = scan_line(_line, _begin, _opts);
+        const DGridLine _g = scan_line(_line, _begin, _opts);
 
         // a line with no delimiters is not part of the grid
         if (_g.delimiters.size() < 2)
@@ -363,7 +369,7 @@ D_NODISCARD inline std::vector<grid_line> scan_grid(
 // COARSER than the atomic grid; no line can resolve more columns than the
 // atomic table has. Separator lines are ignored -- a rule resolves nothing.
 D_NODISCARD inline std::vector<std::size_t> column_boundaries(
-    const std::vector<grid_line>& _lines
+    const std::vector<DGridLine>& _lines
 )
 {
     std::vector<std::size_t> _best;
@@ -431,14 +437,14 @@ NS_INTERNAL
     // so the two front ends enforce one rule.
     inline
     bool row_span_ok(
-        table_strictness _s,
+        DTableStrictness _s,
         std::size_t      _covered,
         std::size_t      _required
     )
     {
-        return ( (_s == table_strictness::exact)    ? (_covered == _required)
-               : (_s == table_strictness::truncate) ? (_covered >= _required)
-               : (_s == table_strictness::pad)      ? (_covered <= _required)
+        return ( (_s == DTableStrictness::exact)    ? (_covered == _required)
+               : (_s == DTableStrictness::truncate) ? (_covered >= _required)
+               : (_s == DTableStrictness::pad)      ? (_covered <= _required)
                :                                      true );
     }
 
@@ -451,8 +457,8 @@ NS_INTERNAL
              typename Metadata>
     inline
     std::size_t fill_row(
-        table_model_value<Cell, Metadata>& _model,
-        const grid_line&                   _line,
+        DTableModelValue<Cell, Metadata>& _model,
+        const DGridLine&                   _line,
         const std::vector<std::size_t>&    _boundaries,
         std::size_t                        _r
     )
@@ -500,12 +506,12 @@ NS_INTERNAL
     // body cell's is. This is what makes a grouped header ("coordinate" over
     // x, y, z) survive the round trip.
     inline
-    header_level<std::string> header_level_of(
-        const grid_line&                _line,
+    DHeaderLevel<std::string> header_level_of(
+        const DGridLine&                _line,
         const std::vector<std::size_t>& _boundaries
     )
     {
-        header_level<std::string> _level;
+        DHeaderLevel<std::string> _level;
 
         const std::size_t _width = grid_width(_boundaries);
 
@@ -525,7 +531,7 @@ NS_INTERNAL
             const std::size_t _fit =
                 ((_c + _span) > _width) ? (_width - _c) : _span;
 
-            _level.push_back(header_cell<std::string>(_line.cells[_i], _fit));
+            _level.push_back(DHeaderCell<std::string>(_line.cells[_i], _fit));
 
             _c += _fit;
         }
@@ -550,18 +556,18 @@ NS_END  // internal
 //   parse::parse_result<table_model_value<>> r = parse_table(st);
 //   if (r.ok()) { const auto& m = r.value(); ... }
 template<typename Cell      = std::string,
-         typename Metadata = table_metadata<>>
-D_NODISCARD parse::parse_result<table_model_value<Cell, Metadata>>
+         typename Metadata = DTableMetadata<>>
+D_NODISCARD parse::parse_result<DTableModelValue<Cell, Metadata>>
 parse_table(
     parse::parse_state<char>&        _state,
-    const parse_grid_options& _opts = parse_grid_options())
+    const DParseGridOptions& _opts = DParseGridOptions())
 {
-    using model_type  = table_model_value<Cell, Metadata>;
+    using model_type  = DTableModelValue<Cell, Metadata>;
     using result_type = parse::parse_result<model_type>;
 
     const std::size_t _origin = _state.offset;
 
-    const std::vector<grid_line> _lines = scan_grid(_state, _opts);
+    const std::vector<DGridLine> _lines = scan_grid(_state, _opts);
 
     // a grid needs at least one delimited line
     if (_lines.empty())
@@ -599,7 +605,7 @@ parse_table(
     const bool _has_headers = (_sep < _lines.size());
 
     // the body is everything after the separator, or the whole grid without one
-    std::vector<const grid_line*> _body;
+    std::vector<const DGridLine*> _body;
 
     for (std::size_t _i = (_has_headers ? (_sep + 1) : 0);
          _i < _lines.size();
@@ -637,7 +643,7 @@ parse_table(
     //    first, its groupings read the same way the body's merges are
     if (_has_headers && (_sep > 0))
     {
-        header_stack<std::string> _stack;
+        DHeaderStack<std::string> _stack;
 
         for (std::size_t _i = 0; _i < _sep; ++_i)
         {
@@ -654,11 +660,11 @@ parse_table(
 //   function: parse_table over a std::string -- the convenience face, for when
 // there is no residual to thread.
 template<typename Cell      = std::string,
-         typename Metadata = table_metadata<>>
-D_NODISCARD parse::parse_result<table_model_value<Cell, Metadata>>
+         typename Metadata = DTableMetadata<>>
+D_NODISCARD parse::parse_result<DTableModelValue<Cell, Metadata>>
 parse_table_text(
     const std::string&        _text,
-    const parse_grid_options& _opts = parse_grid_options())
+    const DParseGridOptions& _opts = DParseGridOptions())
 {
     parse::parse_state<char> _state(_text.data(), _text.size());
 
@@ -681,10 +687,10 @@ parse_table_text(
 // form.
 D_NODISCARD inline bool renders_to_same_text(
     const std::string&        _text,
-    const parse_grid_options& _opts = parse_grid_options()
+    const DParseGridOptions& _opts = DParseGridOptions()
 )
 {
-    parse::parse_result<table_model_value<>> _r = parse_table_text<>(_text, _opts);
+    parse::parse_result<DTableModelValue<>> _r = parse_table_text<>(_text, _opts);
 
     if (!_r.ok())
     {
@@ -703,8 +709,8 @@ D_NODISCARD inline bool renders_to_same_text(
 template<typename Cell,
          typename Metadata>
 D_NODISCARD bool models_equal(
-    const table_model_value<Cell, Metadata>& _a,
-    const table_model_value<Cell, Metadata>& _b
+    const DTableModelValue<Cell, Metadata>& _a,
+    const DTableModelValue<Cell, Metadata>& _b
 )
 {
     if ((_a.rows() != _b.rows()) || (_a.cols() != _b.cols()))
@@ -722,8 +728,8 @@ D_NODISCARD bool models_equal(
         for (std::size_t _c = 0; _c < _a.cols(); ++_c)
         {
             // the cover must agree position by position ...
-            const region_value _oa = _a.layout().owner_of(_r, _c);
-            const region_value _ob = _b.layout().owner_of(_r, _c);
+            const DRegionValue _oa = _a.layout().owner_of(_r, _c);
+            const DRegionValue _ob = _b.layout().owner_of(_r, _c);
 
             if ( (_oa.row0 != _ob.row0) || (_oa.col0 != _ob.col0) ||
                  (_oa.rows != _ob.rows) || (_oa.cols != _ob.cols) )
@@ -751,15 +757,15 @@ D_NODISCARD bool models_equal(
 template<typename Cell,
          typename Metadata>
 D_NODISCARD bool survives_round_trip(
-    const table_model_value<Cell, Metadata>& _model,
-    const parse_grid_options&                _opts = parse_grid_options()
+    const DTableModelValue<Cell, Metadata>& _model,
+    const DParseGridOptions&                _opts = DParseGridOptions()
 )
 {
     const std::string _text = render(_model);
 
     parse::parse_state<char> _state(_text.data(), _text.size());
 
-    parse::parse_result<table_model_value<Cell, Metadata>> _r =
+    parse::parse_result<DTableModelValue<Cell, Metadata>> _r =
         parse_table<Cell, Metadata>(_state, _opts);
 
     if (!_r.ok())

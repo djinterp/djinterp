@@ -130,24 +130,24 @@ bool path_is_separator(
 //  path_component
 // ================================================================
 
-// path_component
+// DPathComponent
 //   struct: a lightweight, non-owning view into a path string.
 // Represents a single component (directory name, filename, etc.)
 // by offset and length into the original string.
-struct path_component
+struct DPathComponent
 {
     std::size_t offset;
     std::size_t length;
 
     // path_component (default)
-    path_component
+    DPathComponent
     ()
         : offset(0),
           length(0)
     {}
 
     // path_component (parameterized)
-    path_component
+    DPathComponent
     (
         std::size_t _offset,
         std::size_t _length
@@ -181,6 +181,9 @@ struct path_component
     }
 };
 
+// old name, until 0.9.0-rc.1
+using path_component = DPathComponent;
+
 
 // ================================================================
 //  path_split
@@ -191,12 +194,12 @@ struct path_component
 // Leading separators are consumed but not emitted.
 // Empty components (from double separators) are skipped.
 inline
-std::vector<path_component> path_split(
+std::vector<DPathComponent> path_split(
     const char* _path,
     std::size_t _len
 )
 {
-    std::vector<path_component> result;
+    std::vector<DPathComponent> result;
 
     std::size_t i = 0;
 
@@ -221,7 +224,7 @@ std::vector<path_component> path_split(
             ++i;
         }
 
-        result.push_back(path_component(start, i - start));
+        result.push_back(DPathComponent(start, i - start));
     }
 
     return result;
@@ -229,7 +232,7 @@ std::vector<path_component> path_split(
 
 // path_split (std::string overload)
 inline
-std::vector<path_component> path_split(
+std::vector<DPathComponent> path_split(
     const std::string& _path
 )
 {

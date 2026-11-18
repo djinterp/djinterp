@@ -34,20 +34,20 @@ bool tests_order_relation_enum()
 {
     bool ok = true;
 
-    using underlying = std::underlying_type<order_relation>::type;
+    using underlying = std::underlying_type<DOrderRelation>::type;
 
-    D_CCM_CHECK(std::is_enum<order_relation>::value);
-    D_CCM_CHECK(!std::is_convertible<order_relation, underlying>::value);
+    D_CCM_CHECK(std::is_enum<DOrderRelation>::value);
+    D_CCM_CHECK(!std::is_convertible<DOrderRelation, underlying>::value);
 
-    D_CCM_CHECK(order_relation::equivalent != order_relation::less);
-    D_CCM_CHECK(order_relation::less != order_relation::greater);
-    D_CCM_CHECK(order_relation::greater != order_relation::incomparable);
-    D_CCM_CHECK(order_relation::equivalent != order_relation::incomparable);
+    D_CCM_CHECK(DOrderRelation::equivalent != DOrderRelation::less);
+    D_CCM_CHECK(DOrderRelation::less != DOrderRelation::greater);
+    D_CCM_CHECK(DOrderRelation::greater != DOrderRelation::incomparable);
+    D_CCM_CHECK(DOrderRelation::equivalent != DOrderRelation::incomparable);
 
-    D_CCM_CHECK(static_cast<int>(order_relation::equivalent) == 0);
-    D_CCM_CHECK(static_cast<int>(order_relation::less) == 1);
-    D_CCM_CHECK(static_cast<int>(order_relation::greater) == 2);
-    D_CCM_CHECK(static_cast<int>(order_relation::incomparable) == 3);
+    D_CCM_CHECK(static_cast<int>(DOrderRelation::equivalent) == 0);
+    D_CCM_CHECK(static_cast<int>(DOrderRelation::less) == 1);
+    D_CCM_CHECK(static_cast<int>(DOrderRelation::greater) == 2);
+    D_CCM_CHECK(static_cast<int>(DOrderRelation::incomparable) == 3);
 
     return ok;
 }
@@ -71,31 +71,31 @@ bool tests_order_relation_name()
 {
     bool ok = true;
 
-    D_CCM_CHECK(std::strcmp(order_relation_name(order_relation::equivalent),
+    D_CCM_CHECK(std::strcmp(order_relation_name(DOrderRelation::equivalent),
                             "equivalent") == 0);
-    D_CCM_CHECK(std::strcmp(order_relation_name(order_relation::less),
+    D_CCM_CHECK(std::strcmp(order_relation_name(DOrderRelation::less),
                             "less") == 0);
-    D_CCM_CHECK(std::strcmp(order_relation_name(order_relation::greater),
+    D_CCM_CHECK(std::strcmp(order_relation_name(DOrderRelation::greater),
                             "greater") == 0);
-    D_CCM_CHECK(std::strcmp(order_relation_name(order_relation::incomparable),
+    D_CCM_CHECK(std::strcmp(order_relation_name(DOrderRelation::incomparable),
                             "incomparable") == 0);
 
     // distinct, and never null
-    D_CCM_CHECK(order_relation_name(order_relation::equivalent) != nullptr);
-    D_CCM_CHECK(std::strcmp(order_relation_name(order_relation::less),
-                            order_relation_name(order_relation::greater)) != 0);
+    D_CCM_CHECK(order_relation_name(DOrderRelation::equivalent) != nullptr);
+    D_CCM_CHECK(std::strcmp(order_relation_name(DOrderRelation::less),
+                            order_relation_name(DOrderRelation::greater)) != 0);
 
     // constexpr: usable during constant evaluation
     D_CONSTEXPR const char* greater_name =
-        order_relation_name(order_relation::greater);
+        order_relation_name(DOrderRelation::greater);
 
     D_CCM_CHECK(std::strcmp(greater_name, "greater") == 0);
 
     // noexcept
-    D_CCM_CHECK(noexcept(order_relation_name(order_relation::less)));
+    D_CCM_CHECK(noexcept(order_relation_name(DOrderRelation::less)));
 
     // the fall-through, which happens to be the safe default
-    const order_relation out_of_range = static_cast<order_relation>(42);
+    const DOrderRelation out_of_range = static_cast<DOrderRelation>(42);
 
     D_CCM_CHECK(order_relation_name(out_of_range) != nullptr);
     D_CCM_CHECK(std::strcmp(order_relation_name(out_of_range),
@@ -132,10 +132,10 @@ bool tests_order_relation_meet_table()
 {
     bool ok = true;
 
-    D_CONSTEXPR order_relation eq = order_relation::equivalent;
-    D_CONSTEXPR order_relation ls = order_relation::less;
-    D_CONSTEXPR order_relation gt = order_relation::greater;
-    D_CONSTEXPR order_relation ic = order_relation::incomparable;
+    D_CONSTEXPR DOrderRelation eq = DOrderRelation::equivalent;
+    D_CONSTEXPR DOrderRelation ls = DOrderRelation::less;
+    D_CONSTEXPR DOrderRelation gt = DOrderRelation::greater;
+    D_CONSTEXPR DOrderRelation ic = DOrderRelation::incomparable;
 
     // row: equivalent (the unit)
     D_CCM_REL(eq, order_relation_meet(eq, eq));
@@ -162,7 +162,7 @@ bool tests_order_relation_meet_table()
     D_CCM_REL(ic, order_relation_meet(ic, ic));
 
     // it is constexpr and noexcept
-    D_CONSTEXPR order_relation folded =
+    D_CONSTEXPR DOrderRelation folded =
         order_relation_meet(order_relation_meet(gt, eq), gt);
 
     D_CCM_REL(gt, folded);
@@ -199,31 +199,31 @@ bool tests_order_relation_meet_laws()
 {
     bool ok = true;
 
-    D_CONSTEXPR order_relation all[4] = { order_relation::equivalent,
-                                          order_relation::less,
-                                          order_relation::greater,
-                                          order_relation::incomparable };
+    D_CONSTEXPR DOrderRelation all[4] = { DOrderRelation::equivalent,
+                                          DOrderRelation::less,
+                                          DOrderRelation::greater,
+                                          DOrderRelation::incomparable };
 
     for (int i = 0; i < 4; ++i)
     {
-        const order_relation a = all[i];
+        const DOrderRelation a = all[i];
 
         // idempotent
         D_CCM_CHECK(order_relation_meet(a, a) == a);
 
         // identity
-        D_CCM_CHECK(order_relation_meet(order_relation::equivalent, a) == a);
-        D_CCM_CHECK(order_relation_meet(a, order_relation::equivalent) == a);
+        D_CCM_CHECK(order_relation_meet(DOrderRelation::equivalent, a) == a);
+        D_CCM_CHECK(order_relation_meet(a, DOrderRelation::equivalent) == a);
 
         // absorbing
-        D_CCM_CHECK(order_relation_meet(order_relation::incomparable, a) ==
-                    order_relation::incomparable);
-        D_CCM_CHECK(order_relation_meet(a, order_relation::incomparable) ==
-                    order_relation::incomparable);
+        D_CCM_CHECK(order_relation_meet(DOrderRelation::incomparable, a) ==
+                    DOrderRelation::incomparable);
+        D_CCM_CHECK(order_relation_meet(a, DOrderRelation::incomparable) ==
+                    DOrderRelation::incomparable);
 
         for (int j = 0; j < 4; ++j)
         {
-            const order_relation b = all[j];
+            const DOrderRelation b = all[j];
 
             // commutative
             D_CCM_CHECK(order_relation_meet(a, b) ==
@@ -231,7 +231,7 @@ bool tests_order_relation_meet_laws()
 
             for (int k = 0; k < 4; ++k)
             {
-                const order_relation c = all[k];
+                const DOrderRelation c = all[k];
 
                 // associative - all 64 triples
                 D_CCM_CHECK(order_relation_meet(order_relation_meet(a, b), c) ==
@@ -243,23 +243,23 @@ bool tests_order_relation_meet_laws()
     // ...so the fold order in DComparisonProfile::refinement is immaterial, which
     // is worth stating outright, because the header fixes one and a reader has no
     // way to know it did not have to
-    D_CONSTEXPR order_relation as_written =
+    D_CONSTEXPR DOrderRelation as_written =
         order_relation_meet(
             order_relation_meet(
-                order_relation_meet(order_relation::greater,
-                                    order_relation::equivalent),
-                order_relation::greater),
-            order_relation::equivalent);
+                order_relation_meet(DOrderRelation::greater,
+                                    DOrderRelation::equivalent),
+                DOrderRelation::greater),
+            DOrderRelation::equivalent);
 
-    D_CONSTEXPR order_relation reordered =
+    D_CONSTEXPR DOrderRelation reordered =
         order_relation_meet(
-            order_relation::equivalent,
+            DOrderRelation::equivalent,
             order_relation_meet(
-                order_relation::greater,
-                order_relation_meet(order_relation::equivalent,
-                                    order_relation::greater)));
+                DOrderRelation::greater,
+                order_relation_meet(DOrderRelation::equivalent,
+                                    DOrderRelation::greater)));
 
-    D_CCM_REL(order_relation::greater, as_written);
+    D_CCM_REL(DOrderRelation::greater, as_written);
     D_CCM_CHECK(as_written == reordered);
 
     return ok;

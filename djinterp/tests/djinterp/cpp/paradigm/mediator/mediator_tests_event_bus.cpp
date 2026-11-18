@@ -32,10 +32,10 @@ tests_subscription_token_type
 */
 bool tests_subscription_token_type()
 {
-    static_assert(std::is_same<subscription_id, std::size_t>::value,
+    static_assert(std::is_same<DSubscriptionId, std::size_t>::value,
                   "subscription_id is std::size_t");
 
-    return std::is_same<subscription_id, std::size_t>::value;
+    return std::is_same<DSubscriptionId, std::size_t>::value;
 }
 
 /*
@@ -47,7 +47,7 @@ tests_event_bus_subscribe_publish
 */
 bool tests_event_bus_subscribe_publish()
 {
-    event_bus bus;
+    DEventBus bus;
     int       seen = 0;
 
     bus.subscribe<ping>([&](const ping& _e) { seen += _e.n; });
@@ -70,7 +70,7 @@ tests_event_bus_type_filtering
 */
 bool tests_event_bus_type_filtering()
 {
-    event_bus bus;
+    DEventBus bus;
     int       pings = 0;
     int       pongs = 0;
 
@@ -98,7 +98,7 @@ tests_event_bus_multiple_handlers
 */
 bool tests_event_bus_multiple_handlers()
 {
-    event_bus bus;
+    DEventBus bus;
     int       total = 0;
 
     bus.subscribe<ping>([&](const ping& _e) { total += _e.n; });
@@ -123,11 +123,11 @@ tests_event_bus_unsubscribe
 */
 bool tests_event_bus_unsubscribe()
 {
-    event_bus bus;
+    DEventBus bus;
     int       a = 0;
     int       b = 0;
 
-    subscription_id tok = bus.subscribe<ping>([&](const ping&) { ++a; });
+    DSubscriptionId tok = bus.subscribe<ping>([&](const ping&) { ++a; });
     bus.subscribe<ping>([&](const ping&) { ++b; });
 
     bus.unsubscribe(tok);
@@ -149,7 +149,7 @@ tests_event_bus_publish_move
 */
 bool tests_event_bus_publish_move()
 {
-    event_bus bus;
+    DEventBus bus;
     int       seen = 0;
 
     bus.subscribe<ping>([&](const ping& _e) { seen = _e.n; });
@@ -167,7 +167,7 @@ tests_event_bus_publish_lvalue
 */
 bool tests_event_bus_publish_lvalue()
 {
-    event_bus bus;
+    DEventBus bus;
     int       seen = 0;
 
     bus.subscribe<ping>([&](const ping& _e) { seen = _e.n; });
@@ -186,7 +186,7 @@ tests_event_bus_notify
 */
 bool tests_event_bus_notify()
 {
-    event_bus bus;
+    DEventBus bus;
     int       seen = 0;
 
     bus.subscribe<ping>([&](const ping& _e) { seen = _e.n; });
@@ -206,7 +206,7 @@ tests_event_bus_notify_type_gated
 */
 bool tests_event_bus_notify_type_gated()
 {
-    event_bus bus;
+    DEventBus bus;
     int       pings = 0;
 
     bus.subscribe<ping>([&](const ping&) { ++pings; });
@@ -230,7 +230,7 @@ tests_event_bus_handler_counts
 */
 bool tests_event_bus_handler_counts()
 {
-    event_bus bus;
+    DEventBus bus;
 
     bus.subscribe<ping>([](const ping&) {});
     bus.subscribe<ping>([](const ping&) {});
@@ -255,7 +255,7 @@ tests_event_bus_clear
 */
 bool tests_event_bus_clear()
 {
-    event_bus bus;
+    DEventBus bus;
     int       seen = 0;
 
     bus.subscribe<ping>([&](const ping&) { ++seen; });

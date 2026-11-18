@@ -47,8 +47,8 @@ bool tests_buffer_base_reset()
 
     // --- write_only: reset zeros write cursor, retains storage ---
     {
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(64);
 
         b.write(src, 16);
 
@@ -82,8 +82,8 @@ bool tests_buffer_base_reset()
 
     // --- dual: reset zeros both cursors, retains storage ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 16);
         b.advance(8);  // consume half
@@ -130,8 +130,8 @@ bool tests_buffer_base_reset()
 
     // --- idle reset: no-op on a fresh buffer ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(32);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(32);
 
         b.reset();
 
@@ -150,8 +150,8 @@ bool tests_buffer_base_reset()
 
     // --- idempotence: reset() twice ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 16);
         b.advance(4);
@@ -195,8 +195,8 @@ bool tests_buffer_base_clear()
 
     // --- write_only: clear zeros cursors AND storage ---
     {
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(64);
 
         b.write(src, 16);
 
@@ -242,8 +242,8 @@ bool tests_buffer_base_clear()
 
     // --- dual: clear zeros both cursors AND storage ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 16);
         b.advance(8);
@@ -289,8 +289,8 @@ bool tests_buffer_base_clear()
 
     // --- zero-capacity: clear() must be safe (no memset on null) ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b;  // no allocation
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b;  // no allocation
 
         record_assertion(ok,
             b.capacity() == 0,
@@ -318,8 +318,8 @@ bool tests_buffer_base_clear()
 
     // --- idempotence: clear() twice ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(32);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(32);
 
         b.write(src, 16);
         b.clear();
@@ -362,8 +362,8 @@ bool tests_buffer_base_reserve()
 
     // --- already-sufficient: no grow, returns true ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(128);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(128);
 
         std::size_t grows_before = b.grow_call_count();
 
@@ -384,8 +384,8 @@ bool tests_buffer_base_reserve()
 
     // --- exact-match: requesting current capacity also short-circuits ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(128);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(128);
 
         std::size_t grows_before = b.grow_call_count();
 
@@ -402,8 +402,8 @@ bool tests_buffer_base_reserve()
 
     // --- reserve(0) on an empty buffer is trivially sufficient ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b;  // capacity 0
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b;  // capacity 0
 
         std::size_t grows_before = b.grow_call_count();
 
@@ -420,8 +420,8 @@ bool tests_buffer_base_reserve()
 
     // --- growable + needs growth: dispatches to grow(), succeeds ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         std::size_t grows_before = b.grow_call_count();
 
@@ -448,8 +448,8 @@ bool tests_buffer_base_reserve()
     // --- growable + cursor state preserved across grow ---
     {
         const char  src[] = "ABCDEFGH";
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 8);
         b.advance(3);
@@ -475,8 +475,8 @@ bool tests_buffer_base_reserve()
 
     // --- fixed + insufficient: returns false, grow() NOT called ---
     {
-        mock_buffer<fixed_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DFixedGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         std::size_t grows_before = b.grow_call_count();
 
@@ -497,8 +497,8 @@ bool tests_buffer_base_reserve()
 
     // --- fixed + already-sufficient: returns true ---
     {
-        mock_buffer<fixed_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DFixedGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         bool ok = b.reserve(64);
 
@@ -509,8 +509,8 @@ bool tests_buffer_base_reserve()
 
     // --- growable + grow failure: returns false ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.force_next_grow_failure();
 
@@ -557,8 +557,8 @@ bool tests_buffer_base_move_construction()
 
     // --- dual cursor: full state transfer ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> a(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> a(64);
 
         a.write(src, 16);
         a.advance(5);
@@ -572,10 +572,10 @@ bool tests_buffer_base_move_construction()
             a.read_position() == 5,
             "move-ctor: dual source precondition - read_position == 5");
 
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(static_cast<
-                        mock_buffer<exponential_growth_policy,
-                                    dual_cursor_policy>&&>(a));
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(static_cast<
+                        mock_buffer<DExponentialGrowthPolicy,
+                                    DDualCursorPolicy>&&>(a));
 
         // destination inherits cursor state
         record_assertion(ok,
@@ -626,15 +626,15 @@ bool tests_buffer_base_move_construction()
 
     // --- write_only cursor: single-cursor transfer ---
     {
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> a(32);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> a(32);
 
         a.write(src, 12);
 
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> b(static_cast<
-                        mock_buffer<exponential_growth_policy,
-                                    write_only_cursor_policy>&&>(a));
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(static_cast<
+                        mock_buffer<DExponentialGrowthPolicy,
+                                    DWriteOnlyCursorPolicy>&&>(a));
 
         record_assertion(ok,
             b.write_position() == 12,
@@ -659,13 +659,13 @@ bool tests_buffer_base_move_construction()
 
     // --- moving an idle buffer: both ends end up empty ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> a;  // empty, zero capacity
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> a;  // empty, zero capacity
 
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(static_cast<
-                        mock_buffer<exponential_growth_policy,
-                                    dual_cursor_policy>&&>(a));
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(static_cast<
+                        mock_buffer<DExponentialGrowthPolicy,
+                                    DDualCursorPolicy>&&>(a));
 
         record_assertion(ok,
             b.write_position() == 0,
@@ -711,14 +711,14 @@ bool tests_buffer_base_move_assignment()
 
     // --- normal move-assign: a -> b, where b has prior storage ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> a(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> a(64);
 
         a.write(src, 16);
         a.advance(4);
 
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(32);  // distinct prior storage
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(32);  // distinct prior storage
 
         // write into b so its cursors are nonzero before assignment
         char filler[8] = {'X','X','X','X','X','X','X','X'};
@@ -729,8 +729,8 @@ bool tests_buffer_base_move_assignment()
             "move-assign: destination precondition - write_position == 8");
 
         b = static_cast<
-                mock_buffer<exponential_growth_policy,
-                            dual_cursor_policy>&&>(a);
+                mock_buffer<DExponentialGrowthPolicy,
+                            DDualCursorPolicy>&&>(a);
 
         // destination now mirrors source's prior state
         record_assertion(ok,
@@ -781,8 +781,8 @@ bool tests_buffer_base_move_assignment()
 
     // --- self-move-assignment guard: no-op, state preserved ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 16);
         b.advance(3);
@@ -793,12 +793,12 @@ bool tests_buffer_base_move_assignment()
         // Hide the self-move from the compiler via a reference so the
         // self-assignment guard inside operator= actually fires at
         // runtime. Writing `b = std::move(b)` triggers a warning.
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy>& alias = b;
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy>& alias = b;
 
         b = static_cast<
-                mock_buffer<exponential_growth_policy,
-                            dual_cursor_policy>&&>(alias);
+                mock_buffer<DExponentialGrowthPolicy,
+                            DDualCursorPolicy>&&>(alias);
 
         record_assertion(ok,
             b.write_position() == 16,
@@ -823,17 +823,17 @@ bool tests_buffer_base_move_assignment()
 
     // --- write_only flavor: single-cursor transfer ---
     {
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> a(32);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> a(32);
 
         a.write(src, 10);
 
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> b;  // empty
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b;  // empty
 
         b = static_cast<
-                mock_buffer<exponential_growth_policy,
-                            write_only_cursor_policy>&&>(a);
+                mock_buffer<DExponentialGrowthPolicy,
+                            DWriteOnlyCursorPolicy>&&>(a);
 
         record_assertion(ok,
             b.write_position() == 10,

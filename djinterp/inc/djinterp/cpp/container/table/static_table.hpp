@@ -86,7 +86,7 @@ NS_DJINTERP
 // I.   is_static_table (detection trait)
 // ===========================================================================
 
-// static_table (fwd)
+// DStaticTable (fwd)
 //   class: forward declaration for the detection trait below.
 template<typename    Type,
          std::size_t Rows,
@@ -96,7 +96,7 @@ template<typename    Type,
          typename    Iterator,
          typename    ConstIterator,
          typename... Options>
-class static_table;
+class DStaticTable;
 
 // is_static_table
 //   trait: true when Type (after stripping cv/ref) is a specialization of
@@ -115,7 +115,7 @@ NS_INTERNAL
              typename    I,
              typename    CI,
              typename... O>
-    struct is_static_table_impl<static_table<T, R, C, D, S, I, CI, O...>>
+    struct is_static_table_impl<DStaticTable<T, R, C, D, S, I, CI, O...>>
         : std::true_type
     {};
 
@@ -137,7 +137,7 @@ inline constexpr bool is_static_table_v = is_static_table<Type>::value;
 // II.  static_table (class)
 // ===========================================================================
 
-// static_table
+// DStaticTable
 //   class: a compile-time-constant rank-2 cell-homogeneous table of Rows by
 // Cols cells, stored row-major in an inline std::array. Immutable: it exposes
 // only the const surface inherited from table_base.
@@ -149,8 +149,8 @@ template<typename    Type,
          typename    Iterator        = const Type*,
          typename    ConstIterator   = const Type*,
          typename... Options>
-class static_table
-    : public table_base<static_table<Type,
+class DStaticTable
+    : public DTableBase<DStaticTable<Type,
                                      Rows,
                                      Cols,
                                      DifferenceType,
@@ -161,10 +161,10 @@ class static_table
                         Type,
                         SizeType,
                         DifferenceType>,
-      public options_container_base<Options...>
+      public DOptionsContainerBase<Options...>
 {
 private:
-    using base_type = table_base<static_table,
+    using base_type = DTableBase<DStaticTable,
                                  Type,
                                  SizeType,
                                  DifferenceType>;
@@ -193,22 +193,22 @@ public:
 
     // --- axis positions (the first few axes, then the ones that follow) ---
 
-    static constexpr container_lifetime      lifetime      =
-        container_lifetime::constexpr_storage;
+    static constexpr DContainerLifetime      lifetime      =
+        DContainerLifetime::constexpr_storage;
     static constexpr DContainerStorageKind  storage_kind  =
         DContainerStorageKind::static_storage;
-    static constexpr mutability              mutability_grade =
-        mutability::immutable;
+    static constexpr DMutability              mutability_grade =
+        DMutability::immutable;
     static constexpr DContainerOrdering      ordering      =
         DContainerOrdering::ordered;
     static constexpr DContainerBounds        bounds        =
         DContainerBounds::bounded;
-    static constexpr container_iterability   iterability   =
-        container_iterability::iterable;
+    static constexpr DContainerIterability   iterability   =
+        DContainerIterability::iterable;
     static constexpr DContainerMultiplicity  multiplicity_grade =
         DContainerMultiplicity::multi;   // m = infinity; cells keyed by position
-    static constexpr container_structure     structure     =
-        container_structure::hierarchical;  // uniformly nested; depth = rank = 2
+    static constexpr DContainerStructure     structure     =
+        DContainerStructure::hierarchical;  // uniformly nested; depth = rank = 2
 
     // Iterability stage sub-axis: structure AND contents are compile-time-
     // expressible, so the whole traversal -- cursor and values alike -- is
@@ -229,7 +229,7 @@ public:
     // --- construction ---
 
     // default: value-initializes every cell to Type{}.
-    constexpr static_table()
+    constexpr DStaticTable()
         : m_cells{}
     {}
 
@@ -241,28 +241,28 @@ public:
              typename = typename std::enable_if<
                  ( (sizeof...(Cells) == (Rows * Cols)) &&
                    (sizeof...(Cells) >= 2) )>::type>
-    constexpr static_table(Cells&&... _cells)
+    constexpr DStaticTable(Cells&&... _cells)
         : m_cells{ { static_cast<Type>(static_cast<Cells&&>(_cells))... } }
     {}
 
     // from a flat, row-major std::array of the exact cell count.
-    explicit constexpr static_table(const storage_type& _cells)
+    explicit constexpr DStaticTable(const storage_type& _cells)
         : m_cells(_cells)
     {}
 
-    constexpr static_table(const static_table&)            = default;
-    constexpr static_table(static_table&&)                 = default;
-    static_table& operator=(const static_table&)           = default;
-    static_table& operator=(static_table&&)                = default;
-    ~static_table()                                        = default;
+    constexpr DStaticTable(const DStaticTable&)            = default;
+    constexpr DStaticTable(DStaticTable&&)                 = default;
+    DStaticTable& operator=(const DStaticTable&)           = default;
+    DStaticTable& operator=(DStaticTable&&)                = default;
+    ~DStaticTable()                                        = default;
 
     // filled
     //   factory: a table with every cell equal to _value. A named factory, not
     // a constructor, so a single-argument fill never competes with the
     // element-wise constructor.
-    static constexpr static_table filled(const Type& _value)
+    static constexpr DStaticTable filled(const Type& _value)
     {
-        static_table t;
+        DStaticTable t;
 
         // write the fill value into every cell
         for (std::size_t i = 0; i < (Rows * Cols); ++i)
@@ -323,7 +323,7 @@ public:
     // transformation at stage c (a new constant).
     template<typename Fn>
     D_NODISCARD constexpr
-    static_table<clean_t<decltype(std::declval<Fn&>()(std::declval<const Type&>()))>,
+    DStaticTable<clean_t<decltype(std::declval<Fn&>()(std::declval<const Type&>()))>,
                  Rows, Cols>
     map(Fn _fn) const
     {
@@ -338,7 +338,7 @@ public:
             out[i] = _fn(m_cells[i]);
         }
 
-        return static_table<mapped_cell, Rows, Cols>(out);
+        return DStaticTable<mapped_cell, Rows, Cols>(out);
     }
 
     // --- serialization (Serialization: shape + cells, under the serial
@@ -380,25 +380,25 @@ public:
     // level.
     template<DSerialEndian E,
              DSerialLength  L>
-    static DDecodeResult<static_table> decode_e(DByteReader& _reader)
+    static DDecodeResult<DStaticTable> decode_e(DByteReader& _reader)
     {
         re_std::uint64_t _r = 0;
         re_std::uint64_t _c = 0;
 
         if (!internal::get_length<L, E>(_reader, _r))
         {
-            return decode_failure<static_table>();
+            return decode_failure<DStaticTable>();
         }
         if (!internal::get_length<L, E>(_reader, _c))
         {
-            return decode_failure<static_table>();
+            return decode_failure<DStaticTable>();
         }
 
         // the stream's shape must match this type's fixed shape
         if ( (_r != static_cast<re_std::uint64_t>(Rows)) ||
              (_c != static_cast<re_std::uint64_t>(Cols)) )
         {
-            return decode_failure<static_table>();
+            return decode_failure<DStaticTable>();
         }
 
         // R*C cells, row-major; the first short/invalid cell fails the decode
@@ -406,12 +406,12 @@ public:
         for (std::size_t i = 0; i < (Rows * Cols); ++i)
         {
             DDecodeResult<Type> _cell = decode_leaf<E, Type>(_reader);
-            if (!_cell.ok) { return decode_failure<static_table>(); }
+            if (!_cell.ok) { return decode_failure<DStaticTable>(); }
 
             _cells[i] = static_cast<Type&&>(_cell.value);
         }
 
-        return decode_success(static_table(_cells));
+        return decode_success(DStaticTable(_cells));
     }
 
     // encode_into / decode
@@ -430,7 +430,7 @@ public:
         return;
     }
 
-    static DDecodeResult<static_table> decode(DByteReader& _reader)
+    static DDecodeResult<DStaticTable> decode(DByteReader& _reader)
     {
         return decode_e<DSerialEndian::big, DSerialLength::u64>(_reader);
     }
@@ -438,6 +438,17 @@ public:
 private:
     storage_type m_cells;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename    Type,
+         std::size_t Rows,
+         std::size_t Cols,
+         typename    DifferenceType = std::ptrdiff_t,
+         typename    SizeType        = std::size_t,
+         typename    Iterator        = const Type*,
+         typename    ConstIterator   = const Type*,
+         typename... Options>
+using static_table = DStaticTable<Type, Rows, Cols, DifferenceType, SizeType, Iterator, ConstIterator, Options...>;
 
 
 // ---------------------------------------------------------------------------
@@ -447,41 +458,44 @@ private:
 // ---------------------------------------------------------------------------
 namespace table_axis_conformance
 {
-    using static_table_probe = static_table<int, 2, 3>;
+    using DStaticTableProbe = DStaticTable<int, 2, 3>;
+
+    // old name, until 0.9.0-rc.1
+    using static_table_probe = DStaticTableProbe;
 
     // Iterability: iterable, and const-only (immutable -> no settable cursor).
-    static_assert(is_iterable_container_v<static_table_probe>,
+    static_assert(is_iterable_container_v<DStaticTableProbe>,
                   "static_table must classify as iterable.");
-    static_assert(iteration_mode_of<static_table_probe>::value
-                      == iteration_mode::const_only,
+    static_assert(iteration_mode_of<DStaticTableProbe>::value
+                      == DIterationMode::const_only,
                   "static_table iteration must be const-only (immutable).");
 
     // Boundedness: fixed capacity kappa = R*C < infinity.
-    static_assert(is_bounded_container_v<static_table_probe>,
+    static_assert(is_bounded_container_v<DStaticTableProbe>,
                   "static_table must classify as bounded.");
-    static_assert(!is_unbounded_container_v<static_table_probe>,
+    static_assert(!is_unbounded_container_v<DStaticTableProbe>,
                   "static_table must not classify as unbounded.");
 
     // Multiplicity: comparator-less, position-keyed -> sequence (m = infinity).
-    static_assert(multiplicity_kind_of<static_table_probe>::value
-                      == multiplicity_kind::sequence,
+    static_assert(multiplicity_kind_of<DStaticTableProbe>::value
+                      == DMultiplicityKind::sequence,
                   "static_table must classify as a sequence (m = infinity).");
 
     // Sortedness / Ordering: ordered, and order-dependent (not sorted in
     // itself).
-    static_assert(is_ordered_container_v<static_table_probe>,
+    static_assert(is_ordered_container_v<DStaticTableProbe>,
                   "static_table must classify as ordered.");
-    static_assert(sortedness_of<static_table_probe>::value
-                      == sortedness::order_dependent,
+    static_assert(sortedness_of<DStaticTableProbe>::value
+                      == DSortedness::order_dependent,
                   "static_table must classify as order-dependent (unsorted).");
 
     // Structure: uniformly nested (rank-2), so hierarchical -- the opt-in tag
     // overrides the flat-storage depth heuristic.
-    static_assert(is_hierarchical_container_v<static_table_probe>,
+    static_assert(is_hierarchical_container_v<DStaticTableProbe>,
                   "static_table must classify as hierarchical (uniformly nested).");
-    static_assert(!is_flat_container_v<static_table_probe>,
+    static_assert(!is_flat_container_v<DStaticTableProbe>,
                   "static_table must not classify as flat.");
-    static_assert(structure_kind_of<static_table_probe>::value
+    static_assert(structure_kind_of<DStaticTableProbe>::value
                       == DStructureKind::hierarchical,
                   "static_table structure_kind must be hierarchical.");
 
@@ -507,14 +521,14 @@ template<std::size_t Rows,
          typename    First,
          typename... Rest>
 D_NODISCARD constexpr
-static_table<clean_t<First>, Rows, Cols>
+DStaticTable<clean_t<First>, Rows, Cols>
 make_static_table(First&& _first, Rest&&... _rest)
 {
     static_assert(((1 + sizeof...(Rest)) == (Rows * Cols)),
                   "make_static_table: the number of cell values must equal "
                   "Rows * Cols.");
 
-    return static_table<clean_t<First>, Rows, Cols>(
+    return DStaticTable<clean_t<First>, Rows, Cols>(
         static_cast<First&&>(_first),
         static_cast<Rest&&>(_rest)...);
 }
@@ -531,8 +545,8 @@ template<typename    Type,
          typename    CI,
          typename... O>
 D_NODISCARD constexpr bool operator==(
-    const static_table<Type, Rows, Cols, D, S, I, CI, O...>& _a,
-    const static_table<Type, Rows, Cols, D, S, I, CI, O...>& _b
+    const DStaticTable<Type, Rows, Cols, D, S, I, CI, O...>& _a,
+    const DStaticTable<Type, Rows, Cols, D, S, I, CI, O...>& _b
 )
 {
     return _a.content_equals(_b);
@@ -547,8 +561,8 @@ template<typename    Type,
          typename    CI,
          typename... O>
 D_NODISCARD constexpr bool operator!=(
-    const static_table<Type, Rows, Cols, D, S, I, CI, O...>& _a,
-    const static_table<Type, Rows, Cols, D, S, I, CI, O...>& _b
+    const DStaticTable<Type, Rows, Cols, D, S, I, CI, O...>& _a,
+    const DStaticTable<Type, Rows, Cols, D, S, I, CI, O...>& _b
 )
 {
     return !(_a == _b);

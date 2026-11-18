@@ -70,7 +70,7 @@ bool tests_discipline_signal_probes()
     D_CM_CHECK(internal::merge_keyed_value_helper<
                    DCmHalfPairValue>::value == false);
     D_CM_CHECK(merge_discipline_of<DCmHalfPairValue>::value
-                   == merge_discipline::sequence);
+                   == DMergeDiscipline::sequence);
 
     // the unique mark
     D_CM_CHECK(internal::has_unique_insert_helper<DCmSetLike>::value
@@ -92,7 +92,7 @@ bool tests_discipline_signal_probes()
     D_CM_CHECK(internal::has_unique_insert_helper<
                    DCmInsertFirstOnly>::value == false);
     D_CM_CHECK(merge_discipline_of<DCmInsertFirstOnly>::value
-                   == merge_discipline::multiset);
+                   == DMergeDiscipline::multiset);
 
     return ok;
 }
@@ -192,16 +192,16 @@ bool tests_merge_discipline_enum()
     }
 
     // the walker visits each exactly once
-    D_CM_CHECK(cm_discipline_at(0) == merge_discipline::unknown);
-    D_CM_CHECK(cm_discipline_at(1) == merge_discipline::sequence);
-    D_CM_CHECK(cm_discipline_at(2) == merge_discipline::set);
-    D_CM_CHECK(cm_discipline_at(3) == merge_discipline::multiset);
-    D_CM_CHECK(cm_discipline_at(4) == merge_discipline::map);
-    D_CM_CHECK(cm_discipline_at(5) == merge_discipline::multimap);
+    D_CM_CHECK(cm_discipline_at(0) == DMergeDiscipline::unknown);
+    D_CM_CHECK(cm_discipline_at(1) == DMergeDiscipline::sequence);
+    D_CM_CHECK(cm_discipline_at(2) == DMergeDiscipline::set);
+    D_CM_CHECK(cm_discipline_at(3) == DMergeDiscipline::multiset);
+    D_CM_CHECK(cm_discipline_at(4) == DMergeDiscipline::map);
+    D_CM_CHECK(cm_discipline_at(5) == DMergeDiscipline::multimap);
 
     // unknown is the zero value, so a default-initialised one is safe
-    D_CM_STATIC_CHECK(static_cast<int>(merge_discipline::unknown) == 0);
-    D_CM_CHECK(merge_discipline() == merge_discipline::unknown);
+    D_CM_STATIC_CHECK(static_cast<int>(DMergeDiscipline::unknown) == 0);
+    D_CM_CHECK(DMergeDiscipline() == DMergeDiscipline::unknown);
 
     return ok;
 }
@@ -219,12 +219,12 @@ bool tests_merge_discipline_name()
 {
     bool ok = true;
 
-    D_CM_CHECK(cm_disc_is(merge_discipline::unknown,  "unknown"));
-    D_CM_CHECK(cm_disc_is(merge_discipline::sequence, "sequence"));
-    D_CM_CHECK(cm_disc_is(merge_discipline::set,      "set"));
-    D_CM_CHECK(cm_disc_is(merge_discipline::multiset, "multiset"));
-    D_CM_CHECK(cm_disc_is(merge_discipline::map,      "map"));
-    D_CM_CHECK(cm_disc_is(merge_discipline::multimap, "multimap"));
+    D_CM_CHECK(cm_disc_is(DMergeDiscipline::unknown,  "unknown"));
+    D_CM_CHECK(cm_disc_is(DMergeDiscipline::sequence, "sequence"));
+    D_CM_CHECK(cm_disc_is(DMergeDiscipline::set,      "set"));
+    D_CM_CHECK(cm_disc_is(DMergeDiscipline::multiset, "multiset"));
+    D_CM_CHECK(cm_disc_is(DMergeDiscipline::map,      "map"));
+    D_CM_CHECK(cm_disc_is(DMergeDiscipline::multimap, "multimap"));
 
     // pairwise distinct spellings
     for (int i = 0; i < cm_discipline_count; ++i)
@@ -238,7 +238,7 @@ bool tests_merge_discipline_name()
     }
 
     // constexpr
-    D_CM_STATIC_CHECK(merge_discipline_name(merge_discipline::set)[0] == 's');
+    D_CM_STATIC_CHECK(merge_discipline_name(DMergeDiscipline::set)[0] == 's');
 
     return ok;
 }
@@ -258,29 +258,29 @@ bool tests_discipline_family_predicates()
     bool ok = true;
 
     // each on its own family
-    D_CM_CHECK(discipline_is_sequence(merge_discipline::sequence) == true);
-    D_CM_CHECK(discipline_is_bag(merge_discipline::set)           == true);
-    D_CM_CHECK(discipline_is_bag(merge_discipline::multiset)      == true);
-    D_CM_CHECK(discipline_is_keyed(merge_discipline::map)         == true);
-    D_CM_CHECK(discipline_is_keyed(merge_discipline::multimap)    == true);
+    D_CM_CHECK(discipline_is_sequence(DMergeDiscipline::sequence) == true);
+    D_CM_CHECK(discipline_is_bag(DMergeDiscipline::set)           == true);
+    D_CM_CHECK(discipline_is_bag(DMergeDiscipline::multiset)      == true);
+    D_CM_CHECK(discipline_is_keyed(DMergeDiscipline::map)         == true);
+    D_CM_CHECK(discipline_is_keyed(DMergeDiscipline::multimap)    == true);
 
     // and nowhere else
-    D_CM_CHECK(discipline_is_sequence(merge_discipline::set)      == false);
-    D_CM_CHECK(discipline_is_bag(merge_discipline::sequence)      == false);
-    D_CM_CHECK(discipline_is_bag(merge_discipline::map)           == false);
-    D_CM_CHECK(discipline_is_keyed(merge_discipline::multiset)    == false);
+    D_CM_CHECK(discipline_is_sequence(DMergeDiscipline::set)      == false);
+    D_CM_CHECK(discipline_is_bag(DMergeDiscipline::sequence)      == false);
+    D_CM_CHECK(discipline_is_bag(DMergeDiscipline::map)           == false);
+    D_CM_CHECK(discipline_is_keyed(DMergeDiscipline::multiset)    == false);
 
     // unknown belongs to no family
-    D_CM_CHECK(   ( discipline_is_sequence(merge_discipline::unknown)
+    D_CM_CHECK(   ( discipline_is_sequence(DMergeDiscipline::unknown)
                         == false )
-               && ( discipline_is_bag(merge_discipline::unknown) == false )
-               && ( discipline_is_keyed(merge_discipline::unknown)
+               && ( discipline_is_bag(DMergeDiscipline::unknown) == false )
+               && ( discipline_is_keyed(DMergeDiscipline::unknown)
                         == false ));
 
     // at most one family each, over the whole enum
     for (int i = 0; i < cm_discipline_count; ++i)
     {
-        const merge_discipline d = cm_discipline_at(i);
+        const DMergeDiscipline d = cm_discipline_at(i);
         const int              n = static_cast<int>(discipline_is_sequence(d))
                                  + static_cast<int>(discipline_is_bag(d))
                                  + static_cast<int>(discipline_is_keyed(d));
@@ -288,7 +288,7 @@ bool tests_discipline_family_predicates()
         D_CM_CHECK(n <= 1);
 
         // exactly one, except for unknown
-        if (d != merge_discipline::unknown)
+        if (d != DMergeDiscipline::unknown)
         {
             D_CM_CHECK(n == 1);
         }
@@ -299,7 +299,7 @@ bool tests_discipline_family_predicates()
     }
 
     // constexpr
-    D_CM_STATIC_CHECK(discipline_is_bag(merge_discipline::set));
+    D_CM_STATIC_CHECK(discipline_is_bag(DMergeDiscipline::set));
 
     return ok;
 }
@@ -322,17 +322,17 @@ bool tests_merge_discipline_of()
 
     // one carrier per discipline
     D_CM_CHECK(merge_discipline_of<DCmSeq>::value
-                   == merge_discipline::sequence);
+                   == DMergeDiscipline::sequence);
     D_CM_CHECK(merge_discipline_of<DCmSetLike>::value
-                   == merge_discipline::set);
+                   == DMergeDiscipline::set);
     D_CM_CHECK(merge_discipline_of<DCmMultisetLike>::value
-                   == merge_discipline::multiset);
+                   == DMergeDiscipline::multiset);
     D_CM_CHECK(merge_discipline_of<DCmMapLike>::value
-                   == merge_discipline::map);
+                   == DMergeDiscipline::map);
     D_CM_CHECK(merge_discipline_of<DCmMultimapLike>::value
-                   == merge_discipline::multimap);
+                   == DMergeDiscipline::multimap);
     D_CM_CHECK(merge_discipline_of<DCmNotContainer>::value
-                   == merge_discipline::unknown);
+                   == DMergeDiscipline::unknown);
 
     // the container guard runs first
     D_CM_CHECK(   ( internal::merge_keyed_value_helper<
@@ -342,30 +342,30 @@ bool tests_merge_discipline_of()
                && ( internal::has_unique_insert_helper<
                         DCmKeyNoIter>::value == true )
                && ( merge_discipline_of<DCmKeyNoIter>::value
-                        == merge_discipline::unknown ));
+                        == DMergeDiscipline::unknown ));
 
     // the uniqueness split, on the bag branch
     D_CM_CHECK(   ( merge_discipline_of<DCmSetLike>::value
-                        == merge_discipline::set )
+                        == DMergeDiscipline::set )
                && ( merge_discipline_of<DCmMultisetLike>::value
-                        == merge_discipline::multiset )
+                        == DMergeDiscipline::multiset )
                && ( internal::has_unique_insert_helper<DCmSetLike>::value
                         != internal::has_unique_insert_helper<
                                DCmMultisetLike>::value ));
 
     // ... and on the keyed branch
     D_CM_CHECK(   ( merge_discipline_of<DCmMapLike>::value
-                        == merge_discipline::map )
+                        == DMergeDiscipline::map )
                && ( merge_discipline_of<DCmMultimapLike>::value
-                        == merge_discipline::multimap ));
+                        == DMergeDiscipline::multimap ));
 
     // a probe defeated by access control changes the verdict
     D_CM_CHECK(merge_discipline_of<DCmPrivateKey>::value
-                   == merge_discipline::sequence);
+                   == DMergeDiscipline::sequence);
 
     // ... and an insert of the wrong arity moves a set to a multiset
     D_CM_CHECK(merge_discipline_of<DCmInsertWrongArity>::value
-                   == merge_discipline::multiset);
+                   == DMergeDiscipline::multiset);
 
     return ok;
 }
@@ -390,23 +390,23 @@ bool tests_merge_discipline_of_std_types()
 
     // sequences
     D_CM_CHECK(merge_discipline_of<DCmVector>::value
-                   == merge_discipline::sequence);
+                   == DMergeDiscipline::sequence);
     D_CM_CHECK(merge_discipline_of<DCmArray>::value
-                   == merge_discipline::sequence);
+                   == DMergeDiscipline::sequence);
     D_CM_CHECK(merge_discipline_of<DCmDeque>::value
-                   == merge_discipline::sequence);
+                   == DMergeDiscipline::sequence);
     D_CM_CHECK(merge_discipline_of<DCmList>::value
-                   == merge_discipline::sequence);
+                   == DMergeDiscipline::sequence);
     D_CM_CHECK(merge_discipline_of<DCmString>::value
-                   == merge_discipline::sequence);
+                   == DMergeDiscipline::sequence);
 
     // associatives
-    D_CM_CHECK(merge_discipline_of<DCmSet>::value == merge_discipline::set);
+    D_CM_CHECK(merge_discipline_of<DCmSet>::value == DMergeDiscipline::set);
     D_CM_CHECK(merge_discipline_of<DCmMultiset>::value
-                   == merge_discipline::multiset);
-    D_CM_CHECK(merge_discipline_of<DCmMap>::value == merge_discipline::map);
+                   == DMergeDiscipline::multiset);
+    D_CM_CHECK(merge_discipline_of<DCmMap>::value == DMergeDiscipline::map);
     D_CM_CHECK(merge_discipline_of<DCmMultimap>::value
-                   == merge_discipline::multimap);
+                   == DMergeDiscipline::multimap);
 
     // the unordered counterparts agree
     D_CM_CHECK(merge_discipline_of<DCmUset>::value
@@ -416,9 +416,9 @@ bool tests_merge_discipline_of_std_types()
 
     // not a container
     D_CM_CHECK(merge_discipline_of<DCmPair>::value
-                   == merge_discipline::unknown);
-    D_CM_CHECK(merge_discipline_of<int>::value == merge_discipline::unknown);
-    D_CM_CHECK(merge_discipline_of<void>::value == merge_discipline::unknown);
+                   == DMergeDiscipline::unknown);
+    D_CM_CHECK(merge_discipline_of<int>::value == DMergeDiscipline::unknown);
+    D_CM_CHECK(merge_discipline_of<void>::value == DMergeDiscipline::unknown);
 
     return ok;
 }
@@ -465,11 +465,11 @@ bool tests_discipline_pair_sequence_misread()
 
     // the misread itself
     D_CM_CHECK(merge_discipline_of<DCmPairSequence>::value
-                   == merge_discipline::multimap);
+                   == DMergeDiscipline::multimap);
     D_CM_CHECK(merge_discipline_of<DCmPairSequenceUnique>::value
-                   == merge_discipline::map);
+                   == DMergeDiscipline::map);
     D_CM_CHECK(merge_discipline_of<DCmPairVector>::value
-                   == merge_discipline::multimap);
+                   == DMergeDiscipline::multimap);
 
     // ... on carriers with the keyed mark and NO equivalence mark
     D_CM_CHECK(   ( internal::merge_keyed_value_helper<
@@ -495,7 +495,7 @@ bool tests_discipline_pair_sequence_misread()
 
     // consequence 1: a keyed merge is claimed against a real map
     D_CM_CHECK(merge_kind_of<DCmPairVector, DCmMap>::value
-                   == merge_kind::keyed_merge);
+                   == DMergeKind::keyed_merge);
     D_CM_CHECK((is_mergeable<DCmPairVector, DCmMap>::value) == true);
 
     // consequence 2: a key conflict is reported for a keyless operand
@@ -504,7 +504,7 @@ bool tests_discipline_pair_sequence_misread()
 
     // consequence 3: two sequences are refused a concatenation
     D_CM_CHECK(merge_kind_of<DCmPairVector, DCmVector>::value
-                   == merge_kind::incompatible);
+                   == DMergeKind::incompatible);
     D_CM_CHECK(merge_discipline_of<DCmPairVector>::value
                    != merge_discipline_of<DCmVector>::value);
 
@@ -534,7 +534,7 @@ bool tests_discipline_signal_order()
 
     // branch 1: the container guard masks everything
     D_CM_CHECK(merge_discipline_of<DCmKeyNoIter>::value
-                   == merge_discipline::unknown);
+                   == DMergeDiscipline::unknown);
 
     // branch 2: keyed, and it masks the equivalence branch
     D_CM_CHECK(   ( internal::merge_keyed_value_helper<DCmMapLike>::value
@@ -542,13 +542,13 @@ bool tests_discipline_signal_order()
                && ( internal::merge_equivalence_helper<DCmMapLike>::value
                         == true )
                && ( merge_discipline_of<DCmMapLike>::value
-                        == merge_discipline::map ));
+                        == DMergeDiscipline::map ));
 
     // ... and is taken with the equivalence mark ABSENT
     D_CM_CHECK(   ( internal::merge_equivalence_helper<
                         DCmPairSequence>::value == false )
                && ( merge_discipline_of<DCmPairSequence>::value
-                        == merge_discipline::multimap ));
+                        == DMergeDiscipline::multimap ));
 
     // branch 3: equivalence, masking the fallback
     D_CM_CHECK(   ( internal::merge_keyed_value_helper<DCmSetLike>::value
@@ -556,7 +556,7 @@ bool tests_discipline_signal_order()
                && ( internal::merge_equivalence_helper<DCmSetLike>::value
                         == true )
                && ( merge_discipline_of<DCmSetLike>::value
-                        == merge_discipline::set ));
+                        == DMergeDiscipline::set ));
 
     // branch 4: the fallback, all earlier tests failing
     D_CM_CHECK(   ( is_iterable_container<DCmSeq>::value == true )
@@ -565,17 +565,17 @@ bool tests_discipline_signal_order()
                && ( internal::merge_equivalence_helper<DCmSeq>::value
                         == false )
                && ( merge_discipline_of<DCmSeq>::value
-                        == merge_discipline::sequence ));
+                        == DMergeDiscipline::sequence ));
 
     // every branch reached
     D_CM_CHECK(merge_discipline_of<DCmNotContainer>::value
-                   == merge_discipline::unknown);
+                   == DMergeDiscipline::unknown);
     D_CM_CHECK(merge_discipline_of<DCmMultimapLike>::value
-                   == merge_discipline::multimap);
+                   == DMergeDiscipline::multimap);
     D_CM_CHECK(merge_discipline_of<DCmMultisetLike>::value
-                   == merge_discipline::multiset);
+                   == DMergeDiscipline::multiset);
     D_CM_CHECK(merge_discipline_of<DCmVector>::value
-                   == merge_discipline::sequence);
+                   == DMergeDiscipline::sequence);
 
     return ok;
 }
@@ -649,13 +649,13 @@ bool tests_merge_discipline_companions()
     // the `_t` alias
     D_CM_STATIC_CHECK(
         std::is_same<merge_discipline_of_t<DCmVector>,
-                     std::integral_constant<merge_discipline,
-                                            merge_discipline::sequence>
+                     std::integral_constant<DMergeDiscipline,
+                                            DMergeDiscipline::sequence>
                     >::value);
     D_CM_STATIC_CHECK(
         std::is_same<merge_discipline_of_t<DCmMap>,
-                     std::integral_constant<merge_discipline,
-                                            merge_discipline::map>
+                     std::integral_constant<DMergeDiscipline,
+                                            DMergeDiscipline::map>
                     >::value);
     D_CM_CHECK(merge_discipline_of_t<DCmSet>::value
                    == merge_discipline_of<DCmSet>::value);
@@ -667,11 +667,11 @@ bool tests_merge_discipline_companions()
 
     // constexpr
     D_CM_STATIC_CHECK(merge_discipline_of<DCmVector>::value
-                          == merge_discipline::sequence);
+                          == DMergeDiscipline::sequence);
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
-    D_CM_STATIC_CHECK(merge_discipline_of_v<DCmMap> == merge_discipline::map);
+    D_CM_STATIC_CHECK(merge_discipline_of_v<DCmMap> == DMergeDiscipline::map);
 
     D_CM_CHECK(merge_discipline_of_v<DCmVector>
                    == merge_discipline_of<DCmVector>::value);

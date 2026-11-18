@@ -226,7 +226,7 @@ struct DNctNode
 struct DNctTree
 {
     using node_type        = DNctNode;
-    using ownership_policy = unique_owning_policy;
+    using ownership_policy = DUniqueOwningPolicy;
     using entry_storage    = DNctNode*;
 
     static constexpr bool entry_owns = true;
@@ -666,7 +666,7 @@ struct DNctWithIncompletePolicy
 struct DNctUniqueContainer
 {
     using node_type        = DNctNode;
-    using ownership_policy = unique_owning_policy;
+    using ownership_policy = DUniqueOwningPolicy;
 
     const DNctNode* root() const;
 };
@@ -677,7 +677,7 @@ struct DNctUniqueContainer
 struct DNctSharedContainer
 {
     using node_type        = DNctNode;
-    using ownership_policy = shared_owning_policy;
+    using ownership_policy = DSharedOwningPolicy;
 
     const DNctNode* entries() const;
 };
@@ -687,7 +687,7 @@ struct DNctSharedContainer
 struct DNctNonOwningContainer
 {
     using node_type        = DNctNode;
-    using ownership_policy = non_owning_policy;
+    using ownership_policy = DNonOwningPolicy;
 
     const DNctNode* head() const;
 };
@@ -828,7 +828,7 @@ bool tests_ownership_detect_companions();
 // II.  Entry point detection          (..._tests_entry_point.cpp)
 bool tests_has_entry_point_method();
 bool tests_has_root_method();
-bool tests_has_root_member_method();
+bool tests_has_has_root_method();
 bool tests_has_head_method();
 bool tests_has_tail_method();
 bool tests_has_entries_method();
@@ -934,10 +934,11 @@ node_container_traits_spec()
                       "Verifies the probe for root() - the single "
                       "distinguished entry that marks a tree-shaped container",
                       &tests_has_root_method },
-                    { "tests_has_root_member_method",
+                    { "tests_has_has_root_method",
                       "Verifies the probe for has_root() - the interrogative "
-                      "that reports whether a tree's root is populated",
-                      &tests_has_root_member_method },
+                      "that reports whether a tree's root is populated (and "
+                      "that its old name, has_root_member_method, agrees)",
+                      &tests_has_has_root_method },
                     { "tests_has_head_method",
                       "Verifies the probe for head() - the entry that marks a "
                       "list-shaped container",

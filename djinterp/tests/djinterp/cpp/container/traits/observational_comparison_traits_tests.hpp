@@ -191,19 +191,19 @@ static const int oct_level_count = 6;
 // first.  Out-of-range indices clamp to none so a loop bug cannot silently
 // read past the enum.
 inline
-observational_level oct_level_at(
+DObservationalLevel oct_level_at(
     int _i
 )
 {
     switch (_i)
     {
-        case 0:  return observational_level::none;
-        case 1:  return observational_level::size;
-        case 2:  return observational_level::set;
-        case 3:  return observational_level::bag;
-        case 4:  return observational_level::seq;
-        case 5:  return observational_level::str;
-        default: return observational_level::none;
+        case 0:  return DObservationalLevel::none;
+        case 1:  return DObservationalLevel::size;
+        case 2:  return DObservationalLevel::set;
+        case 3:  return DObservationalLevel::bag;
+        case 4:  return DObservationalLevel::seq;
+        case 5:  return DObservationalLevel::str;
+        default: return DObservationalLevel::none;
     }
 }
 
@@ -213,7 +213,7 @@ observational_level oct_level_at(
 // the characters are.
 inline
 bool oct_name_is(
-    observational_level _level,
+    DObservationalLevel _level,
     const char*         _expected
 )
 {
@@ -340,7 +340,7 @@ struct DOctAtOnly
 struct DOctHierarchicalIndexed
 {
     using value_type          = int;
-    using structure_category  = hierarchical;
+    using structure_category  = DHierarchical;
 
     const int& operator[](
         std::size_t _i
@@ -400,7 +400,7 @@ struct DOctIterableAndCount
 struct DOctHierarchicalIterable
 {
     using value_type         = int;
-    using structure_category = hierarchical;
+    using structure_category = DHierarchical;
 
     const int* begin() const;
     const int* end() const;
@@ -413,7 +413,7 @@ struct DOctHierarchicalIterable
 struct DOctHierarchicalCount
 {
     using value_type         = int;
-    using structure_category = hierarchical;
+    using structure_category = DHierarchical;
 
     std::size_t count(
         int _x
@@ -426,7 +426,7 @@ struct DOctHierarchicalCount
 struct DOctIndexedFlat
 {
     using value_type         = int;
-    using structure_category = flat;
+    using structure_category = DFlat;
 
     const int& operator[](
         std::size_t _i
@@ -443,7 +443,7 @@ struct DOctIndexedFlat
 struct DOctFullInterface
 {
     using value_type         = int;
-    using structure_category = hierarchical;
+    using structure_category = DHierarchical;
 
     std::size_t size() const;
     const int& operator[](

@@ -102,13 +102,13 @@ NS_DJINTERP
 // I.   is_constrained_table (detection trait)
 // ===========================================================================
 
-// constrained_table (fwd)
+// DConstrainedTable (fwd)
 template<typename    Type,
          std::size_t MaxRows,
          typename    SizeType,
          typename    DifferenceType,
          typename... Options>
-class constrained_table;
+class DConstrainedTable;
 
 // is_constrained_table
 //   trait: true when Type (after stripping cv/ref) is a specialization of
@@ -124,7 +124,7 @@ NS_INTERNAL
              typename    S,
              typename    D,
              typename... O>
-    struct is_constrained_table_impl<constrained_table<T, M, S, D, O...>>
+    struct is_constrained_table_impl<DConstrainedTable<T, M, S, D, O...>>
         : std::true_type
     {};
 
@@ -145,20 +145,20 @@ inline constexpr bool is_constrained_table_v =
 // II.  constrained_table (class)
 // ===========================================================================
 
-// constrained_table
+// DConstrainedTable
 //   class: a table capped at MaxRows rows and, optionally, with cells
-// confined to a closed interval. Wraps a `table` backing, delegates the read
+// confined to a closed interval. Wraps a `DTable` backing, delegates the read
 // surface, and admits rows only when they keep both restrictions.
 template<typename    Type,
          std::size_t MaxRows,
          typename    SizeType        = std::size_t,
          typename    DifferenceType = std::ptrdiff_t,
          typename... Options>
-class constrained_table
-    : public options_container_base<Options...>
+class DConstrainedTable
+    : public DOptionsContainerBase<Options...>
 {
 private:
-    using backing_type = table<Type, DifferenceType, SizeType>;
+    using backing_type = DTable<Type, DifferenceType, SizeType>;
 
 public:
     // --- 1. member types and overlay / axis markers ---
@@ -177,34 +177,34 @@ public:
     using const_row_iterator = typename backing_type::const_row_iterator;
 
     using element_type       = Type;
-    using structure_category = hierarchical;
+    using structure_category = DHierarchical;
 
     // overlay markers (the restriction bundle this container wears).
     static constexpr bool      bounded_overlay = true;                       // gamma_kappa
     static constexpr size_type max_row_capacity = static_cast<size_type>(MaxRows);
 
     // axis positions.
-    static constexpr container_lifetime      lifetime      =
-        container_lifetime::mutable_storage;
+    static constexpr DContainerLifetime      lifetime      =
+        DContainerLifetime::mutable_storage;
     static constexpr DContainerStorageKind  storage_kind  =
         DContainerStorageKind::dynamic_storage;
     static constexpr DContainerOrdering      ordering      =
         DContainerOrdering::ordered;
     static constexpr DContainerBounds        bounds        =
         DContainerBounds::bounded;              // the capacity overlay caps |c|
-    static constexpr container_iterability   iterability   =
-        container_iterability::iterable;
+    static constexpr DContainerIterability   iterability   =
+        DContainerIterability::iterable;
     static constexpr DContainerMultiplicity  multiplicity_grade =
         DContainerMultiplicity::multi;
-    static constexpr container_structure     structure     =
-        container_structure::hierarchical;
+    static constexpr DContainerStructure     structure     =
+        DContainerStructure::hierarchical;
     static constexpr size_type               rank  = static_cast<size_type>(2);
     static constexpr size_type               depth = static_cast<size_type>(2);
 
     // --- 2. construction ---
 
     // capacity only: {gamma_kappa}, no domain restriction.
-    constrained_table()
+    DConstrainedTable()
         : m_base(),
           m_has_domain(false),
           m_lo(),
@@ -212,7 +212,7 @@ public:
     {}
 
     // capacity and domain: {gamma_kappa, delta_I} with I = [_lo, _hi].
-    constrained_table(
+    DConstrainedTable(
         const Type& _lo,
         const Type& _hi
     )
@@ -222,11 +222,11 @@ public:
           m_hi(_hi)
     {}
 
-    constrained_table(const constrained_table&)            = default;
-    constrained_table(constrained_table&&)                 = default;
-    constrained_table& operator=(const constrained_table&) = default;
-    constrained_table& operator=(constrained_table&&)      = default;
-    ~constrained_table()                                   = default;
+    DConstrainedTable(const DConstrainedTable&)            = default;
+    DConstrainedTable(DConstrainedTable&&)                 = default;
+    DConstrainedTable& operator=(const DConstrainedTable&) = default;
+    DConstrainedTable& operator=(DConstrainedTable&&)      = default;
+    ~DConstrainedTable()                                   = default;
 
     // --- 3. read surface (delegated, const) ---
 
@@ -463,6 +463,14 @@ private:
     Type         m_hi;          // domain upper bound (inclusive)
 };
 
+// old name, until 0.9.0-rc.1
+template<typename    Type,
+         std::size_t MaxRows,
+         typename    SizeType        = std::size_t,
+         typename    DifferenceType = std::ptrdiff_t,
+         typename... Options>
+using constrained_table = DConstrainedTable<Type, MaxRows, SizeType, DifferenceType, Options...>;
+
 
 // ===========================================================================
 // III. make_constrained_table
@@ -472,21 +480,21 @@ private:
 //   function: a capacity-only constrained_table<Type, MaxRows>.
 template<std::size_t MaxRows,
          typename    Type>
-D_NODISCARD constrained_table<Type, MaxRows> make_constrained_table()
+D_NODISCARD DConstrainedTable<Type, MaxRows> make_constrained_table()
 {
-    return constrained_table<Type, MaxRows>();
+    return DConstrainedTable<Type, MaxRows>();
 }
 
 // make_domain_table
 //   function: a constrained_table<Type, MaxRows> with domain [_lo, _hi].
 template<std::size_t MaxRows,
          typename    Type>
-D_NODISCARD constrained_table<Type, MaxRows> make_domain_table(
+D_NODISCARD DConstrainedTable<Type, MaxRows> make_domain_table(
     const Type& _lo,
     const Type& _hi
 )
 {
-    return constrained_table<Type, MaxRows>(_lo, _hi);
+    return DConstrainedTable<Type, MaxRows>(_lo, _hi);
 }
 
 
@@ -497,13 +505,16 @@ D_NODISCARD constrained_table<Type, MaxRows> make_domain_table(
 // ---------------------------------------------------------------------------
 namespace table_axis_conformance
 {
-    using constrained_table_probe = constrained_table<int, 4>;
+    using DConstrainedTableProbe = DConstrainedTable<int, 4>;
 
-    static_assert(is_iterable_container_v<constrained_table_probe>,
+    // old name, until 0.9.0-rc.1
+    using constrained_table_probe = DConstrainedTableProbe;
+
+    static_assert(is_iterable_container_v<DConstrainedTableProbe>,
                   "constrained_table must classify as iterable.");
-    static_assert(is_bounded_container_v<constrained_table_probe>,
+    static_assert(is_bounded_container_v<DConstrainedTableProbe>,
                   "constrained_table must classify as bounded (capacity overlay).");
-    static_assert(!is_unbounded_container_v<constrained_table_probe>,
+    static_assert(!is_unbounded_container_v<DConstrainedTableProbe>,
                   "constrained_table must not classify as unbounded.");
 }
 

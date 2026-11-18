@@ -177,13 +177,13 @@ concept nary_arena_tree =
 //   concept: constrains arena trees supporting O(1) detach.
 template<typename Type>
 concept o1_detachable_arena_tree =
-    arena_tree_class<clean_t<Type>>::o1_detach;
+    DArenaTreeClass<clean_t<Type>>::o1_detach;
 
 // o1_appendable_arena_tree
 //   concept: constrains arena trees supporting O(1) append-to-children.
 template<typename Type>
 concept o1_appendable_arena_tree =
-    arena_tree_class<clean_t<Type>>::o1_append;
+    DArenaTreeClass<clean_t<Type>>::o1_append;
 
 // classified_arena_tree
 //   concept: constrains types recognized by the arena tree trait layer.

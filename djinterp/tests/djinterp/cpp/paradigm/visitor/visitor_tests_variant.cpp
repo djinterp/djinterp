@@ -13,7 +13,7 @@
 // the compiler.
 //
 //   There is no accept(), no visitor root, and no element root.  A std::variant IS
-// the closed element set, std::visit IS the dispatch, and `overloaded` is the piece
+// the closed element set, std::visit IS the dispatch, and `DOverloaded` is the piece
 // that makes a pile of lambdas behave as one visitor by inheriting all of them and
 // pulling every operator() into a single overload set.  The result is the only one
 // of the four strategies where forgetting an alternative is caught by the compiler
@@ -63,7 +63,7 @@ tests_overloaded_combines_callables
 bool tests_overloaded_combines_callables()
 {
 #if D_VISITOR_HAS_VARIANT
-    auto vis = overloaded{
+    auto vis = DOverloaded{
         [](int)                { return std::string("int"); },
         [](double)             { return std::string("double"); },
         [](const std::string&) { return std::string("string"); }
@@ -104,11 +104,11 @@ bool tests_overloaded_deduction_guide()
     auto f = [](int) { return 1; };
     auto g = [](double) { return 2; };
 
-    auto deduced = overloaded{f, g};
+    auto deduced = DOverloaded{f, g};
 
     // CTAD produced overloaded<F, G> over the two closure types
     static_assert(std::is_same<decltype(deduced),
-                               overloaded<decltype(f), decltype(g)> >::value,
+                               DOverloaded<decltype(f), decltype(g)> >::value,
                   "CTAD deduces the closure types");
 
     // and that is exactly what make_visitor builds from the same callables
@@ -142,7 +142,7 @@ tests_overloaded_generic_fallback
 bool tests_overloaded_generic_fallback()
 {
 #if D_VISITOR_HAS_VARIANT
-    auto vis = overloaded{
+    auto vis = DOverloaded{
         [](int _i)   { return _i * 2; },
         [](auto&&)   { return -1; }
     };
@@ -221,7 +221,7 @@ bool tests_make_visitor_decays_its_arguments()
 
     // lvalues decay to the same type the guide would have deduced
     static_assert(std::is_same<decltype(from_lvalues),
-                               overloaded<std::decay_t<decltype(f)>,
+                               DOverloaded<std::decay_t<decltype(f)>,
                                           std::decay_t<decltype(g)> > >::value,
                   "the arguments are decayed, not stored as references");
 
@@ -251,7 +251,7 @@ tests_variant_visit_dispatches_on_the_active_alternative
 bool tests_variant_visit_dispatches_on_the_active_alternative()
 {
 #if D_VISITOR_HAS_VARIANT
-    auto vis = overloaded{
+    auto vis = DOverloaded{
         [](int)                { return std::string("int"); },
         [](double)             { return std::string("double"); },
         [](const std::string&) { return std::string("string"); }
@@ -294,7 +294,7 @@ tests_variant_visit_returns_the_visitors_value
 bool tests_variant_visit_returns_the_visitors_value()
 {
 #if D_VISITOR_HAS_VARIANT
-    auto doubler = overloaded{
+    auto doubler = DOverloaded{
         [](int _i)              { return _i * 2; },
         [](double _d)           { return static_cast<int>(_d * 10); },
         [](const std::string& _s) { return static_cast<int>(_s.size()); }
@@ -341,7 +341,7 @@ tests_variant_visit_multi_variant
 bool tests_variant_visit_multi_variant()
 {
 #if D_VISITOR_HAS_VARIANT
-    auto pair_vis = overloaded{
+    auto pair_vis = DOverloaded{
         [](int, int)       { return 0; },
         [](int, double)    { return 1; },
         [](double, int)    { return 2; },
@@ -370,7 +370,7 @@ bool tests_variant_visit_multi_variant()
 
     // and the single-variant overload still resolves for a single argument -- the
     // two variant_visit overloads are partially ordered, not ambiguous
-    auto single = overloaded{
+    auto single = DOverloaded{
         [](int)    { return 10; },
         [](double) { return 20; }
     };

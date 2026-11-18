@@ -38,26 +38,26 @@ bool tests_mempty()
 {
     bool ok = true;
 
-    ok = ok && (mempty<sum<int> >().value     == 0);
-    ok = ok && (mempty<product<int> >().value == 1);
-    ok = ok && (mempty<all>().value           == true);
-    ok = ok && (mempty<any>().value           == false);
-    ok = ok && (mempty<min<int> >().value ==
+    ok = ok && (mempty<DSum<int> >().value     == 0);
+    ok = ok && (mempty<DProduct<int> >().value == 1);
+    ok = ok && (mempty<DAll>().value           == true);
+    ok = ok && (mempty<DAny>().value           == false);
+    ok = ok && (mempty<DMin<int> >().value ==
                 (std::numeric_limits<int>::max)());
-    ok = ok && (mempty<max<int> >().value ==
+    ok = ok && (mempty<DMax<int> >().value ==
                 (std::numeric_limits<int>::lowest)());
     ok = ok && (mempty<std::string>().empty());
     ok = ok && (mempty<std::vector<int> >().empty());
 
     // mempty returns the monoid type.
-    static_assert(std::is_same<decltype(mempty<sum<int> >()),
-                               sum<int> >::value, "mempty type");
+    static_assert(std::is_same<decltype(mempty<DSum<int> >()),
+                               DSum<int> >::value, "mempty type");
 
     // constexpr numeric identities.
-    static_assert(mempty<sum<int> >().value == 0,     "sum empty ce");
-    static_assert(mempty<product<int> >().value == 1, "product empty ce");
-    static_assert(mempty<all>().value == true,        "all empty ce");
-    static_assert(mempty<any>().value == false,       "any empty ce");
+    static_assert(mempty<DSum<int> >().value == 0,     "sum empty ce");
+    static_assert(mempty<DProduct<int> >().value == 1, "product empty ce");
+    static_assert(mempty<DAll>().value == true,        "all empty ce");
+    static_assert(mempty<DAny>().value == false,       "any empty ce");
 
     return ok;
 }
@@ -77,29 +77,29 @@ bool tests_mconcat_multi()
     bool ok = true;
 
     // additive / multiplicative.
-    ok = ok && (mconcat(std::vector<sum<int> >{
-                    sum<int>(1), sum<int>(2), sum<int>(3) }).value == 6);
-    ok = ok && (mconcat(std::vector<product<int> >{
-                    product<int>(2), product<int>(3),
-                    product<int>(4) }).value == 24);
+    ok = ok && (mconcat(std::vector<DSum<int> >{
+                    DSum<int>(1), DSum<int>(2), DSum<int>(3) }).value == 6);
+    ok = ok && (mconcat(std::vector<DProduct<int> >{
+                    DProduct<int>(2), DProduct<int>(3),
+                    DProduct<int>(4) }).value == 24);
 
     // boolean conjunction / disjunction.
-    ok = ok && (mconcat(std::vector<all>{
-                    all(true), all(true), all(true) }).value == true);
-    ok = ok && (mconcat(std::vector<all>{
-                    all(true), all(false), all(true) }).value == false);
-    ok = ok && (mconcat(std::vector<any>{
-                    any(false), any(false) }).value == false);
-    ok = ok && (mconcat(std::vector<any>{
-                    any(false), any(true), any(false) }).value == true);
+    ok = ok && (mconcat(std::vector<DAll>{
+                    DAll(true), DAll(true), DAll(true) }).value == true);
+    ok = ok && (mconcat(std::vector<DAll>{
+                    DAll(true), DAll(false), DAll(true) }).value == false);
+    ok = ok && (mconcat(std::vector<DAny>{
+                    DAny(false), DAny(false) }).value == false);
+    ok = ok && (mconcat(std::vector<DAny>{
+                    DAny(false), DAny(true), DAny(false) }).value == true);
 
     // minimum / maximum across the sequence.
-    ok = ok && (mconcat(std::vector<min<int> >{
-                    min<int>(5), min<int>(3), min<int>(8),
-                    min<int>(1) }).value == 1);
-    ok = ok && (mconcat(std::vector<max<int> >{
-                    max<int>(5), max<int>(3), max<int>(8),
-                    max<int>(1) }).value == 8);
+    ok = ok && (mconcat(std::vector<DMin<int> >{
+                    DMin<int>(5), DMin<int>(3), DMin<int>(8),
+                    DMin<int>(1) }).value == 1);
+    ok = ok && (mconcat(std::vector<DMax<int> >{
+                    DMax<int>(5), DMax<int>(3), DMax<int>(8),
+                    DMax<int>(1) }).value == 8);
 
     // string concatenation.
     ok = ok && (mconcat(std::vector<std::string>{ "a", "b", "c" }) == "abc");
@@ -118,10 +118,10 @@ bool tests_mconcat_single()
 {
     bool ok = true;
 
-    ok = ok && (mconcat(std::vector<sum<int> >{ sum<int>(42) }).value == 42);
+    ok = ok && (mconcat(std::vector<DSum<int> >{ DSum<int>(42) }).value == 42);
     ok = ok && (mconcat(std::vector<std::string>{ "x" }) == "x");
-    ok = ok && (mconcat(std::vector<min<int> >{ min<int>(7) }).value == 7);
-    ok = ok && (mconcat(std::vector<max<int> >{ max<int>(7) }).value == 7);
+    ok = ok && (mconcat(std::vector<DMin<int> >{ DMin<int>(7) }).value == 7);
+    ok = ok && (mconcat(std::vector<DMax<int> >{ DMax<int>(7) }).value == 7);
 
     return ok;
 }
@@ -137,13 +137,13 @@ bool tests_mconcat_empty()
 {
     bool ok = true;
 
-    ok = ok && (mconcat(std::vector<sum<int> >{}).value == 0);
-    ok = ok && (mconcat(std::vector<product<int> >{}).value == 1);
-    ok = ok && (mconcat(std::vector<all>{}).value == true);
-    ok = ok && (mconcat(std::vector<any>{}).value == false);
-    ok = ok && (mconcat(std::vector<min<int> >{}).value ==
+    ok = ok && (mconcat(std::vector<DSum<int> >{}).value == 0);
+    ok = ok && (mconcat(std::vector<DProduct<int> >{}).value == 1);
+    ok = ok && (mconcat(std::vector<DAll>{}).value == true);
+    ok = ok && (mconcat(std::vector<DAny>{}).value == false);
+    ok = ok && (mconcat(std::vector<DMin<int> >{}).value ==
                 (std::numeric_limits<int>::max)());
-    ok = ok && (mconcat(std::vector<max<int> >{}).value ==
+    ok = ok && (mconcat(std::vector<DMax<int> >{}).value ==
                 (std::numeric_limits<int>::lowest)());
     ok = ok && (mconcat(std::vector<std::string>{}).empty());
 
@@ -191,8 +191,8 @@ bool tests_mconcat_return_type()
 {
     static_assert(
         std::is_same<
-            decltype(mconcat(std::declval<const std::vector<sum<int> >&>())),
-            sum<int> >::value,
+            decltype(mconcat(std::declval<const std::vector<DSum<int> >&>())),
+            DSum<int> >::value,
         "mconcat returns the monoid type");
 
     static_assert(
@@ -219,28 +219,28 @@ bool tests_fold_monoid_multi()
 
     // map each int into a sum -> total.
     ok = ok && (fold_monoid(std::vector<int>{ 1, 2, 3 },
-                    [](int _x){ return sum<int>(_x); }).value == 6);
+                    [](int _x){ return DSum<int>(_x); }).value == 6);
 
     // map into a product.
     ok = ok && (fold_monoid(std::vector<int>{ 1, 2, 3, 4 },
-                    [](int _x){ return product<int>(_x); }).value == 24);
+                    [](int _x){ return DProduct<int>(_x); }).value == 24);
 
     // map into max / min -> extremum.
     ok = ok && (fold_monoid(std::vector<int>{ 5, 2, 9, 1 },
-                    [](int _x){ return max<int>(_x); }).value == 9);
+                    [](int _x){ return DMax<int>(_x); }).value == 9);
     ok = ok && (fold_monoid(std::vector<int>{ 5, 2, 9, 1 },
-                    [](int _x){ return min<int>(_x); }).value == 1);
+                    [](int _x){ return DMin<int>(_x); }).value == 1);
 
     // map into a predicate monoid -> are all elements positive?
     ok = ok && (fold_monoid(std::vector<int>{ 1, 2, 3 },
-                    [](int _x){ return all(_x > 0); }).value == true);
+                    [](int _x){ return DAll(_x > 0); }).value == true);
     ok = ok && (fold_monoid(std::vector<int>{ 1, -2, 3 },
-                    [](int _x){ return all(_x > 0); }).value == false);
+                    [](int _x){ return DAll(_x > 0); }).value == false);
 
     // map string -> length, then sum the lengths.
     ok = ok && (fold_monoid(std::vector<std::string>{ "a", "bb", "ccc" },
                     [](const std::string& _s){
-                        return sum<std::size_t>(_s.size());
+                        return DSum<std::size_t>(_s.size());
                     }).value == static_cast<std::size_t>(6));
 
     return ok;
@@ -259,9 +259,9 @@ bool tests_fold_monoid_empty()
     bool ok = true;
 
     ok = ok && (fold_monoid(std::vector<int>{},
-                    [](int _x){ return sum<int>(_x); }).value == 0);
+                    [](int _x){ return DSum<int>(_x); }).value == 0);
     ok = ok && (fold_monoid(std::vector<int>{},
-                    [](int _x){ return product<int>(_x); }).value == 1);
+                    [](int _x){ return DProduct<int>(_x); }).value == 1);
     ok = ok && (fold_monoid(std::vector<int>{},
                     [](int _x){ return std::to_string(_x); }).empty());
 
@@ -283,8 +283,8 @@ bool tests_fold_monoid_type_deduction()
 
     // deduced monoid is sum<long>.
     auto s = fold_monoid(std::vector<int>{ 1, 2, 3 },
-                         [](int _x){ return sum<long>(_x); });
-    ok = ok && (std::is_same<decltype(s), sum<long> >::value);
+                         [](int _x){ return DSum<long>(_x); });
+    ok = ok && (std::is_same<decltype(s), DSum<long> >::value);
     ok = ok && (s.value == 6L);
 
     // deduced monoid is std::string.

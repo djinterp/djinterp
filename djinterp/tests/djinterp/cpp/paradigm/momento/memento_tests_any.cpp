@@ -35,7 +35,7 @@ tests_any_memento_construct_holds
 */
 bool tests_any_memento_construct_holds()
 {
-    any_memento m(int(42));
+    DAnyMemento m(int(42));
 
     bool ok = true;
 
@@ -56,9 +56,9 @@ tests_any_memento_get_sbo
 */
 bool tests_any_memento_get_sbo()
 {
-    any_memento mi(int(-7));
-    any_memento mb(true);
-    any_memento md(3.5);
+    DAnyMemento mi(int(-7));
+    DAnyMemento mb(true);
+    DAnyMemento md(3.5);
 
     bool ok = true;
 
@@ -77,7 +77,7 @@ tests_any_memento_get_heap
 */
 bool tests_any_memento_get_heap()
 {
-    any_memento m(std::string("hello"));
+    DAnyMemento m(std::string("hello"));
 
     const std::string& s = m.get<std::string>();
 
@@ -92,7 +92,7 @@ tests_any_memento_get_mutable
 */
 bool tests_any_memento_get_mutable()
 {
-    any_memento m(std::string("ab"));
+    DAnyMemento m(std::string("ab"));
 
     m.get<std::string>() += "c";
 
@@ -108,9 +108,9 @@ tests_any_memento_type
 */
 bool tests_any_memento_type()
 {
-    any_memento a(int(1));
-    any_memento b(int(2));
-    any_memento c(std::string("x"));
+    DAnyMemento a(int(1));
+    DAnyMemento b(int(2));
+    DAnyMemento c(std::string("x"));
 
     bool ok = true;
 
@@ -128,7 +128,7 @@ tests_any_memento_reset
 */
 bool tests_any_memento_reset()
 {
-    any_memento m(int(5));
+    DAnyMemento m(int(5));
     m.reset();
 
     return (!m.has_value());
@@ -142,7 +142,7 @@ tests_any_memento_metadata
 */
 bool tests_any_memento_metadata()
 {
-    any_memento m(int(9), memento_metadata(6));
+    DAnyMemento m(int(9), DMementoMetadata(6));
 
     return (m.metadata().sequence == 6);
 }
@@ -156,14 +156,14 @@ tests_any_caretaker_push_pop
 */
 bool tests_any_caretaker_push_pop()
 {
-    any_memento_caretaker<> ct;
+    DAnyMementoCaretaker<> ct;
 
-    ct.push(any_memento(int(1)));
-    ct.push(any_memento(int(2)));
+    ct.push(DAnyMemento(int(1)));
+    ct.push(DAnyMemento(int(2)));
 
     bool ok = (ct.size() == 2);
 
-    any_memento m = ct.pop();
+    DAnyMemento m = ct.pop();
     ok = ok && (m.holds<int>() && m.get<int>() == 2);
     ok = ok && (ct.size() == 1);
 
@@ -178,9 +178,9 @@ tests_any_caretaker_peek
 */
 bool tests_any_caretaker_peek()
 {
-    any_memento_caretaker<> ct;
-    ct.push(any_memento(int(1)));
-    ct.push(any_memento(std::string("top")));
+    DAnyMementoCaretaker<> ct;
+    ct.push(DAnyMemento(int(1)));
+    ct.push(DAnyMemento(std::string("top")));
 
     bool ok = true;
 
@@ -199,15 +199,15 @@ tests_any_caretaker_heterogeneous
 */
 bool tests_any_caretaker_heterogeneous()
 {
-    any_memento_caretaker<> ct;
-    ct.push(any_memento(int(1)));
-    ct.push(any_memento(std::string("two")));
-    ct.push(any_memento(double(3.0)));
+    DAnyMementoCaretaker<> ct;
+    ct.push(DAnyMemento(int(1)));
+    ct.push(DAnyMemento(std::string("two")));
+    ct.push(DAnyMemento(double(3.0)));
 
     // any_memento_caretaker has no indexed at(); walk oldest-to-newest.
     int  idx = 0;
     bool ok  = true;
-    ct.for_each([&](const any_memento& _m)
+    ct.for_each([&](const DAnyMemento& _m)
     {
         if (idx == 0)
         {
@@ -236,13 +236,13 @@ tests_any_caretaker_for_each
 */
 bool tests_any_caretaker_for_each()
 {
-    any_memento_caretaker<> ct;
-    ct.push(any_memento(int(1)));
-    ct.push(any_memento(int(2)));
-    ct.push(any_memento(int(3)));
+    DAnyMementoCaretaker<> ct;
+    ct.push(DAnyMemento(int(1)));
+    ct.push(DAnyMemento(int(2)));
+    ct.push(DAnyMemento(int(3)));
 
     int count = 0;
-    ct.for_each([&](const any_memento&) { ++count; });
+    ct.for_each([&](const DAnyMemento&) { ++count; });
 
     return (count == 3);
 }
@@ -256,12 +256,12 @@ tests_any_caretaker_empty_clear
 */
 bool tests_any_caretaker_empty_clear()
 {
-    any_memento_caretaker<> ct;
+    DAnyMementoCaretaker<> ct;
 
     bool ok = (ct.empty());
 
-    ct.push(any_memento(int(1)));
-    ct.push(any_memento(int(2)));
+    ct.push(DAnyMemento(int(1)));
+    ct.push(DAnyMemento(int(2)));
     ok = ok && (!ct.empty());
 
     ct.clear();
@@ -280,14 +280,14 @@ tests_any_caretaker_try_pop
 bool tests_any_caretaker_try_pop()
 {
 #if D_MEMENTO_HAS_OPTIONAL
-    any_memento_caretaker<> ct;
-    ct.push(any_memento(int(8)));
+    DAnyMementoCaretaker<> ct;
+    ct.push(DAnyMemento(int(8)));
 
-    std::optional<any_memento> got = ct.try_pop();
+    std::optional<DAnyMemento> got = ct.try_pop();
 
     bool ok = (got.has_value() && got->holds<int>() && got->get<int>() == 8);
 
-    std::optional<any_memento> none = ct.try_pop();
+    std::optional<DAnyMemento> none = ct.try_pop();
     ok = ok && (!none.has_value());
 
     return ok;

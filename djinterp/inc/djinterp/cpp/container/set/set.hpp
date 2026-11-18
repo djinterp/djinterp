@@ -369,8 +369,8 @@ D_TYPE_TRAIT_VALUE_BOOL(is_flat_multi_set)
 // caller reasoning in overlay terms and one reasoning in set terms agree.  The
 // bridge keys on canonical_overlay_of, which classifies by (multiplicity,
 // keyed):
-// an unkeyed unique container wears `set`, an unkeyed repeatable one
-// `multiset`.
+// an unkeyed unique container wears `DSet`, an unkeyed repeatable one
+// `DMultiset`.
 
 // wears_set_overlay
 //   trait: true iff Type wears the canonical set overlay {mu_1^E} - unkeyed,
@@ -379,7 +379,7 @@ template<typename Type>
 struct wears_set_overlay
     : std::integral_constant<bool,
           canonical_overlay_of<clean_t<Type>>::value
-              == canonical_overlay::set>
+              == DCanonicalOverlay::set>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(wears_set_overlay)
@@ -391,7 +391,7 @@ template<typename Type>
 struct wears_multiset_overlay
     : std::integral_constant<bool,
           canonical_overlay_of<clean_t<Type>>::value
-              == canonical_overlay::multiset>
+              == DCanonicalOverlay::multiset>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(wears_multiset_overlay)
@@ -645,19 +645,19 @@ public:
     // container. (Member names are chosen to not shadow the namespace-scope
     // enums / traits they draw from - e.g. `canonical` for the overlay,
     // `grade` for the mutability enum.)
-    static constexpr multiplicity_kind::value multiplicity =
+    static constexpr DMultiplicityKind::value multiplicity =
         multiplicity_kind_of<clean_type>::value;
-    static constexpr sortedness               sorted_kind =
+    static constexpr DSortedness               sorted_kind =
         sortedness_of<clean_type>::value;
     static constexpr bool                     sorted_enumeration =
         djinterp::admits_sorted_enumeration<clean_type>::value;
-    static constexpr canonical_overlay        canonical =
+    static constexpr DCanonicalOverlay        canonical =
         canonical_overlay_of<clean_type>::value;
-    static constexpr mutability               grade =
+    static constexpr DMutability               grade =
         mutability_of<clean_type>::value;
-    static constexpr access_restriction       access =
+    static constexpr DAccessRestriction       access =
         access_restriction_of<clean_type>::value;
-    static constexpr iteration_mode           iteration =
+    static constexpr DIterationMode           iteration =
         iteration_mode_of<clean_type>::value;
 
     static constexpr const char*        overlay_name =
@@ -903,7 +903,7 @@ concept ClassifiedSet = DSetClass<Type>::is_set;
 // I.   set  --  monotone unique
 // ===========================================================================
 
-// set
+// DSet
 //   class: a sorted, unique-key associative container - the canonical set
 // overlay {mu_1^E} on a balanced-tree backing. Elements are the keys.
 // Classifies as: set-like, unordered (bag identity) yet monotone (sorted-by-
@@ -912,7 +912,7 @@ concept ClassifiedSet = DSetClass<Type>::is_set;
 template<typename Key,
          typename Compare    = std::less<Key>,
          typename Allocator = std::allocator<Key>>
-class set
+class DSet
 {
 private:
     using underlying_type = std::set<Key, Compare, Allocator>;
@@ -921,7 +921,7 @@ private:
 
 public:
     // --- structural classification surface ---
-    using structure_category     = flat;
+    using structure_category     = DFlat;
 
     // --- member types ---
     using key_type               = Key;
@@ -941,32 +941,32 @@ public:
 
     // --- constructors ---
 
-    set() = default;
+    DSet() = default;
 
-    explicit set(const Compare&   _comp,
+    explicit DSet(const Compare&   _comp,
                  const Allocator& _allocator = Allocator())
         : m_data(_comp, _allocator)
     {}
 
     template<typename InputIt>
-    set(InputIt           _first,
+    DSet(InputIt           _first,
         InputIt           _last,
         const Compare&   _comp      = Compare(),
         const Allocator& _allocator = Allocator())
         : m_data(_first, _last, _comp, _allocator)
     {}
 
-    set(std::initializer_list<Key> _init,
+    DSet(std::initializer_list<Key> _init,
         const Compare&             _comp      = Compare(),
         const Allocator&           _allocator = Allocator())
         : m_data(_init, _comp, _allocator)
     {}
 
-    set(const set&) = default;
-    set(set&&)      = default;
+    DSet(const DSet&) = default;
+    DSet(DSet&&)      = default;
 
-    set& operator=(const set&) = default;
-    set& operator=(set&&)      = default;
+    DSet& operator=(const DSet&) = default;
+    DSet& operator=(DSet&&)      = default;
 
     // --- iteration (const traversal only; the element is frozen) ---
 
@@ -1037,18 +1037,18 @@ public:
                     const_iterator _last)              { return m_data.erase(_first, _last); }
     size_type erase(const key_type& _key)              { return m_data.erase(_key);          }
 
-    void swap(set& _other) noexcept { m_data.swap(_other.m_data); }
+    void swap(DSet& _other) noexcept { m_data.swap(_other.m_data); }
 
     node_type extract(const_iterator _pos)             { return m_data.extract(_pos); }
     node_type extract(const key_type& _key)            { return m_data.extract(_key); }
 
     template<typename Comp2>
-    void merge(std::set<Key, Comp2, Allocator>& _source)
+    void DMerge(std::set<Key, Comp2, Allocator>& _source)
     {
         m_data.merge(_source);
     }
 
-    void merge(set& _source) { m_data.merge(_source.m_data); }
+    void merge(DSet& _source) { m_data.merge(_source.m_data); }
 
     // --- lookup ---
 
@@ -1074,20 +1074,26 @@ public:
 
     // --- comparison operators ---
 
-    friend bool operator==(const set& _lhs, const set& _rhs) { return _lhs.m_data == _rhs.m_data; }
-    friend bool operator!=(const set& _lhs, const set& _rhs) { return _lhs.m_data != _rhs.m_data; }
-    friend bool operator< (const set& _lhs, const set& _rhs) { return _lhs.m_data <  _rhs.m_data; }
-    friend bool operator<=(const set& _lhs, const set& _rhs) { return _lhs.m_data <= _rhs.m_data; }
-    friend bool operator> (const set& _lhs, const set& _rhs) { return _lhs.m_data >  _rhs.m_data; }
-    friend bool operator>=(const set& _lhs, const set& _rhs) { return _lhs.m_data >= _rhs.m_data; }
+    friend bool operator==(const DSet& _lhs, const DSet& _rhs) { return _lhs.m_data == _rhs.m_data; }
+    friend bool operator!=(const DSet& _lhs, const DSet& _rhs) { return _lhs.m_data != _rhs.m_data; }
+    friend bool operator< (const DSet& _lhs, const DSet& _rhs) { return _lhs.m_data <  _rhs.m_data; }
+    friend bool operator<=(const DSet& _lhs, const DSet& _rhs) { return _lhs.m_data <= _rhs.m_data; }
+    friend bool operator> (const DSet& _lhs, const DSet& _rhs) { return _lhs.m_data >  _rhs.m_data; }
+    friend bool operator>=(const DSet& _lhs, const DSet& _rhs) { return _lhs.m_data >= _rhs.m_data; }
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Key,
+         typename Compare    = std::less<Key>,
+         typename Allocator = std::allocator<Key>>
+using set = DSet<Key, Compare, Allocator>;
 
 
 // ===========================================================================
 // II.  multiset  --  monotone multi
 // ===========================================================================
 
-// multiset
+// DMultiset
 //   class: a sorted associative container admitting duplicate keys - the
 // canonical multiset overlay {mu_m^E}, m > 1, on a balanced-tree backing.
 // Classifies as: set-like, monotone, multi, flat, dynamic, structure-mutable
@@ -1095,7 +1101,7 @@ public:
 template<typename Key,
          typename Compare    = std::less<Key>,
          typename Allocator = std::allocator<Key>>
-class multiset
+class DMultiset
 {
 private:
     using underlying_type = std::multiset<Key, Compare, Allocator>;
@@ -1104,7 +1110,7 @@ private:
 
 public:
     // --- structural classification surface ---
-    using structure_category     = flat;
+    using structure_category     = DFlat;
 
     // --- member types ---
     using key_type               = Key;
@@ -1124,32 +1130,32 @@ public:
 
     // --- constructors ---
 
-    multiset() = default;
+    DMultiset() = default;
 
-    explicit multiset(const Compare&   _comp,
+    explicit DMultiset(const Compare&   _comp,
                       const Allocator& _allocator = Allocator())
         : m_data(_comp, _allocator)
     {}
 
     template<typename InputIt>
-    multiset(InputIt           _first,
+    DMultiset(InputIt           _first,
              InputIt           _last,
              const Compare&   _comp      = Compare(),
              const Allocator& _allocator = Allocator())
         : m_data(_first, _last, _comp, _allocator)
     {}
 
-    multiset(std::initializer_list<Key> _init,
+    DMultiset(std::initializer_list<Key> _init,
              const Compare&             _comp      = Compare(),
              const Allocator&           _allocator = Allocator())
         : m_data(_init, _comp, _allocator)
     {}
 
-    multiset(const multiset&) = default;
-    multiset(multiset&&)      = default;
+    DMultiset(const DMultiset&) = default;
+    DMultiset(DMultiset&&)      = default;
 
-    multiset& operator=(const multiset&) = default;
-    multiset& operator=(multiset&&)      = default;
+    DMultiset& operator=(const DMultiset&) = default;
+    DMultiset& operator=(DMultiset&&)      = default;
 
     // --- iteration ---
 
@@ -1207,18 +1213,18 @@ public:
                     const_iterator _last)              { return m_data.erase(_first, _last); }
     size_type erase(const key_type& _key)              { return m_data.erase(_key);          }
 
-    void swap(multiset& _other) noexcept { m_data.swap(_other.m_data); }
+    void swap(DMultiset& _other) noexcept { m_data.swap(_other.m_data); }
 
     node_type extract(const_iterator _pos)             { return m_data.extract(_pos); }
     node_type extract(const key_type& _key)            { return m_data.extract(_key); }
 
     template<typename Comp2>
-    void merge(std::multiset<Key, Comp2, Allocator>& _source)
+    void DMerge(std::multiset<Key, Comp2, Allocator>& _source)
     {
         m_data.merge(_source);
     }
 
-    void merge(multiset& _source) { m_data.merge(_source.m_data); }
+    void merge(DMultiset& _source) { m_data.merge(_source.m_data); }
 
     // --- lookup ---
 
@@ -1244,20 +1250,26 @@ public:
 
     // --- comparison operators ---
 
-    friend bool operator==(const multiset& _lhs, const multiset& _rhs) { return _lhs.m_data == _rhs.m_data; }
-    friend bool operator!=(const multiset& _lhs, const multiset& _rhs) { return _lhs.m_data != _rhs.m_data; }
-    friend bool operator< (const multiset& _lhs, const multiset& _rhs) { return _lhs.m_data <  _rhs.m_data; }
-    friend bool operator<=(const multiset& _lhs, const multiset& _rhs) { return _lhs.m_data <= _rhs.m_data; }
-    friend bool operator> (const multiset& _lhs, const multiset& _rhs) { return _lhs.m_data >  _rhs.m_data; }
-    friend bool operator>=(const multiset& _lhs, const multiset& _rhs) { return _lhs.m_data >= _rhs.m_data; }
+    friend bool operator==(const DMultiset& _lhs, const DMultiset& _rhs) { return _lhs.m_data == _rhs.m_data; }
+    friend bool operator!=(const DMultiset& _lhs, const DMultiset& _rhs) { return _lhs.m_data != _rhs.m_data; }
+    friend bool operator< (const DMultiset& _lhs, const DMultiset& _rhs) { return _lhs.m_data <  _rhs.m_data; }
+    friend bool operator<=(const DMultiset& _lhs, const DMultiset& _rhs) { return _lhs.m_data <= _rhs.m_data; }
+    friend bool operator> (const DMultiset& _lhs, const DMultiset& _rhs) { return _lhs.m_data >  _rhs.m_data; }
+    friend bool operator>=(const DMultiset& _lhs, const DMultiset& _rhs) { return _lhs.m_data >= _rhs.m_data; }
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Key,
+         typename Compare    = std::less<Key>,
+         typename Allocator = std::allocator<Key>>
+using multiset = DMultiset<Key, Compare, Allocator>;
 
 
 // ===========================================================================
 // III. unordered_set  --  hashed unique
 // ===========================================================================
 
-// unordered_set
+// DUnorderedSet
 //   class: a hash-based unique-key associative container - the set overlay
 // {mu_1^E} on a hash-table backing. Classifies as: set-like, unordered (bag
 // identity, NO monotone enumeration - hash-ordered), unique, flat, dynamic,
@@ -1266,7 +1278,7 @@ template<typename Key,
          typename Hash       = std::hash<Key>,
          typename KeyEqual   = std::equal_to<Key>,
          typename Allocator = std::allocator<Key>>
-class unordered_set
+class DUnorderedSet
 {
 private:
     using underlying_type = std::unordered_set<Key, Hash, KeyEqual, Allocator>;
@@ -1275,7 +1287,7 @@ private:
 
 public:
     // --- structural classification surface ---
-    using structure_category = flat;
+    using structure_category = DFlat;
 
     // --- member types ---
     using key_type        = Key;
@@ -1293,9 +1305,9 @@ public:
 
     // --- constructors ---
 
-    unordered_set() = default;
+    DUnorderedSet() = default;
 
-    explicit unordered_set(
+    explicit DUnorderedSet(
         size_type         _bucket_count,
         const Hash&      _hash      = Hash(),
         const KeyEqual&  _equal     = KeyEqual(),
@@ -1304,7 +1316,7 @@ public:
     {}
 
     template<typename InputIt>
-    unordered_set(
+    DUnorderedSet(
         InputIt           _first,
         InputIt           _last,
         size_type         _bucket_count = 0,
@@ -1314,7 +1326,7 @@ public:
         : m_data(_first, _last, _bucket_count, _hash, _equal, _allocator)
     {}
 
-    unordered_set(
+    DUnorderedSet(
         std::initializer_list<Key> _init,
         size_type                   _bucket_count = 0,
         const Hash&                _hash         = Hash(),
@@ -1323,11 +1335,11 @@ public:
         : m_data(_init, _bucket_count, _hash, _equal, _allocator)
     {}
 
-    unordered_set(const unordered_set&) = default;
-    unordered_set(unordered_set&&)      = default;
+    DUnorderedSet(const DUnorderedSet&) = default;
+    DUnorderedSet(DUnorderedSet&&)      = default;
 
-    unordered_set& operator=(const unordered_set&) = default;
-    unordered_set& operator=(unordered_set&&)      = default;
+    DUnorderedSet& operator=(const DUnorderedSet&) = default;
+    DUnorderedSet& operator=(DUnorderedSet&&)      = default;
 
     // --- iteration ---
 
@@ -1377,12 +1389,12 @@ public:
                     const_iterator _last)              { return m_data.erase(_first, _last); }
     size_type erase(const key_type& _key)              { return m_data.erase(_key);          }
 
-    void swap(unordered_set& _other) noexcept { m_data.swap(_other.m_data); }
+    void swap(DUnorderedSet& _other) noexcept { m_data.swap(_other.m_data); }
 
     node_type extract(const_iterator _pos)             { return m_data.extract(_pos); }
     node_type extract(const key_type& _key)            { return m_data.extract(_key); }
 
-    void merge(unordered_set& _source) { m_data.merge(_source.m_data); }
+    void merge(DUnorderedSet& _source) { m_data.merge(_source.m_data); }
 
     // --- lookup ---
 
@@ -1418,16 +1430,23 @@ public:
 
     // --- comparison operators ---
 
-    friend bool operator==(const unordered_set& _lhs, const unordered_set& _rhs) { return _lhs.m_data == _rhs.m_data; }
-    friend bool operator!=(const unordered_set& _lhs, const unordered_set& _rhs) { return _lhs.m_data != _rhs.m_data; }
+    friend bool operator==(const DUnorderedSet& _lhs, const DUnorderedSet& _rhs) { return _lhs.m_data == _rhs.m_data; }
+    friend bool operator!=(const DUnorderedSet& _lhs, const DUnorderedSet& _rhs) { return _lhs.m_data != _rhs.m_data; }
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Key,
+         typename Hash       = std::hash<Key>,
+         typename KeyEqual   = std::equal_to<Key>,
+         typename Allocator = std::allocator<Key>>
+using unordered_set = DUnorderedSet<Key, Hash, KeyEqual, Allocator>;
 
 
 // ===========================================================================
 // IV.  unordered_multiset  --  hashed multi
 // ===========================================================================
 
-// unordered_multiset
+// DUnorderedMultiset
 //   class: a hash-based associative container admitting duplicate keys - the
 // multiset overlay {mu_m^E}, m > 1, on a hash-table backing. Classifies as:
 // set-like, unordered (hash-ordered), multi, flat, dynamic, structure-mutable
@@ -1436,7 +1455,7 @@ template<typename Key,
          typename Hash       = std::hash<Key>,
          typename KeyEqual   = std::equal_to<Key>,
          typename Allocator = std::allocator<Key>>
-class unordered_multiset
+class DUnorderedMultiset
 {
 private:
     using underlying_type = std::unordered_multiset<Key, Hash, KeyEqual, Allocator>;
@@ -1445,7 +1464,7 @@ private:
 
 public:
     // --- structural classification surface ---
-    using structure_category = flat;
+    using structure_category = DFlat;
 
     // --- member types ---
     using key_type        = Key;
@@ -1463,9 +1482,9 @@ public:
 
     // --- constructors ---
 
-    unordered_multiset() = default;
+    DUnorderedMultiset() = default;
 
-    explicit unordered_multiset(
+    explicit DUnorderedMultiset(
         size_type         _bucket_count,
         const Hash&      _hash      = Hash(),
         const KeyEqual&  _equal     = KeyEqual(),
@@ -1474,7 +1493,7 @@ public:
     {}
 
     template<typename InputIt>
-    unordered_multiset(
+    DUnorderedMultiset(
         InputIt           _first,
         InputIt           _last,
         size_type         _bucket_count = 0,
@@ -1484,7 +1503,7 @@ public:
         : m_data(_first, _last, _bucket_count, _hash, _equal, _allocator)
     {}
 
-    unordered_multiset(
+    DUnorderedMultiset(
         std::initializer_list<Key> _init,
         size_type                   _bucket_count = 0,
         const Hash&                _hash         = Hash(),
@@ -1493,11 +1512,11 @@ public:
         : m_data(_init, _bucket_count, _hash, _equal, _allocator)
     {}
 
-    unordered_multiset(const unordered_multiset&) = default;
-    unordered_multiset(unordered_multiset&&)      = default;
+    DUnorderedMultiset(const DUnorderedMultiset&) = default;
+    DUnorderedMultiset(DUnorderedMultiset&&)      = default;
 
-    unordered_multiset& operator=(const unordered_multiset&) = default;
-    unordered_multiset& operator=(unordered_multiset&&)      = default;
+    DUnorderedMultiset& operator=(const DUnorderedMultiset&) = default;
+    DUnorderedMultiset& operator=(DUnorderedMultiset&&)      = default;
 
     // --- iteration ---
 
@@ -1547,12 +1566,12 @@ public:
                     const_iterator _last)              { return m_data.erase(_first, _last); }
     size_type erase(const key_type& _key)              { return m_data.erase(_key);          }
 
-    void swap(unordered_multiset& _other) noexcept { m_data.swap(_other.m_data); }
+    void swap(DUnorderedMultiset& _other) noexcept { m_data.swap(_other.m_data); }
 
     node_type extract(const_iterator _pos)             { return m_data.extract(_pos); }
     node_type extract(const key_type& _key)            { return m_data.extract(_key); }
 
-    void merge(unordered_multiset& _source) { m_data.merge(_source.m_data); }
+    void merge(DUnorderedMultiset& _source) { m_data.merge(_source.m_data); }
 
     // --- lookup ---
 
@@ -1588,9 +1607,16 @@ public:
 
     // --- comparison operators ---
 
-    friend bool operator==(const unordered_multiset& _lhs, const unordered_multiset& _rhs) { return _lhs.m_data == _rhs.m_data; }
-    friend bool operator!=(const unordered_multiset& _lhs, const unordered_multiset& _rhs) { return _lhs.m_data != _rhs.m_data; }
+    friend bool operator==(const DUnorderedMultiset& _lhs, const DUnorderedMultiset& _rhs) { return _lhs.m_data == _rhs.m_data; }
+    friend bool operator!=(const DUnorderedMultiset& _lhs, const DUnorderedMultiset& _rhs) { return _lhs.m_data != _rhs.m_data; }
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Key,
+         typename Hash       = std::hash<Key>,
+         typename KeyEqual   = std::equal_to<Key>,
+         typename Allocator = std::allocator<Key>>
+using unordered_multiset = DUnorderedMultiset<Key, Hash, KeyEqual, Allocator>;
 
 
 NS_END  // djinterp

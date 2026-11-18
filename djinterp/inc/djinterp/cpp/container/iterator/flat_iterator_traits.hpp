@@ -230,7 +230,7 @@ NS_INTERNAL
 NS_END  // internal
 
 template<typename Type>
-struct nesting_depth
+struct DNestingDepth
 {
     using elem_type =
         internal::flat_safe_value_type_t<
@@ -241,9 +241,13 @@ struct nesting_depth
             elem_type>::value;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using nesting_depth = DNestingDepth<Type>;
+
 template<typename Type>
 inline constexpr std::size_t nesting_depth_v =
-    nesting_depth<Type>::value;
+    DNestingDepth<Type>::value;
 
 
 // ===========================================================================
@@ -301,9 +305,9 @@ D_TYPE_TRAIT_DETECTED(has_child_count_method,
 // III. Flatten Strategy Classification
 // ===========================================================================
 
-// flatten_strategy
+// DFlattenStrategy
 //   enum: compile-time flattening approach.
-enum class flatten_strategy
+enum class DFlattenStrategy
 {
     // already flat - identity iteration
     identity,
@@ -324,6 +328,9 @@ enum class flatten_strategy
     unsupported
 };
 
+// old name, until 0.9.0-rc.1
+using flatten_strategy = DFlattenStrategy;
+
 NS_INTERNAL
 
     template<typename Type>
@@ -331,24 +338,24 @@ NS_INTERNAL
     {
         using C = clean_t<Type>;
 
-        static constexpr flatten_strategy value =
+        static constexpr DFlattenStrategy value =
             // hierarchical with children()
             is_hierarchy_flattenable_v<C>
-                ? flatten_strategy::dfs
+                ? DFlattenStrategy::dfs
 
             // deeply nested (depth >= 2)
             : has_deeply_nested_elements_v<C>
-                ? flatten_strategy::recursive
+                ? DFlattenStrategy::recursive
 
             // depth-1 nested
             : has_nested_iterable_elements_v<C>
-                ? flatten_strategy::concat
+                ? DFlattenStrategy::concat
 
             // already flat and iterable
             : is_iterable_container_v<C>
-                ? flatten_strategy::identity
+                ? DFlattenStrategy::identity
 
-            : flatten_strategy::unsupported;
+            : DFlattenStrategy::unsupported;
     };
 
 NS_END  // internal
@@ -356,13 +363,13 @@ NS_END  // internal
 template<typename Type>
 struct container_flatten_strategy
 {
-    static constexpr flatten_strategy value =
+    static constexpr DFlattenStrategy value =
         internal::flatten_strategy_impl<
             Type>::value;
 };
 
 template<typename Type>
-inline constexpr flatten_strategy
+inline constexpr DFlattenStrategy
     container_flatten_strategy_v =
         container_flatten_strategy<Type>::value;
 
@@ -393,11 +400,11 @@ NS_INTERNAL
 
 NS_END  // internal
 
-// leaf_element_type
+// DLeafElementType
 //   type trait: the innermost element type after recursive flattening. For
 // vector<vector<int>>, this is int.
 template<typename Type>
-struct leaf_element_type
+struct DLeafElementType
 {
     using elem_type =
         internal::flat_safe_value_type_t<
@@ -408,12 +415,16 @@ struct leaf_element_type
             elem_type>::type;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using leaf_element_type = DLeafElementType<Type>;
+
 // leaf_element_type_t
 //   type: the carrier of leaf_element_type -- its `::type`, for use where a
 // type rather than a value is wanted.
 template<typename Type>
 using leaf_element_type_t =
-    typename leaf_element_type<Type>::type;
+    typename DLeafElementType<Type>::type;
 
 
 // ===========================================================================
@@ -427,33 +438,37 @@ struct is_flattenable
 {
     static constexpr bool value =
         ( container_flatten_strategy_v<Type> !=
-          flatten_strategy::unsupported  &&
+          DFlattenStrategy::unsupported  &&
           container_flatten_strategy_v<Type> !=
-          flatten_strategy::identity );
+          DFlattenStrategy::identity );
 };
 
 template<typename Type>
 inline constexpr bool is_flattenable_v =
     is_flattenable<Type>::value;
 
-// needs_recursive_flatten
+// DNeedsRecursiveFlatten
 //   type trait: true if flattening requires recursion (depth >= 2 nesting or
 // hierarchical traversal).
 template<typename Type>
-struct needs_recursive_flatten
+struct DNeedsRecursiveFlatten
 {
-    static constexpr flatten_strategy s =
+    static constexpr DFlattenStrategy s =
         container_flatten_strategy_v<Type>;
 
     static constexpr bool value =
-        ( s == flatten_strategy::recursive ||
-          s == flatten_strategy::dfs       ||
-          s == flatten_strategy::bfs );
+        ( s == DFlattenStrategy::recursive ||
+          s == DFlattenStrategy::dfs       ||
+          s == DFlattenStrategy::bfs );
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using needs_recursive_flatten = DNeedsRecursiveFlatten<Type>;
 
 template<typename Type>
 inline constexpr bool needs_recursive_flatten_v =
-    needs_recursive_flatten<Type>::value;
+    DNeedsRecursiveFlatten<Type>::value;
 
 
 // ===========================================================================
@@ -461,7 +476,7 @@ inline constexpr bool needs_recursive_flatten_v =
 // ===========================================================================
 
 template<typename Type>
-struct flat_iterator_class
+struct DFlatIteratorClass
 {
     // nesting
     static constexpr bool nested_elements =
@@ -482,7 +497,7 @@ struct flat_iterator_class
         has_child_count_method_v<Type>;
 
     // strategy
-    static constexpr flatten_strategy strategy =
+    static constexpr DFlattenStrategy strategy =
         container_flatten_strategy_v<Type>;
 
     // aggregate
@@ -491,6 +506,10 @@ struct flat_iterator_class
     static constexpr bool recursive =
         needs_recursive_flatten_v<Type>;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using flat_iterator_class = DFlatIteratorClass<Type>;
 
 
 NS_END  // traits

@@ -46,7 +46,7 @@ NS_DJINTERP
 //  operating_system
 // ================================================================
 
-// operating_system
+// DOperatingSystem
 //   enum: selects which backend a filesystem facility uses (file_tree<>,
 // file_attributes<>). Values intentionally mirror the env.h D_ENV_OS_FLAG_*
 // families so a detected D_ENV_OS_ID can be folded onto one of these.
@@ -55,7 +55,7 @@ NS_DJINTERP
 // concrete backend policy. Members whose backend is not enabled for the
 // current build (see cfg_filesys.h) are a compile error to select - you cannot
 // name a backend that could never run unless you opt in.
-enum class operating_system : re_std::uint8_t
+enum class DOperatingSystem : re_std::uint8_t
 {
     // generic families
     automatic       = 0,    // detected from D_ENV_OS_ID at compile time
@@ -75,6 +75,9 @@ enum class operating_system : re_std::uint8_t
     // explicit no-op
     none            = 255   // null backend; never touches the OS
 };
+
+// old name, until 0.9.0-rc.1
+using operating_system = DOperatingSystem;
 
 
 NS_END  // djinterp

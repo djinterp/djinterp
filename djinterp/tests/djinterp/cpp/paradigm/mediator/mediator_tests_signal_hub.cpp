@@ -39,10 +39,10 @@ tests_signal_id_type
 */
 bool tests_signal_id_type()
 {
-    static_assert(std::is_same<signal_id, std::string>::value,
+    static_assert(std::is_same<DSignalId, std::string>::value,
                   "signal_id is std::string");
 
-    return std::is_same<signal_id, std::string>::value;
+    return std::is_same<DSignalId, std::string>::value;
 }
 
 /*
@@ -54,10 +54,10 @@ tests_signal_hub_connect_emit
 */
 bool tests_signal_hub_connect_emit()
 {
-    signal_hub hub;
+    DSignalHub hub;
     int        seen = 0;
 
-    hub.connect(signal_id("chan"),
+    hub.connect(DSignalId("chan"),
                 [&](const re_std::any& _e) { seen = _e.get<int>(); });
 
     bool ok = (hub.slot_count() == 1);
@@ -79,7 +79,7 @@ tests_signal_hub_connect_literal
 */
 bool tests_signal_hub_connect_literal()
 {
-    signal_hub hub;
+    DSignalHub hub;
     int        seen = 0;
 
     hub.connect("literal", [&](const re_std::any& _e) { seen = _e.get<int>(); });
@@ -102,12 +102,12 @@ tests_signal_hub_multicast
 */
 bool tests_signal_hub_multicast()
 {
-    signal_hub hub;
+    DSignalHub hub;
     int        a = 0;
     int        b = 0;
 
-    hub.connect(signal_id("chan"), [&](const re_std::any&) { ++a; });
-    hub.connect(signal_id("chan"), [&](const re_std::any&) { ++b; });
+    hub.connect(DSignalId("chan"), [&](const re_std::any&) { ++a; });
+    hub.connect(DSignalId("chan"), [&](const re_std::any&) { ++b; });
 
     hub.emit("chan", re_std::any(0));
 
@@ -129,12 +129,12 @@ tests_signal_hub_channels
 */
 bool tests_signal_hub_channels()
 {
-    signal_hub hub;
+    DSignalHub hub;
     int        ca = 0;
     int        cb = 0;
 
-    hub.connect(signal_id("a"), [&](const re_std::any&) { ++ca; });
-    hub.connect(signal_id("b"), [&](const re_std::any&) { ++cb; });
+    hub.connect(DSignalId("a"), [&](const re_std::any&) { ++ca; });
+    hub.connect(DSignalId("b"), [&](const re_std::any&) { ++cb; });
 
     hub.emit("a", re_std::any(0));
 
@@ -159,13 +159,13 @@ tests_signal_hub_disconnect
 */
 bool tests_signal_hub_disconnect()
 {
-    signal_hub hub;
+    DSignalHub hub;
     int        a = 0;
     int        b = 0;
 
-    subscription_id tok =
-        hub.connect(signal_id("chan"), [&](const re_std::any&) { ++a; });
-    hub.connect(signal_id("chan"), [&](const re_std::any&) { ++b; });
+    DSubscriptionId tok =
+        hub.connect(DSignalId("chan"), [&](const re_std::any&) { ++a; });
+    hub.connect(DSignalId("chan"), [&](const re_std::any&) { ++b; });
 
     hub.disconnect(tok);
 
@@ -187,13 +187,13 @@ tests_signal_hub_disconnect_all
 */
 bool tests_signal_hub_disconnect_all()
 {
-    signal_hub hub;
+    DSignalHub hub;
     int        a = 0;
     int        other = 0;
 
-    hub.connect(signal_id("chan"), [&](const re_std::any&) { ++a; });
-    hub.connect(signal_id("chan"), [&](const re_std::any&) { ++a; });
-    hub.connect(signal_id("keep"), [&](const re_std::any&) { ++other; });
+    hub.connect(DSignalId("chan"), [&](const re_std::any&) { ++a; });
+    hub.connect(DSignalId("chan"), [&](const re_std::any&) { ++a; });
+    hub.connect(DSignalId("keep"), [&](const re_std::any&) { ++other; });
 
     hub.disconnect_all("chan");
 
@@ -220,7 +220,7 @@ tests_signal_hub_connect_typed
 */
 bool tests_signal_hub_connect_typed()
 {
-    signal_hub hub;
+    DSignalHub hub;
     int        seen = 0;
 
     hub.connect_typed<ping>("chan",
@@ -244,11 +244,11 @@ tests_signal_hub_emit_typed
 */
 bool tests_signal_hub_emit_typed()
 {
-    signal_hub hub;
+    DSignalHub hub;
     bool       raw_holds_ping = false;
     int        typed_seen = 0;
 
-    hub.connect(signal_id("chan"),
+    hub.connect(DSignalId("chan"),
                 [&](const re_std::any& _e) { raw_holds_ping = _e.holds<ping>(); });
     hub.connect_typed<ping>("chan",
                             [&](const ping& _e) { typed_seen = _e.n; });
@@ -273,7 +273,7 @@ tests_signal_hub_string_view_connect
 bool tests_signal_hub_string_view_connect()
 {
 #if D_MEDIATOR_HAS_STRING_VIEW
-    signal_hub hub;
+    DSignalHub hub;
     int        seen = 0;
 
     hub.connect(std::string_view("sv_chan"),
@@ -302,10 +302,10 @@ tests_signal_hub_has_channel
 */
 bool tests_signal_hub_has_channel()
 {
-    signal_hub hub;
+    DSignalHub hub;
 
-    subscription_id tok =
-        hub.connect(signal_id("live"), [](const re_std::any&) {});
+    DSubscriptionId tok =
+        hub.connect(DSignalId("live"), [](const re_std::any&) {});
 
     bool ok = true;
 
@@ -327,11 +327,11 @@ tests_signal_hub_clear
 */
 bool tests_signal_hub_clear()
 {
-    signal_hub hub;
+    DSignalHub hub;
     int        seen = 0;
 
-    hub.connect(signal_id("a"), [&](const re_std::any&) { ++seen; });
-    hub.connect(signal_id("b"), [&](const re_std::any&) { ++seen; });
+    hub.connect(DSignalId("a"), [&](const re_std::any&) { ++seen; });
+    hub.connect(DSignalId("b"), [&](const re_std::any&) { ++seen; });
 
     hub.clear();
 

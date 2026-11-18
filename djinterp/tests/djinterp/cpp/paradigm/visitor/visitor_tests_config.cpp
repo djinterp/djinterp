@@ -231,27 +231,27 @@ bool tests_default_return_type_propagates_to_every_root()
     struct element {};
 
     // each root's own typedef reports void...
-    static_assert(std::is_same<visitor_base<>::return_type, void>::value,
+    static_assert(std::is_same<DVisitorBase<>::return_type, void>::value,
                   "visitor_base<> defaults to void");
-    static_assert(std::is_same<visitable_base<>::return_type, void>::value,
+    static_assert(std::is_same<DVisitableBase<>::return_type, void>::value,
                   "visitable_base<> defaults to void");
-    static_assert(std::is_same<visitor_of<element>::return_type, void>::value,
+    static_assert(std::is_same<DVisitorOf<element>::return_type, void>::value,
                   "visitor_of<E> defaults to void");
-    static_assert(std::is_same<acyclic_visitable<>::return_type, void>::value,
+    static_assert(std::is_same<DAcyclicVisitable<>::return_type, void>::value,
                   "acyclic_visitable<> defaults to void");
 
     // ...and the defaulted spelling names the same TYPE as the explicit one.
     // acyclic_visitable is the one that matters here: its default argument used to
     // be ill-formed for precisely this return type.
-    static_assert(std::is_same<visitor_base<>, visitor_base<void> >::value,
+    static_assert(std::is_same<DVisitorBase<>, DVisitorBase<void> >::value,
                   "visitor_base<> IS visitor_base<void>");
-    static_assert(std::is_same<visitable_base<>, visitable_base<void> >::value,
+    static_assert(std::is_same<DVisitableBase<>, DVisitableBase<void> >::value,
                   "visitable_base<> IS visitable_base<void>");
-    static_assert(std::is_same<visitor_of<element>,
-                               visitor_of<element, void> >::value,
+    static_assert(std::is_same<DVisitorOf<element>,
+                               DVisitorOf<element, void> >::value,
                   "visitor_of<E> IS visitor_of<E, void>");
-    static_assert(std::is_same<acyclic_visitable<>,
-                               acyclic_visitable<void> >::value,
+    static_assert(std::is_same<DAcyclicVisitable<>,
+                               DAcyclicVisitable<void> >::value,
                   "acyclic_visitable<> IS acyclic_visitable<void>");
 
     return true;

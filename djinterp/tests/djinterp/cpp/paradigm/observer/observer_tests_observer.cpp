@@ -64,7 +64,7 @@ bool tests_observer_connect_notify()
     observer<void(int)> o;
     int sum = 0;
 
-    connection c = o.connect([&](int _x) { sum += _x; });
+    DConnection c = o.connect([&](int _x) { sum += _x; });
 
     bool ok = (c.connected() && o.count() == 1);
 
@@ -86,7 +86,7 @@ bool tests_observer_operator_plus_equals()
     observer<void(int)> o;
     int sum = 0;
 
-    connection c = (o += [&](int _x) { sum += _x; });
+    DConnection c = (o += [&](int _x) { sum += _x; });
 
     bool ok = (c.connected() && o.count() == 1);
 
@@ -109,8 +109,8 @@ bool tests_observer_disconnect_via_connection()
     int a = 0;
     int b = 0;
 
-    connection ca = o.connect([&](int _x) { a += _x; });
-    connection cb = o.connect([&](int _x) { b += _x; });
+    DConnection ca = o.connect([&](int _x) { a += _x; });
+    DConnection cb = o.connect([&](int _x) { b += _x; });
 
     ca.disconnect();
 
@@ -136,8 +136,8 @@ bool tests_observer_disconnect_all()
 {
     observer<void(int)> o;
 
-    connection ca = o.connect([](int) {});
-    connection cb = o.connect([](int) {});
+    DConnection ca = o.connect([](int) {});
+    DConnection cb = o.connect([](int) {});
 
     o.disconnect_all();
 
@@ -159,7 +159,7 @@ bool tests_observer_size_including_dead()
 {
     observer<void(int)> o;
 
-    connection ca = o.connect([](int) {});
+    DConnection ca = o.connect([](int) {});
     o.connect([](int) {});
 
     ca.disconnect();
@@ -184,7 +184,7 @@ bool tests_observer_notify_skips_dead()
     int a = 0;
     int b = 0;
 
-    connection ca = o.connect([&](int _x) { a += _x; });
+    DConnection ca = o.connect([&](int _x) { a += _x; });
     o.connect([&](int _x) { b += _x; });
 
     ca.disconnect();
@@ -205,8 +205,8 @@ bool tests_observer_compact_keeps_live()
     observer<void(int)> o;
     int live = 0;
 
-    connection dead = o.connect([](int) {});
-    connection kept = o.connect([&](int _x) { live += _x; });
+    DConnection dead = o.connect([](int) {});
+    DConnection kept = o.connect([&](int _x) { live += _x; });
 
     dead.disconnect();
     o.compact();
@@ -255,10 +255,10 @@ tests_observer_scoped_raii
 bool tests_observer_scoped_raii()
 {
     observer<void(int)> o;
-    connection kept;
+    DConnection kept;
 
     {
-        scoped_connection sc = o.connect([](int) {});
+        DScopedConnection sc = o.connect([](int) {});
         kept = o.connect([](int) {});
         if (o.count() != 2) { return false; }
     }   // sc detaches its slot
@@ -283,7 +283,7 @@ tests_observer_connection_outlives_safe
 */
 bool tests_observer_connection_outlives_safe()
 {
-    connection c;
+    DConnection c;
 
     {
         observer<void(int)> o;

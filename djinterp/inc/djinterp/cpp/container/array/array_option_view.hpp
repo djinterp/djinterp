@@ -117,12 +117,12 @@ NS_DJINTERP
 // SFINAE-gated.
 
 template<typename Derived>
-class array_options_constexpr_base
+class DArrayOptionsConstexprBase
 {
 protected:
     constexpr
-    array_options_constexpr_base() = default;
-    ~array_options_constexpr_base() = default;
+    DArrayOptionsConstexprBase() = default;
+    ~DArrayOptionsConstexprBase() = default;
 
 private:
     constexpr
@@ -272,6 +272,10 @@ public:
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Derived>
+using array_options_constexpr_base = DArrayOptionsConstexprBase<Derived>;
+
 
 // =============================================================================
 // II.  array_options_immutable_base (CRTP) - runtime immutable
@@ -280,12 +284,12 @@ public:
 // option data.  No modification of the source.
 
 template<typename Derived>
-class array_options_immutable_base
-    : public array_options_constexpr_base<Derived>
+class DArrayOptionsImmutableBase
+    : public DArrayOptionsConstexprBase<Derived>
 {
 protected:
-    array_options_immutable_base() = default;
-    ~array_options_immutable_base() = default;
+    DArrayOptionsImmutableBase() = default;
+    ~DArrayOptionsImmutableBase() = default;
 
 private:
     const Derived& self() const
@@ -556,6 +560,10 @@ public:
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Derived>
+using array_options_immutable_base = DArrayOptionsImmutableBase<Derived>;
+
 
 // =============================================================================
 // III. array_options_mutable_base (CRTP) - mutating layer
@@ -563,12 +571,12 @@ public:
 // In-place option modification and bulk application.
 
 template<typename Derived>
-class array_options_mutable_base
-    : public array_options_immutable_base<Derived>
+class DArrayOptionsMutableBase
+    : public DArrayOptionsImmutableBase<Derived>
 {
 protected:
-    array_options_mutable_base() = default;
-    ~array_options_mutable_base() = default;
+    DArrayOptionsMutableBase() = default;
+    ~DArrayOptionsMutableBase() = default;
 
 private:
     Derived& self()
@@ -813,6 +821,10 @@ public:
         return c;
     }
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Derived>
+using array_options_mutable_base = DArrayOptionsMutableBase<Derived>;
 
 
 // =============================================================================

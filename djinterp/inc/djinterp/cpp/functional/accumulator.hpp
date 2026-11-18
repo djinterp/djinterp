@@ -127,7 +127,7 @@ NS_DJINTERP
 ///             I.    ACCUMULATOR PRIMITIVE                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// accumulator
+// DAccumulator
 //   class: a (state, step, finalize) triple absorbing Input values
 // into State and producing a single Output. Parameterized on the
 // Step and Final functor types so no type erasure is required.
@@ -142,7 +142,7 @@ template<typename State,
          typename Output,
          typename Step,
          typename Final>
-class accumulator
+class DAccumulator
 {
 public:
     typedef State   state_type;
@@ -155,7 +155,7 @@ public:
              typename StepFwd,
              typename FinalFwd>
     D_CONSTEXPR
-    accumulator(
+    DAccumulator(
         StateFwd&& _initial_state,
         StepFwd&&  _step,
         FinalFwd&& _finalize
@@ -169,7 +169,7 @@ public:
     //   method: feed one value to the accumulator. Returns *this so
     // callers may chain.
     D_CONSTEXPR_CPP14
-    accumulator& step(
+    DAccumulator& step(
         const Input& _value
     )
     {
@@ -249,6 +249,14 @@ private:
     Final m_finalize;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename State,
+         typename Input,
+         typename Output,
+         typename Step,
+         typename Final>
+using accumulator = DAccumulator<State, Input, Output, Step, Final>;
+
 
 // make_accumulator
 //   function: factory building an accumulator from an initial state,
@@ -260,7 +268,7 @@ template<typename Input,
          typename State,
          typename Step,
          typename Final>
-D_NODISCARD D_CONSTEXPR accumulator<typename std::decay<State>::type,
+D_NODISCARD D_CONSTEXPR DAccumulator<typename std::decay<State>::type,
                                     Input,
                                     Output,
                                     typename std::decay<Step>::type,
@@ -271,7 +279,7 @@ make_accumulator(
     Final&& _finalize
 )
 {
-    return accumulator<typename std::decay<State>::type,
+    return DAccumulator<typename std::decay<State>::type,
                        Input,
                        Output,
                        typename std::decay<Step>::type,
@@ -1171,12 +1179,12 @@ NS_END  // internal
 
 // accumulate_sum
 template<typename Type>
-D_NODISCARD D_CONSTEXPR accumulator<Type, Type, Type,
+D_NODISCARD D_CONSTEXPR DAccumulator<Type, Type, Type,
             internal::DSumStep<Type>,
             internal::DIdentityFinal<Type> >
 accumulate_sum()
 {
-    return accumulator<Type, Type, Type,
+    return DAccumulator<Type, Type, Type,
                        internal::DSumStep<Type>,
                        internal::DIdentityFinal<Type> >(
         Type(),
@@ -1186,12 +1194,12 @@ accumulate_sum()
 
 // accumulate_product
 template<typename Type>
-D_NODISCARD D_CONSTEXPR accumulator<Type, Type, Type,
+D_NODISCARD D_CONSTEXPR DAccumulator<Type, Type, Type,
             internal::DProductStep<Type>,
             internal::DIdentityFinal<Type> >
 accumulate_product()
 {
-    return accumulator<Type, Type, Type,
+    return DAccumulator<Type, Type, Type,
                        internal::DProductStep<Type>,
                        internal::DIdentityFinal<Type> >(
         Type(1),
@@ -1201,12 +1209,12 @@ accumulate_product()
 
 // count
 template<typename Type>
-D_NODISCARD D_CONSTEXPR accumulator<std::size_t, Type, std::size_t,
+D_NODISCARD D_CONSTEXPR DAccumulator<std::size_t, Type, std::size_t,
             internal::count_step<Type>,
             internal::DSizeTFinal>
 count()
 {
-    return accumulator<std::size_t, Type, std::size_t,
+    return DAccumulator<std::size_t, Type, std::size_t,
                        internal::count_step<Type>,
                        internal::DSizeTFinal>(
         std::size_t(0),
@@ -1217,7 +1225,7 @@ count()
 // count_if
 template<typename Type,
          typename Predicate>
-D_NODISCARD D_CONSTEXPR accumulator<std::size_t, Type, std::size_t,
+D_NODISCARD D_CONSTEXPR DAccumulator<std::size_t, Type, std::size_t,
             internal::DCountIfStep<Type,
                 typename std::decay<Predicate>::type>,
             internal::DSizeTFinal>
@@ -1225,7 +1233,7 @@ count_if(Predicate _predicate)
 {
     typedef typename std::decay<Predicate>::type pred_t;
 
-    return accumulator<std::size_t, Type, std::size_t,
+    return DAccumulator<std::size_t, Type, std::size_t,
                        internal::DCountIfStep<Type, pred_t>,
                        internal::DSizeTFinal>(
         std::size_t(0),
@@ -1235,12 +1243,12 @@ count_if(Predicate _predicate)
 
 // accumulate_min
 template<typename Type>
-D_NODISCARD D_CONSTEXPR accumulator<std::pair<Type, bool>, Type, Type,
+D_NODISCARD D_CONSTEXPR DAccumulator<std::pair<Type, bool>, Type, Type,
             internal::DMinStep<Type>,
             internal::DPairFirstFinal<Type> >
 accumulate_min()
 {
-    return accumulator<std::pair<Type, bool>, Type, Type,
+    return DAccumulator<std::pair<Type, bool>, Type, Type,
                        internal::DMinStep<Type>,
                        internal::DPairFirstFinal<Type> >(
         std::pair<Type, bool>(Type(), false),
@@ -1250,12 +1258,12 @@ accumulate_min()
 
 // accumulate_max
 template<typename Type>
-D_NODISCARD D_CONSTEXPR accumulator<std::pair<Type, bool>, Type, Type,
+D_NODISCARD D_CONSTEXPR DAccumulator<std::pair<Type, bool>, Type, Type,
             internal::DMaxStep<Type>,
             internal::DPairFirstFinal<Type> >
 accumulate_max()
 {
-    return accumulator<std::pair<Type, bool>, Type, Type,
+    return DAccumulator<std::pair<Type, bool>, Type, Type,
                        internal::DMaxStep<Type>,
                        internal::DPairFirstFinal<Type> >(
         std::pair<Type, bool>(Type(), false),
@@ -1266,14 +1274,14 @@ accumulate_max()
 // min_by
 template<typename Type,
          typename Key>
-D_NODISCARD D_CONSTEXPR accumulator<std::pair<Type, bool>, Type, Type,
+D_NODISCARD D_CONSTEXPR DAccumulator<std::pair<Type, bool>, Type, Type,
             internal::DMinByStep<Type, typename std::decay<Key>::type>,
             internal::DPairFirstFinal<Type> >
 min_by(Key _key_fn)
 {
     typedef typename std::decay<Key>::type key_t;
 
-    return accumulator<std::pair<Type, bool>, Type, Type,
+    return DAccumulator<std::pair<Type, bool>, Type, Type,
                        internal::DMinByStep<Type, key_t>,
                        internal::DPairFirstFinal<Type> >(
         std::pair<Type, bool>(Type(), false),
@@ -1284,14 +1292,14 @@ min_by(Key _key_fn)
 // max_by
 template<typename Type,
          typename Key>
-D_NODISCARD D_CONSTEXPR accumulator<std::pair<Type, bool>, Type, Type,
+D_NODISCARD D_CONSTEXPR DAccumulator<std::pair<Type, bool>, Type, Type,
             internal::DMaxByStep<Type, typename std::decay<Key>::type>,
             internal::DPairFirstFinal<Type> >
 max_by(Key _key_fn)
 {
     typedef typename std::decay<Key>::type key_t;
 
-    return accumulator<std::pair<Type, bool>, Type, Type,
+    return DAccumulator<std::pair<Type, bool>, Type, Type,
                        internal::DMaxByStep<Type, key_t>,
                        internal::DPairFirstFinal<Type> >(
         std::pair<Type, bool>(Type(), false),
@@ -1301,12 +1309,12 @@ max_by(Key _key_fn)
 
 // mean
 template<typename Type>
-D_NODISCARD D_CONSTEXPR accumulator<std::pair<double, std::size_t>, Type, double,
+D_NODISCARD D_CONSTEXPR DAccumulator<std::pair<double, std::size_t>, Type, double,
             internal::DMeanStep<Type>,
             internal::DMeanFinal>
 mean()
 {
-    return accumulator<std::pair<double, std::size_t>, Type, double,
+    return DAccumulator<std::pair<double, std::size_t>, Type, double,
                        internal::DMeanStep<Type>,
                        internal::DMeanFinal>(
         std::pair<double, std::size_t>(0.0, std::size_t(0)),
@@ -1316,12 +1324,12 @@ mean()
 
 // variance (population, Welford)
 template<typename Type>
-D_NODISCARD D_CONSTEXPR accumulator<std::tuple<std::size_t, double, double>, Type, double,
+D_NODISCARD D_CONSTEXPR DAccumulator<std::tuple<std::size_t, double, double>, Type, double,
             internal::DWelfordStep<Type>,
             internal::DVarianceFinal>
 variance()
 {
-    return accumulator<std::tuple<std::size_t, double, double>, Type, double,
+    return DAccumulator<std::tuple<std::size_t, double, double>, Type, double,
                        internal::DWelfordStep<Type>,
                        internal::DVarianceFinal>(
         std::make_tuple(std::size_t(0), 0.0, 0.0),
@@ -1331,12 +1339,12 @@ variance()
 
 // stddev (population)
 template<typename Type>
-D_NODISCARD D_CONSTEXPR accumulator<std::tuple<std::size_t, double, double>, Type, double,
+D_NODISCARD D_CONSTEXPR DAccumulator<std::tuple<std::size_t, double, double>, Type, double,
             internal::DWelfordStep<Type>,
             internal::DStddevFinal>
 stddev()
 {
-    return accumulator<std::tuple<std::size_t, double, double>, Type, double,
+    return DAccumulator<std::tuple<std::size_t, double, double>, Type, double,
                        internal::DWelfordStep<Type>,
                        internal::DStddevFinal>(
         std::make_tuple(std::size_t(0), 0.0, 0.0),
@@ -1346,12 +1354,12 @@ stddev()
 
 // first
 template<typename Type>
-D_NODISCARD D_CONSTEXPR accumulator<std::pair<Type, bool>, Type, Type,
+D_NODISCARD D_CONSTEXPR DAccumulator<std::pair<Type, bool>, Type, Type,
             internal::first_step<Type>,
             internal::DPairFirstFinal<Type> >
 first()
 {
-    return accumulator<std::pair<Type, bool>, Type, Type,
+    return DAccumulator<std::pair<Type, bool>, Type, Type,
                        internal::first_step<Type>,
                        internal::DPairFirstFinal<Type> >(
         std::pair<Type, bool>(Type(), false),
@@ -1361,12 +1369,12 @@ first()
 
 // last
 template<typename Type>
-D_NODISCARD D_CONSTEXPR accumulator<Type, Type, Type,
+D_NODISCARD D_CONSTEXPR DAccumulator<Type, Type, Type,
             internal::DLastStep<Type>,
             internal::DIdentityFinal<Type> >
 last()
 {
-    return accumulator<Type, Type, Type,
+    return DAccumulator<Type, Type, Type,
                        internal::DLastStep<Type>,
                        internal::DIdentityFinal<Type> >(
         Type(),
@@ -1376,12 +1384,12 @@ last()
 
 // nth
 template<typename Type>
-D_NODISCARD D_CONSTEXPR accumulator<internal::DNthState<Type>, Type, Type,
+D_NODISCARD D_CONSTEXPR DAccumulator<internal::DNthState<Type>, Type, Type,
             internal::DNthStep<Type>,
             internal::DNthFinal<Type> >
 nth(std::size_t _n)
 {
-    return accumulator<internal::DNthState<Type>, Type, Type,
+    return DAccumulator<internal::DNthState<Type>, Type, Type,
                        internal::DNthStep<Type>,
                        internal::DNthFinal<Type> >(
         internal::DNthState<Type>(_n),
@@ -1392,12 +1400,12 @@ nth(std::size_t _n)
 // joining (runtime only — ostringstream)
 template<typename Type>
 D_NODISCARD
-accumulator<std::pair<std::string, bool>, Type, std::string,
+DAccumulator<std::pair<std::string, bool>, Type, std::string,
             internal::DJoiningStep<Type>,
             internal::DJoiningFinal>
 joining(std::string _separator)
 {
-    return accumulator<std::pair<std::string, bool>, Type, std::string,
+    return DAccumulator<std::pair<std::string, bool>, Type, std::string,
                        internal::DJoiningStep<Type>,
                        internal::DJoiningFinal>(
         std::pair<std::string, bool>(std::string(), false),
@@ -1407,12 +1415,12 @@ joining(std::string _separator)
 
 // to_vector (constexpr from C++20)
 template<typename Type>
-D_NODISCARD D_CONSTEXPR accumulator<std::vector<Type>, Type, std::vector<Type>,
+D_NODISCARD D_CONSTEXPR DAccumulator<std::vector<Type>, Type, std::vector<Type>,
             internal::DToVectorStep<Type>,
             internal::DIdentityFinal<std::vector<Type> > >
 to_vector()
 {
-    return accumulator<std::vector<Type>, Type, std::vector<Type>,
+    return DAccumulator<std::vector<Type>, Type, std::vector<Type>,
                        internal::DToVectorStep<Type>,
                        internal::DIdentityFinal<std::vector<Type> > >(
         std::vector<Type>(),
@@ -1423,7 +1431,7 @@ to_vector()
 // histogram (runtime — std::map)
 template<typename Type>
 D_NODISCARD
-accumulator<std::map<Type, std::size_t>, Type,
+DAccumulator<std::map<Type, std::size_t>, Type,
             std::map<Type, std::size_t>,
             internal::DHistogramStep<Type>,
             internal::DIdentityFinal<std::map<Type, std::size_t> > >
@@ -1431,7 +1439,7 @@ histogram()
 {
     typedef std::map<Type, std::size_t> map_t;
 
-    return accumulator<map_t, Type, map_t,
+    return DAccumulator<map_t, Type, map_t,
                        internal::DHistogramStep<Type>,
                        internal::DIdentityFinal<map_t> >(
         map_t(),
@@ -1443,7 +1451,7 @@ histogram()
 template<typename Type,
          typename Key>
 D_NODISCARD
-accumulator<std::map<typename std::decay<decltype(
+DAccumulator<std::map<typename std::decay<decltype(
                 std::declval<Key&>()(std::declval<const Type&>()))>::type,
                 Type>,
             Type,
@@ -1461,7 +1469,7 @@ to_map_by(Key _key_fn)
         std::declval<Key&>()(std::declval<const Type&>()))>::type key_t;
     typedef std::map<key_t, Type> map_t;
 
-    return accumulator<map_t, Type, map_t,
+    return DAccumulator<map_t, Type, map_t,
                        internal::DToMapByStep<Type, key_fn_t>,
                        internal::DIdentityFinal<map_t> >(
         map_t(),
@@ -1473,7 +1481,7 @@ to_map_by(Key _key_fn)
 template<typename Type,
          typename Key>
 D_NODISCARD
-accumulator<std::map<typename std::decay<decltype(
+DAccumulator<std::map<typename std::decay<decltype(
                 std::declval<Key&>()(std::declval<const Type&>()))>::type,
                 std::vector<Type> >,
             Type,
@@ -1491,7 +1499,7 @@ group_by(Key _key_fn)
         std::declval<Key&>()(std::declval<const Type&>()))>::type key_t;
     typedef std::map<key_t, std::vector<Type> > map_t;
 
-    return accumulator<map_t, Type, map_t,
+    return DAccumulator<map_t, Type, map_t,
                        internal::DGroupByStep<Type, key_fn_t>,
                        internal::DIdentityFinal<map_t> >(
         map_t(),
@@ -1501,12 +1509,12 @@ group_by(Key _key_fn)
 
 // top_k
 template<typename Type>
-D_NODISCARD D_CONSTEXPR accumulator<std::vector<Type>, Type, std::vector<Type>,
+D_NODISCARD D_CONSTEXPR DAccumulator<std::vector<Type>, Type, std::vector<Type>,
             internal::DTopKStep<Type>,
             internal::DIdentityFinal<std::vector<Type> > >
 top_k(std::size_t _k)
 {
-    return accumulator<std::vector<Type>, Type, std::vector<Type>,
+    return DAccumulator<std::vector<Type>, Type, std::vector<Type>,
                        internal::DTopKStep<Type>,
                        internal::DIdentityFinal<std::vector<Type> > >(
         std::vector<Type>(),
@@ -1517,7 +1525,7 @@ top_k(std::size_t _k)
 // all_match
 template<typename Type,
          typename Predicate>
-D_NODISCARD D_CONSTEXPR accumulator<bool, Type, bool,
+D_NODISCARD D_CONSTEXPR DAccumulator<bool, Type, bool,
             internal::DAllMatchStep<Type,
                 typename std::decay<Predicate>::type>,
             internal::bool_final>
@@ -1525,7 +1533,7 @@ all_match(Predicate _predicate)
 {
     typedef typename std::decay<Predicate>::type pred_t;
 
-    return accumulator<bool, Type, bool,
+    return DAccumulator<bool, Type, bool,
                        internal::DAllMatchStep<Type, pred_t>,
                        internal::bool_final>(
         true,
@@ -1536,7 +1544,7 @@ all_match(Predicate _predicate)
 // any_match
 template<typename Type,
          typename Predicate>
-D_NODISCARD D_CONSTEXPR accumulator<bool, Type, bool,
+D_NODISCARD D_CONSTEXPR DAccumulator<bool, Type, bool,
             internal::DAnyMatchStep<Type,
                 typename std::decay<Predicate>::type>,
             internal::bool_final>
@@ -1544,7 +1552,7 @@ any_match(Predicate _predicate)
 {
     typedef typename std::decay<Predicate>::type pred_t;
 
-    return accumulator<bool, Type, bool,
+    return DAccumulator<bool, Type, bool,
                        internal::DAnyMatchStep<Type, pred_t>,
                        internal::bool_final>(
         false,
@@ -1555,7 +1563,7 @@ any_match(Predicate _predicate)
 // none_match
 template<typename Type,
          typename Predicate>
-D_NODISCARD D_CONSTEXPR accumulator<bool, Type, bool,
+D_NODISCARD D_CONSTEXPR DAccumulator<bool, Type, bool,
             internal::DNoneMatchStep<Type,
                 typename std::decay<Predicate>::type>,
             internal::bool_final>
@@ -1563,7 +1571,7 @@ none_match(Predicate _predicate)
 {
     typedef typename std::decay<Predicate>::type pred_t;
 
-    return accumulator<bool, Type, bool,
+    return DAccumulator<bool, Type, bool,
                        internal::DNoneMatchStep<Type, pred_t>,
                        internal::bool_final>(
         true,
@@ -1713,7 +1721,7 @@ NS_END  // internal
 template<typename NewInput,
          typename Acc,
          typename Function>
-D_NODISCARD D_CONSTEXPR accumulator<typename Acc::state_type,
+D_NODISCARD D_CONSTEXPR DAccumulator<typename Acc::state_type,
             NewInput,
             typename Acc::output_type,
             internal::DContramapStep<NewInput,
@@ -1726,7 +1734,7 @@ contramap(Acc _inner, Function _function)
     typedef internal::DContramapStep<NewInput,
         typename Acc::step_type, fn_t> step_t;
 
-    return accumulator<typename Acc::state_type,
+    return DAccumulator<typename Acc::state_type,
                        NewInput,
                        typename Acc::output_type,
                        step_t,
@@ -1741,7 +1749,7 @@ contramap(Acc _inner, Function _function)
 //   function: post-applies _function to the inner accumulator's output.
 template<typename Acc,
          typename Function>
-D_NODISCARD D_CONSTEXPR accumulator<typename Acc::state_type,
+D_NODISCARD D_CONSTEXPR DAccumulator<typename Acc::state_type,
             typename Acc::input_type,
             typename std::decay<decltype(std::declval<Function&>()(
                 std::declval<typename Acc::output_type>()))>::type,
@@ -1756,7 +1764,7 @@ map_output(Acc _inner, Function _function)
     typedef internal::DMapOutputFinal<
         typename Acc::final_type, fn_t> final_t;
 
-    return accumulator<typename Acc::state_type,
+    return DAccumulator<typename Acc::state_type,
                        typename Acc::input_type,
                        new_out_t,
                        typename Acc::step_type,
@@ -1771,7 +1779,7 @@ map_output(Acc _inner, Function _function)
 //   function: gates the input of an inner accumulator with a predicate.
 template<typename Acc,
          typename Predicate>
-D_NODISCARD D_CONSTEXPR accumulator<typename Acc::state_type,
+D_NODISCARD D_CONSTEXPR DAccumulator<typename Acc::state_type,
             typename Acc::input_type,
             typename Acc::output_type,
             internal::DFilteredStep<typename Acc::input_type,
@@ -1784,7 +1792,7 @@ filtered(Acc _inner, Predicate _predicate)
     typedef internal::DFilteredStep<typename Acc::input_type,
         typename Acc::step_type, pred_t> step_t;
 
-    return accumulator<typename Acc::state_type,
+    return DAccumulator<typename Acc::state_type,
                        typename Acc::input_type,
                        typename Acc::output_type,
                        step_t,
@@ -1798,7 +1806,7 @@ filtered(Acc _inner, Predicate _predicate)
 // take
 //   function: caps the number of inputs the inner accumulator sees.
 template<typename Acc>
-D_NODISCARD D_CONSTEXPR accumulator<std::pair<typename Acc::state_type, std::size_t>,
+D_NODISCARD D_CONSTEXPR DAccumulator<std::pair<typename Acc::state_type, std::size_t>,
             typename Acc::input_type,
             typename Acc::output_type,
             internal::DTakeStep<typename Acc::input_type,
@@ -1811,7 +1819,7 @@ take(Acc _inner, std::size_t _n)
         typename Acc::step_type> step_t;
     typedef internal::DTakeFinal<typename Acc::final_type> final_t;
 
-    return accumulator<wrapped_t,
+    return DAccumulator<wrapped_t,
                        typename Acc::input_type,
                        typename Acc::output_type,
                        step_t,

@@ -138,8 +138,8 @@ NS_INTERNAL
     template<typename Container,
              bool HasAlias = has_memory_strategy_alias<clean_t<Container>>::value>
     struct alias_discipline
-        : std::integral_constant<memory_discipline::value,
-              memory_discipline::unknown>
+        : std::integral_constant<DMemoryDiscipline::value,
+              DMemoryDiscipline::unknown>
     {};
 
     // alias_discipline<Container, true>
@@ -148,7 +148,7 @@ NS_INTERNAL
     // reports `discipline_of<typename clean_t<Container`.
     template<typename Container>
     struct alias_discipline<Container, true>
-        : std::integral_constant<memory_discipline::value,
+        : std::integral_constant<DMemoryDiscipline::value,
               discipline_of<typename clean_t<Container>::memory_strategy>::value>
     {};
 
@@ -160,8 +160,8 @@ NS_INTERNAL
     template<typename Container,
              bool HasAllocator = has_allocator_alias<clean_t<Container>>::value>
     struct allocator_discipline
-        : std::integral_constant<memory_discipline::value,
-              memory_discipline::unknown>
+        : std::integral_constant<DMemoryDiscipline::value,
+              DMemoryDiscipline::unknown>
     {};
 
     // allocator_discipline<Container, true>
@@ -170,7 +170,7 @@ NS_INTERNAL
     // `discipline_of<typename clean_t<Container`.
     template<typename Container>
     struct allocator_discipline<Container, true>
-        : std::integral_constant<memory_discipline::value,
+        : std::integral_constant<DMemoryDiscipline::value,
               discipline_of<typename clean_t<Container>::allocator_type>::value>
     {};
 
@@ -189,18 +189,18 @@ private:
     using clean_type = clean_t<Container>;
 
 public:
-    static constexpr memory_discipline::value value =
+    static constexpr DMemoryDiscipline::value value =
         ( has_memory_strategy_alias<clean_type>::value )
               ? internal::alias_discipline<clean_type>::value
       : ( has_allocator_alias<clean_type>::value )
-              ? ( internal::allocator_discipline<clean_type>::value != memory_discipline::unknown
+              ? ( internal::allocator_discipline<clean_type>::value != DMemoryDiscipline::unknown
                       ? internal::allocator_discipline<clean_type>::value
-                      : memory_discipline::individual )
+                      : DMemoryDiscipline::individual )
       : ( has_static_storage_signal<clean_type>::value )
-              ? memory_discipline::none
+              ? DMemoryDiscipline::none
       : ( has_dynamic_storage_signal<clean_type>::value )
-              ? memory_discipline::individual
-      :         memory_discipline::unknown;
+              ? DMemoryDiscipline::individual
+      :         DMemoryDiscipline::unknown;
 
     using type = memory_discipline_constant<value>;
 };
@@ -216,11 +216,11 @@ using container_memory_discipline_t =
 // language degradation as the meta layer's enum-valued _v's).
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename Container>
-    inline constexpr memory_discipline::value container_memory_discipline_v =
+    inline constexpr DMemoryDiscipline::value container_memory_discipline_v =
         container_memory_discipline<Container>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Container>
-    constexpr memory_discipline::value container_memory_discipline_v =
+    constexpr DMemoryDiscipline::value container_memory_discipline_v =
         container_memory_discipline<Container>::value;
 #endif
 
@@ -321,7 +321,7 @@ D_TYPE_TRAIT_VALUE_BOOL(container_memory_consistent)
 // V.   Aggregate snapshot
 // ===========================================================================
 
-// container_memory_class
+// DContainerMemoryClass
 //   trait: a one-stop record of a container's position on the memory axis -
 // the
 // resolved discipline and its name, the discipline predicates, the siting it
@@ -329,13 +329,13 @@ D_TYPE_TRAIT_VALUE_BOOL(container_memory_consistent)
 // consistency bit. Useful as a single query point and for agent-facing
 // summaries.
 template<typename Container>
-struct container_memory_class
+struct DContainerMemoryClass
 {
 private:
     using clean_type = clean_t<Container>;
 
 public:
-    static constexpr memory_discipline::value discipline =
+    static constexpr DMemoryDiscipline::value discipline =
         container_memory_discipline<clean_type>::value;
     static constexpr const char*       discipline_name =
         memory_discipline_name(discipline);
@@ -348,13 +348,17 @@ public:
     static constexpr bool resolved      = !is_unknown_discipline(discipline);
 
     // the siting this discipline is paired with, and their coherence.
-    static constexpr storage_duration::value siting =
+    static constexpr DStorageDuration::value siting =
         storage_duration_of<clean_type>::value;
     static constexpr const char*      siting_name =
         storage_duration_name(siting);
     static constexpr bool             siting_consistent =
         discipline_siting_consistent(discipline, siting);
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Container>
+using container_memory_class = DContainerMemoryClass<Container>;
 
 
 NS_END  // djinterp

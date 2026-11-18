@@ -56,28 +56,28 @@
 NS_DJINTERP
 
 
-// read_only_container
+// DReadOnlyContainer
 //   class: holds a Container privately and forwards only its const
 // observation surface under the read_only capability.
 template<typename Container>
-class read_only_container
+class DReadOnlyContainer
 {
 public:
     using container_type = Container;
-    using capability     = read_only;
+    using capability     = DReadOnly;
     using value_type     = typename Container::value_type;
 
     // --- construction (populate at construction; sealed thereafter) ---
 
-    D_CONSTEXPR read_only_container()
+    D_CONSTEXPR DReadOnlyContainer()
         : m_container()
     {}
 
     template<typename     First,
              typename...  Rest,
              typename = typename std::enable_if<
-                 !std::is_same<clean_t<First>, read_only_container>::value>::type>
-    explicit D_CONSTEXPR read_only_container(First&& _first, Rest&&... _rest)
+                 !std::is_same<clean_t<First>, DReadOnlyContainer>::value>::type>
+    explicit D_CONSTEXPR DReadOnlyContainer(First&& _first, Rest&&... _rest)
         : m_container(static_cast<First&&>(_first), static_cast<Rest&&>(_rest)...)
     {}
 
@@ -137,17 +137,21 @@ private:
     Container m_container;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Container>
+using read_only_container = DReadOnlyContainer<Container>;
+
 
 // make_read_only
 //   function: wraps a container value under the read_only capability, deducing
 // the container type from the argument.
 template<typename Container>
 D_CONSTEXPR
-read_only_container<clean_t<Container>> make_read_only(
+DReadOnlyContainer<clean_t<Container>> make_read_only(
     Container&& _c
 )
 {
-    return read_only_container<clean_t<Container>>(
+    return DReadOnlyContainer<clean_t<Container>>(
         static_cast<Container&&>(_c));
 }
 

@@ -81,11 +81,11 @@ tests_snapshot_strategy_concept
 bool tests_snapshot_strategy_concept()
 {
 #if D_MEMENTO_HAS_CONCEPTS
-    static_assert(snapshot_strategy<deep_copy_snapshot, int>, "deep-copy");
-    static_assert(snapshot_strategy<clone_snapshot, clonable_state>, "clone");
+    static_assert(snapshot_strategy<DDeepCopySnapshot, int>, "deep-copy");
+    static_assert(snapshot_strategy<DCloneSnapshot, clonable_state>, "clone");
 
-    return ( snapshot_strategy<deep_copy_snapshot, int> &&
-             snapshot_strategy<clone_snapshot, clonable_state> );
+    return ( snapshot_strategy<DDeepCopySnapshot, int> &&
+             snapshot_strategy<DCloneSnapshot, clonable_state> );
 #else
     return true;
 #endif
@@ -100,13 +100,13 @@ tests_history_policy_concept
 bool tests_history_policy_concept()
 {
 #if D_MEMENTO_HAS_CONCEPTS
-    using container = std::vector<memento<int> >;
+    using container = std::vector<DMemento<int> >;
 
-    static_assert(history_policy<unlimited_history, container, int>, "unlimited");
-    static_assert(history_policy<bounded_history<4>, container, int>, "bounded");
+    static_assert(history_policy<DUnlimitedHistory, container, int>, "unlimited");
+    static_assert(history_policy<DBoundedHistory<4>, container, int>, "bounded");
 
-    return ( history_policy<unlimited_history, container, int> &&
-             history_policy<bounded_history<4>, container, int> );
+    return ( history_policy<DUnlimitedHistory, container, int> &&
+             history_policy<DBoundedHistory<4>, container, int> );
 #else
     return true;
 #endif

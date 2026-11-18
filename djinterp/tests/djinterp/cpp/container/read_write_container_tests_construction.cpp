@@ -24,28 +24,28 @@ tests_read_write_default_construction
 */
 bool tests_read_write_default_construction()
 {
-    const dj::read_write_container<std::vector<int> > v;
+    const dj::DReadWriteContainer<std::vector<int> > v;
 
     D_RW_CHECK(v.size() == 0u);
     D_RW_CHECK(v.empty());
 
-    const dj::read_write_container<std::array<int, 3> > a;
+    const dj::DReadWriteContainer<std::array<int, 3> > a;
 
     D_RW_CHECK(a.size() == 3u);
     D_RW_CHECK(!a.empty());
 
-    const dj::read_write_container<std::list<int> > l;
+    const dj::DReadWriteContainer<std::list<int> > l;
 
     D_RW_CHECK(l.size() == 0u);
     D_RW_CHECK(l.empty());
 
-    const dj::read_write_container<std::string> s;
+    const dj::DReadWriteContainer<std::string> s;
 
     D_RW_CHECK(s.size() == 0u);
     D_RW_CHECK(s.empty());
 
     // and a default-constructed handle is immediately usable for writing
-    dj::read_write_container<std::vector<int> > w;
+    dj::DReadWriteContainer<std::vector<int> > w;
 
     w.push_back(1);
     D_RW_CHECK(w.size() == 1u);
@@ -70,7 +70,7 @@ bool tests_read_write_wraps_a_container_value()
     src.push_back(20);
     src.push_back(30);
 
-    const dj::read_write_container<std::vector<int> > copied(src);
+    const dj::DReadWriteContainer<std::vector<int> > copied(src);
 
     D_RW_CHECK(copied.size() == 3u);
     D_RW_CHECK(copied[0] == 10);
@@ -79,7 +79,7 @@ bool tests_read_write_wraps_a_container_value()
 
     // from an rvalue
     std::vector<int>                                 spare(src);
-    const dj::read_write_container<std::vector<int> > moved(
+    const dj::DReadWriteContainer<std::vector<int> > moved(
         static_cast<std::vector<int>&&>(spare));
 
     D_RW_CHECK(moved.size() == 3u);
@@ -87,7 +87,7 @@ bool tests_read_write_wraps_a_container_value()
 
     // from a const lvalue
     const std::vector<int>&                          cref = src;
-    const dj::read_write_container<std::vector<int> > from_const(cref);
+    const dj::DReadWriteContainer<std::vector<int> > from_const(cref);
 
     D_RW_CHECK(from_const.size() == 3u);
     D_RW_CHECK(from_const[0] == 10);
@@ -105,7 +105,7 @@ tests_read_write_emplaces_from_arguments
 */
 bool tests_read_write_emplaces_from_arguments()
 {
-    const dj::read_write_container<std::vector<int> > filled(
+    const dj::DReadWriteContainer<std::vector<int> > filled(
         std::size_t(4), 7);
 
     D_RW_CHECK(filled.size() == 4u);
@@ -113,7 +113,7 @@ bool tests_read_write_emplaces_from_arguments()
     D_RW_CHECK(filled[3] == 7);
 
     // the arguments are not transposed
-    const dj::read_write_container<std::vector<int> > other(
+    const dj::DReadWriteContainer<std::vector<int> > other(
         std::size_t(2), 9);
 
     D_RW_CHECK(other.size() == 2u);
@@ -126,7 +126,7 @@ bool tests_read_write_emplaces_from_arguments()
     src.push_back(2);
     src.push_back(3);
 
-    const dj::read_write_container<std::vector<int> > ranged(
+    const dj::DReadWriteContainer<std::vector<int> > ranged(
         src.begin(), src.end());
 
     D_RW_CHECK(ranged.size() == 3u);
@@ -134,13 +134,13 @@ bool tests_read_write_emplaces_from_arguments()
     D_RW_CHECK(ranged[2] == 3);
 
     // a character container
-    const dj::read_write_container<std::string> text(std::size_t(3), 'x');
+    const dj::DReadWriteContainer<std::string> text(std::size_t(3), 'x');
 
     D_RW_CHECK(text.size() == 3u);
     D_RW_CHECK(text[0] == 'x');
 
     // and the emplaced handle is writable
-    dj::read_write_container<std::vector<int> > w(std::size_t(2), 5);
+    dj::DReadWriteContainer<std::vector<int> > w(std::size_t(2), 5);
 
     w.push_back(6);
     D_RW_CHECK(w.size() == 3u);
@@ -165,8 +165,8 @@ bool tests_read_write_copy_and_move_construction()
     src.push_back(4);
     src.push_back(5);
 
-    dj::read_write_container<std::vector<int> > a(src);
-    dj::read_write_container<std::vector<int> > b(a);
+    dj::DReadWriteContainer<std::vector<int> > a(src);
+    dj::DReadWriteContainer<std::vector<int> > b(a);
 
     D_RW_CHECK(b.size() == 2u);
     D_RW_CHECK(b[0] == 4);
@@ -180,14 +180,14 @@ bool tests_read_write_copy_and_move_construction()
     D_RW_CHECK(b[0] == 4);
 
     // move
-    dj::read_write_container<std::vector<int> > c(
-        static_cast<dj::read_write_container<std::vector<int> >&&>(b));
+    dj::DReadWriteContainer<std::vector<int> > c(
+        static_cast<dj::DReadWriteContainer<std::vector<int> >&&>(b));
 
     D_RW_CHECK(c.size() == 3u);
     D_RW_CHECK(c[2] == 6);
 
     // assignment
-    dj::read_write_container<std::vector<int> > d;
+    dj::DReadWriteContainer<std::vector<int> > d;
 
     d = c;
     D_RW_CHECK(d.size() == 3u);
@@ -195,7 +195,7 @@ bool tests_read_write_copy_and_move_construction()
     D_RW_CHECK(d.size() == 4u);
     D_RW_CHECK(c.size() == 3u);
 
-    typedef dj::read_write_container<std::vector<int> > handle;
+    typedef dj::DReadWriteContainer<std::vector<int> > handle;
 
     D_RW_CHECK(std::is_copy_constructible<handle>::value);
     D_RW_CHECK(std::is_move_constructible<handle>::value);
@@ -215,7 +215,7 @@ tests_read_write_variadic_ctor_excludes_self
 */
 bool tests_read_write_variadic_ctor_excludes_self()
 {
-    typedef dj::read_write_container<std::vector<int> > handle;
+    typedef dj::DReadWriteContainer<std::vector<int> > handle;
 
     std::vector<int> src;
 
@@ -261,7 +261,7 @@ bool tests_read_write_factory_deduces_container()
     src.push_back(2);
     src.push_back(4);
 
-    typedef dj::read_write_container<std::vector<int> > expected;
+    typedef dj::DReadWriteContainer<std::vector<int> > expected;
 
     D_RW_CHECK((std::is_same<decltype(dj::make_read_write(src)),
                              expected>::value));
@@ -292,7 +292,7 @@ bool tests_read_write_factory_deduces_container()
 
     D_RW_CHECK((std::is_same<
                     decltype(dj::make_read_write(nodes)),
-                    dj::read_write_container<std::list<int> > >::value));
+                    dj::DReadWriteContainer<std::list<int> > >::value));
     D_RW_CHECK(dj::make_read_write(std::string("abc")).size() == 3u);
 
     return true;
@@ -314,7 +314,7 @@ bool tests_read_write_holds_an_independent_copy()
     src.push_back(1);
     src.push_back(2);
 
-    dj::read_write_container<std::vector<int> > handle(src);
+    dj::DReadWriteContainer<std::vector<int> > handle(src);
 
     // write through the handle
     handle[0] = 99;

@@ -162,14 +162,14 @@ bool tests_interval_bounds_shapes()
     // accepted, and correct
     D_SR_CHECK(internal::has_interval_bounds_helper<DSrtBounds>::value
                    == true);
-    D_SR_CHECK(sortedness_of<DSrtBounds>::value == sortedness::sorted);
+    D_SR_CHECK(sortedness_of<DSrtBounds>::value == DSortedness::sorted);
 
     // accepted, wrongly - per-object fields are not a domain
     D_SR_CHECK(
         internal::has_interval_bounds_helper<DSrtBoundsNonstatic>::value
             == true);
     D_SR_CHECK(sortedness_of<DSrtBoundsNonstatic>::value
-                   == sortedness::sorted);
+                   == DSortedness::sorted);
     D_SR_CHECK(is_sorted_container<DSrtBoundsNonstatic>::value == true);
 
     // accepted, wrongly - a function is not a bound
@@ -177,7 +177,7 @@ bool tests_interval_bounds_shapes()
         internal::has_interval_bounds_helper<DSrtBoundsFunctions>::value
             == true);
     D_SR_CHECK(sortedness_of<DSrtBoundsFunctions>::value
-                   == sortedness::sorted);
+                   == DSortedness::sorted);
     D_SR_CHECK(is_sorted_container<DSrtBoundsFunctions>::value == true);
 
     // rejected, correctly - the std::set shape
@@ -185,7 +185,7 @@ bool tests_interval_bounds_shapes()
         internal::has_interval_bounds_helper<
             DSrtBoundsMemberFunctions>::value == false);
     D_SR_CHECK(sortedness_of<DSrtBoundsMemberFunctions>::value
-                   == sortedness::order_dependent);
+                   == DSortedness::order_dependent);
     D_SR_CHECK(internal::has_interval_bounds_helper<DSrtSet>::value == false);
 
     // rejected, correctly - half an interval
@@ -193,7 +193,7 @@ bool tests_interval_bounds_shapes()
         internal::has_interval_bounds_helper<DSrtBoundsLowerOnly>::value
             == false);
     D_SR_CHECK(sortedness_of<DSrtBoundsLowerOnly>::value
-                   == sortedness::order_dependent);
+                   == DSortedness::order_dependent);
 
     // the two accepted-but-wrong shapes are indistinguishable from the right
     // one at the classification level, which is what makes them worth pinning
@@ -249,13 +249,13 @@ bool tests_sorted_invariant_helper()
 
     // and it reaches the classification
     D_SR_CHECK(sortedness_of<DSrtInvariantTrue>::value
-                   == sortedness::sorted);
+                   == DSortedness::sorted);
     D_SR_CHECK(sortedness_of<DSrtInvariantFalse>::value
-                   == sortedness::order_dependent);
+                   == DSortedness::order_dependent);
     D_SR_CHECK(sortedness_of<DSrtInvariantIntOne>::value
-                   == sortedness::sorted);
+                   == DSortedness::sorted);
     D_SR_CHECK(sortedness_of<DSrtInvariantIntZero>::value
-                   == sortedness::order_dependent);
+                   == DSortedness::order_dependent);
 
     // an opting-out type is indistinguishable from one that never opted in,
     // which is the intended reading
@@ -301,7 +301,7 @@ bool tests_sorted_invariant_shapes()
         internal::sorted_invariant_helper<DSrtInvariantFunction>::value
             == false);
     D_SR_CHECK(sortedness_of<DSrtInvariantFunction>::value
-                   == sortedness::order_dependent);
+                   == DSortedness::order_dependent);
     D_SR_CHECK(is_sorted_container<DSrtInvariantFunction>::value == false);
 
     // nor is a non-static data member, read without an object
@@ -309,13 +309,13 @@ bool tests_sorted_invariant_shapes()
         internal::sorted_invariant_helper<DSrtInvariantNonStatic>::value
             == false);
     D_SR_CHECK(sortedness_of<DSrtInvariantNonStatic>::value
-                   == sortedness::order_dependent);
+                   == DSortedness::order_dependent);
 
     // a type alias is correctly rejected
     D_SR_CHECK(internal::sorted_invariant_helper<DSrtInvariantAlias>::value
                    == false);
     D_SR_CHECK(sortedness_of<DSrtInvariantAlias>::value
-                   == sortedness::order_dependent);
+                   == DSortedness::order_dependent);
 
     // a function and a false constant now read alike: neither asserts
     D_SR_CHECK(
@@ -328,7 +328,7 @@ bool tests_sorted_invariant_shapes()
 
     // the two signals are joined by a disjunction, so either alone suffices
     // and both together are no different
-    D_SR_CHECK(sortedness_of<DSrtBothSignals>::value == sortedness::sorted);
+    D_SR_CHECK(sortedness_of<DSrtBothSignals>::value == DSortedness::sorted);
     D_SR_CHECK(   ( internal::has_interval_bounds_helper<
                         DSrtBothSignals>::value == true )
                && ( internal::sorted_invariant_helper<

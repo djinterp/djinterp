@@ -296,10 +296,10 @@ inline constexpr bool has_valid_lock_policy_v =
 // Queries the policy's static constexpr members to
 // classify its capabilities.
 
-// policy_is_threadsafe
+// DPolicyIsThreadsafe
 //   type trait: true if the container's lock policy has is_threadsafe == true.
 template<typename Type>
-struct policy_is_threadsafe
+struct DPolicyIsThreadsafe
 {
     using clean_type = clean_t<Type>;
     using policy =
@@ -310,9 +310,13 @@ struct policy_is_threadsafe
           policy::is_threadsafe );
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using policy_is_threadsafe = DPolicyIsThreadsafe<Type>;
+
 template<typename Type>
 inline constexpr bool policy_is_threadsafe_v =
-    policy_is_threadsafe<Type>::value;
+    DPolicyIsThreadsafe<Type>::value;
 
 // DPolicySupportsShared
 //   type trait: true if the container's lock policy supports reader/writer

@@ -166,7 +166,7 @@ NS_END  // internal
 // III. table_shape
 // ===========================================================================
 
-// table_shape
+// DTableShape
 //   type: the rank-2 rectangular shape of a table -- a height and a list of
 // column types. The domain is the box {0..height-1} x {0..width-1}; the cell
 // type at column c is the c-th column type (tau_{r,c} = tau_c). Homogeneity is
@@ -183,7 +183,7 @@ NS_END  // internal
 // heterogeneous
 template<std::size_t Height,
          typename... Cols>
-struct table_shape
+struct DTableShape
 {
     // --- extents ---
 
@@ -228,12 +228,17 @@ struct table_shape
     using column_type_t = internal::pack_type_at_t<C, Cols...>;
 };
 
+// old name, until 0.9.0-rc.1
+template<std::size_t Height,
+         typename... Cols>
+using table_shape = DTableShape<Height, Cols...>;
+
 
 // ===========================================================================
 // IV.  realization_kind
 // ===========================================================================
 
-// realization_kind
+// DRealizationKind
 //   enum: the container family a shape realizes into. A static or dynamic
 // height crossed with a homogeneous or heterogeneous column list:
 //
@@ -245,13 +250,16 @@ struct table_shape
 // keyed / sorted overlays are further refinements the option surface selects
 // on top of this base classification; they do not change the family named
 // here.
-enum class realization_kind
+enum class DRealizationKind
 {
     static_homogeneous,
     dynamic_homogeneous,
     static_record,
     dynamic_record
 };
+
+// old name, until 0.9.0-rc.1
+using realization_kind = DRealizationKind;
 
 
 // ===========================================================================
@@ -266,27 +274,27 @@ struct realization_of;
 
 template<std::size_t Height,
          typename... Cols>
-struct realization_of<table_shape<Height, Cols...>>
+struct realization_of<DTableShape<Height, Cols...>>
 {
 private:
-    using shape_type = table_shape<Height, Cols...>;
+    using shape_type = DTableShape<Height, Cols...>;
 
     static D_CONSTEXPR bool s = shape_type::static_height;
     static D_CONSTEXPR bool h = shape_type::is_homogeneous;
 
 public:
-    static D_CONSTEXPR realization_kind value =
-        ( s ? ( h ? realization_kind::static_homogeneous
-                  : realization_kind::static_record )
-            : ( h ? realization_kind::dynamic_homogeneous
-                  : realization_kind::dynamic_record ) );
+    static D_CONSTEXPR DRealizationKind value =
+        ( s ? ( h ? DRealizationKind::static_homogeneous
+                  : DRealizationKind::static_record )
+            : ( h ? DRealizationKind::dynamic_homogeneous
+                  : DRealizationKind::dynamic_record ) );
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 // realization_of_v
 //   value: shorthand for realization_of<Shape>::value.
 template<typename Shape>
-D_CONSTEXPR realization_kind realization_of_v = realization_of<Shape>::value;
+D_CONSTEXPR DRealizationKind realization_of_v = realization_of<Shape>::value;
 #endif
 
 
@@ -303,10 +311,10 @@ NS_INTERNAL
     {};
 
     // is_table_shape_impl<table_shape<Height, Cols...>>
-    //   trait: the `table_shape<Height, Cols...>` case; it reports true.
+    //   trait: the `DTableShape<Height, Cols...>` case; it reports true.
     template<std::size_t Height,
              typename... Cols>
-    struct is_table_shape_impl<table_shape<Height, Cols...>> : std::true_type
+    struct is_table_shape_impl<DTableShape<Height, Cols...>> : std::true_type
     {};
 
 NS_END  // internal

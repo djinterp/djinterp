@@ -171,7 +171,7 @@ private:
     using clean_type = clean_t<Type>;
 
 public:
-    static constexpr storage_duration::value value =
+    static constexpr DStorageDuration::value value =
         ( has_storage_duration_category<clean_type>::value
               ? storage_of<clean_type>::value
               : make_storage_duration(
@@ -191,11 +191,11 @@ using storage_duration_of_t = typename storage_duration_of<Type>::type;
 // not a bool; same language degradation as the meta layer's storage_of_v).
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename Type>
-    inline constexpr storage_duration::value storage_duration_of_v =
+    inline constexpr DStorageDuration::value storage_duration_of_v =
         storage_duration_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    constexpr storage_duration::value storage_duration_of_v =
+    constexpr DStorageDuration::value storage_duration_of_v =
         storage_duration_of<Type>::value;
 #endif
 
@@ -310,7 +310,7 @@ public:
     static constexpr bool             has_dynamic_signal =
         has_dynamic_storage_signal<clean_type>::value;
 
-    static constexpr storage_duration::value duration =
+    static constexpr DStorageDuration::value duration =
         storage_duration_of<clean_type>::value;
     static constexpr const char*      duration_name =
         storage_duration_name(duration);

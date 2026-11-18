@@ -109,12 +109,12 @@ using sv = std::basic_string_view<char>;
 // source, which must outlive the vector.
 template<typename _Scanner>
 inline
-std::vector<::djinterp::piece<char>> scan_all(
+std::vector<::djinterp::DPiece<char>> scan_all(
     _Scanner _scanner
 )
 {
-    std::vector<::djinterp::piece<char>> _out;
-    ::djinterp::piece<char>              _p;
+    std::vector<::djinterp::DPiece<char>> _out;
+    ::djinterp::DPiece<char>              _p;
 
     while (_scanner.next(_p))
     {
@@ -181,7 +181,7 @@ struct DCountingResolver
     bool m_hit     = false;
     sv   m_value   {};
 
-    ::djinterp::resolution<sv> operator()(
+    ::djinterp::DResolution<sv> operator()(
         sv
     ) const
     {

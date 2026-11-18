@@ -26,12 +26,12 @@ tests_encode_options_convenience
 bool tests_encode_options_convenience()
 {
     // fresh buffer each call
-    const byte_string _a =
+    const DByteString _a =
         encode_leaf<DSerialEndian::big>(static_cast<re_std::uint16_t>(0x1234));
-    const byte_string _b =
+    const DByteString _b =
         encode_leaf<DSerialEndian::big>(static_cast<re_std::uint16_t>(0x1234));
-    D_EO_CHECK((_a == byte_string{ 0x12, 0x34 }));
-    D_EO_CHECK((_b == byte_string{ 0x12, 0x34 }));
+    D_EO_CHECK((_a == DByteString{ 0x12, 0x34 }));
+    D_EO_CHECK((_b == DByteString{ 0x12, 0x34 }));
     D_EO_CHECK(_a.size() == 2);
 
     // agrees with a manual encode_leaf_into, big-endian

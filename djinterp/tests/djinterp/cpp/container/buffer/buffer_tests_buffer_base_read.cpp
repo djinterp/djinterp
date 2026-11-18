@@ -50,8 +50,8 @@ bool tests_buffer_base_read()
 
     // --- null destination short-circuit ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 16);
 
@@ -68,8 +68,8 @@ bool tests_buffer_base_read()
 
     // --- zero-length short-circuit ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 16);
 
@@ -87,8 +87,8 @@ bool tests_buffer_base_read()
 
     // --- normal read consumes the entire payload ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 16);
 
@@ -114,8 +114,8 @@ bool tests_buffer_base_read()
 
     // --- partial read leaves remainder intact ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 16);
 
@@ -153,8 +153,8 @@ bool tests_buffer_base_read()
 
     // --- oversized read clamped to readable() ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 16);
 
@@ -172,8 +172,8 @@ bool tests_buffer_base_read()
 
     // --- read of empty buffer returns 0 ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         char        out[16];
         std::size_t n = b.read(out, 16);
@@ -185,8 +185,8 @@ bool tests_buffer_base_read()
 
     // --- read after full consumption returns 0 ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 4);
 
@@ -226,8 +226,8 @@ bool tests_buffer_base_peek()
 
     // --- peek on empty buffer ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         record_assertion(ok,
             b.peek() == b.storage(),
@@ -236,8 +236,8 @@ bool tests_buffer_base_peek()
 
     // --- peek before consumption ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 8);
 
@@ -262,8 +262,8 @@ bool tests_buffer_base_peek()
 
     // --- peek after partial consumption ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 8);
         b.advance(3);
@@ -298,8 +298,8 @@ bool tests_buffer_base_readable_and_read_position()
 {
     bool ok = true;
 
-    mock_buffer<exponential_growth_policy,
-                dual_cursor_policy> b(64);
+    mock_buffer<DExponentialGrowthPolicy,
+                DDualCursorPolicy> b(64);
 
     // fresh buffer
     record_assertion(ok,
@@ -381,8 +381,8 @@ bool tests_buffer_base_advance()
 
     // --- advance(0) is a no-op ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 13);
 
@@ -403,8 +403,8 @@ bool tests_buffer_base_advance()
 
     // --- normal advance ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 13);
 
@@ -430,8 +430,8 @@ bool tests_buffer_base_advance()
 
     // --- oversized advance clamped to readable ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 5);
 
@@ -452,8 +452,8 @@ bool tests_buffer_base_advance()
 
     // --- advance on empty buffer returns 0 ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         std::size_t n = b.advance(10);
 
@@ -464,8 +464,8 @@ bool tests_buffer_base_advance()
 
     // --- advance does not affect write cursor ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 10);
         const std::size_t wp_before = b.write_position();
@@ -505,8 +505,8 @@ bool tests_buffer_base_compact()
 
     // --- empty buffer ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         std::size_t pending = b.compact();
 
@@ -521,8 +521,8 @@ bool tests_buffer_base_compact()
 
     // --- partial consumption: shift to head ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 10);
         b.advance(3);
@@ -555,8 +555,8 @@ bool tests_buffer_base_compact()
 
     // --- full consumption: cursors reset, no shift needed ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 10);
         b.advance(10);  // consume everything
@@ -574,8 +574,8 @@ bool tests_buffer_base_compact()
 
     // --- no consumption: data must not move ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write(src, 10);
 
@@ -597,8 +597,8 @@ bool tests_buffer_base_compact()
 
     // --- compact frees tail space for writes (round-trip) ---
     {
-        mock_buffer<fixed_growth_policy,
-                    dual_cursor_policy> b(16);
+        mock_buffer<DFixedGrowthPolicy,
+                    DDualCursorPolicy> b(16);
 
         b.write_fill('A', 16);   // fully fill (writable=0)
         b.advance(10);            // consume 10, leaving 6

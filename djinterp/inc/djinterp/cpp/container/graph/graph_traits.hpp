@@ -375,30 +375,30 @@ NS_INTERNAL
     template<typename Type, typename = void>
     struct direction_of_helper
     {
-        static D_CONSTEXPR graph_direction value =
-            graph_direction::unspecified;
+        static D_CONSTEXPR DGraphDirection value =
+            DGraphDirection::unspecified;
     };
 
     template<typename Type>
     struct direction_of_helper<Type, std::void_t<decltype(Type::direction)>>
     {
-        static D_CONSTEXPR graph_direction value = Type::direction;
+        static D_CONSTEXPR DGraphDirection value = Type::direction;
     };
 
 NS_END  // internal
 
 // graph_direction_of
-//   trait: returns the `graph_direction` of Type, or `unspecified`.
+//   trait: returns the `DGraphDirection` of Type, or `unspecified`.
 template<typename Type>
 struct graph_direction_of
 {
-    static D_CONSTEXPR graph_direction value =
+    static D_CONSTEXPR DGraphDirection value =
         internal::direction_of_helper<clean_t<Type>>::value;
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 template<typename Type>
-inline D_CONSTEXPR graph_direction graph_direction_of_v =
+inline D_CONSTEXPR DGraphDirection graph_direction_of_v =
     graph_direction_of<Type>::value;
 #endif
 
@@ -408,14 +408,14 @@ template<typename Type>
 struct is_directed_graph_t
 {
 private:
-    static D_CONSTEXPR graph_direction d = graph_direction_of<Type>::value;
+    static D_CONSTEXPR DGraphDirection d = graph_direction_of<Type>::value;
 
 public:
     static D_CONSTEXPR bool value =
-        ( (d == graph_direction::directed)   ||
-          (d == graph_direction::oriented)   ||
-          (d == graph_direction::tournament) ||
-          (d == graph_direction::bidirected) );
+        ( (d == DGraphDirection::directed)   ||
+          (d == DGraphDirection::oriented)   ||
+          (d == DGraphDirection::tournament) ||
+          (d == DGraphDirection::bidirected) );
 };
 
 // is_undirected_graph_t
@@ -423,7 +423,7 @@ template<typename Type>
 struct is_undirected_graph_t
 {
     static D_CONSTEXPR bool value =
-        (graph_direction_of<Type>::value == graph_direction::undirected);
+        (graph_direction_of<Type>::value == DGraphDirection::undirected);
 };
 
 // is_oriented_graph_t
@@ -431,7 +431,7 @@ template<typename Type>
 struct is_oriented_graph_t
 {
     static D_CONSTEXPR bool value =
-        (graph_direction_of<Type>::value == graph_direction::oriented);
+        (graph_direction_of<Type>::value == DGraphDirection::oriented);
 };
 
 // is_tournament_graph_t
@@ -439,7 +439,7 @@ template<typename Type>
 struct is_tournament_graph_t
 {
     static D_CONSTEXPR bool value =
-        (graph_direction_of<Type>::value == graph_direction::tournament);
+        (graph_direction_of<Type>::value == DGraphDirection::tournament);
 };
 
 // is_bidirected_graph_t
@@ -447,7 +447,7 @@ template<typename Type>
 struct is_bidirected_graph_t
 {
     static D_CONSTEXPR bool value =
-        (graph_direction_of<Type>::value == graph_direction::bidirected);
+        (graph_direction_of<Type>::value == DGraphDirection::bidirected);
 };
 
 // is_mixed_graph_t
@@ -455,7 +455,7 @@ template<typename Type>
 struct is_mixed_graph_t
 {
     static D_CONSTEXPR bool value =
-        (graph_direction_of<Type>::value == graph_direction::mixed);
+        (graph_direction_of<Type>::value == DGraphDirection::mixed);
 };
 
 
@@ -468,25 +468,25 @@ NS_INTERNAL
     template<typename Type, typename = void>
     struct multiplicity_of_helper
     {
-        static D_CONSTEXPR edge_multiplicity value =
-            edge_multiplicity::unspecified;
+        static D_CONSTEXPR DEdgeMultiplicity value =
+            DEdgeMultiplicity::unspecified;
     };
 
     template<typename Type>
     struct multiplicity_of_helper<Type,
         std::void_t<decltype(Type::multiplicity_kind)>>
     {
-        static D_CONSTEXPR edge_multiplicity value = Type::multiplicity_kind;
+        static D_CONSTEXPR DEdgeMultiplicity value = Type::multiplicity_kind;
     };
 
 NS_END  // internal
 
 // graph_multiplicity_of
-//   trait: returns the `edge_multiplicity` of Type.
+//   trait: returns the `DEdgeMultiplicity` of Type.
 template<typename Type>
 struct graph_multiplicity_of
 {
-    static D_CONSTEXPR edge_multiplicity value =
+    static D_CONSTEXPR DEdgeMultiplicity value =
         internal::multiplicity_of_helper<clean_t<Type>>::value;
 };
 
@@ -495,7 +495,7 @@ template<typename Type>
 struct is_simple_graph_t
 {
     static D_CONSTEXPR bool value =
-        (graph_multiplicity_of<Type>::value == edge_multiplicity::simple);
+        (graph_multiplicity_of<Type>::value == DEdgeMultiplicity::simple);
 };
 
 // is_multigraph_t
@@ -503,24 +503,24 @@ template<typename Type>
 struct is_multigraph_t
 {
     static D_CONSTEXPR bool value =
-        ( (graph_multiplicity_of<Type>::value == edge_multiplicity::multi) ||
-          (graph_multiplicity_of<Type>::value == edge_multiplicity::bounded) );
+        ( (graph_multiplicity_of<Type>::value == DEdgeMultiplicity::multi) ||
+          (graph_multiplicity_of<Type>::value == DEdgeMultiplicity::bounded) );
 };
 
 // loops_of
-//   trait: returns the `loop_policy` of Type.
+//   trait: returns the `DLoopPolicy` of Type.
 NS_INTERNAL
 
     template<typename Type, typename = void>
     struct loops_of_helper
     {
-        static D_CONSTEXPR loop_policy value = loop_policy::unknown;
+        static D_CONSTEXPR DLoopPolicy value = DLoopPolicy::unknown;
     };
 
     template<typename Type>
     struct loops_of_helper<Type, std::void_t<decltype(Type::loops)>>
     {
-        static D_CONSTEXPR loop_policy value = Type::loops;
+        static D_CONSTEXPR DLoopPolicy value = Type::loops;
     };
 
 NS_END  // internal
@@ -528,7 +528,7 @@ NS_END  // internal
 template<typename Type>
 struct loops_of
 {
-    static D_CONSTEXPR loop_policy value =
+    static D_CONSTEXPR DLoopPolicy value =
         internal::loops_of_helper<clean_t<Type>>::value;
 };
 
@@ -537,8 +537,8 @@ template<typename Type>
 struct allows_self_loops_t
 {
     static D_CONSTEXPR bool value =
-        ( (loops_of<Type>::value == loop_policy::allow) ||
-          (loops_of<Type>::value == loop_policy::require) );
+        ( (loops_of<Type>::value == DLoopPolicy::allow) ||
+          (loops_of<Type>::value == DLoopPolicy::require) );
 };
 
 // is_pseudograph_t
@@ -566,54 +566,54 @@ NS_INTERNAL
     template<typename Type, typename = void>
     struct acyclicity_of_helper
     {
-        static D_CONSTEXPR graph_acyclicity value =
-            graph_acyclicity::unknown;
+        static D_CONSTEXPR DGraphAcyclicity value =
+            DGraphAcyclicity::unknown;
     };
 
     template<typename Type>
     struct acyclicity_of_helper<Type,
         std::void_t<decltype(Type::acyclicity)>>
     {
-        static D_CONSTEXPR graph_acyclicity value = Type::acyclicity;
+        static D_CONSTEXPR DGraphAcyclicity value = Type::acyclicity;
     };
 
     template<typename Type, typename = void>
     struct connectivity_of_helper
     {
-        static D_CONSTEXPR graph_connectivity value =
-            graph_connectivity::unknown;
+        static D_CONSTEXPR DGraphConnectivity value =
+            DGraphConnectivity::unknown;
     };
 
     template<typename Type>
     struct connectivity_of_helper<Type,
         std::void_t<decltype(Type::connectivity)>>
     {
-        static D_CONSTEXPR graph_connectivity value = Type::connectivity;
+        static D_CONSTEXPR DGraphConnectivity value = Type::connectivity;
     };
 
     template<typename Type, typename = void>
     struct density_of_helper
     {
-        static D_CONSTEXPR graph_density value = graph_density::unknown;
+        static D_CONSTEXPR DGraphDensity value = DGraphDensity::unknown;
     };
 
     template<typename Type>
     struct density_of_helper<Type, std::void_t<decltype(Type::density)>>
     {
-        static D_CONSTEXPR graph_density value = Type::density;
+        static D_CONSTEXPR DGraphDensity value = Type::density;
     };
 
     template<typename Type, typename = void>
     struct planarity_of_helper
     {
-        static D_CONSTEXPR graph_planarity value =
-            graph_planarity::unknown;
+        static D_CONSTEXPR DGraphPlanarity value =
+            DGraphPlanarity::unknown;
     };
 
     template<typename Type>
     struct planarity_of_helper<Type, std::void_t<decltype(Type::planarity)>>
     {
-        static D_CONSTEXPR graph_planarity value = Type::planarity;
+        static D_CONSTEXPR DGraphPlanarity value = Type::planarity;
     };
 
 NS_END  // internal
@@ -621,28 +621,28 @@ NS_END  // internal
 template<typename Type>
 struct graph_acyclicity_of
 {
-    static D_CONSTEXPR graph_acyclicity value =
+    static D_CONSTEXPR DGraphAcyclicity value =
         internal::acyclicity_of_helper<clean_t<Type>>::value;
 };
 
 template<typename Type>
 struct graph_connectivity_of
 {
-    static D_CONSTEXPR graph_connectivity value =
+    static D_CONSTEXPR DGraphConnectivity value =
         internal::connectivity_of_helper<clean_t<Type>>::value;
 };
 
 template<typename Type>
 struct graph_density_of
 {
-    static D_CONSTEXPR graph_density value =
+    static D_CONSTEXPR DGraphDensity value =
         internal::density_of_helper<clean_t<Type>>::value;
 };
 
 template<typename Type>
 struct graph_planarity_of
 {
-    static D_CONSTEXPR graph_planarity value =
+    static D_CONSTEXPR DGraphPlanarity value =
         internal::planarity_of_helper<clean_t<Type>>::value;
 };
 
@@ -651,7 +651,7 @@ template<typename Type>
 struct is_dag_t
 {
     static D_CONSTEXPR bool value =
-        (graph_acyclicity_of<Type>::value == graph_acyclicity::dag);
+        (graph_acyclicity_of<Type>::value == DGraphAcyclicity::dag);
 };
 
 // is_tree_t
@@ -659,8 +659,8 @@ template<typename Type>
 struct is_tree_t
 {
     static D_CONSTEXPR bool value =
-        ( (graph_acyclicity_of<Type>::value == graph_acyclicity::tree) ||
-          (graph_acyclicity_of<Type>::value == graph_acyclicity::rooted_tree) );
+        ( (graph_acyclicity_of<Type>::value == DGraphAcyclicity::tree) ||
+          (graph_acyclicity_of<Type>::value == DGraphAcyclicity::rooted_tree) );
 };
 
 // is_forest_t
@@ -668,7 +668,7 @@ template<typename Type>
 struct is_forest_t
 {
     static D_CONSTEXPR bool value =
-        (graph_acyclicity_of<Type>::value == graph_acyclicity::forest);
+        (graph_acyclicity_of<Type>::value == DGraphAcyclicity::forest);
 };
 
 
@@ -681,14 +681,14 @@ NS_INTERNAL
     template<typename Type, typename = void>
     struct storage_of_helper
     {
-        static D_CONSTEXPR graph_storage value = graph_storage::unspecified;
+        static D_CONSTEXPR DGraphStorage value = DGraphStorage::unspecified;
     };
 
     template<typename Type>
     struct storage_of_helper<Type,
         std::void_t<decltype(Type::storage_strategy)>>
     {
-        static D_CONSTEXPR graph_storage value = Type::storage_strategy;
+        static D_CONSTEXPR DGraphStorage value = Type::storage_strategy;
     };
 
 NS_END  // internal
@@ -696,7 +696,7 @@ NS_END  // internal
 template<typename Type>
 struct graph_storage_of
 {
-    static D_CONSTEXPR graph_storage value =
+    static D_CONSTEXPR DGraphStorage value =
         internal::storage_of_helper<clean_t<Type>>::value;
 };
 
@@ -705,7 +705,7 @@ template<typename Type>
 struct is_adjacency_list_storage_t
 {
     static D_CONSTEXPR bool value =
-        (graph_storage_of<Type>::value == graph_storage::adjacency_list);
+        (graph_storage_of<Type>::value == DGraphStorage::adjacency_list);
 };
 
 // is_adjacency_matrix_storage_t
@@ -713,7 +713,7 @@ template<typename Type>
 struct is_adjacency_matrix_storage_t
 {
     static D_CONSTEXPR bool value =
-        (graph_storage_of<Type>::value == graph_storage::adjacency_matrix);
+        (graph_storage_of<Type>::value == DGraphStorage::adjacency_matrix);
 };
 
 // is_edge_list_storage_t
@@ -721,7 +721,7 @@ template<typename Type>
 struct is_edge_list_storage_t
 {
     static D_CONSTEXPR bool value =
-        (graph_storage_of<Type>::value == graph_storage::edge_list);
+        (graph_storage_of<Type>::value == DGraphStorage::edge_list);
 };
 
 // is_csr_storage_t
@@ -729,7 +729,7 @@ template<typename Type>
 struct is_csr_storage_t
 {
     static D_CONSTEXPR bool value =
-        (graph_storage_of<Type>::value == graph_storage::csr);
+        (graph_storage_of<Type>::value == DGraphStorage::csr);
 };
 
 // is_csc_storage_t
@@ -737,7 +737,7 @@ template<typename Type>
 struct is_csc_storage_t
 {
     static D_CONSTEXPR bool value =
-        (graph_storage_of<Type>::value == graph_storage::csc);
+        (graph_storage_of<Type>::value == DGraphStorage::csc);
 };
 
 // is_incidence_matrix_storage_t
@@ -745,7 +745,7 @@ template<typename Type>
 struct is_incidence_matrix_storage_t
 {
     static D_CONSTEXPR bool value =
-        (graph_storage_of<Type>::value == graph_storage::incidence_matrix);
+        (graph_storage_of<Type>::value == DGraphStorage::incidence_matrix);
 };
 
 // is_node_based_storage_t
@@ -753,7 +753,7 @@ template<typename Type>
 struct is_node_based_storage_t
 {
     static D_CONSTEXPR bool value =
-        (graph_storage_of<Type>::value == graph_storage::node_based);
+        (graph_storage_of<Type>::value == DGraphStorage::node_based);
 };
 
 // is_hyperedge_storage_t
@@ -761,7 +761,7 @@ template<typename Type>
 struct is_hyperedge_storage_t
 {
     static D_CONSTEXPR bool value =
-        (graph_storage_of<Type>::value == graph_storage::hyperedge_list);
+        (graph_storage_of<Type>::value == DGraphStorage::hyperedge_list);
 };
 
 // is_implicit_graph_storage_t
@@ -769,7 +769,7 @@ template<typename Type>
 struct is_implicit_graph_storage_t
 {
     static D_CONSTEXPR bool value =
-        (graph_storage_of<Type>::value == graph_storage::implicit);
+        (graph_storage_of<Type>::value == DGraphStorage::implicit);
 };
 
 
@@ -924,13 +924,13 @@ using adjacency_container_type_of_t =
 // XI.   COMBINED CLASSIFICATION: graph_class<T>
 // ===========================================================================
 
-// graph_class
+// DGraphClass
 //   struct: aggregate compile-time classification of a graph type across all
 // axes detected by this header. Members are `static constexpr` so the entire
 // struct can be queried at compile time and pattern-matched in `if constexpr`
 // chains.
 template<typename Type>
-struct graph_class
+struct DGraphClass
 {
     using clean_type = clean_t<Type>;
 
@@ -939,7 +939,7 @@ struct graph_class
         is_graph<clean_type>::value;
 
     // --- Direction ---
-    static D_CONSTEXPR graph_direction direction =
+    static D_CONSTEXPR DGraphDirection direction =
         graph_direction_of<clean_type>::value;
 
     static D_CONSTEXPR bool is_directed   = is_directed_graph_t<clean_type>::value;
@@ -950,26 +950,26 @@ struct graph_class
     static D_CONSTEXPR bool is_bidirected = is_bidirected_graph_t<clean_type>::value;
 
     // --- Multiplicity / loops ---
-    static D_CONSTEXPR edge_multiplicity multiplicity =
+    static D_CONSTEXPR DEdgeMultiplicity multiplicity =
         graph_multiplicity_of<clean_type>::value;
 
     static D_CONSTEXPR bool is_simple        = is_simple_graph_t<clean_type>::value;
     static D_CONSTEXPR bool is_multigraph    = is_multigraph_t<clean_type>::value;
 
-    static D_CONSTEXPR loop_policy loops =
+    static D_CONSTEXPR DLoopPolicy loops =
         loops_of<clean_type>::value;
     static D_CONSTEXPR bool allows_self_loops = allows_self_loops_t<clean_type>::value;
 
     static D_CONSTEXPR bool is_pseudograph    = is_pseudograph_t<clean_type>::value;
 
     // --- Topology ---
-    static D_CONSTEXPR graph_acyclicity acyclicity =
+    static D_CONSTEXPR DGraphAcyclicity acyclicity =
         graph_acyclicity_of<clean_type>::value;
-    static D_CONSTEXPR graph_connectivity connectivity =
+    static D_CONSTEXPR DGraphConnectivity connectivity =
         graph_connectivity_of<clean_type>::value;
-    static D_CONSTEXPR graph_density density =
+    static D_CONSTEXPR DGraphDensity density =
         graph_density_of<clean_type>::value;
-    static D_CONSTEXPR graph_planarity planarity =
+    static D_CONSTEXPR DGraphPlanarity planarity =
         graph_planarity_of<clean_type>::value;
 
     static D_CONSTEXPR bool is_dag    = is_dag_t<clean_type>::value;
@@ -977,7 +977,7 @@ struct graph_class
     static D_CONSTEXPR bool is_forest = is_forest_t<clean_type>::value;
 
     // --- Storage ---
-    static D_CONSTEXPR graph_storage storage =
+    static D_CONSTEXPR DGraphStorage storage =
         graph_storage_of<clean_type>::value;
 
     static D_CONSTEXPR bool uses_adjacency_list   = is_adjacency_list_storage_t<clean_type>::value;
@@ -1004,6 +1004,10 @@ struct graph_class
     static D_CONSTEXPR bool can_query_out_degree = has_out_degree_method<clean_type>::value;
     static D_CONSTEXPR bool has_graph_property   = has_graph_property_method_v<clean_type>;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using graph_class = DGraphClass<Type>;
 
 
 // ===========================================================================
@@ -1113,35 +1117,35 @@ struct graph_class
         is_implicit_graph_storage_t<Type>::value;
 
     template<typename Type>
-    inline D_CONSTEXPR graph_direction graph_direction_v =
+    inline D_CONSTEXPR DGraphDirection graph_direction_v =
         graph_direction_of<Type>::value;
 
     template<typename Type>
-    inline D_CONSTEXPR edge_multiplicity graph_multiplicity_v =
+    inline D_CONSTEXPR DEdgeMultiplicity graph_multiplicity_v =
         graph_multiplicity_of<Type>::value;
 
     template<typename Type>
-    inline D_CONSTEXPR graph_storage graph_storage_v =
+    inline D_CONSTEXPR DGraphStorage graph_storage_v =
         graph_storage_of<Type>::value;
 
     template<typename Type>
-    inline D_CONSTEXPR graph_acyclicity graph_acyclicity_v =
+    inline D_CONSTEXPR DGraphAcyclicity graph_acyclicity_v =
         graph_acyclicity_of<Type>::value;
 
     template<typename Type>
-    inline D_CONSTEXPR graph_connectivity graph_connectivity_v =
+    inline D_CONSTEXPR DGraphConnectivity graph_connectivity_v =
         graph_connectivity_of<Type>::value;
 
     template<typename Type>
-    inline D_CONSTEXPR graph_density graph_density_v =
+    inline D_CONSTEXPR DGraphDensity graph_density_v =
         graph_density_of<Type>::value;
 
     template<typename Type>
-    inline D_CONSTEXPR graph_planarity graph_planarity_v =
+    inline D_CONSTEXPR DGraphPlanarity graph_planarity_v =
         graph_planarity_of<Type>::value;
 
     template<typename Type>
-    inline D_CONSTEXPR loop_policy graph_loops_v =
+    inline D_CONSTEXPR DLoopPolicy graph_loops_v =
         loops_of<Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES

@@ -288,14 +288,14 @@ struct forward_bounds_aliases
 // IV.  OVERLAY BASE
 // =============================================================================
 
-// overlay_base
+// DOverlayBase
 //   class: zero-overhead base for container overlays. Holds the underlying by
 // `const&`, re-exposes the read surface through SFINAE-guarded forwarders (so
 // iteration level, contiguity, reverse/const iteration, and hierarchy are
 // preserved exactly when present), and advertises `underlying_container_type`
 // so the trait system classifies the overlay on axis 9 as backed.
 template<typename Container>
-class overlay_base : public overlay_tag,
+class DOverlayBase : public overlay_tag,
                      public forward_common_aliases<clean_t<Container>>
 {
 public:
@@ -303,7 +303,7 @@ public:
     //   type: the delegated container (axis 9 classification probe).
     using underlying_container_type = clean_t<Container>;
 
-    explicit overlay_base(
+    explicit DOverlayBase(
         const underlying_container_type& _underlying
     ) noexcept
         : m_underlying(_underlying)
@@ -446,6 +446,10 @@ private:
     const underlying_container_type& m_underlying;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Container>
+using overlay_base = DOverlayBase<Container>;
+
 
 // =============================================================================
 // V.   NAMED OVERLAYS
@@ -459,14 +463,14 @@ private:
 // the trait system classifies the overlay as immutable.
 template<typename Container>
 class immutable_overlay
-    : public overlay_base<Container>,
+    : public DOverlayBase<Container>,
       public forward_ordering_aliases<clean_t<Container>>,
       public forward_uniqueness_aliases<clean_t<Container>>,
       public forward_associative_aliases<clean_t<Container>>,
       public forward_bounds_aliases<clean_t<Container>>
 {
 public:
-    using overlay_base<Container>::overlay_base;
+    using DOverlayBase<Container>::DOverlayBase;
 };
 
 // unsorted_overlay
@@ -474,13 +478,13 @@ public:
 // ordering alias group; uniqueness, associativity, and bounds are preserved.
 template<typename Container>
 class unsorted_overlay
-    : public overlay_base<Container>,
+    : public DOverlayBase<Container>,
       public forward_uniqueness_aliases<clean_t<Container>>,
       public forward_associative_aliases<clean_t<Container>>,
       public forward_bounds_aliases<clean_t<Container>>
 {
 public:
-    using overlay_base<Container>::overlay_base;
+    using DOverlayBase<Container>::DOverlayBase;
 };
 
 // multi_overlay
@@ -488,13 +492,13 @@ public:
 // uniqueness alias group; ordering, associativity, and bounds are preserved.
 template<typename Container>
 class multi_overlay
-    : public overlay_base<Container>,
+    : public DOverlayBase<Container>,
       public forward_ordering_aliases<clean_t<Container>>,
       public forward_associative_aliases<clean_t<Container>>,
       public forward_bounds_aliases<clean_t<Container>>
 {
 public:
-    using overlay_base<Container>::overlay_base;
+    using DOverlayBase<Container>::DOverlayBase;
 };
 
 // unbounded_overlay
@@ -502,13 +506,13 @@ public:
 // bounds alias group; ordering, uniqueness, and associativity are preserved.
 template<typename Container>
 class unbounded_overlay
-    : public overlay_base<Container>,
+    : public DOverlayBase<Container>,
       public forward_ordering_aliases<clean_t<Container>>,
       public forward_uniqueness_aliases<clean_t<Container>>,
       public forward_associative_aliases<clean_t<Container>>
 {
 public:
-    using overlay_base<Container>::overlay_base;
+    using DOverlayBase<Container>::DOverlayBase;
 };
 
 

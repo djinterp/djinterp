@@ -94,7 +94,7 @@ NS_DJINTERP
 // I.   is_fixed_registry (detection trait)
 // ===========================================================================
 
-// fixed_registry (fwd)
+// DFixedRegistry (fwd)
 template<typename    Record,
          typename    KeyProj,
          typename    ValueProj,
@@ -104,7 +104,7 @@ template<typename    Record,
          typename    SizeType,
          typename    DifferenceType,
          typename... Options>
-class fixed_registry;
+class DFixedRegistry;
 
 NS_INTERNAL
 
@@ -115,7 +115,7 @@ NS_INTERNAL
     template<typename    R, typename KP, typename VP, typename KC,
              bool        U, bool KD, typename S, typename D, typename... O>
     struct is_fixed_registry_impl<
-        fixed_registry<R, KP, VP, KC, U, KD, S, D, O...>>
+        DFixedRegistry<R, KP, VP, KC, U, KD, S, D, O...>>
         : std::true_type
     {};
 
@@ -135,7 +135,7 @@ inline constexpr bool is_fixed_registry_v = is_fixed_registry<Type>::value;
 // II.  fixed_registry (class)
 // ===========================================================================
 
-// fixed_registry
+// DFixedRegistry
 //   class: the base registry with structural mutation withdrawn and the rekey
 // policy pinned to reject. Private inheritance takes the implementation; the
 // public surface re-exports everything EXCEPT the structural operations and
@@ -149,13 +149,13 @@ template<typename    Record,
          typename    SizeType        = std::size_t,
          typename    DifferenceType = std::ptrdiff_t,
          typename... Options>
-class fixed_registry
-    : private registry<Record, KeyProj, ValueProj, KeyCompare,
+class DFixedRegistry
+    : private DRegistry<Record, KeyProj, ValueProj, KeyCompare,
                        UniqueKeys, KeyDisjoint, reject_rekey,
                        SizeType, DifferenceType, Options...>
 {
 private:
-    using base = registry<Record, KeyProj, ValueProj, KeyCompare,
+    using base = DRegistry<Record, KeyProj, ValueProj, KeyCompare,
                           UniqueKeys, KeyDisjoint, reject_rekey,
                           SizeType, DifferenceType, Options...>;
 
@@ -226,23 +226,23 @@ public:
     static constexpr DContainerStorageKind  storage_kind       = base::storage_kind;
     static constexpr DContainerOrdering      ordering           = base::ordering;
     static constexpr DContainerBounds        bounds             = base::bounds;
-    static constexpr container_iterability   iterability        = base::iterability;
+    static constexpr DContainerIterability   iterability        = base::iterability;
     static constexpr DContainerMultiplicity  multiplicity_grade = base::multiplicity_grade;
-    static constexpr container_structure     structure          = base::structure;
+    static constexpr DContainerStructure     structure          = base::structure;
 
     // fixed after construction: immutable lifetime (the value is settled and
     // enduring, even though its cells stay individually writable)
-    static constexpr container_lifetime      lifetime = container_lifetime::immutable;
+    static constexpr DContainerLifetime      lifetime = DContainerLifetime::immutable;
 
     // --- 3. construction ---
     //   The key set is settled HERE and nowhere else. After construction no
     // structural operation exists, so the shape is frozen.
 
-    fixed_registry()
+    DFixedRegistry()
         : base()
     {}
 
-    explicit fixed_registry(
+    explicit DFixedRegistry(
         KeyProj     _kproj,
         ValueProj   _vproj,
         KeyCompare _cmp = KeyCompare()
@@ -253,7 +253,7 @@ public:
     // record list: the frozen contents. Each record is placed at its sorted
     // key position (the base init-list constructor), establishing eta /
     // varsigma / mu once; thereafter the shape cannot change.
-    fixed_registry(
+    DFixedRegistry(
         std::initializer_list<Record> _records,
         KeyProj                        _kproj = KeyProj(),
         ValueProj                      _vproj = ValueProj(),
@@ -262,11 +262,11 @@ public:
         : base(_records, _kproj, _vproj, _cmp)
     {}
 
-    fixed_registry(const fixed_registry&)            = default;
-    fixed_registry(fixed_registry&&)                 = default;
-    fixed_registry& operator=(const fixed_registry&) = default;
-    fixed_registry& operator=(fixed_registry&&)      = default;
-    ~fixed_registry()                                = default;
+    DFixedRegistry(const DFixedRegistry&)            = default;
+    DFixedRegistry(DFixedRegistry&&)                 = default;
+    DFixedRegistry& operator=(const DFixedRegistry&) = default;
+    DFixedRegistry& operator=(DFixedRegistry&&)      = default;
+    ~DFixedRegistry()                                = default;
 
     // --- 4. value update (reject-only; no reposition) ---
     //   The universal value-edit path, hard-pinned to reject: a key move is
@@ -278,7 +278,7 @@ public:
     // rejected and the entry left untouched. No policy parameter is offered
     // (reject is the only lawful answer for a fixed container).
     template<typename Mutate>
-    update_result update(
+    DUpdateResult update(
         const key_type& _k,
         Mutate          _mutate
     )
@@ -288,12 +288,24 @@ public:
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename    Record,
+         typename    KeyProj,
+         typename    ValueProj,
+         typename    KeyCompare      = std::less<>,
+         bool        UniqueKeys      = true,
+         bool        KeyDisjoint     = false,
+         typename    SizeType        = std::size_t,
+         typename    DifferenceType = std::ptrdiff_t,
+         typename... Options>
+using fixed_registry = DFixedRegistry<Record, KeyProj, ValueProj, KeyCompare, UniqueKeys, KeyDisjoint, SizeType, DifferenceType, Options...>;
+
 
 // ===========================================================================
 // III. fixed_kv_registry
 // ===========================================================================
 
-// fixed_kv_registry
+// DFixedKvRegistry
 //   alias: a structurally-frozen kv map/multimap -- fixed keys, settable
 // values. The direct value setters are available (the value region is disjoint
 // from the key); the shape is fixed at construction. The runtime
@@ -302,12 +314,19 @@ template<typename Key,
          typename Value,
          typename KeyCompare = std::less<>,
          bool     UniqueKeys = true>
-using fixed_kv_registry = fixed_registry<DKvPair<Key, Value>,
-                                        kv_key,
-                                        kv_value,
+using DFixedKvRegistry = DFixedRegistry<DKvPair<Key, Value>,
+                                        DKvKey,
+                                        DKvValue,
                                         KeyCompare,
                                         UniqueKeys,
                                         /*KeyDisjoint=*/true>;
+
+// old name, until 0.9.0-rc.1
+template<typename Key,
+         typename Value,
+         typename KeyCompare = std::less<>,
+         bool     UniqueKeys = true>
+using fixed_kv_registry = DFixedKvRegistry<Key, Value, KeyCompare, UniqueKeys>;
 
 
 NS_END  // djinterp

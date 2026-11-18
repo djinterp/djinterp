@@ -29,7 +29,7 @@ namespace
 {
     // doc_state : a minimal originator using the deep-copy policy.
     struct doc_state
-        : memento_originator<doc_state, deep_copy_snapshot>
+        : DMementoOriginator<doc_state, DDeepCopySnapshot>
     {
         int value;
 
@@ -46,7 +46,7 @@ tests_memento_metadata_default
 */
 bool tests_memento_metadata_default()
 {
-    memento_metadata meta;
+    DMementoMetadata meta;
 
     return (meta.sequence == 0);
 }
@@ -59,7 +59,7 @@ tests_memento_metadata_sequence
 */
 bool tests_memento_metadata_sequence()
 {
-    memento_metadata meta(11);
+    DMementoMetadata meta(11);
 
     return (meta.sequence == 11);
 }
@@ -73,7 +73,7 @@ tests_memento_metadata_tag
 bool tests_memento_metadata_tag()
 {
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
-    memento_metadata meta(4, std::string_view("checkpoint"));
+    DMementoMetadata meta(4, std::string_view("checkpoint"));
 
     bool ok = true;
 
@@ -95,7 +95,7 @@ tests_memento_construction
 */
 bool tests_memento_construction()
 {
-    memento<int> m(42, memento_metadata(3));
+    DMemento<int> m(42, DMementoMetadata(3));
 
     bool ok = true;
 
@@ -113,7 +113,7 @@ tests_memento_default
 */
 bool tests_memento_default()
 {
-    memento<int> m;
+    DMemento<int> m;
 
     bool ok = true;
 

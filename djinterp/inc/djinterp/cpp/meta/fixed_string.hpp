@@ -36,17 +36,17 @@
 NS_DJINTERP
 
 
-// fixed_string
+// DFixedString
 //   helper: structural string-literal carrier for use as a C++20
 // class-type NTTP.  Stores the literal byte-for-byte in a public
 // data[] member so the type satisfies the structural-type rules.
 template<std::size_t N>
-struct fixed_string
+struct DFixedString
 {
     char data[N];
 
     constexpr
-    fixed_string(
+    DFixedString(
         const char (&_s)[N]
     )
     {
@@ -83,9 +83,13 @@ struct fixed_string
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<std::size_t N>
+using fixed_string = DFixedString<N>;
+
 // deduction guide
 template<std::size_t N>
-fixed_string(const char (&)[N]) -> fixed_string<N>;
+DFixedString(const char (&)[N]) -> DFixedString<N>;
 
 
 NS_END  // djinterp

@@ -73,7 +73,7 @@ NS_TESTING
 // Two tag_patterns with different keys compose to exercise the combinators'
 // capture merge / selection and render / rewrite delegation rules.
 struct DTagPattern
-    : pattern<DTagPattern>
+    : DPattern<DTagPattern>
 {
     using input_type = int;
     using key_type   = std::string;

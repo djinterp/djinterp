@@ -38,12 +38,12 @@ NS_DJINTERP
     // I.   POLY TREE
     // =========================================================================
 
-    // poly_tree
+    // DPolyTree
     //   class: a generic container that manages a contiguous memory arena of
     //   variant nodes. Allows O(1) insertion and trait-driven iteration.
     template<typename ValueType,
              typename... NodeTypes>
-    class poly_tree
+    class DPolyTree
     {
     public:
         using value_type   = ValueType;
@@ -53,15 +53,15 @@ NS_DJINTERP
         using index_type   = size_type;
 
         // Iterator types: DFS by default
-        using iterator       = arena_iterator<arena_type, value_type, dfs_policy>;
-        using const_iterator = const_arena_iterator<arena_type, value_type, dfs_policy>;
-        using bfs_iterator   = arena_iterator<arena_type, value_type, bfs_policy>;
+        using iterator       = DArenaIterator<arena_type, value_type, DDfsPolicy>;
+        using const_iterator = DConstArenaIterator<arena_type, value_type, DDfsPolicy>;
+        using bfs_iterator   = DArenaIterator<arena_type, value_type, DBfsPolicy>;
         using const_bfs_iterator =
-            const_arena_iterator<arena_type, value_type, bfs_policy>;
+            DConstArenaIterator<arena_type, value_type, DBfsPolicy>;
         using post_order_iterator =
-            arena_iterator<arena_type, value_type, post_order_policy>;
+            DArenaIterator<arena_type, value_type, DPostOrderPolicy>;
         using const_post_order_iterator =
-            const_arena_iterator<arena_type, value_type, post_order_policy>;
+            DConstArenaIterator<arena_type, value_type, DPostOrderPolicy>;
 
         // Sentinel value
         static constexpr index_type npos = static_cast<index_type>(-1);
@@ -71,13 +71,13 @@ NS_DJINTERP
         // -----------------------------------------------------------------
 
         D_CONSTEXPR
-        poly_tree()
+        DPolyTree()
             : m_arena{},
               m_root_id(npos)
         {}
 
         D_CONSTEXPR explicit
-        poly_tree(std::size_t _reserve_size)
+        DPolyTree(std::size_t _reserve_size)
             : m_arena{},
               m_root_id(npos)
         {
@@ -215,7 +215,7 @@ NS_DJINTERP
         //   method: exchanges contents with another poly_tree.
         D_CONSTEXPR
         void swap(
-            poly_tree& _other
+            DPolyTree& _other
         ) noexcept
         {
             m_arena.swap(_other.m_arena);
@@ -326,8 +326,8 @@ NS_DJINTERP
 
         D_CONSTEXPR friend
         bool operator==(
-            const poly_tree& _a,
-            const poly_tree& _b
+            const DPolyTree& _a,
+            const DPolyTree& _b
         )
         {
             return ( _a.m_root_id == _b.m_root_id &&
@@ -336,8 +336,8 @@ NS_DJINTERP
 
         D_CONSTEXPR friend
         bool operator!=(
-            const poly_tree& _a,
-            const poly_tree& _b
+            const DPolyTree& _a,
+            const DPolyTree& _b
         )
         {
             return !(_a == _b);
@@ -347,6 +347,11 @@ NS_DJINTERP
         arena_type m_arena;
         index_type m_root_id;
     };
+
+    // old name, until 0.9.0-rc.1
+    template<typename ValueType,
+             typename... NodeTypes>
+    using poly_tree = DPolyTree<ValueType, NodeTypes...>;
 
 
 NS_END  // djinterp

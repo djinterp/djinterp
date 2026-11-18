@@ -94,12 +94,12 @@ NS_DJINTERP
 // I.   NODE DEFINITIONS
 // ===========================================================================
 
-// linked_list_node_base
+// DLinkedListNodeBase
 //   class: CRTP base supplying flags shared by every linked-list node shape.
 // is_sentinel marks a sentinel/dummy node so that iterators can recognize
 // end-of-list without nullptr comparisons.
 template<typename Derived>
-struct linked_list_node_base
+struct DLinkedListNodeBase
 {
 public:
     // is_sentinel
@@ -109,22 +109,26 @@ public:
 
     // linked_list_node_base
     //   constructor: default — non-sentinel.
-    constexpr linked_list_node_base() noexcept
+    constexpr DLinkedListNodeBase() noexcept
         : is_sentinel(false)
     {}
 };
 
-// singly_linked_list_node
+// old name, until 0.9.0-rc.1
+template<typename Derived>
+using linked_list_node_base = DLinkedListNodeBase<Derived>;
+
+// DSinglyLinkedListNode
 //   struct: a node carrying only a forward pointer. The .next member is
 // mandatory for has_next_link to succeed. The .value member is the payload
 // (also reachable via data()).
 template<typename Value>
-struct singly_linked_list_node
-    : public linked_list_node_base<singly_linked_list_node<Value>>
+struct DSinglyLinkedListNode
+    : public DLinkedListNodeBase<DSinglyLinkedListNode<Value>>
 {
 public:
     using value_type = Value;
-    using node_type  = singly_linked_list_node<Value>;
+    using node_type  = DSinglyLinkedListNode<Value>;
 
     // value
     //   field: payload storage.
@@ -136,8 +140,8 @@ public:
 
     // singly_linked_list_node
     //   constructor: default.
-    singly_linked_list_node() noexcept
-        : linked_list_node_base<node_type>(),
+    DSinglyLinkedListNode() noexcept
+        : DLinkedListNodeBase<node_type>(),
           value(),
           next(nullptr)
     {}
@@ -145,9 +149,9 @@ public:
     // singly_linked_list_node
     //   constructor: copies a payload value.
     explicit
-    singly_linked_list_node(
+    DSinglyLinkedListNode(
         const Value& _v)
-        : linked_list_node_base<node_type>(),
+        : DLinkedListNodeBase<node_type>(),
           value(_v),
           next(nullptr)
     {}
@@ -155,10 +159,10 @@ public:
     // singly_linked_list_node
     //   constructor: moves a payload value.
     explicit
-    singly_linked_list_node(
+    DSinglyLinkedListNode(
         Value&& _v) noexcept(
             std::is_nothrow_move_constructible<Value>::value)
-        : linked_list_node_base<node_type>(),
+        : DLinkedListNodeBase<node_type>(),
           value(static_cast<Value&&>(_v)),
           next(nullptr)
     {}
@@ -171,23 +175,27 @@ public:
     // copy operations are deleted — list-level deep copy handles the rewire of
     // .next pointers and is therefore the only correct path through which
     // nodes are duplicated.
-    singly_linked_list_node(
-        const singly_linked_list_node&
+    DSinglyLinkedListNode(
+        const DSinglyLinkedListNode&
     ) = delete;
-    singly_linked_list_node& operator=(
-        const singly_linked_list_node&
+    DSinglyLinkedListNode& operator=(
+        const DSinglyLinkedListNode&
     ) = delete;
 };
 
-// doubly_linked_list_node
+// old name, until 0.9.0-rc.1
+template<typename Value>
+using singly_linked_list_node = DSinglyLinkedListNode<Value>;
+
+// DDoublyLinkedListNode
 //   struct: a node carrying both forward and backward pointers.
 template<typename Value>
-struct doubly_linked_list_node
-    : public linked_list_node_base<doubly_linked_list_node<Value>>
+struct DDoublyLinkedListNode
+    : public DLinkedListNodeBase<DDoublyLinkedListNode<Value>>
 {
 public:
     using value_type = Value;
-    using node_type  = doubly_linked_list_node<Value>;
+    using node_type  = DDoublyLinkedListNode<Value>;
 
     // value
     //   field: payload storage.
@@ -201,27 +209,27 @@ public:
     //   field: backward link.
     node_type* prev;
 
-    doubly_linked_list_node() noexcept
-        : linked_list_node_base<node_type>(),
+    DDoublyLinkedListNode() noexcept
+        : DLinkedListNodeBase<node_type>(),
           value(),
           next(nullptr),
           prev(nullptr)
     {}
 
     explicit
-    doubly_linked_list_node(
+    DDoublyLinkedListNode(
         const Value& _v)
-        : linked_list_node_base<node_type>(),
+        : DLinkedListNodeBase<node_type>(),
           value(_v),
           next(nullptr),
           prev(nullptr)
     {}
 
     explicit
-    doubly_linked_list_node(
+    DDoublyLinkedListNode(
         Value&& _v) noexcept(
             std::is_nothrow_move_constructible<Value>::value)
-        : linked_list_node_base<node_type>(),
+        : DLinkedListNodeBase<node_type>(),
           value(static_cast<Value&&>(_v)),
           next(nullptr),
           prev(nullptr)
@@ -230,27 +238,31 @@ public:
     Value&       data()       noexcept { return value; }
     const Value& data() const noexcept { return value; }
 
-    doubly_linked_list_node(
-        const doubly_linked_list_node&
+    DDoublyLinkedListNode(
+        const DDoublyLinkedListNode&
     ) = delete;
-    doubly_linked_list_node& operator=(
-        const doubly_linked_list_node&
+    DDoublyLinkedListNode& operator=(
+        const DDoublyLinkedListNode&
     ) = delete;
 };
 
-// xor_linked_list_node
+// old name, until 0.9.0-rc.1
+template<typename Value>
+using doubly_linked_list_node = DDoublyLinkedListNode<Value>;
+
+// DXorLinkedListNode
 //   struct: a node carrying a single .link member that holds the XOR of (prev,
 // next) pointers. Halves per-node link storage in exchange for stateful
 // traversal — the iterator must track the previous node so that next == link
 // XOR prev. Useful when a doubly-linked list is desired but per-node memory is
 // tight.
 template<typename Value>
-struct xor_linked_list_node
-    : public linked_list_node_base<xor_linked_list_node<Value>>
+struct DXorLinkedListNode
+    : public DLinkedListNodeBase<DXorLinkedListNode<Value>>
 {
 public:
     using value_type = Value;
-    using node_type  = xor_linked_list_node<Value>;
+    using node_type  = DXorLinkedListNode<Value>;
 
     // value
     //   field: payload storage.
@@ -261,26 +273,26 @@ public:
     // re_std::uintptr_t so the XOR is well-defined.
     re_std::uintptr_t link;
 
-    xor_linked_list_node() noexcept
-        : linked_list_node_base<node_type>(),
+    DXorLinkedListNode() noexcept
+        : DLinkedListNodeBase<node_type>(),
           value(),
           link(0u)
     {}
 
     explicit
-    xor_linked_list_node(
+    DXorLinkedListNode(
         const Value& _v
     )
-        : linked_list_node_base<node_type>(),
+        : DLinkedListNodeBase<node_type>(),
           value(_v),
           link(0u)
     {}
 
     explicit
-    xor_linked_list_node(
+    DXorLinkedListNode(
         Value&& _v
     ) noexcept(std::is_nothrow_move_constructible<Value>::value)
-    : linked_list_node_base<node_type>(),
+    : DLinkedListNodeBase<node_type>(),
         value(static_cast<Value&&>(_v)),
         link(0u)
     {}
@@ -288,13 +300,17 @@ public:
     Value&       data()       noexcept { return value; }
     const Value& data() const noexcept { return value; }
 
-    xor_linked_list_node(
-        const xor_linked_list_node&
+    DXorLinkedListNode(
+        const DXorLinkedListNode&
     ) = delete;
-    xor_linked_list_node& operator=(
-        const xor_linked_list_node&
+    DXorLinkedListNode& operator=(
+        const DXorLinkedListNode&
     ) = delete;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Value>
+using xor_linked_list_node = DXorLinkedListNode<Value>;
 
 
 // ===========================================================================
@@ -308,25 +324,25 @@ NS_INTERNAL
     // type. Direction-axis bits select the layout; ties are broken in favor of
     // doubly (the standard list behavior).
     template<typename           Value,
-             linked_list_option Flags>
+             DLinkedListOption Flags>
     struct ll_pick_node
     {
     private:
         static constexpr bool is_singly =
             ( linked_list_option_direction(Flags) ==
-              linked_list_option::singly );
+              DLinkedListOption::singly );
         static constexpr bool is_xor =
             ( linked_list_option_direction(Flags) ==
-              linked_list_option::xor_linked );
+              DLinkedListOption::xor_linked );
 
     public:
         using type = typename std::conditional<
             is_singly,
-            singly_linked_list_node<Value>,
+            DSinglyLinkedListNode<Value>,
             typename std::conditional<
                 is_xor,
-                xor_linked_list_node<Value>,
-                doubly_linked_list_node<Value>
+                DXorLinkedListNode<Value>,
+                DDoublyLinkedListNode<Value>
             >::type
         >::type;
     };
@@ -342,12 +358,12 @@ NS_END  // internal
 //   - ownership : owning
 //   - structure : flat
 inline constexpr
-linked_list_option linked_list_option_resolve_axis(
-    linked_list_option _axis_value,
-    linked_list_option _default_value
+DLinkedListOption linked_list_option_resolve_axis(
+    DLinkedListOption _axis_value,
+    DLinkedListOption _default_value
 ) noexcept
 {
-    return ( (_axis_value == linked_list_option::none)
+    return ( (_axis_value == DLinkedListOption::none)
              ? _default_value
              : _axis_value );
 }
@@ -356,17 +372,17 @@ linked_list_option linked_list_option_resolve_axis(
 //   function: returns _flags with all axes filled to their defaults where the
 // user left them at none.
 inline constexpr
-linked_list_option linked_list_option_resolve(
-    linked_list_option _flags
+DLinkedListOption linked_list_option_resolve(
+    DLinkedListOption _flags
 ) noexcept
 {
     return
         ( linked_list_option_resolve_axis(
               linked_list_option_direction(_flags),
-              linked_list_option::doubly) |
+              DLinkedListOption::doubly) |
           linked_list_option_resolve_axis(
               linked_list_option_ends(_flags),
-              linked_list_option::head_and_tail) |
+              DLinkedListOption::head_and_tail) |
           (_flags & ~( D_LINKED_LIST_OPTION_DIRECTION_MASK |
                        D_LINKED_LIST_OPTION_ENDS_MASK )) );
 }
@@ -376,7 +392,7 @@ linked_list_option linked_list_option_resolve(
 // III. linked_list CLASS TEMPLATE
 // ===========================================================================
 
-// linked_list
+// DLinkedList
 //   class: parameterized linked list covering every permutation described in
 // the file header. The class inherits the abstract list_base CRTP foundation,
 // which in turn inherits DSequentialBase. Mutating methods are SFINAE-gated on
@@ -391,13 +407,13 @@ linked_list_option linked_list_option_resolve(
 //     Capacity 0 for dynamic; non-zero for a fixed node pool
 //     Allocator standard allocator type
 template<typename          Value,
-         linked_list_option LinkFlags      = linked_list_option::none,
+         DLinkedListOption LinkFlags      = DLinkedListOption::none,
          unsigned          ContainerFlags = 0u,
          std::size_t       Capacity        = 0u,
          typename          Allocator       = std::allocator<Value>>
-class linked_list
-    : public djinterp::list_base<
-          linked_list<Value, LinkFlags, ContainerFlags,
+class DLinkedList
+    : public djinterp::DListBase<
+          DLinkedList<Value, LinkFlags, ContainerFlags,
                       Capacity, Allocator>>
 {
 private:
@@ -405,7 +421,7 @@ private:
     // option resolution — private, computed at compile time
     // -----------------------------------------------------------------
 
-    static constexpr linked_list_option k_link_resolved =
+    static constexpr DLinkedListOption k_link_resolved =
         linked_list_option_resolve(LinkFlags);
 
     static_assert(
@@ -416,52 +432,52 @@ private:
     // direction axis
     static constexpr bool k_is_singly =
         linked_list_option_has(k_link_resolved,
-                               linked_list_option::singly);
+                               DLinkedListOption::singly);
     static constexpr bool k_is_doubly =
         linked_list_option_has(k_link_resolved,
-                               linked_list_option::doubly);
+                               DLinkedListOption::doubly);
     static constexpr bool k_is_xor =
         linked_list_option_has(k_link_resolved,
-                               linked_list_option::xor_linked);
+                               DLinkedListOption::xor_linked);
 
     // end-pointer axis
     static constexpr bool k_has_head =
         linked_list_option_has(k_link_resolved,
-                               linked_list_option::head_only) ||
+                               DLinkedListOption::head_only) ||
         linked_list_option_has(k_link_resolved,
-                               linked_list_option::head_and_tail);
+                               DLinkedListOption::head_and_tail);
     static constexpr bool k_has_tail =
         linked_list_option_has(k_link_resolved,
-                               linked_list_option::tail_only) ||
+                               DLinkedListOption::tail_only) ||
         linked_list_option_has(k_link_resolved,
-                               linked_list_option::head_and_tail);
+                               DLinkedListOption::head_and_tail);
 
     // topology axis
     static constexpr bool k_is_circular =
         linked_list_option_has(k_link_resolved,
-                               linked_list_option::circular);
+                               DLinkedListOption::circular);
 
     // sentinel axis
     static constexpr bool k_has_head_sent =
         linked_list_option_has(k_link_resolved,
-                               linked_list_option::head_sentinel) ||
+                               DLinkedListOption::head_sentinel) ||
         linked_list_option_has(k_link_resolved,
-                               linked_list_option::both_sentinels);
+                               DLinkedListOption::both_sentinels);
     static constexpr bool k_has_tail_sent =
         linked_list_option_has(k_link_resolved,
-                               linked_list_option::tail_sentinel) ||
+                               DLinkedListOption::tail_sentinel) ||
         linked_list_option_has(k_link_resolved,
-                               linked_list_option::both_sentinels);
+                               DLinkedListOption::both_sentinels);
 
     // ownership axis
     static constexpr bool k_is_intrusive =
         linked_list_option_has(k_link_resolved,
-                               linked_list_option::intrusive);
+                               DLinkedListOption::intrusive);
 
     // structure axis
     static constexpr bool k_is_hierarchical =
         linked_list_option_has(k_link_resolved,
-                               linked_list_option::hierarchical);
+                               DLinkedListOption::hierarchical);
 
     // mutability bits from the framework-wide DContainerOption (the bit
     // positions are fixed by container_options.hpp / radix_tree _common.hpp;
@@ -504,19 +520,19 @@ public:
 
     // iterator types
     using iterator               =
-        linked_list_iterator<node_type, false, false>;
+        DLinkedListIterator<node_type, false, false>;
     using const_iterator         =
-        linked_list_iterator<node_type, true,  false>;
+        DLinkedListIterator<node_type, true,  false>;
     using reverse_iterator       =
-        linked_list_iterator<node_type, false, true>;
+        DLinkedListIterator<node_type, false, true>;
     using const_reverse_iterator =
-        linked_list_iterator<node_type, true,  true>;
+        DLinkedListIterator<node_type, true,  true>;
 
     // option introspection — required by trait detection elsewhere
-    using link_options_type        = linked_list_option;
+    using link_options_type        = DLinkedListOption;
     using container_options_type   = unsigned;
 
-    static constexpr linked_list_option link_option_flags =
+    static constexpr DLinkedListOption link_option_flags =
         k_link_resolved;
     static constexpr unsigned          container_option_flags =
         ContainerFlags;
@@ -545,46 +561,46 @@ public:
     // constructors and destructor
     // -----------------------------------------------------------------
 
-    linked_list() noexcept;
+    DLinkedList() noexcept;
 
     explicit
-    linked_list(
+    DLinkedList(
         const Allocator& _alloc) noexcept;
 
-    linked_list(
+    DLinkedList(
         size_type      _count,
         const Value&  _value,
         const Allocator& _alloc = Allocator());
 
     template<typename Iter>
-    linked_list(
+    DLinkedList(
         Iter _first,
         Iter _last,
         const Allocator& _alloc = Allocator());
 
-    linked_list(
+    DLinkedList(
         std::initializer_list<Value> _init,
         const Allocator& _alloc = Allocator());
 
-    linked_list(
-        const linked_list& _other);
+    DLinkedList(
+        const DLinkedList& _other);
 
-    linked_list(
-        linked_list&& _other) noexcept;
+    DLinkedList(
+        DLinkedList&& _other) noexcept;
 
-    ~linked_list();
+    ~DLinkedList();
 
     // -----------------------------------------------------------------
     // assignment
     // -----------------------------------------------------------------
 
-    linked_list& operator=(
-        const linked_list& _other);
+    DLinkedList& operator=(
+        const DLinkedList& _other);
 
-    linked_list& operator=(
-        linked_list&& _other) noexcept;
+    DLinkedList& operator=(
+        DLinkedList&& _other) noexcept;
 
-    linked_list& operator=(
+    DLinkedList& operator=(
         std::initializer_list<Value> _init);
 
     // -----------------------------------------------------------------
@@ -769,7 +785,7 @@ public:
     void
     splice(
         const_iterator _pos,
-        linked_list&   _other);
+        DLinkedList&   _other);
 
     template<bool W = k_is_mutable,
              bool I = k_iterable,
@@ -777,7 +793,7 @@ public:
     void
     splice(
         const_iterator _pos,
-        linked_list&   _other,
+        DLinkedList&   _other,
         const_iterator _other_pos);
 
     // -----------------------------------------------------------------
@@ -865,6 +881,14 @@ private:
     size_type    m_count;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename          Value,
+         DLinkedListOption LinkFlags      = DLinkedListOption::none,
+         unsigned          ContainerFlags = 0u,
+         std::size_t       Capacity        = 0u,
+         typename          Allocator       = std::allocator<Value>>
+using linked_list = DLinkedList<Value, LinkFlags, ContainerFlags, Capacity, Allocator>;
+
 
 // ===========================================================================
 // IV.  NAMED SUBTYPES
@@ -874,178 +898,248 @@ private:
 // direction × end-pointer permutations
 // ---------------------------------------------------------------------
 
-// singly_linked_list
+// DSinglyLinkedList
 //   alias: classic single-direction list with O(1) head access.
 template<typename Value,
          typename Allocator = std::allocator<Value>>
-using singly_linked_list = linked_list<
+using DSinglyLinkedList = DLinkedList<
     Value,
-    linked_list_option::singly | linked_list_option::head_only,
+    DLinkedListOption::singly | DLinkedListOption::head_only,
     0u, 0u, Allocator>;
 
-// singly_linked_list_with_tail
+// old name, until 0.9.0-rc.1
+template<typename Value,
+         typename Allocator = std::allocator<Value>>
+using singly_linked_list = DSinglyLinkedList<Value, Allocator>;
+
+// DSinglyLinkedListWithTail
 //   alias: forward-only links but also tracks tail for O(1) push_back.
 template<typename Value,
          typename Allocator = std::allocator<Value>>
-using singly_linked_list_with_tail = linked_list<
+using DSinglyLinkedListWithTail = DLinkedList<
     Value,
-    linked_list_option::singly | linked_list_option::head_and_tail,
+    DLinkedListOption::singly | DLinkedListOption::head_and_tail,
     0u, 0u, Allocator>;
 
-// doubly_linked_list
+// old name, until 0.9.0-rc.1
+template<typename Value,
+         typename Allocator = std::allocator<Value>>
+using singly_linked_list_with_tail = DSinglyLinkedListWithTail<Value, Allocator>;
+
+// DDoublyLinkedList
 //   alias: classic two-direction list — std::list-equivalent default.
 template<typename Value,
          typename Allocator = std::allocator<Value>>
-using doubly_linked_list = linked_list<
+using DDoublyLinkedList = DLinkedList<
     Value,
-    linked_list_option::doubly | linked_list_option::head_and_tail,
+    DLinkedListOption::doubly | DLinkedListOption::head_and_tail,
     0u, 0u, Allocator>;
 
-// xor_linked_list
+// old name, until 0.9.0-rc.1
+template<typename Value,
+         typename Allocator = std::allocator<Value>>
+using doubly_linked_list = DDoublyLinkedList<Value, Allocator>;
+
+// DXorLinkedList
 //   alias: bidirectional traversal with single-pointer-per-node memory
 // savings.
 template<typename Value,
          typename Allocator = std::allocator<Value>>
-using xor_linked_list = linked_list<
+using DXorLinkedList = DLinkedList<
     Value,
-    linked_list_option::xor_linked | linked_list_option::head_and_tail,
+    DLinkedListOption::xor_linked | DLinkedListOption::head_and_tail,
     0u, 0u, Allocator>;
+
+// old name, until 0.9.0-rc.1
+template<typename Value,
+         typename Allocator = std::allocator<Value>>
+using xor_linked_list = DXorLinkedList<Value, Allocator>;
 
 // ---------------------------------------------------------------------
 // circular variants
 // ---------------------------------------------------------------------
 
-// circular_singly_linked_list
+// DCircularSinglyLinkedList
 //   alias: tail's next loops to head. Useful for round-robin schedulers.
 template<typename Value,
          typename Allocator = std::allocator<Value>>
-using circular_singly_linked_list = linked_list<
+using DCircularSinglyLinkedList = DLinkedList<
     Value,
-    linked_list_option::singly        |
-        linked_list_option::head_only |
-        linked_list_option::circular,
+    DLinkedListOption::singly        |
+        DLinkedListOption::head_only |
+        DLinkedListOption::circular,
     0u, 0u, Allocator>;
 
-// circular_doubly_linked_list
+// old name, until 0.9.0-rc.1
+template<typename Value,
+         typename Allocator = std::allocator<Value>>
+using circular_singly_linked_list = DCircularSinglyLinkedList<Value, Allocator>;
+
+// DCircularDoublyLinkedList
 //   alias: bidirectional ring — head's prev == tail.
 template<typename Value,
          typename Allocator = std::allocator<Value>>
-using circular_doubly_linked_list = linked_list<
+using DCircularDoublyLinkedList = DLinkedList<
     Value,
-    linked_list_option::doubly             |
-        linked_list_option::head_and_tail  |
-        linked_list_option::circular,
+    DLinkedListOption::doubly             |
+        DLinkedListOption::head_and_tail  |
+        DLinkedListOption::circular,
     0u, 0u, Allocator>;
+
+// old name, until 0.9.0-rc.1
+template<typename Value,
+         typename Allocator = std::allocator<Value>>
+using circular_doubly_linked_list = DCircularDoublyLinkedList<Value, Allocator>;
 
 // ---------------------------------------------------------------------
 // sentinel variants
 // ---------------------------------------------------------------------
 
-// sentinel_singly_linked_list
+// DSentinelSinglyLinkedList
 //   alias: singly-linked list with a head sentinel; simplifies push_front /
 // pop_front to never need a nullptr branch.
 template<typename Value,
          typename Allocator = std::allocator<Value>>
-using sentinel_singly_linked_list = linked_list<
+using DSentinelSinglyLinkedList = DLinkedList<
     Value,
-    linked_list_option::singly       |
-        linked_list_option::head_only|
-        linked_list_option::head_sentinel,
+    DLinkedListOption::singly       |
+        DLinkedListOption::head_only|
+        DLinkedListOption::head_sentinel,
     0u, 0u, Allocator>;
 
-// sentinel_doubly_linked_list
+// old name, until 0.9.0-rc.1
+template<typename Value,
+         typename Allocator = std::allocator<Value>>
+using sentinel_singly_linked_list = DSentinelSinglyLinkedList<Value, Allocator>;
+
+// DSentinelDoublyLinkedList
 //   alias: doubly-linked list with both head and tail sentinels. Mirrors
 // libstdc++'s std::list layout (single sentinel that doubles
 // as both ends in the circular form, but here we expose them distinctly for
 // non-circular layouts).
 template<typename Value,
          typename Allocator = std::allocator<Value>>
-using sentinel_doubly_linked_list = linked_list<
+using DSentinelDoublyLinkedList = DLinkedList<
     Value,
-    linked_list_option::doubly             |
-        linked_list_option::head_and_tail  |
-        linked_list_option::both_sentinels,
+    DLinkedListOption::doubly             |
+        DLinkedListOption::head_and_tail  |
+        DLinkedListOption::both_sentinels,
     0u, 0u, Allocator>;
+
+// old name, until 0.9.0-rc.1
+template<typename Value,
+         typename Allocator = std::allocator<Value>>
+using sentinel_doubly_linked_list = DSentinelDoublyLinkedList<Value, Allocator>;
 
 // ---------------------------------------------------------------------
 // fixed-capacity variants
 // ---------------------------------------------------------------------
 
-// fixed_singly_linked_list
+// DFixedSinglyLinkedList
 //   alias: stack-allocated node pool; insertion throws when the pool is
 // exhausted.
 template<typename    Value,
          std::size_t N,
          typename    Allocator = std::allocator<Value>>
-using fixed_singly_linked_list = linked_list<
+using DFixedSinglyLinkedList = DLinkedList<
     Value,
-    linked_list_option::singly | linked_list_option::head_only,
+    DLinkedListOption::singly | DLinkedListOption::head_only,
     0x020u, N, Allocator>;   // 0x020u = DContainerOption::fixed_size
 
-// fixed_doubly_linked_list
+// old name, until 0.9.0-rc.1
+template<typename    Value,
+         std::size_t N,
+         typename    Allocator = std::allocator<Value>>
+using fixed_singly_linked_list = DFixedSinglyLinkedList<Value, N, Allocator>;
+
+// DFixedDoublyLinkedList
 //   alias: stack-allocated, doubly-linked node pool.
 template<typename    Value,
          std::size_t N,
          typename    Allocator = std::allocator<Value>>
-using fixed_doubly_linked_list = linked_list<
+using DFixedDoublyLinkedList = DLinkedList<
     Value,
-    linked_list_option::doubly | linked_list_option::head_and_tail,
+    DLinkedListOption::doubly | DLinkedListOption::head_and_tail,
     0x020u, N, Allocator>;
+
+// old name, until 0.9.0-rc.1
+template<typename    Value,
+         std::size_t N,
+         typename    Allocator = std::allocator<Value>>
+using fixed_doubly_linked_list = DFixedDoublyLinkedList<Value, N, Allocator>;
 
 // ---------------------------------------------------------------------
 // intrusive variants
 // ---------------------------------------------------------------------
 
-// intrusive_singly_linked_list
+// DIntrusiveSinglyLinkedList
 //   alias: forward-only intrusive list. Caller owns the nodes; the list
 // maintains only head/tail/count.
 template<typename Value>
-using intrusive_singly_linked_list = linked_list<
+using DIntrusiveSinglyLinkedList = DLinkedList<
     Value,
-    linked_list_option::singly         |
-        linked_list_option::head_only  |
-        linked_list_option::intrusive,
+    DLinkedListOption::singly         |
+        DLinkedListOption::head_only  |
+        DLinkedListOption::intrusive,
     0u, 0u, std::allocator<Value>>;
 
-// intrusive_doubly_linked_list
+// old name, until 0.9.0-rc.1
+template<typename Value>
+using intrusive_singly_linked_list = DIntrusiveSinglyLinkedList<Value>;
+
+// DIntrusiveDoublyLinkedList
 //   alias: bidirectional intrusive list — the workhorse for boost-
 // intrusive-style scenarios where allocator overhead is unwanted.
 template<typename Value>
-using intrusive_doubly_linked_list = linked_list<
+using DIntrusiveDoublyLinkedList = DLinkedList<
     Value,
-    linked_list_option::doubly             |
-        linked_list_option::head_and_tail  |
-        linked_list_option::intrusive,
+    DLinkedListOption::doubly             |
+        DLinkedListOption::head_and_tail  |
+        DLinkedListOption::intrusive,
     0u, 0u, std::allocator<Value>>;
+
+// old name, until 0.9.0-rc.1
+template<typename Value>
+using intrusive_doubly_linked_list = DIntrusiveDoublyLinkedList<Value>;
 
 // ---------------------------------------------------------------------
 // non-iterable variants
 // ---------------------------------------------------------------------
 
-// non_iterable_doubly_linked_list
+// DNonIterableDoublyLinkedList
 //   alias: writable doubly-linked list with no begin()/end(). Useful when only
 // push/pop/front/back are needed and iteration overhead (iterator traits,
 // etc.) should be elided.
 template<typename Value,
          typename Allocator = std::allocator<Value>>
-using non_iterable_doubly_linked_list = linked_list<
+using DNonIterableDoublyLinkedList = DLinkedList<
     Value,
-    linked_list_option::doubly | linked_list_option::head_and_tail,
+    DLinkedListOption::doubly | DLinkedListOption::head_and_tail,
     0x100u, 0u, Allocator>;   // 0x100u = DContainerOption::non_iterable
+
+// old name, until 0.9.0-rc.1
+template<typename Value,
+         typename Allocator = std::allocator<Value>>
+using non_iterable_doubly_linked_list = DNonIterableDoublyLinkedList<Value, Allocator>;
 
 // ---------------------------------------------------------------------
 // immutable variant
 // ---------------------------------------------------------------------
 
-// immutable_doubly_linked_list
+// DImmutableDoublyLinkedList
 //   alias: read-only doubly-linked list. All mutation methods are
 // SFINAE-removed at the class-template level.
 template<typename Value,
          typename Allocator = std::allocator<Value>>
-using immutable_doubly_linked_list = linked_list<
+using DImmutableDoublyLinkedList = DLinkedList<
     Value,
-    linked_list_option::doubly | linked_list_option::head_and_tail,
+    DLinkedListOption::doubly | DLinkedListOption::head_and_tail,
     0x002u, 0u, Allocator>;   // 0x002u = DContainerOption::immutable
+
+// old name, until 0.9.0-rc.1
+template<typename Value,
+         typename Allocator = std::allocator<Value>>
+using immutable_doubly_linked_list = DImmutableDoublyLinkedList<Value, Allocator>;
 
 
 // ===========================================================================
@@ -1060,9 +1154,9 @@ using immutable_doubly_linked_list = linked_list<
 // specialization doubly_linked_list<First> stands for.
 template<typename First,
          typename... Rest>
-linked_list(First, Rest...) ->
-    linked_list<First,
-                linked_list_option::doubly | linked_list_option::head_and_tail,
+DLinkedList(First, Rest...) ->
+    DLinkedList<First,
+                DLinkedListOption::doubly | DLinkedListOption::head_and_tail,
                 0u,
                 0u,
                 std::allocator<First>>;

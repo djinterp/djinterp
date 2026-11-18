@@ -303,8 +303,8 @@ bool tests_order_axis_keyed_gap()
                    == ordering_kind_of<DOrdUset>::value);
 
     // ... and both are unordered
-    D_OR_CHECK(ordering_kind_of<DOrdMap>::value == ordering_kind::unordered);
-    D_OR_CHECK(ordering_kind_of<DOrdUmap>::value == ordering_kind::unordered);
+    D_OR_CHECK(ordering_kind_of<DOrdMap>::value == DOrderingKind::unordered);
+    D_OR_CHECK(ordering_kind_of<DOrdUmap>::value == DOrderingKind::unordered);
 
     // while a vector, which guarantees no sortedness whatever, is ordered
     D_OR_CHECK(is_ordered_container<DOrdVector>::value == true);
@@ -323,9 +323,9 @@ bool tests_order_axis_keyed_gap()
 
     // layout is a property of positions, so a keyed container has none
     D_OR_CHECK(sequential_layout_of<DOrdMap>::value
-                   == sequential_layout::none);
+                   == DSequentialLayout::none);
     D_OR_CHECK(sequential_layout_of<DOrdSet>::value
-                   == sequential_layout::none);
+                   == DSequentialLayout::none);
 
     return ok;
 }

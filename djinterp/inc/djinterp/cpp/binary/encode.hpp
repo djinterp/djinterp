@@ -29,17 +29,17 @@
 *
 *   THE SINK:
 *   enc_tau is expressed as `encode_into(sink, value)` writing into a BYTE SINK -
-* any type exposing `push_back(byte)` (the default `byte_string` is one) - so a
+* any type exposing `push_back(byte)` (the default `DByteString` is one) - so a
 * container encoder may concatenate component bits into one buffer without a
 * temporary per leaf.  `encode(value)` is the convenience that allocates a fresh
-* `byte_string`, encodes into it, and returns it - the total function enc_tau of
+* `DByteString`, encodes into it, and returns it - the total function enc_tau of
 * the model, realised.
 *
 *   STAGE:
 *   Encoding occurs at a stage (containers.tex, Lifetime): the model admits a
 * compile-time-expressible value being encoded at compile time.  In practice the
 * writers here are RUNTIME function templates - they fill a byte sink, and the
-* default sink (a `byte_string`/std::vector) is not a constant-expression buffer
+* default sink (a `DByteString`/std::vector) is not a constant-expression buffer
 * before C++20 - so, like content_equality.hpp and byte_size.hpp, they are not
 * marked constexpr; the stage distinction remains a property of the value, not of
 * these functions.
@@ -90,16 +90,22 @@ NS_DJINTERP
 //   type: one octet of the binary medium - the unit into which B* is grouped.
 using byte = unsigned char;
 
-// byte_string
+// DByteString
 //   type: a finite run of bytes - the concrete realisation of the model's B*,
 // the flat structureless form a value is folded into.
-using byte_string = std::vector<byte>;
+using DByteString = std::vector<byte>;
 
-// encode_length_type
+// old name, until 0.9.0-rc.1
+using byte_string = DByteString;
+
+// DEncodeLengthType
 //   type: the width-fixed unsigned integer a container encoder writes as its
 // leading size (element count).  Exposed here since the count is itself encoded
 // as a leaf; container_encode.hpp writes one before a container's components.
-using encode_length_type = re_std::uint64_t;
+using DEncodeLengthType = re_std::uint64_t;
+
+// old name, until 0.9.0-rc.1
+using encode_length_type = DEncodeLengthType;
 
 
 // ===========================================================================
@@ -108,7 +114,7 @@ using encode_length_type = re_std::uint64_t;
 
 // has_push_back_byte
 //   trait: true iff `Sink` accepts a byte through `push_back` - the sole
-// requirement this module places on a sink.  `byte_string` satisfies it, as does
+// requirement this module places on a sink.  `DByteString` satisfies it, as does
 // any growable byte buffer.
 template<typename Sink,
          typename = void>
@@ -161,7 +167,7 @@ NS_INTERNAL
     template<typename Sink>
     void put_uint_be(
         Sink&              _sink,
-        encode_length_type _value,
+        DEncodeLengthType _value,
         std::size_t        _width
     )
     {
@@ -192,7 +198,7 @@ NS_INTERNAL
         using unsigned_type = typename std::make_unsigned<Integral>::type;
 
         put_uint_be(_sink,
-                    static_cast<encode_length_type>(
+                    static_cast<DEncodeLengthType>(
                         static_cast<unsigned_type>(_value)),
                     sizeof(Integral));
 
@@ -216,13 +222,13 @@ NS_INTERNAL
         {
             re_std::uint32_t _bits = 0;
             std::memcpy(&_bits, &_value, 4);
-            put_uint_be(_sink, static_cast<encode_length_type>(_bits), 4);
+            put_uint_be(_sink, static_cast<DEncodeLengthType>(_bits), 4);
         }
         else
         {
             re_std::uint64_t _bits = 0;
             std::memcpy(&_bits, &_value, 8);
-            put_uint_be(_sink, static_cast<encode_length_type>(_bits), 8);
+            put_uint_be(_sink, static_cast<DEncodeLengthType>(_bits), 8);
         }
 
         return;
@@ -339,13 +345,13 @@ encode_into(Sink& _sink, const Type& _value)
 
 // encode
 //   function: the leaf encoder as the model's total map enc_tau : tau -> B* -
-// allocates a fresh `byte_string`, writes `_value` into it, and returns it.
+// allocates a fresh `DByteString`, writes `_value` into it, and returns it.
 template<typename Type>
-byte_string encode(
+DByteString encode(
     const Type& _value
 )
 {
-    byte_string _out;
+    DByteString _out;
     encode_into(_out, _value);
 
     return _out;
@@ -387,11 +393,11 @@ NS_END  // internal
 //   trait: true iff `Type` has a leaf enc_tau in this header - a member
 // `encode_into`, or one of the built-in leaf families (bool, an <=8-byte
 // integral, an enum, or a 4-/8-byte floating type).  The sink is taken as the
-// default `byte_string` for the member probe.
+// default `DByteString` for the member probe.
 template<typename Type>
 struct is_leaf_encodable
     : std::integral_constant<bool,
-          ( has_member_encode_into<clean_t<Type>, byte_string>::value
+          ( has_member_encode_into<clean_t<Type>, DByteString>::value
          || internal::encode_builtin_leaf_ok<clean_t<Type>>::value )>
 {};
 

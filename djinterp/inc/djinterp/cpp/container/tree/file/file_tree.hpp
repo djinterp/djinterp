@@ -119,7 +119,7 @@ NS_DJINTERP
 //   trait: dependent-false helper so the primary os_scanner template
 // can static_assert with a readable message only when actually instantiated
 // for a disabled selector.
-template<operating_system OS>
+template<DOperatingSystem OS>
 struct disabled_backend_selected
 {
     static constexpr bool value = false;
@@ -129,7 +129,7 @@ struct disabled_backend_selected
 //   Reached only for selectors whose backend was NOT enabled for this build.
 // Instantiating it is a hard error carrying remediation guidance. Enabled
 // selectors hit one of the specializations below instead.
-template<operating_system OS>
+template<DOperatingSystem OS>
 struct os_scanner
 {
     static_assert(
@@ -143,7 +143,7 @@ struct os_scanner
     // Provide a type so that, past the static_assert, dependent code
     // still names something and the diagnostic stays focused on the assertion
     // rather than a cascade of 'no member type' errors.
-    using type = null_scanner;
+    using type = DNullScanner;
 };
 
 
@@ -155,30 +155,30 @@ struct os_scanner
 #if   D_FILESYS_NATIVE_WINDOWS
     #if (D_ENV_OS_ID == D_ENV_OS_FLAG_WIN_PC_10) || \
         (D_ENV_OS_ID == D_ENV_OS_FLAG_WIN_PC_11)
-        D_STATIC_CONSTEXPR operating_system detected_os =
-            operating_system::windows10;
+        D_STATIC_CONSTEXPR DOperatingSystem detected_os =
+            DOperatingSystem::windows10;
     #else
-        D_STATIC_CONSTEXPR operating_system detected_os =
-            operating_system::windows;
+        D_STATIC_CONSTEXPR DOperatingSystem detected_os =
+            DOperatingSystem::windows;
     #endif
 #elif D_FILESYS_NATIVE_IOS
-    D_STATIC_CONSTEXPR operating_system detected_os =
-        operating_system::ios;
+    D_STATIC_CONSTEXPR DOperatingSystem detected_os =
+        DOperatingSystem::ios;
 #elif D_FILESYS_NATIVE_APPLE
-    D_STATIC_CONSTEXPR operating_system detected_os =
-        operating_system::apple;
+    D_STATIC_CONSTEXPR DOperatingSystem detected_os =
+        DOperatingSystem::apple;
 #elif D_FILESYS_NATIVE_LINUX
-    D_STATIC_CONSTEXPR operating_system detected_os =
-        operating_system::linux_generic;
+    D_STATIC_CONSTEXPR DOperatingSystem detected_os =
+        DOperatingSystem::linux_generic;
 #elif D_FILESYS_NATIVE_BSD
-    D_STATIC_CONSTEXPR operating_system detected_os =
-        operating_system::bsd;
+    D_STATIC_CONSTEXPR DOperatingSystem detected_os =
+        DOperatingSystem::bsd;
 #elif D_FILESYS_NATIVE_POSIX
-    D_STATIC_CONSTEXPR operating_system detected_os =
-        operating_system::posix;
+    D_STATIC_CONSTEXPR DOperatingSystem detected_os =
+        DOperatingSystem::posix;
 #else
-    D_STATIC_CONSTEXPR operating_system detected_os =
-        operating_system::none;
+    D_STATIC_CONSTEXPR DOperatingSystem detected_os =
+        DOperatingSystem::none;
 #endif
 
 
@@ -188,44 +188,44 @@ struct os_scanner
 // asserting primary template.
 
 #if D_FILESYS_ENABLE_POSIX
-    template<> struct os_scanner<operating_system::posix>
-    { using type = posix_scanner; };
+    template<> struct os_scanner<DOperatingSystem::posix>
+    { using type = DPosixScanner; };
 #endif
 
 #if D_FILESYS_ENABLE_BSD
-    template<> struct os_scanner<operating_system::bsd>
-    { using type = bsd_scanner; };
+    template<> struct os_scanner<DOperatingSystem::bsd>
+    { using type = DBsdScanner; };
 #endif
 
 #if D_FILESYS_ENABLE_LINUX
-    template<> struct os_scanner<operating_system::linux_generic>
-    { using type = linux_scanner; };
+    template<> struct os_scanner<DOperatingSystem::linux_generic>
+    { using type = DLinuxScanner; };
 #endif
 
 #if D_FILESYS_ENABLE_APPLE
-    template<> struct os_scanner<operating_system::apple>
-    { using type = apple_scanner; };
+    template<> struct os_scanner<DOperatingSystem::apple>
+    { using type = DAppleScanner; };
 #endif
 
 #if D_FILESYS_ENABLE_IOS
-    template<> struct os_scanner<operating_system::ios>
-    { using type = ios_scanner; };
+    template<> struct os_scanner<DOperatingSystem::ios>
+    { using type = DIosScanner; };
 #endif
 
 #if D_FILESYS_ENABLE_WINDOWS
-    template<> struct os_scanner<operating_system::windows>
-    { using type = windows_scanner; };
+    template<> struct os_scanner<DOperatingSystem::windows>
+    { using type = DWindowsScanner; };
 
-    template<> struct os_scanner<operating_system::windows10>
-    { using type = windows10_scanner; };
+    template<> struct os_scanner<DOperatingSystem::windows10>
+    { using type = DWindows10Scanner; };
 
-    template<> struct os_scanner<operating_system::windows11>
-    { using type = windows10_scanner; };
+    template<> struct os_scanner<DOperatingSystem::windows11>
+    { using type = DWindows10Scanner; };
 #endif
 
 // `none` is always available: an explicit, portable no-op tree.
-template<> struct os_scanner<operating_system::none>
-{ using type = null_scanner; };
+template<> struct os_scanner<DOperatingSystem::none>
+{ using type = DNullScanner; };
 
 
 NS_INTERNAL
@@ -233,17 +233,17 @@ NS_INTERNAL
     // resolve_os
     //   maps an operating_system selector onto its scanner policy, routing
     // `automatic` through detected_os.
-    template<operating_system OS>
+    template<DOperatingSystem OS>
     struct resolve_os
     {
         using type = typename os_scanner<OS>::type;
     };
 
     // resolve_os<operating_system::automatic>
-    //   trait: the `operating_system::automatic` case; it maps to `typename
+    //   trait: the `DOperatingSystem::automatic` case; it maps to `typename
     // os_scanner<detected_os>::type`.
     template<>
-    struct resolve_os<operating_system::automatic>
+    struct resolve_os<DOperatingSystem::automatic>
     {
         using type = typename os_scanner<detected_os>::type;
     };
@@ -255,7 +255,7 @@ NS_END  // internal
 //  file_tree
 // ================================================================
 
-// file_tree
+// DFileTree
 //   alias: the public, OS-parameterized file tree. Selects the scanner backend
 // named by OS (defaulting to the detected backend) and inherits the full
 // OS-independent surface from file_tree_core: scan / resolve / name / name_str
@@ -268,21 +268,30 @@ NS_END  // internal
 // link and every file_node_id is a raw pointer into it. A djinterp pool
 // (memory/pool.hpp) never moves a slot; any other pool is a compile error (see
 // the guard in file_tree_common.hpp), not a crash later.
-template<operating_system OS    = operating_system::automatic,
-         typename         Pool = ::djinterp::pool<file_node>,
+template<DOperatingSystem OS    = DOperatingSystem::automatic,
+         typename         Pool = ::djinterp::DPool<DFileNode>,
          typename...      Options>
-using file_tree =
-    file_tree_core<typename internal::resolve_os<OS>::type,
+using DFileTree =
+    DFileTreeCore<typename internal::resolve_os<OS>::type,
                    Pool,
                    Options...>;
 
+// old name, until 0.9.0-rc.1
+template<DOperatingSystem OS    = DOperatingSystem::automatic,
+         typename         Pool = ::djinterp::DPool<DFileNode>,
+         typename...      Options>
+using file_tree = DFileTree<OS, Pool, Options...>;
 
-// file_tree_default
+
+// DFileTreeDefault
 //   type: the detected-backend file tree, for code that wants a plain
-// non-template name. NOTE that `file_tree` is a template ALIAS -- naming it
+// non-template name. NOTE that `DFileTree` is a template ALIAS -- naming it
 // bare, as `const file_tree&`, is ill-formed. Use this, or file_tree<>, or
 // template on the tree type.
-using file_tree_default = file_tree<operating_system::automatic>;
+using DFileTreeDefault = DFileTree<DOperatingSystem::automatic>;
+
+// old name, until 0.9.0-rc.1
+using file_tree_default = DFileTreeDefault;
 
 
 NS_END  // djinterp

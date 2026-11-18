@@ -99,7 +99,7 @@ NS_DJINTERP
 // I.   is_bounded_registry (detection trait)
 // ===========================================================================
 
-// bounded_registry (fwd)
+// DBoundedRegistry (fwd)
 template<typename    Record,
          typename    KeyProj,
          typename    ValueProj,
@@ -111,7 +111,7 @@ template<typename    Record,
          typename    SizeType,
          typename    DifferenceType,
          typename... Options>
-class bounded_registry;
+class DBoundedRegistry;
 
 NS_INTERNAL
 
@@ -123,7 +123,7 @@ NS_INTERNAL
              typename    KC, bool U, bool KD, typename RP,
              typename    S, typename D, typename... O>
     struct is_bounded_registry_impl<
-        bounded_registry<R, KP, VP, Cap, KC, U, KD, RP, S, D, O...>>
+        DBoundedRegistry<R, KP, VP, Cap, KC, U, KD, RP, S, D, O...>>
         : std::true_type
     {};
 
@@ -143,7 +143,7 @@ inline constexpr bool is_bounded_registry_v = is_bounded_registry<Type>::value;
 // II.  bounded_registry (class)
 // ===========================================================================
 
-// bounded_registry
+// DBoundedRegistry
 //   class: the base registry plus a capacity kappa = Capacity. Private
 // inheritance takes the base's whole implementation; the surface is
 // re-exported verbatim except (a) the bounds axis marker, now `bounded`, and
@@ -159,13 +159,13 @@ template<typename    Record,
          typename    SizeType        = std::size_t,
          typename    DifferenceType = std::ptrdiff_t,
          typename... Options>
-class bounded_registry
-    : private registry<Record, KeyProj, ValueProj, KeyCompare,
+class DBoundedRegistry
+    : private DRegistry<Record, KeyProj, ValueProj, KeyCompare,
                        UniqueKeys, KeyDisjoint, RekeyPolicy,
                        SizeType, DifferenceType, Options...>
 {
 private:
-    using base = registry<Record, KeyProj, ValueProj, KeyCompare,
+    using base = DRegistry<Record, KeyProj, ValueProj, KeyCompare,
                           UniqueKeys, KeyDisjoint, RekeyPolicy,
                           SizeType, DifferenceType, Options...>;
 
@@ -232,12 +232,12 @@ public:
     static constexpr bool key_const        = base::key_const;
     static constexpr bool value_disjoint   = base::value_disjoint;
 
-    static constexpr container_lifetime      lifetime           = base::lifetime;
+    static constexpr DContainerLifetime      lifetime           = base::lifetime;
     static constexpr DContainerStorageKind  storage_kind       = base::storage_kind;
     static constexpr DContainerOrdering      ordering           = base::ordering;
-    static constexpr container_iterability   iterability        = base::iterability;
+    static constexpr DContainerIterability   iterability        = base::iterability;
     static constexpr DContainerMultiplicity  multiplicity_grade = base::multiplicity_grade;
-    static constexpr container_structure     structure          = base::structure;
+    static constexpr DContainerStructure     structure          = base::structure;
 
     // the axis this variant fixes: a finite capacity kappa < inf
     static constexpr DContainerBounds        bounds   = DContainerBounds::bounded;
@@ -245,11 +245,11 @@ public:
 
     // --- 3. construction (capacity-checked) ---
 
-    bounded_registry()
+    DBoundedRegistry()
         : base()
     {}
 
-    explicit bounded_registry(
+    explicit DBoundedRegistry(
         KeyProj     _kproj,
         ValueProj   _vproj,
         KeyCompare _cmp = KeyCompare()
@@ -259,7 +259,7 @@ public:
 
     // record list: inserted one by one through the capacity-guarded insert, so
     // a list longer than kappa throws rather than silently overflowing.
-    bounded_registry(
+    DBoundedRegistry(
         std::initializer_list<Record> _records,
         KeyProj                        _kproj = KeyProj(),
         ValueProj                      _vproj = ValueProj(),
@@ -273,11 +273,11 @@ public:
         }
     }
 
-    bounded_registry(const bounded_registry&)            = default;
-    bounded_registry(bounded_registry&&)                 = default;
-    bounded_registry& operator=(const bounded_registry&) = default;
-    bounded_registry& operator=(bounded_registry&&)      = default;
-    ~bounded_registry()                                  = default;
+    DBoundedRegistry(const DBoundedRegistry&)            = default;
+    DBoundedRegistry(DBoundedRegistry&&)                 = default;
+    DBoundedRegistry& operator=(const DBoundedRegistry&) = default;
+    DBoundedRegistry& operator=(DBoundedRegistry&&)      = default;
+    ~DBoundedRegistry()                                  = default;
 
     // --- 4. capacity queries ---
 
@@ -356,12 +356,26 @@ public:
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename    Record,
+         typename    KeyProj,
+         typename    ValueProj,
+         std::size_t Capacity,
+         typename    KeyCompare      = std::less<>,
+         bool        UniqueKeys      = true,
+         bool        KeyDisjoint     = false,
+         typename    RekeyPolicy     = reject_rekey,
+         typename    SizeType        = std::size_t,
+         typename    DifferenceType = std::ptrdiff_t,
+         typename... Options>
+using bounded_registry = DBoundedRegistry<Record, KeyProj, ValueProj, Capacity, KeyCompare, UniqueKeys, KeyDisjoint, RekeyPolicy, SizeType, DifferenceType, Options...>;
+
 
 // ===========================================================================
 // III. bounded_kv_registry
 // ===========================================================================
 
-// bounded_kv_registry
+// DBoundedKvRegistry
 //   alias: a capacity-capped kv map/multimap -- kv_registry with kappa. Value
 // region disjoint from the key (the direct setters are available; edits skip
 // the re-key check).
@@ -371,14 +385,23 @@ template<typename    Key,
          typename    KeyCompare   = std::less<>,
          bool        UniqueKeys   = true,
          typename    RekeyPolicy = reject_rekey>
-using bounded_kv_registry = bounded_registry<DKvPair<Key, Value>,
-                                            kv_key,
-                                            kv_value,
+using DBoundedKvRegistry = DBoundedRegistry<DKvPair<Key, Value>,
+                                            DKvKey,
+                                            DKvValue,
                                             Capacity,
                                             KeyCompare,
                                             UniqueKeys,
                                             /*KeyDisjoint=*/true,
                                             RekeyPolicy>;
+
+// old name, until 0.9.0-rc.1
+template<typename    Key,
+         typename    Value,
+         std::size_t Capacity,
+         typename    KeyCompare   = std::less<>,
+         bool        UniqueKeys   = true,
+         typename    RekeyPolicy = reject_rekey>
+using bounded_kv_registry = DBoundedKvRegistry<Key, Value, Capacity, KeyCompare, UniqueKeys, RekeyPolicy>;
 
 
 NS_END  // djinterp

@@ -74,10 +74,10 @@ NS_DJINTERP
 //  apple_scanner
 // ================================================================
 
-// apple_scanner
+// DAppleScanner
 //   policy: Darwin directory walk. Prefers getattrlistbulk batch enumeration;
 // falls back to the BSD d_type path otherwise.
-struct apple_scanner
+struct DAppleScanner
 {
 #if D_FS_HAVE_GETATTRLISTBULK
 
@@ -116,7 +116,7 @@ struct apple_scanner
     void scan_bulk(
         Ctx&               _ctx,
         const std::string& _dir_path,
-        file_node_id       _parent
+        DFileNodeId       _parent
     )
     {
         int dfd = ::open(_dir_path.c_str(),
@@ -190,11 +190,11 @@ struct apple_scanner
                 }
 
                 if (name != nullptr &&
-                    !posix_scanner::is_dot_entry(name))
+                    !DPosixScanner::is_dot_entry(name))
                 {
                     std::size_t nlen = std::strlen(name);
 
-                    file_node_id id = _ctx.intern_child(
+                    DFileNodeId id = _ctx.intern_child(
                         _parent, name, nlen, type, sz);
 
                     if (type == file_type_directory)
@@ -222,17 +222,20 @@ struct apple_scanner
     void scan(
         Ctx&               _ctx,
         const std::string& _dir_path,
-        file_node_id       _parent
+        DFileNodeId       _parent
     )
     {
 #if D_FS_HAVE_GETATTRLISTBULK
         scan_bulk(_ctx, _dir_path, _parent);
 #else
-        bsd_scanner::scan(_ctx, _dir_path, _parent);
+        DBsdScanner::scan(_ctx, _dir_path, _parent);
 #endif
         return;
     }
 };
+
+// old name, until 0.9.0-rc.1
+using apple_scanner = DAppleScanner;
 
 
 NS_END  // djinterp

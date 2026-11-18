@@ -4,7 +4,7 @@
 *   Section I - the structural signals the verdict is read from: the
 * countability guard (a value_type AND a const size()), the closed-interval
 * signal (static lower_bound / upper_bound), the unique-insert signal (a single-
-* element insert returning a `.second`), and the opt-in `multiplicity` constant.
+* element insert returning a `.second`), and the opt-in `DMultiplicity` constant.
 *
 *   Two library facts drive the edges: std::forward_list has NO size(), so it
 * fails the countability guard despite carrying a value_type; and a std::multiset
@@ -99,7 +99,7 @@ bool tests_has_unique_insert()
 
 
 // tests_has_multiplicity_bound
-//   presence of the opt-in static `multiplicity` constant.
+//   presence of the opt-in static `DMultiplicity` constant.
 bool tests_has_multiplicity_bound()
 {
     bool _cmp_ok = true;

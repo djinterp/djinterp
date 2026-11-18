@@ -59,7 +59,7 @@ bool tests_override_engine_primitives()
 
     // keep_base: base wins on the overlap, delta's extension discarded
     D_OV_CHECK(ok, std::is_same_v<
-                       ov_apply_t<keep_base, ov_std_base, ov_std_delta>,
+                       ov_apply_t<DKeepBase, ov_std_base, ov_std_delta>,
                        ov_list<ov_entry<1, ov_base>,
                                ov_entry<2, ov_base>,
                                ov_entry<4, ov_base>>>);
@@ -114,7 +114,7 @@ bool tests_override_engine_primitives()
 
     // no two primitives agree on this scenario except where documented
     D_OV_CHECK(ok, !std::is_same_v<
-                       ov_apply_t<keep_base, ov_std_base, ov_std_delta>,
+                       ov_apply_t<DKeepBase, ov_std_base, ov_std_delta>,
                        ov_apply_t<DKeepDelta, ov_std_base, ov_std_delta>>);
     D_OV_CHECK(ok, !std::is_same_v<
                        ov_apply_t<DDropExtras, ov_std_base, ov_std_delta>,
@@ -149,7 +149,7 @@ bool tests_override_engine_edge_cases()
     D_OV_CHECK(ok, std::is_same_v<
                        ov_apply_t<DKeepDelta, empty, empty>, ov_list<>>);
     D_OV_CHECK(ok, std::is_same_v<
-                       ov_apply_t<keep_base, empty, empty>, ov_list<>>);
+                       ov_apply_t<DKeepBase, empty, empty>, ov_list<>>);
     D_OV_CHECK(ok, std::is_same_v<
                        ov_apply_t<DStrictSubset, empty, empty>, ov_list<>>);
     D_OV_CHECK(ok, std::is_same_v<
@@ -161,7 +161,7 @@ bool tests_override_engine_edge_cases()
                        ov_apply_t<DKeepDelta, ov_std_base, empty>,
                        ov_std_base>);
     D_OV_CHECK(ok, std::is_same_v<
-                       ov_apply_t<keep_base, ov_std_base, empty>,
+                       ov_apply_t<DKeepBase, ov_std_base, empty>,
                        ov_std_base>);
     D_OV_CHECK(ok, std::is_same_v<
                        ov_apply_t<DDropExtras, ov_std_base, empty>,
@@ -180,7 +180,7 @@ bool tests_override_engine_edge_cases()
                        ov_apply_t<DDropUnmatchedBase, empty, only_2>,
                        only_2>);
     D_OV_CHECK(ok, std::is_same_v<
-                       ov_apply_t<keep_base, empty, only_2>, ov_list<>>);
+                       ov_apply_t<DKeepBase, empty, only_2>, ov_list<>>);
     D_OV_CHECK(ok, std::is_same_v<
                        ov_apply_t<DDropExtras, empty, only_2>, ov_list<>>);
 
@@ -200,7 +200,7 @@ bool tests_override_engine_edge_cases()
     D_OV_CHECK(ok, std::is_same_v<
                        ov_apply_t<DKeepDelta, only_1, dup_1>, dup_1>);
     D_OV_CHECK(ok, std::is_same_v<
-                       ov_apply_t<keep_base, only_1, dup_1>, only_1>);
+                       ov_apply_t<DKeepBase, only_1, dup_1>, only_1>);
     D_OV_CHECK(ok, std::is_same_v<
                        ov_apply_t<DStrictSubset, only_1, dup_1>, dup_1>);
     D_OV_CHECK(ok, std::is_same_v<
@@ -272,7 +272,7 @@ bool tests_override_engine_custom_policies()
                                                    always_keep_left>,
                                       always_drop>,
                                   ov_std_base, ov_std_delta>,
-                       ov_apply_t<keep_base, ov_std_base, ov_std_delta>>);
+                       ov_apply_t<DKeepBase, ov_std_base, ov_std_delta>>);
 
     // ... and replacing only the OVERLAP hook is not enough to get
     // there: that composition still inherits DKeepDelta's lenient
@@ -291,7 +291,7 @@ bool tests_override_engine_custom_policies()
                        ov_apply_t<DWithOnBoth<DKeepDelta,
                                                always_keep_left>,
                                   ov_std_base, ov_std_delta>,
-                       ov_apply_t<keep_base, ov_std_base, ov_std_delta>>);
+                       ov_apply_t<DKeepBase, ov_std_base, ov_std_delta>>);
 
     // the sharp case: a relaxed DStrictSubset over a delta that DOES
     // extend.  The engine's lazy lookup resolves to false here, so
@@ -313,7 +313,7 @@ bool tests_override_engine_custom_policies()
     using stacked =
         DWithOnDeltaOnly<
             DWithOnBaseOnly<
-                DWithOnBoth<keep_base, always_keep_right>,
+                DWithOnBoth<DKeepBase, always_keep_right>,
                 always_drop>,
             identity_t>;
 

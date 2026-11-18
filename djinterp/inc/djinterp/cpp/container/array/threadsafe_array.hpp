@@ -4,7 +4,7 @@
 * djinterp threadsafe_array.hpp
 *
 * Lock-policy-protected concurrent array.
-*   Composes the canonical `array<Options...>` with a chosen lock
+*   Composes the canonical `DArray<Options...>` with a chosen lock
 * policy.  All structural axes (capacity model, contiguity, element
 * traits, lifetime, iterability, ordering) are inherited verbatim
 * from the wrapped array; this module adds only axis 8 (thread
@@ -13,7 +13,7 @@
 *   `DThreadsafeArray<Options...>` follows the framework
 * options-container contract: a single template parameter pack,
 * normalized via `with_options_pack`, with axes resolved from the
-* same option_list that drives the wrapped `array<>`.  The lock
+* same option_list that drives the wrapped `DArray<>`.  The lock
 * policy is read from the pack's lock-policy option
 * (`DContainerOptLockPolicy<P>`); when absent, the default is
 * `default_lock_policy`.
@@ -118,7 +118,7 @@ NS_INTERNAL
 
     // resolve_lock_policy
     //   helper: looks up a lock policy class in an option_set under
-    // `container_axis::lock_policy`, falling back to `default_lock_policy`
+    // `DContainerAxis::lock_policy`, falling back to `default_lock_policy`
     // when absent. Used by every wrapper that consumes a lock policy via the
     // options-pack form.
     template<typename Set>
@@ -126,7 +126,7 @@ NS_INTERNAL
     {
         using type = container_axis_type_t<
             Set,
-            container_axis::lock_policy,
+            DContainerAxis::lock_policy,
             default_lock_policy>;
     };
 
@@ -146,7 +146,7 @@ NS_INTERNAL
     // ts_strip_lp_helper
     //   metafunction: filters `option<container_axis::lock_policy, _>` entries
     // out of a
-    // parameter pack and emits an `array<Filtered...>`. Used by
+    // parameter pack and emits an `DArray<Filtered...>`. Used by
     // `DThreadsafeArray` to strip the lock-policy option that the convenience
     // aliases (DMutexArray, DTimedArray, DSharedArray) append to `Options...`
     // before forming the underlying array's type.
@@ -154,7 +154,7 @@ NS_INTERNAL
     //   Why filter only the lock policy, not canonicalize every axis?
     //   - The user-facing test contract for
     //     `wrapper::underlying_type` is type-equality with
-    //     `array<the user's exact options>`. Replacing the
+    //     `DArray<the user's exact options>`. Replacing the
     //     user's pack with a re-emitted four-option canonical
     //     form breaks that contract whenever the user
     //     passes fewer than four options (e.g.
@@ -176,7 +176,7 @@ NS_INTERNAL
 
     template<typename Value>
     struct ts_is_lock_policy_option<
-        option<container_axis::lock_policy, Value>>
+        option<DContainerAxis::lock_policy, Value>>
         : std::true_type
     {};
 
@@ -196,7 +196,7 @@ NS_INTERNAL
     template<typename... A>
     struct ts_strip_lp_impl<DTsKept<A...>>
     {
-        using type = array<A...>;
+        using type = DArray<A...>;
     };
 
     template<typename... A,
@@ -585,22 +585,22 @@ using DSharedArray = DThreadsafeArray<
 
 template<typename... Options>
 struct is_contiguous_array<DThreadsafeArray<Options...>>
-    : is_contiguous_array<array<Options...>>
+    : is_contiguous_array<DArray<Options...>>
 {};
 
 template<typename... Options>
 struct is_iterable_array<DThreadsafeArray<Options...>>
-    : is_iterable_array<array<Options...>>
+    : is_iterable_array<DArray<Options...>>
 {};
 
 template<typename... Options>
 struct has_static_extent<DThreadsafeArray<Options...>>
-    : has_static_extent<array<Options...>>
+    : has_static_extent<DArray<Options...>>
 {};
 
 template<typename... Options>
 struct array_lifetime_of<DThreadsafeArray<Options...>>
-    : array_lifetime_of<array<Options...>>
+    : array_lifetime_of<DArray<Options...>>
 {};
 
 
@@ -617,8 +617,8 @@ NS_INTERNAL
     // translation unit without redefinition ambiguity. (Identical `using`
     // aliases are technically permitted, but distinct names make the intent
     // obvious.)
-    using DTsBase = array<array_opt_type<int>, DArrayOptExtent<16>>;
-    using DTsTest = DThreadsafeArray<array_opt_type<int>,
+    using DTsBase = DArray<DArrayOptType<int>, DArrayOptExtent<16>>;
+    using DTsTest = DThreadsafeArray<DArrayOptType<int>,
                                      DArrayOptExtent<16>>;
 
     // axes 1-7: must match

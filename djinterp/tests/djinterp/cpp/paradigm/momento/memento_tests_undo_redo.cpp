@@ -33,7 +33,7 @@ tests_undo_redo_checkpoint_undo
 */
 bool tests_undo_redo_checkpoint_undo()
 {
-    undo_redo_stack<int> h;
+    DUndoRedoStack<int> h;
 
     int s = 10;
     h.checkpoint(s);   // remember 10
@@ -58,7 +58,7 @@ tests_undo_redo_roundtrip
 */
 bool tests_undo_redo_roundtrip()
 {
-    undo_redo_stack<int> h;
+    DUndoRedoStack<int> h;
 
     int s = 10;
     h.checkpoint(s);
@@ -83,7 +83,7 @@ tests_undo_redo_undo_empty
 */
 bool tests_undo_redo_undo_empty()
 {
-    undo_redo_stack<int> h;
+    DUndoRedoStack<int> h;
 
     int s = 5;
     bool did = h.undo(s);
@@ -99,7 +99,7 @@ tests_undo_redo_redo_empty
 */
 bool tests_undo_redo_redo_empty()
 {
-    undo_redo_stack<int> h;
+    DUndoRedoStack<int> h;
 
     int s = 5;
     h.checkpoint(s);
@@ -118,7 +118,7 @@ tests_undo_redo_checkpoint_clears_redo
 */
 bool tests_undo_redo_checkpoint_clears_redo()
 {
-    undo_redo_stack<int> h;
+    DUndoRedoStack<int> h;
 
     int s = 1;
     h.checkpoint(s);
@@ -148,7 +148,7 @@ tests_undo_redo_can_flags
 */
 bool tests_undo_redo_can_flags()
 {
-    undo_redo_stack<int> h;
+    DUndoRedoStack<int> h;
 
     bool ok = (!h.can_undo() && !h.can_redo());
 
@@ -172,7 +172,7 @@ tests_undo_redo_depths
 */
 bool tests_undo_redo_depths()
 {
-    undo_redo_stack<int> h;
+    DUndoRedoStack<int> h;
 
     int s = 0;
     h.checkpoint(s); s = 1;
@@ -194,7 +194,7 @@ tests_undo_redo_clear
 */
 bool tests_undo_redo_clear()
 {
-    undo_redo_stack<int> h;
+    DUndoRedoStack<int> h;
 
     int s = 0;
     h.checkpoint(s); s = 1;
@@ -215,7 +215,7 @@ tests_undo_redo_clear_redo
 */
 bool tests_undo_redo_clear_redo()
 {
-    undo_redo_stack<int> h;
+    DUndoRedoStack<int> h;
 
     int s = 0;
     h.checkpoint(s); s = 1;
@@ -241,7 +241,7 @@ tests_undo_redo_tagged
 bool tests_undo_redo_tagged()
 {
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
-    undo_redo_stack<int> h;
+    DUndoRedoStack<int> h;
 
     int s = 10;
     h.checkpoint(s, std::string_view("v1"));
@@ -265,7 +265,7 @@ tests_undo_redo_peek
 bool tests_undo_redo_peek()
 {
 #if D_MEMENTO_HAS_OPTIONAL
-    undo_redo_stack<int> h;
+    DUndoRedoStack<int> h;
 
     bool ok = (!h.peek_undo().has_value());
 

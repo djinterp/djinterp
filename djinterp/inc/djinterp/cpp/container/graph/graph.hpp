@@ -2,7 +2,7 @@
 * djinterp [cpp]                                                       graph.hpp
 *
 * Versatile, version-portable graph container.
-*   The `graph<>` template fulfills axes 1-8 of the djinterp container
+*   The `DGraph<>` template fulfills axes 1-8 of the djinterp container
 * classification (lifetime, iteration, ordering, bounds, multiplicity,
 * structure, storage, thread safety) and gives the user control over
 * every type and every byte:
@@ -126,14 +126,14 @@ NS_CONTAINER
     // the right adjacency_entry shape based on its weight / property
     // policies.
 
-    // adjacency_entry
+    // DAdjacencyEntry
     //   struct: a single entry inside a vertex's adjacency container. Holds
     // the neighbor's vertex ID and, optionally, a weight or edge property.
     // Specialised below for the unweighted case so the entry collapses to a
     // bare vertex ID at the type system level.
     template<typename VertexId,
              typename EdgeProperty = no_property>
-    struct adjacency_entry
+    struct DAdjacencyEntry
     {
         using vertex_id_type   = VertexId;
         using edge_property_type = EdgeProperty;
@@ -142,40 +142,45 @@ NS_CONTAINER
         edge_property_type property;
 
         D_CONSTEXPR
-        adjacency_entry() noexcept
+        DAdjacencyEntry() noexcept
             : neighbor(djinterp::container::invalid_id<vertex_id_type>()),
               property()
         {}
 
         D_CONSTEXPR
-        adjacency_entry(vertex_id_type      _n,
+        DAdjacencyEntry(vertex_id_type      _n,
                         edge_property_type  _p)
             : neighbor(_n),
               property(static_cast<edge_property_type&&>(_p))
         {}
 
         D_CONSTEXPR friend bool
-        operator==(const adjacency_entry& _a,
-                   const adjacency_entry& _b)
+        operator==(const DAdjacencyEntry& _a,
+                   const DAdjacencyEntry& _b)
         {
             return ( (_a.neighbor == _b.neighbor) &&
                      (_a.property == _b.property) );
         }
 
         D_CONSTEXPR friend bool
-        operator<(const adjacency_entry& _a,
-                  const adjacency_entry& _b)
+        operator<(const DAdjacencyEntry& _a,
+                  const DAdjacencyEntry& _b)
         {
             return _a.neighbor < _b.neighbor;
         }
     };
+
+    // old name, until 0.9.0-rc.1
+    template<typename VertexId,
+             typename EdgeProperty = no_property>
+    using adjacency_entry = DAdjacencyEntry<VertexId, EdgeProperty>;
 
     // adjacency_entry<V, no_property>
     //   specialization: collapses the entry to a bare vertex ID for unweighted
     // graphs so an adjacency container of `std::vector<V>` (the cheapest
     // layout) is the natural representation.
     template<typename VertexId>
-    struct adjacency_entry<VertexId, no_property>
+    struct DAdjacencyEntry<VertexId, no_property>
     {
         using vertex_id_type     = VertexId;
         using edge_property_type = no_property;
@@ -183,12 +188,12 @@ NS_CONTAINER
         vertex_id_type neighbor;
 
         D_CONSTEXPR
-        adjacency_entry() noexcept
+        DAdjacencyEntry() noexcept
             : neighbor(djinterp::container::invalid_id<vertex_id_type>())
         {}
 
         D_CONSTEXPR explicit
-        adjacency_entry(vertex_id_type _n) noexcept
+        DAdjacencyEntry(vertex_id_type _n) noexcept
             : neighbor(_n)
         {}
 
@@ -200,8 +205,8 @@ NS_CONTAINER
 
         D_CONSTEXPR friend
         bool operator==(
-            const adjacency_entry& _a,
-            const adjacency_entry& _b
+            const DAdjacencyEntry& _a,
+            const DAdjacencyEntry& _b
         ) noexcept
         {
             return _a.neighbor == _b.neighbor;
@@ -209,8 +214,8 @@ NS_CONTAINER
 
         D_CONSTEXPR friend
         bool operator<(
-            const adjacency_entry& _a,
-            const adjacency_entry& _b
+            const DAdjacencyEntry& _a,
+            const DAdjacencyEntry& _b
         ) noexcept
         {
             return _a.neighbor < _b.neighbor;
@@ -222,13 +227,13 @@ NS_CONTAINER
     // II.  VERTEX ENTRY
     // =========================================================================
 
-    // vertex_entry
+    // DVertexEntry
     //   struct: a single vertex record stored in the top-level vertex
     // container. Carries a user-controlled property and the per-vertex
     // adjacency container.
     template<typename VertexProperty,
              typename AdjacencyContainer>
-    struct vertex_entry
+    struct DVertexEntry
     {
         using vertex_property_type = VertexProperty;
         using adjacency_container  = AdjacencyContainer;
@@ -237,23 +242,28 @@ NS_CONTAINER
         adjacency_container  out_adjacency;
 
         D_CONSTEXPR
-        vertex_entry()
+        DVertexEntry()
             : property(),
               out_adjacency()
         {}
 
         D_CONSTEXPR explicit
-        vertex_entry(vertex_property_type _p)
+        DVertexEntry(vertex_property_type _p)
             : property(static_cast<vertex_property_type&&>(_p)),
               out_adjacency()
         {}
     };
 
+    // old name, until 0.9.0-rc.1
+    template<typename VertexProperty,
+             typename AdjacencyContainer>
+    using vertex_entry = DVertexEntry<VertexProperty, AdjacencyContainer>;
+
     // vertex_entry<no_property, AC>
     //   specialization: collapses the property field for graphs whose vertices
     // carry no payload.
     template<typename AdjacencyContainer>
-    struct vertex_entry<no_property, AdjacencyContainer>
+    struct DVertexEntry<no_property, AdjacencyContainer>
     {
         using vertex_property_type = no_property;
         using adjacency_container  = AdjacencyContainer;
@@ -261,7 +271,7 @@ NS_CONTAINER
         adjacency_container out_adjacency;
 
         D_CONSTEXPR
-        vertex_entry()
+        DVertexEntry()
             : out_adjacency()
         {}
     };
@@ -297,14 +307,14 @@ NS_CONTAINER
              typename EdgeProperty                                 = no_property,
              typename GraphProperty                                = no_property,
              typename VertexId                                     = default_graph_id_t,
-             graph_direction   Direction                           = graph_direction::directed,
-             edge_multiplicity Multiplicity                        = edge_multiplicity::simple,
-             loop_policy       LoopPolicy                          = loop_policy::disallow,
+             DGraphDirection   Direction                           = DGraphDirection::directed,
+             DEdgeMultiplicity Multiplicity                        = DEdgeMultiplicity::simple,
+             DLoopPolicy       LoopPolicy                          = DLoopPolicy::disallow,
              template<typename, typename> class AdjacencyContainer = std::vector,
              template<typename, typename> class VertexContainer     = std::vector,
              typename LockPolicy                                   = djinterp::null_lock_policy,
-             typename Allocator                                    = std::allocator<adjacency_entry<VertexId, EdgeProperty>>>
-    class graph
+             typename Allocator                                    = std::allocator<DAdjacencyEntry<VertexId, EdgeProperty>>>
+    class DGraph
     {
     public:
         // ---------------------------------------------------------------------
@@ -312,17 +322,17 @@ NS_CONTAINER
         // probes)
         // ---------------------------------------------------------------------
 
-        using self_type             = graph;
+        using self_type             = DGraph;
         using vertex_property_type  = VertexProperty;
         using edge_property_type    = EdgeProperty;
         using graph_property_type   = GraphProperty;
 
         using vertex_id_type        = VertexId;
         using edge_id_type          = VertexId;          // share ID space
-        using vertex_descriptor_type = vertex_descriptor<VertexId>;
-        using edge_descriptor_type   = edge_descriptor<VertexId>;
+        using vertex_descriptor_type = DVertexDescriptor<VertexId>;
+        using edge_descriptor_type   = DEdgeDescriptor<VertexId>;
 
-        using adjacency_entry_type   = adjacency_entry<VertexId, EdgeProperty>;
+        using adjacency_entry_type   = DAdjacencyEntry<VertexId, EdgeProperty>;
         using allocator_type         = Allocator;
 
         // adjacency container, built from the user-provided template
@@ -336,7 +346,7 @@ NS_CONTAINER
 
         // top-level vertex container
         using vertex_entry_type =
-            vertex_entry<VertexProperty, adjacency_container_type>;
+            DVertexEntry<VertexProperty, adjacency_container_type>;
 
         using vertex_alloc_type =
             typename std::allocator_traits<allocator_type>::template
@@ -359,13 +369,13 @@ NS_CONTAINER
 
         // bounds protocol (axis 4)
         using size_interval =
-            djinterp::closed_bounds<size_type, 0, std::numeric_limits<size_type>::max()>;
+            djinterp::DClosedBounds<size_type, 0, std::numeric_limits<size_type>::max()>;
         using depth_interval =
-            djinterp::closed_bounds<depth_type, 0, std::numeric_limits<depth_type>::max()>;
+            djinterp::DClosedBounds<depth_type, 0, std::numeric_limits<depth_type>::max()>;
         using multiplicity_interval =
-            djinterp::closed_bounds<size_type,
-                ( (Multiplicity == edge_multiplicity::simple) ? 0 : 0 ),
-                ( (Multiplicity == edge_multiplicity::simple) ? 1 :
+            djinterp::DClosedBounds<size_type,
+                ( (Multiplicity == DEdgeMultiplicity::simple) ? 0 : 0 ),
+                ( (Multiplicity == DEdgeMultiplicity::simple) ? 1 :
                   std::numeric_limits<size_type>::max() )>;
 
         // thread-safety protocol (axis 8)
@@ -377,31 +387,31 @@ NS_CONTAINER
         // compile-time category flags (consumed by graph_traits)
         // ---------------------------------------------------------------------
 
-        static D_CONSTEXPR graph_direction   direction        = Direction;
-        static D_CONSTEXPR edge_multiplicity multiplicity_kind = Multiplicity;
-        static D_CONSTEXPR loop_policy       loops            = LoopPolicy;
-        static D_CONSTEXPR graph_storage     storage_strategy =
-            graph_storage::adjacency_list;
+        static D_CONSTEXPR DGraphDirection   direction        = Direction;
+        static D_CONSTEXPR DEdgeMultiplicity multiplicity_kind = Multiplicity;
+        static D_CONSTEXPR DLoopPolicy       loops            = LoopPolicy;
+        static D_CONSTEXPR DGraphStorage     storage_strategy =
+            DGraphStorage::adjacency_list;
 
         static D_CONSTEXPR bool is_directed_graph =
-            ( (Direction == graph_direction::directed)   ||
-              (Direction == graph_direction::oriented)   ||
-              (Direction == graph_direction::tournament) ||
-              (Direction == graph_direction::bidirected) );
+            ( (Direction == DGraphDirection::directed)   ||
+              (Direction == DGraphDirection::oriented)   ||
+              (Direction == DGraphDirection::tournament) ||
+              (Direction == DGraphDirection::bidirected) );
 
         static D_CONSTEXPR bool is_undirected_graph =
-            (Direction == graph_direction::undirected);
+            (Direction == DGraphDirection::undirected);
 
         static D_CONSTEXPR bool is_simple_graph =
-            (Multiplicity == edge_multiplicity::simple);
+            (Multiplicity == DEdgeMultiplicity::simple);
 
         static D_CONSTEXPR bool allows_parallel_edges =
-            ( (Multiplicity == edge_multiplicity::multi) ||
-              (Multiplicity == edge_multiplicity::bounded) );
+            ( (Multiplicity == DEdgeMultiplicity::multi) ||
+              (Multiplicity == DEdgeMultiplicity::bounded) );
 
         static D_CONSTEXPR bool allows_self_loops =
-            ( (LoopPolicy == loop_policy::allow) ||
-              (LoopPolicy == loop_policy::require) );
+            ( (LoopPolicy == DLoopPolicy::allow) ||
+              (LoopPolicy == DLoopPolicy::require) );
 
         static D_CONSTEXPR bool is_weighted_graph =
             !std::is_same<EdgeProperty, no_property>::value;
@@ -417,7 +427,7 @@ NS_CONTAINER
         // ---------------------------------------------------------------------
 
         D_CONSTEXPR
-        graph()
+        DGraph()
             : m_vertices(),
               m_edge_count(0),
               m_property(),
@@ -425,7 +435,7 @@ NS_CONTAINER
         {}
 
         D_CONSTEXPR explicit
-        graph(const allocator_type& _alloc)
+        DGraph(const allocator_type& _alloc)
             : m_vertices(vertex_alloc_type(_alloc)),
               m_edge_count(0),
               m_property(),
@@ -433,7 +443,7 @@ NS_CONTAINER
         {}
 
         D_CONSTEXPR explicit
-        graph(size_type _initial_vertex_count,
+        DGraph(size_type _initial_vertex_count,
               const allocator_type& _alloc = allocator_type())
             : m_vertices(_initial_vertex_count,
                          vertex_entry_type(),
@@ -443,11 +453,11 @@ NS_CONTAINER
               m_lock()
         {}
 
-        graph(const graph&)            = default;
-        graph(graph&&) noexcept        = default;
-        graph& operator=(const graph&) = default;
-        graph& operator=(graph&&) noexcept = default;
-        ~graph()                       = default;
+        DGraph(const DGraph&)            = default;
+        DGraph(DGraph&&) noexcept        = default;
+        DGraph& operator=(const DGraph&) = default;
+        DGraph& operator=(DGraph&&) noexcept = default;
+        ~DGraph()                       = default;
 
         // ---------------------------------------------------------------------
         // size / capacity (axis 4: bounds)
@@ -892,7 +902,7 @@ NS_CONTAINER
         // swap
         //   method: exchanges contents with another graph of the same template
         // instantiation.
-        void swap(graph& _other) noexcept
+        void swap(DGraph& _other) noexcept
         {
             using std::swap;
             swap(m_vertices,   _other.m_vertices);
@@ -907,14 +917,14 @@ NS_CONTAINER
         // ---------------------------------------------------------------------
 
         D_CONSTEXPR friend bool
-        operator==(const graph& _a, const graph& _b)
+        operator==(const DGraph& _a, const DGraph& _b)
         {
             return ( (_a.m_edge_count == _b.m_edge_count) &&
                      (_a.m_vertices   == _b.m_vertices) );
         }
 
         D_CONSTEXPR friend bool
-        operator!=(const graph& _a, const graph& _b)
+        operator!=(const DGraph& _a, const DGraph& _b)
         {
             return !(_a == _b);
         }
@@ -973,7 +983,7 @@ NS_CONTAINER
 
             // mirror for undirected / bidirected
             if (is_undirected_graph ||
-                (Direction == graph_direction::bidirected))
+                (Direction == DGraphDirection::bidirected))
             {
                 if (_u != _v)
                 {
@@ -1049,6 +1059,20 @@ NS_CONTAINER
         mutable lock_policy_type m_lock;
     };
 
+    // old name, until 0.9.0-rc.1
+    template<typename VertexProperty                               = no_property,
+             typename EdgeProperty                                 = no_property,
+             typename GraphProperty                                = no_property,
+             typename VertexId                                     = default_graph_id_t,
+             DGraphDirection   Direction                           = DGraphDirection::directed,
+             DEdgeMultiplicity Multiplicity                        = DEdgeMultiplicity::simple,
+             DLoopPolicy       LoopPolicy                          = DLoopPolicy::disallow,
+             template<typename, typename> class AdjacencyContainer = std::vector,
+             template<typename, typename> class VertexContainer     = std::vector,
+             typename LockPolicy                                   = djinterp::null_lock_policy,
+             typename Allocator                                    = std::allocator<DAdjacencyEntry<VertexId, EdgeProperty>>>
+    using graph = DGraph<VertexProperty, EdgeProperty, GraphProperty, VertexId, Direction, Multiplicity, LoopPolicy, AdjacencyContainer, VertexContainer, LockPolicy, Allocator>;
+
 
     // =========================================================================
     // IV.  GRAPH-KIND ALIASES
@@ -1058,117 +1082,180 @@ NS_CONTAINER
     // These aliases give users a vocabulary at least as rich as the
     // graph-theory literature.
 
-    // simple_graph
+    // DSimpleGraph
     //   alias: undirected, simple, no self-loops.
     template<typename VP         = no_property,
              typename EP         = no_property,
              typename GP         = no_property,
              typename VertexId   = default_graph_id_t>
-    using simple_graph =
-        graph<VP, EP, GP, VertexId,
-              graph_direction::undirected,
-              edge_multiplicity::simple,
-              loop_policy::disallow>;
+    using DSimpleGraph =
+        DGraph<VP, EP, GP, VertexId,
+              DGraphDirection::undirected,
+              DEdgeMultiplicity::simple,
+              DLoopPolicy::disallow>;
 
-    // digraph
+    // old name, until 0.9.0-rc.1
+    template<typename VP         = no_property,
+             typename EP         = no_property,
+             typename GP         = no_property,
+             typename VertexId   = default_graph_id_t>
+    using simple_graph = DSimpleGraph<VP, EP, GP, VertexId>;
+
+    // DDigraph
     //   alias: directed, simple, no self-loops.
     template<typename VP         = no_property,
              typename EP         = no_property,
              typename GP         = no_property,
              typename VertexId   = default_graph_id_t>
-    using digraph =
-        graph<VP, EP, GP, VertexId,
-              graph_direction::directed,
-              edge_multiplicity::simple,
-              loop_policy::disallow>;
+    using DDigraph =
+        DGraph<VP, EP, GP, VertexId,
+              DGraphDirection::directed,
+              DEdgeMultiplicity::simple,
+              DLoopPolicy::disallow>;
 
-    // pseudograph
+    // old name, until 0.9.0-rc.1
+    template<typename VP         = no_property,
+             typename EP         = no_property,
+             typename GP         = no_property,
+             typename VertexId   = default_graph_id_t>
+    using digraph = DDigraph<VP, EP, GP, VertexId>;
+
+    // DPseudograph
     //   alias: undirected, simple, self-loops allowed.
     template<typename VP         = no_property,
              typename EP         = no_property,
              typename GP         = no_property,
              typename VertexId   = default_graph_id_t>
-    using pseudograph =
-        graph<VP, EP, GP, VertexId,
-              graph_direction::undirected,
-              edge_multiplicity::simple,
-              loop_policy::allow>;
+    using DPseudograph =
+        DGraph<VP, EP, GP, VertexId,
+              DGraphDirection::undirected,
+              DEdgeMultiplicity::simple,
+              DLoopPolicy::allow>;
 
-    // multigraph
+    // old name, until 0.9.0-rc.1
+    template<typename VP         = no_property,
+             typename EP         = no_property,
+             typename GP         = no_property,
+             typename VertexId   = default_graph_id_t>
+    using pseudograph = DPseudograph<VP, EP, GP, VertexId>;
+
+    // DMultigraph
     //   alias: undirected, multi, no self-loops.
     template<typename VP         = no_property,
              typename EP         = no_property,
              typename GP         = no_property,
              typename VertexId   = default_graph_id_t>
-    using multigraph =
-        graph<VP, EP, GP, VertexId,
-              graph_direction::undirected,
-              edge_multiplicity::multi,
-              loop_policy::disallow>;
+    using DMultigraph =
+        DGraph<VP, EP, GP, VertexId,
+              DGraphDirection::undirected,
+              DEdgeMultiplicity::multi,
+              DLoopPolicy::disallow>;
 
-    // multidigraph
+    // old name, until 0.9.0-rc.1
+    template<typename VP         = no_property,
+             typename EP         = no_property,
+             typename GP         = no_property,
+             typename VertexId   = default_graph_id_t>
+    using multigraph = DMultigraph<VP, EP, GP, VertexId>;
+
+    // DMultidigraph
     //   alias: directed, multi, no self-loops.
     template<typename VP         = no_property,
              typename EP         = no_property,
              typename GP         = no_property,
              typename VertexId   = default_graph_id_t>
-    using multidigraph =
-        graph<VP, EP, GP, VertexId,
-              graph_direction::directed,
-              edge_multiplicity::multi,
-              loop_policy::disallow>;
+    using DMultidigraph =
+        DGraph<VP, EP, GP, VertexId,
+              DGraphDirection::directed,
+              DEdgeMultiplicity::multi,
+              DLoopPolicy::disallow>;
 
-    // multipseudograph
+    // old name, until 0.9.0-rc.1
+    template<typename VP         = no_property,
+             typename EP         = no_property,
+             typename GP         = no_property,
+             typename VertexId   = default_graph_id_t>
+    using multidigraph = DMultidigraph<VP, EP, GP, VertexId>;
+
+    // DMultipseudograph
     //   alias: undirected, multi, self-loops allowed. The most permissive
     // undirected graph.
     template<typename VP         = no_property,
              typename EP         = no_property,
              typename GP         = no_property,
              typename VertexId   = default_graph_id_t>
-    using multipseudograph =
-        graph<VP, EP, GP, VertexId,
-              graph_direction::undirected,
-              edge_multiplicity::multi,
-              loop_policy::allow>;
+    using DMultipseudograph =
+        DGraph<VP, EP, GP, VertexId,
+              DGraphDirection::undirected,
+              DEdgeMultiplicity::multi,
+              DLoopPolicy::allow>;
 
-    // weighted_graph
+    // old name, until 0.9.0-rc.1
+    template<typename VP         = no_property,
+             typename EP         = no_property,
+             typename GP         = no_property,
+             typename VertexId   = default_graph_id_t>
+    using multipseudograph = DMultipseudograph<VP, EP, GP, VertexId>;
+
+    // DWeightedGraph
     //   alias: undirected, simple, weighted (W = double by default).
     template<typename Weight     = double,
              typename VP         = no_property,
              typename GP         = no_property,
              typename VertexId   = default_graph_id_t>
-    using weighted_graph =
-        graph<VP, Weight, GP, VertexId,
-              graph_direction::undirected,
-              edge_multiplicity::simple,
-              loop_policy::disallow>;
+    using DWeightedGraph =
+        DGraph<VP, Weight, GP, VertexId,
+              DGraphDirection::undirected,
+              DEdgeMultiplicity::simple,
+              DLoopPolicy::disallow>;
 
-    // weighted_digraph
+    // old name, until 0.9.0-rc.1
+    template<typename Weight     = double,
+             typename VP         = no_property,
+             typename GP         = no_property,
+             typename VertexId   = default_graph_id_t>
+    using weighted_graph = DWeightedGraph<Weight, VP, GP, VertexId>;
+
+    // DWeightedDigraph
     //   alias: directed, simple, weighted.
     template<typename Weight     = double,
              typename VP         = no_property,
              typename GP         = no_property,
              typename VertexId   = default_graph_id_t>
-    using weighted_digraph =
-        graph<VP, Weight, GP, VertexId,
-              graph_direction::directed,
-              edge_multiplicity::simple,
-              loop_policy::disallow>;
+    using DWeightedDigraph =
+        DGraph<VP, Weight, GP, VertexId,
+              DGraphDirection::directed,
+              DEdgeMultiplicity::simple,
+              DLoopPolicy::disallow>;
 
-    // tournament
+    // old name, until 0.9.0-rc.1
+    template<typename Weight     = double,
+             typename VP         = no_property,
+             typename GP         = no_property,
+             typename VertexId   = default_graph_id_t>
+    using weighted_digraph = DWeightedDigraph<Weight, VP, GP, VertexId>;
+
+    // DTournament
     //   alias: directed, simple, every pair connected. The "tournament"
     // semantics are a runtime invariant; the template enforces only direction.
     template<typename VP         = no_property,
              typename EP         = no_property,
              typename GP         = no_property,
              typename VertexId   = default_graph_id_t>
-    using tournament =
-        graph<VP, EP, GP, VertexId,
-              graph_direction::tournament,
-              edge_multiplicity::simple,
-              loop_policy::disallow>;
+    using DTournament =
+        DGraph<VP, EP, GP, VertexId,
+              DGraphDirection::tournament,
+              DEdgeMultiplicity::simple,
+              DLoopPolicy::disallow>;
 
-    // dag
+    // old name, until 0.9.0-rc.1
+    template<typename VP         = no_property,
+             typename EP         = no_property,
+             typename GP         = no_property,
+             typename VertexId   = default_graph_id_t>
+    using tournament = DTournament<VP, EP, GP, VertexId>;
+
+    // DDag
     //   alias: directed, simple, no self-loops. Acyclicity is a runtime
     // invariant, asserted by the user; the template selects the most
     // permissive acyclic-friendly representation.
@@ -1176,50 +1263,92 @@ NS_CONTAINER
              typename EP         = no_property,
              typename GP         = no_property,
              typename VertexId   = default_graph_id_t>
-    using dag = digraph<VP, EP, GP, VertexId>;
+    using DDag = DDigraph<VP, EP, GP, VertexId>;
 
-    // tree_graph
+    // old name, until 0.9.0-rc.1
+    template<typename VP         = no_property,
+             typename EP         = no_property,
+             typename GP         = no_property,
+             typename VertexId   = default_graph_id_t>
+    using dag = DDag<VP, EP, GP, VertexId>;
+
+    // DTreeGraph
     //   alias: undirected, simple, no self-loops. Connectedness and acyclicity
     // are runtime invariants.
     template<typename VP         = no_property,
              typename EP         = no_property,
              typename GP         = no_property,
              typename VertexId   = default_graph_id_t>
-    using tree_graph = simple_graph<VP, EP, GP, VertexId>;
+    using DTreeGraph = DSimpleGraph<VP, EP, GP, VertexId>;
 
-    // forest
+    // old name, until 0.9.0-rc.1
+    template<typename VP         = no_property,
+             typename EP         = no_property,
+             typename GP         = no_property,
+             typename VertexId   = default_graph_id_t>
+    using tree_graph = DTreeGraph<VP, EP, GP, VertexId>;
+
+    // DForest
     //   alias: identical instantiation to tree_graph; the distinction is
     // semantic (not necessarily connected).
     template<typename VP         = no_property,
              typename EP         = no_property,
              typename GP         = no_property,
              typename VertexId   = default_graph_id_t>
-    using forest = simple_graph<VP, EP, GP, VertexId>;
+    using DForest = DSimpleGraph<VP, EP, GP, VertexId>;
 
-    // bipartite_graph
+    // old name, until 0.9.0-rc.1
+    template<typename VP         = no_property,
+             typename EP         = no_property,
+             typename GP         = no_property,
+             typename VertexId   = default_graph_id_t>
+    using forest = DForest<VP, EP, GP, VertexId>;
+
+    // DBipartiteGraph
     //   alias: undirected, simple, no self-loops. Bipartiteness is a runtime
     // invariant; the user may attach a 2-coloring as the vertex property.
     template<typename Part       = re_std::uint8_t,
              typename EP         = no_property,
              typename GP         = no_property,
              typename VertexId   = default_graph_id_t>
-    using bipartite_graph = simple_graph<Part, EP, GP, VertexId>;
+    using DBipartiteGraph = DSimpleGraph<Part, EP, GP, VertexId>;
 
-    // labeled_graph
+    // old name, until 0.9.0-rc.1
+    template<typename Part       = re_std::uint8_t,
+             typename EP         = no_property,
+             typename GP         = no_property,
+             typename VertexId   = default_graph_id_t>
+    using bipartite_graph = DBipartiteGraph<Part, EP, GP, VertexId>;
+
+    // DLabeledGraph
     //   alias: simple graph whose edges carry a label.
     template<typename Label      = std::size_t,
              typename VP         = no_property,
              typename GP         = no_property,
              typename VertexId   = default_graph_id_t>
-    using labeled_graph = simple_graph<VP, Label, GP, VertexId>;
+    using DLabeledGraph = DSimpleGraph<VP, Label, GP, VertexId>;
 
-    // property_graph
+    // old name, until 0.9.0-rc.1
+    template<typename Label      = std::size_t,
+             typename VP         = no_property,
+             typename GP         = no_property,
+             typename VertexId   = default_graph_id_t>
+    using labeled_graph = DLabeledGraph<Label, VP, GP, VertexId>;
+
+    // DPropertyGraph
     //   alias: simple graph with both vertex and edge properties.
     template<typename VP,
              typename EP,
              typename GP         = no_property,
              typename VertexId   = default_graph_id_t>
-    using property_graph = simple_graph<VP, EP, GP, VertexId>;
+    using DPropertyGraph = DSimpleGraph<VP, EP, GP, VertexId>;
+
+    // old name, until 0.9.0-rc.1
+    template<typename VP,
+             typename EP,
+             typename GP         = no_property,
+             typename VertexId   = default_graph_id_t>
+    using property_graph = DPropertyGraph<VP, EP, GP, VertexId>;
 
 
     // =========================================================================
@@ -1229,14 +1358,14 @@ NS_CONTAINER
     // swap (free function)
     //   ADL hook allowing std::swap-style use.
     template<typename VP, typename EP, typename GP, typename VertexId,
-             graph_direction D, edge_multiplicity M, loop_policy L,
+             DGraphDirection D, DEdgeMultiplicity M, DLoopPolicy L,
              template<typename, typename> class AC,
              template<typename, typename> class VC,
              typename LP, typename A>
     inline
     void swap(
-        graph<VP,EP,GP,VertexId,D,M,L,AC,VC,LP,A>& _a,
-        graph<VP,EP,GP,VertexId,D,M,L,AC,VC,LP,A>& _b
+        DGraph<VP,EP,GP,VertexId,D,M,L,AC,VC,LP,A>& _a,
+        DGraph<VP,EP,GP,VertexId,D,M,L,AC,VC,LP,A>& _b
     ) noexcept
     {
         _a.swap(_b);
@@ -1249,8 +1378,8 @@ NS_CONTAINER
     template<typename VertexId>
     D_CONSTEXPR_INLINE
     bool is_self_loop(
-        vertex_descriptor<VertexId> _u,
-        vertex_descriptor<VertexId> _v
+        DVertexDescriptor<VertexId> _u,
+        DVertexDescriptor<VertexId> _v
     ) noexcept
     {
         return _u.id() == _v.id();

@@ -156,7 +156,7 @@ public:
     template<typename Payload>
     void bind_arena(
         domain_id             _domain,
-        const arena<Payload>& _arena
+        const DNodeArena<Payload>& _arena
     )
     {
         for (std::size_t i = 0; i < _arena.size(); ++i)

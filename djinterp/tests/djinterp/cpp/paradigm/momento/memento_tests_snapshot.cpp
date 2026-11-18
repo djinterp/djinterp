@@ -35,14 +35,14 @@ tests_deep_copy_snapshot
 bool tests_deep_copy_snapshot()
 {
     static_assert(std::is_same<
-                      deep_copy_snapshot::snapshot_type_for<int>,
+                      DDeepCopySnapshot::snapshot_type_for<int>,
                       int>::value,
                   "snapshot is the state type");
 
     int s = 5;
-    int snap = deep_copy_snapshot::capture(s);
+    int snap = DDeepCopySnapshot::capture(s);
     s = 99;
-    deep_copy_snapshot::restore(s, snap);
+    DDeepCopySnapshot::restore(s, snap);
 
     return (s == 5);
 }
@@ -56,9 +56,9 @@ tests_clone_snapshot
 bool tests_clone_snapshot()
 {
     clonable_state c(7);
-    clonable_state snap = clone_snapshot::capture(c);
+    clonable_state snap = DCloneSnapshot::capture(c);
     c.value = 1;
-    clone_snapshot::restore(c, snap);
+    DCloneSnapshot::restore(c, snap);
 
     return (c.value == 7);
 }
@@ -74,9 +74,9 @@ tests_serialized_snapshot
 bool tests_serialized_snapshot()
 {
     serializable_state x(3);
-    std::vector<char> snap = serialized_snapshot::capture(x);
+    std::vector<char> snap = DSerializedSnapshot::capture(x);
     x.value = 1;
-    serialized_snapshot::restore(x, snap);
+    DSerializedSnapshot::restore(x, snap);
 
     bool ok = true;
 
@@ -97,11 +97,11 @@ bool tests_delta_snapshot_baseline()
 {
     diffable_state a(10);
 
-    delta_snapshot::snapshot_type_for<diffable_state> base =
-        delta_snapshot::capture_baseline(a);
+    DDeltaSnapshot::snapshot_type_for<diffable_state> base =
+        DDeltaSnapshot::capture_baseline(a);
 
     diffable_state restored;
-    delta_snapshot::restore_from_baseline(restored, base);
+    DDeltaSnapshot::restore_from_baseline(restored, base);
 
     bool ok = true;
 
@@ -123,11 +123,11 @@ bool tests_delta_snapshot_delta()
     diffable_state previous(10);
     diffable_state current(25);
 
-    delta_snapshot::snapshot_type_for<diffable_state> rec =
-        delta_snapshot::capture_delta(previous, current);
+    DDeltaSnapshot::snapshot_type_for<diffable_state> rec =
+        DDeltaSnapshot::capture_delta(previous, current);
 
     diffable_state state(10);
-    delta_snapshot::apply_delta(state, rec);
+    DDeltaSnapshot::apply_delta(state, rec);
 
     bool ok = true;
 
@@ -176,7 +176,7 @@ bool tests_external_snapshot()
         void operator()(int& _s, const int& _snap) const { _s = _snap / 2; }
     };
 
-    external_snapshot<doubler, halver> pol{ doubler(), halver() };
+    DExternalSnapshot<doubler, halver> pol{ doubler(), halver() };
 
     int s = 8;
     int snap = pol.capture(s);

@@ -14,7 +14,7 @@
 *                                  -> core/container/meta/write_only.hpp
 *
 *   Neither target is where the named header ships.  The capability tag
-* `write_only` ships at core/container/access/write_only.hpp - a SIBLING of the
+* `DWriteOnly` ships at core/container/access/write_only.hpp - a SIBLING of the
 * wrapper, per its own banner - so the include should read "write_only.hpp".
 * And djinterp.hpp ships at core/djinterp.hpp, which from access/ is
 * "../../djinterp.hpp".  All three access wrappers share both defects.

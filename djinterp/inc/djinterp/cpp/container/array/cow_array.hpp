@@ -2,7 +2,7 @@
 * djinterp [cpp]                                                   cow_array.hpp
 *
 * Copy-on-write concurrent array.
-*   Composes the canonical `array<Options...>` inside a DCowState,
+*   Composes the canonical `DArray<Options...>` inside a DCowState,
 * exposing snapshot-based read access and clone-on-write semantics.
 *
 *   Readers receive DImmutableSnapshot handles that share the
@@ -12,7 +12,7 @@
 *
 *   `DCowArray<Options...>` follows the framework options-container
 * contract: a single template parameter pack consumed by the wrapped
-* `array<>`, with the lock policy that protects the DCowState read
+* `DArray<>`, with the lock policy that protects the DCowState read
 * from the same pack's lock-policy option (default:
 * `default_lock_policy`).  The lock covers the moment a snapshot
 * shares the storage and the moment a writer decides whether to
@@ -88,7 +88,7 @@ class DCowArray
 private:
     using options_type = option_set<Options...>;
 
-    using array_type = array<Options...>;
+    using array_type = DArray<Options...>;
 
 public:
     // lock_policy_type
@@ -98,7 +98,7 @@ public:
     // is for single-threaded use, by name.
     using lock_policy_type = container_axis_type_t<
         options_type,
-        container_axis::lock_policy,
+        DContainerAxis::lock_policy,
         default_lock_policy>;
 
 private:
@@ -264,22 +264,22 @@ private:
 
 template<typename... Options>
 struct is_contiguous_array<DCowArray<Options...>>
-    : is_contiguous_array<array<Options...>>
+    : is_contiguous_array<DArray<Options...>>
 {};
 
 template<typename... Options>
 struct is_iterable_array<DCowArray<Options...>>
-    : is_iterable_array<array<Options...>>
+    : is_iterable_array<DArray<Options...>>
 {};
 
 template<typename... Options>
 struct has_static_extent<DCowArray<Options...>>
-    : has_static_extent<array<Options...>>
+    : has_static_extent<DArray<Options...>>
 {};
 
 template<typename... Options>
 struct array_lifetime_of<DCowArray<Options...>>
-    : array_lifetime_of<array<Options...>>
+    : array_lifetime_of<DArray<Options...>>
 {};
 
 
@@ -291,8 +291,8 @@ NS_INTERNAL
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
 
-    using DCowBase = array<array_opt_type<int>, DArrayOptExtent<16>>;
-    using DCowTest = DCowArray<array_opt_type<int>, DArrayOptExtent<16>>;
+    using DCowBase = DArray<DArrayOptType<int>, DArrayOptExtent<16>>;
+    using DCowTest = DCowArray<DArrayOptType<int>, DArrayOptExtent<16>>;
 
     static_assert(
         is_contiguous_array_v<DCowTest> == is_contiguous_array_v<DCowBase>,

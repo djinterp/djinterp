@@ -163,7 +163,7 @@ bool tests_merge_has_key_conflict_needs_keyed_merge()
 
     // a map present, but the merge is refused
     D_CM_CHECK((merge_kind_of<DCmMap, DCmSet>::value)
-                   == merge_kind::incompatible);
+                   == DMergeKind::incompatible);
     D_CM_CHECK((merge_has_key_conflict<DCmMap, DCmSet>::value) == false);
     D_CM_CHECK((merge_has_key_conflict<DCmMap, DCmVector>::value) == false);
     D_CM_CHECK((merge_has_key_conflict<DCmMap, int>::value) == false);
@@ -171,38 +171,38 @@ bool tests_merge_has_key_conflict_needs_keyed_merge()
     // the conjunction, re-derived
     D_CM_CHECK((merge_has_key_conflict<DCmMap, DCmMap>::value)
                    == (    ( (merge_kind_of<DCmMap, DCmMap>::value)
-                                 == merge_kind::keyed_merge )
+                                 == DMergeKind::keyed_merge )
                         && (    ( merge_discipline_of<DCmMap>::value
-                                      == merge_discipline::map )
+                                      == DMergeDiscipline::map )
                              || ( merge_discipline_of<DCmMap>::value
-                                      == merge_discipline::map ) ) ));
+                                      == DMergeDiscipline::map ) ) ));
     D_CM_CHECK((merge_has_key_conflict<DCmMultimap, DCmMultimap>::value)
                    == (    ( (merge_kind_of<DCmMultimap,
                                             DCmMultimap>::value)
-                                 == merge_kind::keyed_merge )
+                                 == DMergeKind::keyed_merge )
                         && (    ( merge_discipline_of<DCmMultimap>::value
-                                      == merge_discipline::map )
+                                      == DMergeDiscipline::map )
                              || ( merge_discipline_of<DCmMultimap>::value
-                                      == merge_discipline::map ) ) ));
+                                      == DMergeDiscipline::map ) ) ));
 
     // the conjuncts are independent: keyed without a map
     D_CM_CHECK(   ( (merge_kind_of<DCmMultimap, DCmMultimap>::value)
-                        == merge_kind::keyed_merge )
+                        == DMergeKind::keyed_merge )
                && ( (merge_has_key_conflict<DCmMultimap,
                                             DCmMultimap>::value) == false ));
 
     // ... and a map without a keyed merge
     D_CM_CHECK(   ( merge_discipline_of<DCmMap>::value
-                        == merge_discipline::map )
+                        == DMergeDiscipline::map )
                && ( (merge_kind_of<DCmMap, DCmSet>::value)
-                        != merge_kind::keyed_merge )
+                        != DMergeKind::keyed_merge )
                && ( (merge_has_key_conflict<DCmMap, DCmSet>::value)
                         == false ));
 
     // a conflict implies a keyed merge
     D_CM_CHECK(   !(merge_has_key_conflict<DCmMap, DCmMap>::value)
                || ( (merge_kind_of<DCmMap, DCmMap>::value)
-                        == merge_kind::keyed_merge ));
+                        == DMergeKind::keyed_merge ));
 
     return ok;
 }

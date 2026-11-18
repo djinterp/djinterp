@@ -164,11 +164,11 @@ NS_DJINTERP
 //  component_view
 // ================================================================
 
-// component_view
+// DComponentView
 //   struct: a lightweight, non-owning view into a character buffer. Used as
 // the component_type for string-based path policies where elements are named
 // by substrings of a string pool.
-struct component_view
+struct DComponentView
 {
     const char* data;
     std::size_t length;
@@ -179,7 +179,7 @@ struct component_view
     // count of zero, and two empty views are equal without inspecting any
     // byte.
     bool operator==(
-        const component_view& _other
+        const DComponentView& _other
     ) const
     {
         if (length != _other.length)
@@ -198,19 +198,22 @@ struct component_view
     // operator!=
     //   compares two views for byte-wise inequality.
     bool operator!=(
-        const component_view& _other
+        const DComponentView& _other
     ) const
     {
         return !(*this == _other);
     }
 };
 
+// old name, until 0.9.0-rc.1
+using component_view = DComponentView;
+
 
 // ================================================================
 //  path_address
 // ================================================================
 
-// path_address
+// DPathAddress
 //   struct: a RELATIVE address -- the (k, v) pair of the spec. k ascents from
 // the source to the meet of the two addresses, followed by the label word v
 // descending from the meet to the destination.
@@ -232,7 +235,7 @@ struct component_view
 // paths, integer keys, bit patterns, and anything else a policy names children
 // by.
 template<typename Component>
-struct path_address
+struct DPathAddress
 {
     std::size_t             up_count;
     std::vector<Component> components;
@@ -241,12 +244,16 @@ struct path_address
     // path_address (default)
     //   an INVALID address: no relation between the two nodes has been
     // established. container_path_relative sets valid explicitly.
-    path_address()
+    DPathAddress()
         : up_count(0),
           components(),
           valid(false)
     {}
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Component>
+using path_address = DPathAddress<Component>;
 
 
 // ================================================================
@@ -705,7 +712,7 @@ Index container_path_lca(
 template<typename Policy,
          typename Container,
          typename Index>
-path_address<typename Policy::component_type> container_path_relative(
+DPathAddress<typename Policy::component_type> container_path_relative(
     const Policy&    _policy,
     const Container& _container,
     Index            _from,
@@ -714,7 +721,7 @@ path_address<typename Policy::component_type> container_path_relative(
 {
     using component_type = typename Policy::component_type;
 
-    path_address<component_type> result;
+    DPathAddress<component_type> result;
 
     Index meet = container_path_lca(_policy, _container, _from, _to);
 
@@ -831,11 +838,11 @@ bool container_path_is_separating_subtree(
     Index            _root
 )
 {
-    tree_view<Policy, Container, DTreeOrder::pre> nodes(
+    DTreeView<Policy, Container, DTreeOrder::pre> nodes(
         _policy, _container, _root);
 
     // every node of the subtree must separate its own children
-    for (tree_iterator<Policy, Container, DTreeOrder::pre> it = nodes.begin();
+    for (DTreeIterator<Policy, Container, DTreeOrder::pre> it = nodes.begin();
          it != nodes.end();
          ++it)
     {
@@ -866,10 +873,10 @@ bool container_path_round_trips(
     Index            _root
 )
 {
-    tree_view<Policy, Container, DTreeOrder::pre> nodes(
+    DTreeView<Policy, Container, DTreeOrder::pre> nodes(
         _policy, _container, _root);
 
-    for (tree_iterator<Policy, Container, DTreeOrder::pre> it = nodes.begin();
+    for (DTreeIterator<Policy, Container, DTreeOrder::pre> it = nodes.begin();
          it != nodes.end();
          ++it)
     {
@@ -929,7 +936,7 @@ Index container_path_resolve(
 {
     Index current = _root;
 
-    std::vector<path_component> splits =
+    std::vector<DPathComponent> splits =
         djinterp::path_split(_path, _path_len);
 
     // fold the descent step along the parsed labels
@@ -940,7 +947,7 @@ Index container_path_resolve(
             return _policy.null_index();
         }
 
-        component_view label;
+        DComponentView label;
         label.data   = _path + splits[i].offset;
         label.length = splits[i].length;
 
@@ -987,7 +994,7 @@ std::string container_path_build_from(
     char             _sep = djinterp::path_separator
 )
 {
-    std::vector<component_view> word =
+    std::vector<DComponentView> word =
         container_path_address(_policy, _container, _anchor, _id);
 
     std::string result;
@@ -1052,7 +1059,7 @@ bool container_path_build_is_faithful(
     char             _sep = djinterp::path_separator
 )
 {
-    std::vector<component_view> word = container_path_collect(
+    std::vector<DComponentView> word = container_path_collect(
         _policy,
         _container,
         _id);
@@ -1098,7 +1105,7 @@ std::string container_path_relative_string(
     char             _sep = djinterp::path_separator
 )
 {
-    path_address<component_view> addr = container_path_relative(
+    DPathAddress<DComponentView> addr = container_path_relative(
         _policy,
         _container,
         _from,

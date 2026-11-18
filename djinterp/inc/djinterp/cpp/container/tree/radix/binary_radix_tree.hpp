@@ -90,7 +90,7 @@ NS_DJINTERP
 //  binary_radix_node
 // ==========================================================================
 
-// binary_radix_node
+// DBinaryRadixNode
 //   struct: one node. `key` is a representative of everything in its subtree
 // (they all agree on the first bit_index bits, which is exactly what makes it
 // a representative), and bit_index says how many of those bits are its
@@ -102,12 +102,12 @@ NS_DJINTERP
 template<typename Key,
          typename Value,
          typename = enable_if_binary_key<Key>>
-struct binary_radix_node
-    : public radix_node_base<binary_radix_node<Key, Value>>
+struct DBinaryRadixNode
+    : public DRadixNodeBase<DBinaryRadixNode<Key, Value>>
 {
     using key_type   = Key;
     using value_type = Value;
-    using node_type  = binary_radix_node<Key, Value>;
+    using node_type  = DBinaryRadixNode<Key, Value>;
 
     // how many bits of `key` are this node's address
     std::size_t bit_index;
@@ -116,14 +116,14 @@ struct binary_radix_node
     // bit_index bits
     Key key;
 
-    radix_terminal<Value> terminal;
+    DRadixTerminal<Value> terminal;
 
     // THE MEMBER has_radix_children PROBES FOR. It was called child_ptrs, with
     // a type alias named `children` beside it, so the trait never fired.
     node_type* children[radix_binary_branches];
 
-    binary_radix_node() D_NOEXCEPT
-        : radix_node_base<node_type>(),
+    DBinaryRadixNode() D_NOEXCEPT
+        : DRadixNodeBase<node_type>(),
           bit_index(0u),
           key(),
           terminal()
@@ -132,11 +132,11 @@ struct binary_radix_node
         children[1] = nullptr;
     }
 
-    binary_radix_node(
+    DBinaryRadixNode(
         std::size_t _bit_index,
         Key         _key
     ) D_NOEXCEPT
-        : radix_node_base<node_type>(),
+        : DRadixNodeBase<node_type>(),
           bit_index(_bit_index),
           key(_key),
           terminal()
@@ -145,8 +145,8 @@ struct binary_radix_node
         children[1] = nullptr;
     }
 
-    binary_radix_node(const binary_radix_node&)            = delete;
-    binary_radix_node& operator=(const binary_radix_node&) = delete;
+    DBinaryRadixNode(const DBinaryRadixNode&)            = delete;
+    DBinaryRadixNode& operator=(const DBinaryRadixNode&) = delete;
 
     std::size_t
     child_count() const D_NOEXCEPT
@@ -156,6 +156,12 @@ struct binary_radix_node
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Key,
+         typename Value,
+         typename O2Param3 = enable_if_binary_key<Key>>
+using binary_radix_node = DBinaryRadixNode<Key, Value, O2Param3>;
+
 
 // ==========================================================================
 //  binary_radix_tree
@@ -164,14 +170,14 @@ struct binary_radix_node
 template<typename         Key,
          typename         Value,
          std::size_t      Capacity = 0,
-         container_option Flags     = container_option::none,
+         DContainerOption Flags     = DContainerOption::none,
          typename         KeyGuard = enable_if_binary_key<Key>>
-class binary_radix_tree
+class DBinaryRadixTree
     : public radix_storage_signals<
           container_option_has(
               radix_tree_option_resolve(Flags, Capacity),
-              container_option::fixed_size),
-          binary_radix_node<Key, Value>,
+              DContainerOption::fixed_size),
+          DBinaryRadixNode<Key, Value>,
           Capacity>
 {
 private:
@@ -179,7 +185,7 @@ private:
         is_binary_key<Key>::value,
         "binary_radix_tree: Key must be an integral or pointer type.");
 
-    static D_CONSTEXPR container_option k_resolved =
+    static D_CONSTEXPR DContainerOption k_resolved =
         radix_tree_option_resolve(Flags, Capacity);
 
     static_assert(
@@ -187,21 +193,21 @@ private:
         "container_option: at most one flag per axis.");
 
     static_assert(
-        !container_option_has(k_resolved, container_option::compile_time),
+        !container_option_has(k_resolved, DContainerOption::compile_time),
         "compile_time mutability is handled by binary_radix_tree_ct.");
 
     static D_CONSTEXPR bool k_writable =
-        container_option_has(k_resolved, container_option::writable);
+        container_option_has(k_resolved, DContainerOption::writable);
     static D_CONSTEXPR bool k_immutable =
-        container_option_has(k_resolved, container_option::immutable);
+        container_option_has(k_resolved, DContainerOption::immutable);
     static D_CONSTEXPR bool k_ordered =
-        container_option_has(k_resolved, container_option::ordered);
+        container_option_has(k_resolved, DContainerOption::ordered);
     static D_CONSTEXPR bool k_unordered =
-        container_option_has(k_resolved, container_option::unordered);
+        container_option_has(k_resolved, DContainerOption::unordered);
     static D_CONSTEXPR bool k_fixed =
-        container_option_has(k_resolved, container_option::fixed_size);
+        container_option_has(k_resolved, DContainerOption::fixed_size);
     static D_CONSTEXPR bool k_dynamic =
-        container_option_has(k_resolved, container_option::dynamic_size);
+        container_option_has(k_resolved, DContainerOption::dynamic_size);
 
     // k_key_bits
     //   the length of every address in this tree. Binary keys are FIXED WIDTH,
@@ -209,7 +215,7 @@ private:
     // another: every stored key sits at bit_index == k_key_bits.
     static D_CONSTEXPR std::size_t k_key_bits = (sizeof(Key) * 8u);
 
-    using node_type = binary_radix_node<Key, Value>;
+    using node_type = DBinaryRadixNode<Key, Value>;
 
     struct fixed_node_pool
     {
@@ -239,8 +245,8 @@ public:
     using difference_type = std::ptrdiff_t;
     using size_type       = std::size_t;
 
-    using options_type = container_option;
-    static D_CONSTEXPR container_option option_flags = k_resolved;
+    using options_type = DContainerOption;
+    static D_CONSTEXPR DContainerOption option_flags = k_resolved;
 
     static D_CONSTEXPR bool        is_writable  = k_writable;
     static D_CONSTEXPR bool        is_immutable = k_immutable;
@@ -249,7 +255,7 @@ public:
     static D_CONSTEXPR bool        is_dynamic   = k_dynamic;
     static D_CONSTEXPR std::size_t key_bits     = k_key_bits;
 
-    static D_CONSTEXPR container_structure axis_structure =
+    static D_CONSTEXPR DContainerStructure axis_structure =
         radix_axis_structure;
     static D_CONSTEXPR DContainerMultiplicity axis_multiplicity =
         radix_axis_multiplicity;
@@ -306,14 +312,14 @@ public:
     //  construction
     // ------------------------------------------------------------------
 
-    binary_radix_tree()
+    DBinaryRadixTree()
         : m_store(),
           m_count(0u)
     {
         m_init_root();
     }
 
-    binary_radix_tree(const binary_radix_tree& _other)
+    DBinaryRadixTree(const DBinaryRadixTree& _other)
         : m_store(),
           m_count(0u)
     {
@@ -324,22 +330,22 @@ public:
         m_count = _other.m_count;
     }
 
-    binary_radix_tree(binary_radix_tree&& _other) D_NOEXCEPT
+    DBinaryRadixTree(DBinaryRadixTree&& _other) D_NOEXCEPT
         : m_store(),
           m_count(0u)
     {
         m_init_root();
 
-        m_move_from(static_cast<binary_radix_tree&&>(_other));
+        m_move_from(static_cast<DBinaryRadixTree&&>(_other));
     }
 
-    ~binary_radix_tree()
+    ~DBinaryRadixTree()
     {
         m_destroy_all();
     }
 
-    binary_radix_tree&
-    operator=(const binary_radix_tree& _other)
+    DBinaryRadixTree&
+    operator=(const DBinaryRadixTree& _other)
     {
         if (this != &_other)
         {
@@ -355,8 +361,8 @@ public:
         return *this;
     }
 
-    binary_radix_tree&
-    operator=(binary_radix_tree&& _other) D_NOEXCEPT
+    DBinaryRadixTree&
+    operator=(DBinaryRadixTree&& _other) D_NOEXCEPT
     {
         if (this != &_other)
         {
@@ -364,7 +370,7 @@ public:
 
             m_count = 0u;
 
-            m_move_from(static_cast<binary_radix_tree&&>(_other));
+            m_move_from(static_cast<DBinaryRadixTree&&>(_other));
         }
 
         return *this;
@@ -557,17 +563,17 @@ public:
     // tree's insert takes (key, value) -- two arguments -- so the probe cannot
     // fire. The container was therefore claiming it admits DUPLICATE KEYS. It
     // cannot: the key IS the address, one node per address, and insert
-    // OVERWRITES. m = 1. The static `multiplicity` constant is the documented
+    // OVERWRITES. m = 1. The static `DMultiplicity` constant is the documented
     // authoritative override for exactly this -- a bound with no structural
     // tell.
     static D_CONSTEXPR std::size_t multiplicity = 1u;
 
-    // STRUCTURE. structure_kind_of said `flat`. has_node_summand wants a
+    // STRUCTURE. structure_kind_of said `DFlat`. has_node_summand wants a
     // node_type that is ITSELF container-shaped, and container_depth walks the
     // value_type chain -- which here is just Value, so depth 1. Neither probe
     // can see that a TRIE NESTS. This is precisely what the hierarchical tag
     // is documented for: "asserts nesting the chain cannot expose".
-    using structure_category = hierarchical;
+    using structure_category = DHierarchical;
 
     // ------------------------------------------------------------------
     //  ITERATION  --  address order is numeric order
@@ -783,7 +789,7 @@ private:
 
         r.bit_index   = 0u;
         r.key         = key_type();
-        r.terminal    = radix_terminal<Value>();
+        r.terminal    = DRadixTerminal<Value>();
         r.is_terminal = false;
         r.parent      = nullptr;
         r.children[0] = nullptr;
@@ -826,7 +832,7 @@ private:
 
                 n.bit_index   = _bit_index;
                 n.key         = _key;
-                n.terminal    = radix_terminal<Value>();
+                n.terminal    = DRadixTerminal<Value>();
                 n.is_terminal = false;
                 n.parent      = nullptr;
                 n.children[0] = nullptr;
@@ -874,7 +880,7 @@ private:
             return;
         }
 
-        _node->terminal    = radix_terminal<Value>();
+        _node->terminal    = DRadixTerminal<Value>();
         _node->is_terminal = false;
         _node->parent      = nullptr;
         _node->children[0] = nullptr;
@@ -972,7 +978,7 @@ private:
     }
 
     void
-    m_move_from(binary_radix_tree&& _other)
+    m_move_from(DBinaryRadixTree&& _other)
     {
         m_move_children_impl(
             _other.m_root_ptr(), m_root_ptr(), _other,
@@ -988,7 +994,7 @@ private:
     m_move_children_impl(
         node_type*         _src,
         node_type*         _dst,
-        binary_radix_tree& /*_other*/,
+        DBinaryRadixTree& /*_other*/,
         std::true_type     /*fixed: in-object, cannot steal*/
     )
     {
@@ -999,7 +1005,7 @@ private:
     m_move_children_impl(
         node_type*         _src,
         node_type*         _dst,
-        binary_radix_tree& _other,
+        DBinaryRadixTree& _other,
         std::false_type    /*dynamic: steal*/
     )
     {
@@ -1270,6 +1276,14 @@ private:
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename         Key,
+         typename         Value,
+         std::size_t      Capacity = 0,
+         DContainerOption Flags     = DContainerOption::none,
+         typename         KeyGuard = enable_if_binary_key<Key>>
+using binary_radix_tree = DBinaryRadixTree<Key, Value, Capacity, Flags, KeyGuard>;
+
 
 // ==========================================================================
 //  named subtypes
@@ -1277,26 +1291,41 @@ private:
 
 template<typename Key,
          typename Value>
-using dyn_binary_radix_tree =
-    binary_radix_tree<Key, Value, 0,
-                      container_option::writable |
-                      container_option::dynamic_size>;
+using DDynBinaryRadixTree =
+    DBinaryRadixTree<Key, Value, 0,
+                      DContainerOption::writable |
+                      DContainerOption::dynamic_size>;
+
+// old name, until 0.9.0-rc.1
+template<typename Key,
+         typename Value>
+using dyn_binary_radix_tree = DDynBinaryRadixTree<Key, Value>;
 
 template<typename    Key,
          typename    Value,
          std::size_t Capacity>
-using fixed_binary_radix_tree =
-    binary_radix_tree<Key, Value, Capacity,
-                      container_option::writable |
-                      container_option::fixed_size>;
+using DFixedBinaryRadixTree =
+    DBinaryRadixTree<Key, Value, Capacity,
+                      DContainerOption::writable |
+                      DContainerOption::fixed_size>;
 
-// ip_radix_tree
+// old name, until 0.9.0-rc.1
+template<typename    Key,
+         typename    Value,
+         std::size_t Capacity>
+using fixed_binary_radix_tree = DFixedBinaryRadixTree<Key, Value, Capacity>;
+
+// DIpRadixTree
 //   a routing-table-shaped tree over 32-bit addresses.
 template<typename Value>
-using ip_radix_tree =
-    binary_radix_tree<re_std::uint32_t, Value, 0,
-                      container_option::writable |
-                      container_option::dynamic_size>;
+using DIpRadixTree =
+    DBinaryRadixTree<re_std::uint32_t, Value, 0,
+                      DContainerOption::writable |
+                      DContainerOption::dynamic_size>;
+
+// old name, until 0.9.0-rc.1
+template<typename Value>
+using ip_radix_tree = DIpRadixTree<Value>;
 
 
 NS_END  // djinterp

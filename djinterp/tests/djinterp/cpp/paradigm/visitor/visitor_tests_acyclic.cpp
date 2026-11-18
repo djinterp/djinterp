@@ -54,7 +54,7 @@ namespace
     // without knowing it exists.  Under the classic form this could not be
     // written at all without editing the visitor's element list; that it can be
     // written here at all is the acyclicity.
-    class late_element : public acyclic_visitable<>
+    class late_element : public DAcyclicVisitable<>
     {
     public:
         int seen;
@@ -70,7 +70,7 @@ namespace
     //   fixture: a visitor for the late element, likewise introduced without
     // touching anything that already existed.
     class late_visitor : public acyclic_visitor,
-                         public visitor_of<late_element>
+                         public DVisitorOf<late_element>
     {
     public:
         int lates;
@@ -129,15 +129,15 @@ tests_visitor_of_is_abstract
 */
 bool tests_visitor_of_is_abstract()
 {
-    static_assert(std::is_abstract<visitor_of<acyclic_circle> >::value,
+    static_assert(std::is_abstract<DVisitorOf<acyclic_circle> >::value,
                   "visit() is pure virtual");
-    static_assert(std::is_abstract<visitor_of<scored_node, int> >::value,
+    static_assert(std::is_abstract<DVisitorOf<scored_node, int> >::value,
                   "for a non-void return type too");
-    static_assert(std::is_polymorphic<visitor_of<acyclic_circle> >::value,
+    static_assert(std::is_polymorphic<DVisitorOf<acyclic_circle> >::value,
                   "and the dynamic_cast target must be polymorphic");
 
     static_assert(!std::is_base_of<acyclic_visitor,
-                                   visitor_of<acyclic_circle> >::value,
+                                   DVisitorOf<acyclic_circle> >::value,
                   "the per-type interface is INDEPENDENT of the root -- a visitor "
                   "mixes in whichever subset it wants");
 
@@ -155,15 +155,15 @@ tests_visitor_of_return_type_typedef
 */
 bool tests_visitor_of_return_type_typedef()
 {
-    static_assert(std::is_same<visitor_of<scored_node, int>::return_type,
+    static_assert(std::is_same<DVisitorOf<scored_node, int>::return_type,
                                int>::value,
                   "return_type is R");
-    static_assert(std::is_same<visitor_of<acyclic_circle, void>::return_type,
+    static_assert(std::is_same<DVisitorOf<acyclic_circle, void>::return_type,
                                void>::value,
                   "including void");
 
-    static_assert(!std::is_same<visitor_of<scored_node, int>,
-                                visitor_of<scored_node, void> >::value,
+    static_assert(!std::is_same<DVisitorOf<scored_node, int>,
+                                DVisitorOf<scored_node, void> >::value,
                   "R is part of the interface's identity");
 
     return true;
@@ -181,11 +181,11 @@ tests_visitor_of_default_return_type_is_void
 */
 bool tests_visitor_of_default_return_type_is_void()
 {
-    static_assert(std::is_same<visitor_of<acyclic_circle>,
-                               visitor_of<acyclic_circle, void> >::value,
+    static_assert(std::is_same<DVisitorOf<acyclic_circle>,
+                               DVisitorOf<acyclic_circle, void> >::value,
                   "the default R is void");
 
-    static_assert(std::is_base_of<visitor_of<acyclic_circle, void>,
+    static_assert(std::is_base_of<DVisitorOf<acyclic_circle, void>,
                                   round_visitor>::value,
                   "and that is the interface the element's macro searches for");
 
@@ -209,14 +209,14 @@ tests_acyclic_visitable_default_is_void
 */
 bool tests_acyclic_visitable_default_is_void()
 {
-    static_assert(std::is_same<acyclic_visitable<>,
-                               acyclic_visitable<void> >::value,
+    static_assert(std::is_same<DAcyclicVisitable<>,
+                               DAcyclicVisitable<void> >::value,
                   "the defaulted and explicit void spellings are one type");
 
-    static_assert(std::is_base_of<acyclic_visitable<void>,
+    static_assert(std::is_base_of<DAcyclicVisitable<void>,
                                   acyclic_circle>::value,
                   "and elements really derive from it");
-    static_assert(std::is_base_of<acyclic_visitable<>, acyclic_rect>::value,
+    static_assert(std::is_base_of<DAcyclicVisitable<>, acyclic_rect>::value,
                   "via either spelling");
 
     // and it is usable: an element of it constructs, accepts and dispatches
@@ -237,13 +237,13 @@ tests_acyclic_visitable_return_type_typedef
 */
 bool tests_acyclic_visitable_return_type_typedef()
 {
-    static_assert(std::is_same<acyclic_visitable<>::return_type, void>::value,
+    static_assert(std::is_same<DAcyclicVisitable<>::return_type, void>::value,
                   "the default return type is void");
-    static_assert(std::is_same<acyclic_visitable<int>::return_type, int>::value,
+    static_assert(std::is_same<DAcyclicVisitable<int>::return_type, int>::value,
                   "and a value type is carried through");
 
-    static_assert(std::is_same<acyclic_visitable<int>::return_type,
-                               visitor_of<scored_node, int>::return_type>::value,
+    static_assert(std::is_same<DAcyclicVisitable<int>::return_type,
+                               DVisitorOf<scored_node, int>::return_type>::value,
                   "element and per-type interface agree on R");
 
     return true;
@@ -259,9 +259,9 @@ tests_acyclic_visitable_is_abstract
 */
 bool tests_acyclic_visitable_is_abstract()
 {
-    static_assert(std::is_abstract<acyclic_visitable<> >::value,
+    static_assert(std::is_abstract<DAcyclicVisitable<> >::value,
                   "accept() is pure virtual");
-    static_assert(std::is_abstract<acyclic_visitable<int> >::value,
+    static_assert(std::is_abstract<DAcyclicVisitable<int> >::value,
                   "for every return type");
 
     static_assert(!std::is_abstract<acyclic_circle>::value,
@@ -302,7 +302,7 @@ bool tests_d_acyclic_visitable_dispatches_to_the_matching_interface()
     ok = ok && (r.seen == 1);
 
     // and through the element root, whose static type carries no element identity
-    acyclic_visitable<>* elem = &c;
+    DAcyclicVisitable<>* elem = &c;
 
     elem->accept(v);
 
@@ -477,7 +477,7 @@ tests_acyclic_visitor_is_decoupled_from_the_element_set
 bool tests_acyclic_visitor_is_decoupled_from_the_element_set()
 {
     // the root names no element type: that is the whole trick
-    static_assert(!std::is_base_of<visitor_of<acyclic_circle>,
+    static_assert(!std::is_base_of<DVisitorOf<acyclic_circle>,
                                    acyclic_visitor>::value,
                   "the root knows no element type");
 
@@ -538,7 +538,7 @@ bool tests_acyclic_visitor_accumulates_across_a_traversal()
     acyclic_tri    t1;     // unhandled
     acyclic_tri    t2;     // unhandled
 
-    acyclic_visitable<>* elems[5];
+    DAcyclicVisitable<>* elems[5];
 
     elems[0] = &c1;
     elems[1] = &t1;

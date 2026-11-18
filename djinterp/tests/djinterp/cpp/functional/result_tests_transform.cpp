@@ -32,7 +32,7 @@ NS_DJINTERP
 NS_TESTING
 
 
-using ri = result<int, std::string>;
+using ri = DResult<int, std::string>;
 
 
 bool test_map()
@@ -41,19 +41,19 @@ bool test_map()
 
     // ok: function applied
     ri ok_in = ok<int, std::string>(5);
-    result<int, std::string> doubled = ok_in.map(DFnDouble());
+    DResult<int, std::string> doubled = ok_in.map(DFnDouble());
     record_assertion(verdict, doubled.is_ok() && doubled.value() == 10,
         "map: applies to the ok value");
 
     // err: error propagates unchanged, value type still changes
     ri err_in = err<int, std::string>("bad");
-    result<int, std::string> mapped_err = err_in.map(DFnDouble());
+    DResult<int, std::string> mapped_err = err_in.map(DFnDouble());
     record_assertion(verdict,
         mapped_err.is_err() && mapped_err.error() == "bad",
         "map: propagates the error unchanged");
 
     // type-changing map (int -> std::string)
-    result<std::string, std::string> as_str = ok_in.map(fn_to_string());
+    DResult<std::string, std::string> as_str = ok_in.map(fn_to_string());
     record_assertion(verdict, as_str.is_ok() && as_str.value() == "5",
         "map: changes the value type");
 
@@ -67,18 +67,18 @@ bool test_map_err()
 
     // err: function applied, type-changing (std::string -> std::size_t)
     ri err_in = err<int, std::string>("hello");
-    result<int, std::size_t> mapped = err_in.map_err(DFnErrLen());
+    DResult<int, std::size_t> mapped = err_in.map_err(DFnErrLen());
     record_assertion(verdict, mapped.is_err() && mapped.error() == 5u,
         "map_err: transforms the error side");
 
     // ok: value propagates unchanged
     ri ok_in = ok<int, std::string>(3);
-    result<int, std::size_t> ok_through = ok_in.map_err(DFnErrLen());
+    DResult<int, std::size_t> ok_through = ok_in.map_err(DFnErrLen());
     record_assertion(verdict, ok_through.is_ok() && ok_through.value() == 3,
         "map_err: propagates the ok value unchanged");
 
     // same-type error transform
-    result<int, std::string> tagged = err_in.map_err(DFnErrPrefix());
+    DResult<int, std::string> tagged = err_in.map_err(DFnErrPrefix());
     record_assertion(verdict, tagged.is_err() && tagged.error() == "E:hello",
         "map_err: same-type error transform");
 

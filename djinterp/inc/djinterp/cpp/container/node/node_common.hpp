@@ -622,28 +622,10 @@ struct has_right_method<N,
     D_CONSTEXPR bool has_right_method_v = has_right_method<N>::value;
 #endif
 
-// has_parent_method
-//   trait: evaluates to true if N has a callable `parent()` method.
-template<typename N,
-         typename = void>
-struct has_parent_method : std::false_type
-{};
-
-// has_parent_method<N, void_t<decltype(std::declval<N>().parent())>>
-//   trait: the `void_t<decltype(std::declval<N>().parent())>` case; it
-// reports true.
-template<typename N>
-struct has_parent_method<N,
-    void_t<decltype(std::declval<N>().parent())>>
-    : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    // has_parent_method_v
-    //   variable template: value of has_parent_method<N>.
-    template<typename N>
-    D_CONSTEXPR bool has_parent_method_v = has_parent_method<N>::value;
-#endif
+// has_parent_method (and has_parent_method_v)
+//   trait: in node_container_traits.hpp, with the other tree probes, since
+// decision W5 made container_traits' has_parent_accessor its alias. The
+// question is unchanged: a callable parent() on an N rvalue.
 
 // has_next_method
 //   trait: evaluates to true if N has a callable `next()` method.

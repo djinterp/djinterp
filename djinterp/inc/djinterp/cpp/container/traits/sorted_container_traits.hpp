@@ -116,9 +116,9 @@ NS_END  // internal
 // II.  Sortedness classification
 // ===========================================================================
 
-// sortedness
+// DSortedness
 //   enum: a container's position on the sortedness axis.
-enum class sortedness
+enum class DSortedness
 {
     non_container,    // not an (iterable) container
     unordered,        // unordered, no comparator: sortedness not applicable
@@ -127,17 +127,20 @@ enum class sortedness
     sorted            // ordered AND guaranteed in comparator order (interval / opt-in)
 };
 
+// old name, until 0.9.0-rc.1
+using sortedness = DSortedness;
+
 // sortedness_name
 //   function: a stable spelling, for diagnostics and agent-facing summaries.
 constexpr
 const char* sortedness_name(
-    sortedness _s
+    DSortedness _s
 ) noexcept
 {
-    return ( _s == sortedness::non_container   ? "non_container"
-           : _s == sortedness::unordered       ? "unordered"
-           : _s == sortedness::monotone        ? "monotone"
-           : _s == sortedness::order_dependent ? "order_dependent"
+    return ( _s == DSortedness::non_container   ? "non_container"
+           : _s == DSortedness::unordered       ? "unordered"
+           : _s == DSortedness::monotone        ? "monotone"
+           : _s == DSortedness::order_dependent ? "order_dependent"
            :                                     "sorted" );
 }
 
@@ -153,19 +156,19 @@ private:
     using clean_type = clean_t<Type>;
 
 public:
-    static constexpr sortedness value =
+    static constexpr DSortedness value =
         ( is_unordered_container<clean_type>::value )
               ? ( internal::has_key_compare_helper<clean_type>::value
-                      ? sortedness::monotone
-                      : sortedness::unordered )
+                      ? DSortedness::monotone
+                      : DSortedness::unordered )
       : ( is_ordered_container<clean_type>::value )
               ? ( (    internal::has_interval_bounds_helper<clean_type>::value
                     || internal::sorted_invariant_helper<clean_type>::value )
-                      ? sortedness::sorted
-                      : sortedness::order_dependent )
-      :         sortedness::non_container;
+                      ? DSortedness::sorted
+                      : DSortedness::order_dependent )
+      :         DSortedness::non_container;
 
-    using type = std::integral_constant<sortedness, value>;
+    using type = std::integral_constant<DSortedness, value>;
 };
 
 // sortedness_of_t / sortedness_of_v
@@ -176,11 +179,11 @@ using sortedness_of_t = typename sortedness_of<Type>::type;
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename Type>
-    inline constexpr sortedness sortedness_of_v =
+    inline constexpr DSortedness sortedness_of_v =
         sortedness_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    constexpr sortedness sortedness_of_v =
+    constexpr DSortedness sortedness_of_v =
         sortedness_of<Type>::value;
 #endif
 
@@ -196,7 +199,7 @@ using sortedness_of_t = typename sortedness_of<Type>::type;
 template<typename Type>
 struct is_sorted_container
     : std::integral_constant<bool,
-          sortedness_of<clean_t<Type>>::value == sortedness::sorted>
+          sortedness_of<clean_t<Type>>::value == DSortedness::sorted>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_sorted_container)
@@ -215,8 +218,8 @@ D_TYPE_TRAIT_VALUE_BOOL(is_sorted_container)
 template<typename Type>
 struct is_unsorted_container
     : std::integral_constant<bool,
-             sortedness_of<clean_t<Type>>::value != sortedness::non_container
-          && sortedness_of<clean_t<Type>>::value != sortedness::sorted>
+             sortedness_of<clean_t<Type>>::value != DSortedness::non_container
+          && sortedness_of<clean_t<Type>>::value != DSortedness::sorted>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_unsorted_container)
@@ -227,7 +230,7 @@ D_TYPE_TRAIT_VALUE_BOOL(is_unsorted_container)
 template<typename Type>
 struct is_monotone_container
     : std::integral_constant<bool,
-          sortedness_of<clean_t<Type>>::value == sortedness::monotone>
+          sortedness_of<clean_t<Type>>::value == DSortedness::monotone>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_monotone_container)
@@ -270,7 +273,7 @@ public:
     static constexpr bool sorted_invariant =
         internal::sorted_invariant_helper<clean_type>::value;
 
-    static constexpr sortedness kind =
+    static constexpr DSortedness kind =
         sortedness_of<clean_type>::value;
     static constexpr const char* kind_name =
         sortedness_name(kind);

@@ -139,20 +139,30 @@ D_TYPE_TRAIT_TRUE(has_entry_point_method,
 D_TYPE_TRAIT_TRUE(has_root_method,
     decltype(std::declval<const Type&>().root()))
 
-// has_root_member_method
+// has_has_root_method
 //   trait: true if Type has a has_root() method.
-D_TYPE_TRAIT_TRUE(has_root_member_method,
+D_TYPE_TRAIT_TRUE(has_has_root_method,
     decltype(std::declval<const Type&>().has_root()))
 
-// has_has_root_method
-//   trait: has_root_member_method under the name arena_tree_traits.hpp gave
-// the same check; both names are this one probe (decision L1). The O2 rename
-// table settles which name stays.
-template<typename Type>
-struct has_has_root_method : has_root_member_method<Type>
+// has_root_member_method
+//   trait: has_has_root_method under its older name. The trait engine's
+// has_<method>_method names are canonical (decision W5).
+// old name, until 0.9.0-rc.1
+template<typename Type,
+         typename = void>
+struct has_root_member_method : has_has_root_method<Type>
 {};
 
-D_TYPE_TRAIT_VALUE_BOOL(has_has_root_method)
+D_TYPE_TRAIT_VALUE_BOOL(has_root_member_method)
+
+// has_parent_method
+//   trait: true if Type has a callable parent() method, asked of a Type
+// rvalue; has_parent_method<const T&> asks it of a const object. It lives
+// here, with the other tree probes (decision L1), so that container_traits'
+// has_parent_accessor can be its alias (decision W5); node_common.hpp, where
+// it was, reaches it through its includes.
+D_TYPE_TRAIT_TRUE(has_parent_method,
+    decltype(std::declval<Type>().parent()))
 
 // has_head_method
 //   trait: true if Type has a head() method.
@@ -296,9 +306,9 @@ enum class DOwnershipModel : re_std::uint8_t
 // on the container itself). std::is_same needs only the names, not the
 // complete types. These MUST name the same djinterp-scope types defined in
 // node_container.hpp.
-struct unique_owning_policy;
-struct shared_owning_policy;
-struct non_owning_policy;
+struct DUniqueOwningPolicy;
+struct DSharedOwningPolicy;
+struct DNonOwningPolicy;
 
 
 NS_INTERNAL
@@ -323,17 +333,17 @@ NS_INTERNAL
 
         static constexpr DOwnershipModel value =
             std::is_same<policy,
-                         unique_owning_policy
+                         DUniqueOwningPolicy
             >::value
                 ? DOwnershipModel::unique
 
             : std::is_same<policy,
-                           shared_owning_policy
+                           DSharedOwningPolicy
               >::value
                 ? DOwnershipModel::shared
 
             : std::is_same<policy,
-                           non_owning_policy
+                           DNonOwningPolicy
               >::value
                 ? DOwnershipModel::non_owning
 

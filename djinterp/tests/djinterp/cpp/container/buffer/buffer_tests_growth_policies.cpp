@@ -37,19 +37,19 @@ bool tests_fixed_growth_policy()
 {
     bool ok = true;
 
-    using policy = fixed_growth_policy;
+    using policy = DFixedGrowthPolicy;
 
     // --- constants ---
 
     static_assert(
-        policy::strategy == buffer_growth_strategy::none,
+        policy::strategy == DBufferGrowthStrategy::none,
         "fixed_growth_policy::strategy must be ::none.");
     static_assert(
         policy::can_grow == false,
         "fixed_growth_policy::can_grow must be false.");
 
     record_assertion(ok,
-        policy::strategy == buffer_growth_strategy::none,
+        policy::strategy == DBufferGrowthStrategy::none,
         "fixed_growth_policy::strategy == buffer_growth_strategy::none");
 
     record_assertion(ok,
@@ -124,7 +124,7 @@ bool tests_linear_growth_policy()
     // --- constants ---
 
     static_assert(
-        default_policy::strategy == buffer_growth_strategy::linear,
+        default_policy::strategy == DBufferGrowthStrategy::linear,
         "linear_growth_policy::strategy must be ::linear.");
     static_assert(
         default_policy::can_grow == true,
@@ -140,7 +140,7 @@ bool tests_linear_growth_policy()
         "linear_growth_policy<1>::increment must be 1.");
 
     record_assertion(ok,
-        default_policy::strategy == buffer_growth_strategy::linear,
+        default_policy::strategy == DBufferGrowthStrategy::linear,
         "linear: strategy == ::linear");
 
     record_assertion(ok,
@@ -234,12 +234,12 @@ bool tests_exponential_growth_policy()
 {
     bool ok = true;
 
-    using policy = exponential_growth_policy;
+    using policy = DExponentialGrowthPolicy;
 
     // --- constants ---
 
     static_assert(
-        policy::strategy == buffer_growth_strategy::exponential,
+        policy::strategy == DBufferGrowthStrategy::exponential,
         "exponential_growth_policy::strategy must be ::exponential.");
     static_assert(
         policy::can_grow == true,
@@ -249,7 +249,7 @@ bool tests_exponential_growth_policy()
         "exponential_growth_policy::min_capacity must be 64.");
 
     record_assertion(ok,
-        policy::strategy == buffer_growth_strategy::exponential,
+        policy::strategy == DBufferGrowthStrategy::exponential,
         "exponential: strategy == ::exponential");
 
     record_assertion(ok,
@@ -354,7 +354,7 @@ bool tests_page_growth_policy()
     // --- constants ---
 
     static_assert(
-        default_policy::strategy == buffer_growth_strategy::page_aligned,
+        default_policy::strategy == DBufferGrowthStrategy::page_aligned,
         "page_growth_policy::strategy must be ::page_aligned.");
     static_assert(
         default_policy::can_grow == true,
@@ -367,7 +367,7 @@ bool tests_page_growth_policy()
         "page_growth_policy<16>::page_size must be 16.");
 
     record_assertion(ok,
-        default_policy::strategy == buffer_growth_strategy::page_aligned,
+        default_policy::strategy == DBufferGrowthStrategy::page_aligned,
         "page: strategy == ::page_aligned");
 
     record_assertion(ok,

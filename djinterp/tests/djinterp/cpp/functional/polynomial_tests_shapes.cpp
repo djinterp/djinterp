@@ -37,8 +37,8 @@ bool tests_poly_constant_t()
                                int>::value,
                   "poly_constant_t<int>");
     static_assert(std::is_same<
-                      poly_constant_t<poly_var<int> >::constant_type,
-                      poly_var<int> >::value,
+                      poly_constant_t<DPolyVar<int> >::constant_type,
+                      DPolyVar<int> >::value,
                   "poly_constant_t of a carrier");
 
     return true;
@@ -75,11 +75,11 @@ tests_poly_sum_t
 */
 bool tests_poly_sum_t()
 {
-    typedef poly_sum_t<poly_var<int>, poly_unit<int> > s;
+    typedef poly_sum_t<DPolyVar<int>, DPolyUnit<int> > s;
 
-    static_assert(std::is_same<s::left,  poly_var<int> >::value,
+    static_assert(std::is_same<s::left,  DPolyVar<int> >::value,
                   "poly_sum_t left");
-    static_assert(std::is_same<s::right, poly_unit<int> >::value,
+    static_assert(std::is_same<s::right, DPolyUnit<int> >::value,
                   "poly_sum_t right");
 
     return true;
@@ -99,26 +99,26 @@ bool tests_poly_product_t()
     // children is the variant tuple.
     static_assert(
         std::is_same<
-            poly_product_t<poly_var<int>, poly_unit<int> >::children,
-            std::tuple<poly_var<int>, poly_unit<int> > >::value,
+            poly_product_t<DPolyVar<int>, DPolyUnit<int> >::children,
+            std::tuple<DPolyVar<int>, DPolyUnit<int> > >::value,
         "poly_product_t children");
 
     // arity mirrors the pack size (and is a constant expression).
     static_assert(poly_product_t<>::arity == 0u,
                   "arity 0");
-    static_assert(poly_product_t<poly_var<int> >::arity == 1u,
+    static_assert(poly_product_t<DPolyVar<int> >::arity == 1u,
                   "arity 1");
-    static_assert(poly_product_t<poly_var<int>, poly_unit<int> >::arity == 2u,
+    static_assert(poly_product_t<DPolyVar<int>, DPolyUnit<int> >::arity == 2u,
                   "arity 2");
     static_assert(
-        poly_product_t<poly_var<int>, poly_unit<int>,
-                       poly_const<char, int> >::arity == 3u,
+        poly_product_t<DPolyVar<int>, DPolyUnit<int>,
+                       DPolyConst<char, int> >::arity == 3u,
         "arity 3");
 
     // usable as a constant expression at runtime too.
     bool ok = true;
     const std::size_t n =
-        poly_product_t<poly_var<int>, poly_unit<int> >::arity;
+        poly_product_t<DPolyVar<int>, DPolyUnit<int> >::arity;
     ok = ok && (n == 2u);
 
     return ok;
@@ -133,11 +133,11 @@ tests_poly_compose_t
 */
 bool tests_poly_compose_t()
 {
-    typedef poly_compose_t<poly_var<int>, poly_unit<int> > c;
+    typedef poly_compose_t<DPolyVar<int>, DPolyUnit<int> > c;
 
-    static_assert(std::is_same<c::outer, poly_var<int> >::value,
+    static_assert(std::is_same<c::outer, DPolyVar<int> >::value,
                   "poly_compose_t outer");
-    static_assert(std::is_same<c::inner, poly_unit<int> >::value,
+    static_assert(std::is_same<c::inner, DPolyUnit<int> >::value,
                   "poly_compose_t inner");
 
     return true;
@@ -153,8 +153,8 @@ tests_poly_mu_t
 bool tests_poly_mu_t()
 {
     static_assert(
-        std::is_same<poly_mu_t<poly_var<int> >::functor,
-                     poly_var<int> >::value,
+        std::is_same<poly_mu_t<DPolyVar<int> >::functor,
+                     DPolyVar<int> >::value,
         "poly_mu_t functor");
 
     return true;

@@ -18,7 +18,7 @@
 *   `DAtomicArray<Options...>` follows the framework
 * options-container contract: a single template parameter pack.
 * Element type and extent are read from the same option keys that
-* drive `array<>`; the lifetime / iterability axes are honoured
+* drive `DArray<>`; the lifetime / iterability axes are honoured
 * but in practice DAtomicArray is always lock-free-mutable
 * (an immutable DAtomicArray is a contradiction).  No lock policy
 * is consumed - if a lock-policy option appears in the pack, it is
@@ -396,7 +396,7 @@ NS_END  // djinterp
 
 NS_DJINTERP namespace internal { namespace atomic_array_verify {
 
-    using aa = DAtomicArray<array_opt_type<int>, DArrayOptExtent<16>>;
+    using aa = DAtomicArray<DArrayOptType<int>, DArrayOptExtent<16>>;
 
     // structural axes - must hold
     static_assert(

@@ -92,13 +92,13 @@ tests_opt_in_member_reads_declared_value
 bool tests_opt_in_member_reads_declared_value()
 {
     D_LT_CHECK(internal::lifetime_category_member<opt_ct>::value ==
-               lifetime::compile_time);
+               DLifetime::compile_time);
     D_LT_CHECK(internal::lifetime_category_member<opt_rt>::value ==
-               lifetime::runtime);
+               DLifetime::runtime);
     D_LT_CHECK(internal::lifetime_category_member<opt_both>::value ==
-               lifetime::both);
+               DLifetime::both);
     D_LT_CHECK(internal::lifetime_category_member<opt_none>::value ==
-               lifetime::none);
+               DLifetime::none);
 
     return true;
 }

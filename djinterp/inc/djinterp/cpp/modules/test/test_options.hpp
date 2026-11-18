@@ -1257,7 +1257,7 @@ using choice = val_t<Value>;
 
 // text
 //   alias: a string payload, carried as the authored fixed_string itself.
-template<fixed_string Str>
+template<DFixedString Str>
 using text = val_t<Str>;
 
 
@@ -1295,7 +1295,7 @@ using DDocument = option<test_option::document, choice<Doc>>;
 
 // DFormatTest
 //   type: set the per-test line template for the matching tests.
-template<fixed_string Fmt>
+template<DFixedString Fmt>
 using DFormatTest = option<test_option::format_test, text<Fmt>>;
 
 // destination_
@@ -1345,17 +1345,17 @@ using DNoTest = option<test_match::none>;
 
 // DNameIs
 //   type: matches a node whose name equals Name.
-template<fixed_string Name>
+template<DFixedString Name>
 using DNameIs = option<test_match::name_eq, text<Name>>;
 
 // name_has
 //   type: matches a node whose name contains Needle.
-template<fixed_string Needle>
+template<DFixedString Needle>
 using name_has = option<test_match::name_has, text<Needle>>;
 
 // name_re
 //   type: matches a node whose name satisfies the regex Pattern.
-template<fixed_string Pattern>
+template<DFixedString Pattern>
 using name_re = option<test_match::name_re, text<Pattern>>;
 
 // kind_is
@@ -1370,7 +1370,7 @@ using status_is = option<test_match::status_is, choice<Status>>;
 
 // DTagIs
 //   type: matches a node carrying the tag Tag.
-template<fixed_string Tag>
+template<DFixedString Tag>
 using DTagIs = option<test_match::tag_has, text<Tag>>;
 
 // all_of
@@ -1451,7 +1451,7 @@ NS_INTERNAL
         static DTestPredicate go() { return match_none(); }
     };
 
-    template<fixed_string Name>
+    template<DFixedString Name>
     struct lower_predicate_helper<option<test_match::name_eq, val_t<Name>>>
     {
         static
@@ -1461,7 +1461,7 @@ NS_INTERNAL
         }
     };
 
-    template<fixed_string Needle>
+    template<DFixedString Needle>
     struct lower_predicate_helper<option<test_match::name_has, val_t<Needle>>>
     {
         static
@@ -1471,7 +1471,7 @@ NS_INTERNAL
         }
     };
 
-    template<fixed_string Pattern>
+    template<DFixedString Pattern>
     struct lower_predicate_helper<option<test_match::name_re, val_t<Pattern>>>
     {
         static
@@ -1493,7 +1493,7 @@ NS_INTERNAL
         static DTestPredicate go() { return match_status(Status); }
     };
 
-    template<fixed_string Tag>
+    template<DFixedString Tag>
     struct lower_predicate_helper<option<test_match::tag_has, val_t<Tag>>>
     {
         static
@@ -1622,7 +1622,7 @@ NS_INTERNAL
         }
     };
 
-    template<fixed_string Fmt>
+    template<DFixedString Fmt>
     struct DApplyRouteOverrideHelper<option<test_option::format_test, val_t<Fmt>>>
     {
         static

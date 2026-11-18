@@ -88,7 +88,7 @@ VII.  Convenience Aliases
 
 
 // D_KEYWORD_ARENA
-//   keyword: resolves to `arena`.
+//   keyword: resolves to `DNodeArena`.
 #ifndef D_KEYWORD_ARENA
     #define D_KEYWORD_ARENA             arena
 #endif
@@ -128,11 +128,11 @@ D_CONSTEXPR node_id null_node = ~node_id(0);
 //       tree_link::next_sibling |
 //       tree_link::parent;
 
-// tree_link
+// DTreeLink
 //   struct: named constants for link flag bits. Using a
 // struct of constants rather than an enum to allow free bitwise combination
 // without casts.
-struct tree_link
+struct DTreeLink
 {
     static D_CONSTEXPR unsigned first_child   = 1u;
     static D_CONSTEXPR unsigned next_sibling  = 2u;
@@ -144,6 +144,9 @@ struct tree_link
     static D_CONSTEXPR unsigned left          = 32u;
     static D_CONSTEXPR unsigned right         = 64u;
 };
+
+// old name, until 0.9.0-rc.1
+using tree_link = DTreeLink;
 
 
 // ===========================================================================
@@ -160,24 +163,24 @@ struct tree_link
 // flag bit = index 0).
 
 template<unsigned Flags>
-struct tree_link_policy
+struct DTreeLinkPolicy
 {
     // --- flag queries ---
 
     static D_CONSTEXPR bool has_first_child  =
-        ((Flags & tree_link::first_child)  != 0);
+        ((Flags & DTreeLink::first_child)  != 0);
     static D_CONSTEXPR bool has_next_sibling =
-        ((Flags & tree_link::next_sibling) != 0);
+        ((Flags & DTreeLink::next_sibling) != 0);
     static D_CONSTEXPR bool has_parent       =
-        ((Flags & tree_link::parent)       != 0);
+        ((Flags & DTreeLink::parent)       != 0);
     static D_CONSTEXPR bool has_prev_sibling =
-        ((Flags & tree_link::prev_sibling) != 0);
+        ((Flags & DTreeLink::prev_sibling) != 0);
     static D_CONSTEXPR bool has_last_child   =
-        ((Flags & tree_link::last_child)   != 0);
+        ((Flags & DTreeLink::last_child)   != 0);
     static D_CONSTEXPR bool has_left         =
-        ((Flags & tree_link::left)         != 0);
+        ((Flags & DTreeLink::left)         != 0);
     static D_CONSTEXPR bool has_right        =
-        ((Flags & tree_link::right)        != 0);
+        ((Flags & DTreeLink::right)        != 0);
 
     // --- link count ---
 
@@ -201,80 +204,99 @@ private:
     {
         std::size_t n = 0;
 
-        if ((_flag > tree_link::first_child)  && has_first_child)  { ++n; }
-        if ((_flag > tree_link::next_sibling) && has_next_sibling) { ++n; }
-        if ((_flag > tree_link::parent)       && has_parent)       { ++n; }
-        if ((_flag > tree_link::prev_sibling) && has_prev_sibling) { ++n; }
-        if ((_flag > tree_link::last_child)   && has_last_child)   { ++n; }
-        if ((_flag > tree_link::left)         && has_left)         { ++n; }
-        if ((_flag > tree_link::right)        && has_right)        { ++n; }
+        if ((_flag > DTreeLink::first_child)  && has_first_child)  { ++n; }
+        if ((_flag > DTreeLink::next_sibling) && has_next_sibling) { ++n; }
+        if ((_flag > DTreeLink::parent)       && has_parent)       { ++n; }
+        if ((_flag > DTreeLink::prev_sibling) && has_prev_sibling) { ++n; }
+        if ((_flag > DTreeLink::last_child)   && has_last_child)   { ++n; }
+        if ((_flag > DTreeLink::left)         && has_left)         { ++n; }
+        if ((_flag > DTreeLink::right)        && has_right)        { ++n; }
 
         return n;
     }
 
 public:
     static D_CONSTEXPR std::size_t first_child_idx =
-        has_first_child  ? count_before(tree_link::first_child)  : std::size_t(-1);
+        has_first_child  ? count_before(DTreeLink::first_child)  : std::size_t(-1);
     static D_CONSTEXPR std::size_t next_sibling_idx =
-        has_next_sibling ? count_before(tree_link::next_sibling) : std::size_t(-1);
+        has_next_sibling ? count_before(DTreeLink::next_sibling) : std::size_t(-1);
     static D_CONSTEXPR std::size_t parent_idx =
-        has_parent       ? count_before(tree_link::parent)       : std::size_t(-1);
+        has_parent       ? count_before(DTreeLink::parent)       : std::size_t(-1);
     static D_CONSTEXPR std::size_t prev_sibling_idx =
-        has_prev_sibling ? count_before(tree_link::prev_sibling) : std::size_t(-1);
+        has_prev_sibling ? count_before(DTreeLink::prev_sibling) : std::size_t(-1);
     static D_CONSTEXPR std::size_t last_child_idx =
-        has_last_child   ? count_before(tree_link::last_child)   : std::size_t(-1);
+        has_last_child   ? count_before(DTreeLink::last_child)   : std::size_t(-1);
     static D_CONSTEXPR std::size_t left_idx =
-        has_left         ? count_before(tree_link::left)         : std::size_t(-1);
+        has_left         ? count_before(DTreeLink::left)         : std::size_t(-1);
     static D_CONSTEXPR std::size_t right_idx =
-        has_right        ? count_before(tree_link::right)        : std::size_t(-1);
+        has_right        ? count_before(DTreeLink::right)        : std::size_t(-1);
 
     // --- raw flags (for trait inspection) ---
 
     static D_CONSTEXPR unsigned flags = Flags;
 };
 
+// old name, until 0.9.0-rc.1
+template<unsigned Flags>
+using tree_link_policy = DTreeLinkPolicy<Flags>;
+
 
 // ===========================================================================
 // IV.  Preset Link Policies
 // ===========================================================================
 
-// lcrs_link_policy
+// DLcrsLinkPolicy
 //   policy: left-child/right-sibling - the minimal n-ary tree encoding. Two
 // links per node.
-using lcrs_link_policy = tree_link_policy<
-    tree_link::first_child |
-    tree_link::next_sibling>;
+using DLcrsLinkPolicy = DTreeLinkPolicy<
+    DTreeLink::first_child |
+    DTreeLink::next_sibling>;
 
-// parented_lcrs_link_policy
+// old name, until 0.9.0-rc.1
+using lcrs_link_policy = DLcrsLinkPolicy;
+
+// DParentedLcrsLinkPolicy
 //   policy: LCRS with parent back-pointer. Enables bottom-up traversal (e.g.
 // event bubbling in a DOM).
-using parented_lcrs_link_policy = tree_link_policy<
-    tree_link::first_child  |
-    tree_link::next_sibling |
-    tree_link::parent>;
+using DParentedLcrsLinkPolicy = DTreeLinkPolicy<
+    DTreeLink::first_child  |
+    DTreeLink::next_sibling |
+    DTreeLink::parent>;
 
-// full_nary_link_policy
+// old name, until 0.9.0-rc.1
+using parented_lcrs_link_policy = DParentedLcrsLinkPolicy;
+
+// DFullNaryLinkPolicy
 //   policy: all five n-ary navigational links. Enables O(1) last-child append,
 // O(1) sibling removal, and O(1) detach. The original arena.hpp layout.
-using full_nary_link_policy = tree_link_policy<
-    tree_link::first_child  |
-    tree_link::next_sibling |
-    tree_link::parent       |
-    tree_link::prev_sibling |
-    tree_link::last_child>;
+using DFullNaryLinkPolicy = DTreeLinkPolicy<
+    DTreeLink::first_child  |
+    DTreeLink::next_sibling |
+    DTreeLink::parent       |
+    DTreeLink::prev_sibling |
+    DTreeLink::last_child>;
 
-// binary_link_policy
+// old name, until 0.9.0-rc.1
+using full_nary_link_policy = DFullNaryLinkPolicy;
+
+// DBinaryLinkPolicy
 //   policy: classic binary tree - left and right children.
-using binary_link_policy = tree_link_policy<
-    tree_link::left |
-    tree_link::right>;
+using DBinaryLinkPolicy = DTreeLinkPolicy<
+    DTreeLink::left |
+    DTreeLink::right>;
 
-// parented_binary_link_policy
+// old name, until 0.9.0-rc.1
+using binary_link_policy = DBinaryLinkPolicy;
+
+// DParentedBinaryLinkPolicy
 //   policy: binary tree with parent pointer.
-using parented_binary_link_policy = tree_link_policy<
-    tree_link::left   |
-    tree_link::right  |
-    tree_link::parent>;
+using DParentedBinaryLinkPolicy = DTreeLinkPolicy<
+    DTreeLink::left   |
+    DTreeLink::right  |
+    DTreeLink::parent>;
+
+// old name, until 0.9.0-rc.1
+using parented_binary_link_policy = DParentedBinaryLinkPolicy;
 
 
 // ===========================================================================
@@ -285,8 +307,8 @@ using parented_binary_link_policy = tree_link_policy<
 // domain-specific payload.
 
 template<typename Payload,
-         typename LinkPolicy = full_nary_link_policy>
-struct arena_node
+         typename LinkPolicy = DFullNaryLinkPolicy>
+struct DArenaNode
 {
     using payload_type = Payload;
     using link_policy  = LinkPolicy;
@@ -325,7 +347,7 @@ struct arena_node
 
     // arena_node (default)
     //   constructs an empty, unlinked, dead node.
-    arena_node()
+    DArenaNode()
         : stable_id(0)
         , version(0)
         , free_next(null_node)
@@ -341,7 +363,7 @@ struct arena_node
     // arena_node (with identity and payload)
     //   constructs an unlinked, alive node.
     explicit
-    arena_node(re_std::uint64_t   _stable_id,
+    DArenaNode(re_std::uint64_t   _stable_id,
                const Payload& _data)
         : stable_id(_stable_id)
         , version(1)
@@ -357,7 +379,7 @@ struct arena_node
 
     // arena_node (with identity and payload - move)
     explicit
-    arena_node(re_std::uint64_t _stable_id,
+    DArenaNode(re_std::uint64_t _stable_id,
                Payload&&    _data)
         : stable_id(_stable_id)
         , version(1)
@@ -498,6 +520,11 @@ struct arena_node
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Payload,
+         typename LinkPolicy = DFullNaryLinkPolicy>
+using arena_node = DArenaNode<Payload, LinkPolicy>;
+
 
 // ===========================================================================
 // VI.  arena
@@ -512,10 +539,10 @@ struct arena_node
 //   Allocator    - STL allocator for the backing vector
 
 template<typename Payload,
-         typename LinkPolicy   = full_nary_link_policy,
+         typename LinkPolicy   = DFullNaryLinkPolicy,
          typename Allocator    = std::allocator<
-             arena_node<Payload, LinkPolicy>>>
-class arena
+             DArenaNode<Payload, LinkPolicy>>>
+class DNodeArena
 {
 public:
 
@@ -525,7 +552,7 @@ public:
 
     using payload_type    = Payload;
     using link_policy     = LinkPolicy;
-    using node_type       = arena_node<Payload, LinkPolicy>;
+    using node_type       = DArenaNode<Payload, LinkPolicy>;
     using allocator_type  = Allocator;
     using size_type       = std::size_t;
 
@@ -549,7 +576,7 @@ public:
 
     // arena (default)
     //   constructor: creates an empty arena.
-    arena()
+    DNodeArena()
         : m_nodes()
         , m_free_head(null_node)
         , m_live_count(0)
@@ -559,7 +586,7 @@ public:
     // arena (with capacity)
     //   constructor: pre-allocates arena storage.
     explicit
-    arena(size_type _reserve)
+    DNodeArena(size_type _reserve)
         : m_nodes()
         , m_free_head(null_node)
         , m_live_count(0)
@@ -570,7 +597,7 @@ public:
 
     // arena (allocator-extended)
     explicit
-    arena(const allocator_type& _alloc)
+    DNodeArena(const allocator_type& _alloc)
         : m_nodes(_alloc)
         , m_free_head(null_node)
         , m_live_count(0)
@@ -578,7 +605,7 @@ public:
     {};
 
     // arena (capacity + allocator)
-    arena(size_type             _reserve,
+    DNodeArena(size_type             _reserve,
           const allocator_type& _alloc)
         : m_nodes(_alloc)
         , m_free_head(null_node)
@@ -589,11 +616,11 @@ public:
     }
 
     // rule-of-five: default.
-    arena(const arena&)            = default;
-    arena(arena&&) noexcept        = default;
-    arena& operator=(const arena&) = default;
-    arena& operator=(arena&&) noexcept = default;
-    ~arena()                       = default;
+    DNodeArena(const DNodeArena&)            = default;
+    DNodeArena(DNodeArena&&) noexcept        = default;
+    DNodeArena& operator=(const DNodeArena&) = default;
+    DNodeArena& operator=(DNodeArena&&) noexcept = default;
+    ~DNodeArena()                       = default;
 
 
     // =================================================================
@@ -1351,7 +1378,7 @@ public:
     // swap
     //   method: exchanges contents with another arena.
     void
-    swap(arena& _other) noexcept
+    swap(DNodeArena& _other) noexcept
     {
         m_nodes.swap(_other.m_nodes);
 
@@ -1404,16 +1431,16 @@ public:
     // =================================================================
 
     friend bool
-    operator==(const arena& _a,
-               const arena& _b) noexcept
+    operator==(const DNodeArena& _a,
+               const DNodeArena& _b) noexcept
     {
         return ( _a.m_live_count == _b.m_live_count &&
                  _a.m_nodes     == _b.m_nodes );
     }
 
     friend bool
-    operator!=(const arena& _a,
-               const arena& _b) noexcept
+    operator!=(const DNodeArena& _a,
+               const DNodeArena& _b) noexcept
     {
         return !(_a == _b);
     }
@@ -1601,21 +1628,33 @@ private:
 // VII. Convenience Aliases
 // ===========================================================================
 
-// default_arena
+// DDefaultArena
 //   alias: arena with full n-ary links. Matches the original arena.hpp layout
 // - O(1) everything.
 template<typename Payload>
-using default_arena = arena<Payload, full_nary_link_policy>;
+using DDefaultArena = DNodeArena<Payload, DFullNaryLinkPolicy>;
 
-// lcrs_arena
+// old name, until 0.9.0-rc.1
+template<typename Payload>
+using default_arena = DDefaultArena<Payload>;
+
+// DLcrsArena
 //   alias: minimal 2-link arena. Smallest node size.
 template<typename Payload>
-using lcrs_arena = arena<Payload, lcrs_link_policy>;
+using DLcrsArena = DNodeArena<Payload, DLcrsLinkPolicy>;
 
-// parented_arena
+// old name, until 0.9.0-rc.1
+template<typename Payload>
+using lcrs_arena = DLcrsArena<Payload>;
+
+// DParentedArena
 //   alias: 3-link arena with parent back-pointer.
 template<typename Payload>
-using parented_arena = arena<Payload, parented_lcrs_link_policy>;
+using DParentedArena = DNodeArena<Payload, DParentedLcrsLinkPolicy>;
+
+// old name, until 0.9.0-rc.1
+template<typename Payload>
+using parented_arena = DParentedArena<Payload>;
 
 
 NS_END  // djinterp

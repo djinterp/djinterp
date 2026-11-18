@@ -167,7 +167,7 @@ struct dji_cli
 // text
 //   alias: a literal-text payload (the body of a `lit` node) - the authored
 // `fixed_string` lifted into a `dji_cli_string` buffer and carried by val_t.
-template<fixed_string Str>
+template<DFixedString Str>
 using text = val_t< dji_cli_string<>{ Str } >;
 
 // name
@@ -175,7 +175,7 @@ using text = val_t< dji_cli_string<>{ Str } >;
 // self name.  Carried as a `dji_cli_string` buffer, which is also exactly the
 // key type of the variable environment, so a name flows straight into
 // option_set_find.
-template<fixed_string Id>
+template<DFixedString Id>
 using name = val_t< dji_cli_string<>{ Id } >;
 
 // width
@@ -190,8 +190,8 @@ using width = val_t<N>;
 // than a val_t; exposing no `::value`, it is correctly classified a child-pack
 // member, not a payload.  At compile time Pattern is a literal; the runtime
 // engine reads the same fields as a (possibly regex) rule.
-template<fixed_string Pattern,
-         fixed_string Replacement,
+template<DFixedString Pattern,
+         DFixedString Replacement,
          bool         Terminal = false>
 struct rule
 {
@@ -212,12 +212,12 @@ struct rule
 
 // lit
 //   type: a literal-text node - option<dji_cli::lit, text<Str>>.
-template<fixed_string Str>
+template<DFixedString Str>
 using lit = option<dji_cli::lit, text<Str>>;
 
 // var
 //   type: a variable-read node - option<dji_cli::var, name<Id>>.
-template<fixed_string Id>
+template<DFixedString Id>
 using var = option<dji_cli::var, name<Id>>;
 
 // seq
@@ -255,7 +255,7 @@ using indent = option<dji_cli::indent, width<W>, Child>;
 //   type: a binding node - option<dji_cli::let_, name<Id>, Value, Body>.
 // Renders Value, binds it to Id in the environment (call-by-value, lexical),
 // then renders Body under the extended environment.
-template<fixed_string Id,
+template<DFixedString Id,
          typename     Value,
          typename     Body>
 using let_ = option<dji_cli::let_, name<Id>, Value, Body>;
@@ -272,8 +272,8 @@ using if_ = option<dji_cli::if_, Cond, Then, Else>;
 //   type: a fold node - option<dji_cli::foreach_, name<List>, name<Elem>,
 // Body>.  The environment binds List to a list (a seq of items); Body is
 // rendered once per item with Elem bound to that item, results concatenated.
-template<fixed_string List,
-         fixed_string Elem,
+template<DFixedString List,
+         DFixedString Elem,
          typename     Body>
 using foreach_ = option<dji_cli::foreach_, name<List>, name<Elem>, Body>;
 
@@ -288,7 +288,7 @@ using rewrite_ = option<dji_cli::rewrite_, Child, Rules...>;
 //   type: a recursion node - option<dji_cli::fix_, name<Self>, Body>.  Binds
 // Self to Body in the environment and renders Body, so a `var<Self>`
 // inside re-renders the body; terminate via if_.
-template<fixed_string Self,
+template<DFixedString Self,
          typename     Body>
 using fix_ = option<dji_cli::fix_, name<Self>, Body>;
 

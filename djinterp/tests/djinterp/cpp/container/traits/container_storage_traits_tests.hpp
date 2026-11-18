@@ -155,16 +155,16 @@ struct DHybridShape
 struct DOptinDynamicOverride
 {
     static constexpr std::size_t extent = 4;
-    static constexpr storage_duration::value storage_duration_category =
-        storage_duration::dynamic_storage;
+    static constexpr DStorageDuration::value storage_duration_category =
+        DStorageDuration::dynamic_storage;
 };
 
 // DOptinHybrid -> hybrid via the opt-in (extent keeps its size compile-time)
 struct DOptinHybrid
 {
     static constexpr std::size_t extent = 4;
-    static constexpr storage_duration::value storage_duration_category =
-        storage_duration::hybrid_storage;
+    static constexpr DStorageDuration::value storage_duration_category =
+        DStorageDuration::hybrid_storage;
 };
 
 // DOptinStaticNoSize -> static via the opt-in, but with a RUNTIME-only size
@@ -172,8 +172,8 @@ struct DOptinHybrid
 // fails - static_storage_implies_constexpr_size is FALSE.
 struct DOptinStaticNoSize
 {
-    static constexpr storage_duration::value storage_duration_category =
-        storage_duration::static_storage;
+    static constexpr DStorageDuration::value storage_duration_category =
+        DStorageDuration::static_storage;
 };
 
 // no_signal -> unknown (looks container-ish, but raises no storage signal)

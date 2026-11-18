@@ -13,7 +13,7 @@
 *       #include "../meta/read_only.hpp"  -> core/container/meta/read_only.hpp
 *
 *   Neither target is where the named header actually ships.  The capability
-* tag `read_only` ships at core/container/access/read_only.hpp - a SIBLING of
+* tag `DReadOnly` ships at core/container/access/read_only.hpp - a SIBLING of
 * the wrapper, per its own banner - so the include should read "read_only.hpp"
 * rather than reaching up and across into a meta/ directory.  And djinterp.hpp
 * ships at core/djinterp.hpp, which from access/ is "../../djinterp.hpp"; that

@@ -24,7 +24,7 @@ tests_read_write_subscript_returns_mutable_ref
 */
 bool tests_read_write_subscript_returns_mutable_ref()
 {
-    dj::read_write_container<std::vector<int> > h(std::size_t(3), 5);
+    dj::DReadWriteContainer<std::vector<int> > h(std::size_t(3), 5);
 
     typedef decltype(h[0]) sub_result;
 
@@ -45,14 +45,14 @@ bool tests_read_write_subscript_returns_mutable_ref()
     D_RW_CHECK(*h.data() == 10);
 
     // a character container
-    dj::read_write_container<std::string> s(std::size_t(2), 'a');
+    dj::DReadWriteContainer<std::string> s(std::size_t(2), 'a');
 
     s[1] = 'b';
     D_RW_CHECK(s[0] == 'a');
     D_RW_CHECK(s[1] == 'b');
 
     // a fixed-size container is writable through the subscript too
-    dj::read_write_container<std::array<int, 2> > a;
+    dj::DReadWriteContainer<std::array<int, 2> > a;
 
     a[0] = 7;
     D_RW_CHECK(a[0] == 7);
@@ -70,7 +70,7 @@ tests_read_write_front_and_back_are_mutable
 */
 bool tests_read_write_front_and_back_are_mutable()
 {
-    dj::read_write_container<std::vector<int> > h(std::size_t(3), 5);
+    dj::DReadWriteContainer<std::vector<int> > h(std::size_t(3), 5);
 
     D_RW_CHECK(!rw_const_result<decltype(h.front())>::value);
     D_RW_CHECK(!rw_const_result<decltype(h.back())>::value);
@@ -85,7 +85,7 @@ bool tests_read_write_front_and_back_are_mutable()
     D_RW_CHECK(h[2] == 9);
 
     // a node container, which has no subscript to cross-check against
-    dj::read_write_container<std::list<int> > l(std::size_t(2), 3);
+    dj::DReadWriteContainer<std::list<int> > l(std::size_t(2), 3);
 
     D_RW_CHECK(!rw_const_result<decltype(l.front())>::value);
     l.front() = 4;
@@ -94,7 +94,7 @@ bool tests_read_write_front_and_back_are_mutable()
     D_RW_CHECK(l.back() == 6);
 
     // one element: front and back are the same object
-    dj::read_write_container<std::vector<int> > one(std::size_t(1), 0);
+    dj::DReadWriteContainer<std::vector<int> > one(std::size_t(1), 0);
 
     one.front() = 8;
     D_RW_CHECK(one.back() == 8);
@@ -113,7 +113,7 @@ tests_read_write_data_returns_mutable_pointer
 */
 bool tests_read_write_data_returns_mutable_pointer()
 {
-    dj::read_write_container<std::vector<int> > h(std::size_t(3), 5);
+    dj::DReadWriteContainer<std::vector<int> > h(std::size_t(3), 5);
 
     typedef decltype(h.data()) data_result;
 
@@ -136,7 +136,7 @@ bool tests_read_write_data_returns_mutable_pointer()
     D_RW_CHECK(h.back() == 3);
 
     // a character container
-    dj::read_write_container<std::string> s(std::size_t(2), 'a');
+    dj::DReadWriteContainer<std::string> s(std::size_t(2), 'a');
 
     s.data()[0] = 'z';
     D_RW_CHECK(s[0] == 'z');
@@ -154,7 +154,7 @@ tests_read_write_iterators_are_mutable
 */
 bool tests_read_write_iterators_are_mutable()
 {
-    dj::read_write_container<std::vector<int> > h(std::size_t(3), 5);
+    dj::DReadWriteContainer<std::vector<int> > h(std::size_t(3), 5);
 
     D_RW_CHECK((std::is_same<decltype(h.begin()),
                              std::vector<int>::iterator>::value));
@@ -178,7 +178,7 @@ bool tests_read_write_iterators_are_mutable()
     D_RW_CHECK(h[2] == 2);
 
     // a node container
-    dj::read_write_container<std::list<int> > l(std::size_t(2), 0);
+    dj::DReadWriteContainer<std::list<int> > l(std::size_t(2), 0);
     std::list<int>::iterator                  lit;
 
     D_RW_CHECK((std::is_same<decltype(l.begin()),
@@ -205,7 +205,7 @@ tests_read_write_writes_reach_the_container
 */
 bool tests_read_write_writes_reach_the_container()
 {
-    dj::read_write_container<std::vector<int> > h(std::size_t(4), 0);
+    dj::DReadWriteContainer<std::vector<int> > h(std::size_t(4), 0);
 
     // through the subscript
     h[0] = 1;
@@ -255,8 +255,8 @@ tests_read_write_const_handle_narrows_to_const
 */
 bool tests_read_write_const_handle_narrows_to_const()
 {
-    dj::read_write_container<std::vector<int> >        m(std::size_t(3), 5);
-    const dj::read_write_container<std::vector<int> >& h = m;
+    dj::DReadWriteContainer<std::vector<int> >        m(std::size_t(3), 5);
+    const dj::DReadWriteContainer<std::vector<int> >& h = m;
 
     D_RW_CHECK(rw_const_result<decltype(h[0])>::value);
     D_RW_CHECK(rw_const_result<decltype(h.front())>::value);
@@ -276,7 +276,7 @@ bool tests_read_write_const_handle_narrows_to_const()
     D_RW_CHECK(h[0] == 42);
 
     // a const handle behaves like the read_only overlay on this point
-    dj::read_only_container<std::vector<int> > ro(std::size_t(3), 5);
+    dj::DReadOnlyContainer<std::vector<int> > ro(std::size_t(3), 5);
 
     D_RW_CHECK(rw_const_result<decltype(ro[0])>::value ==
                rw_const_result<decltype(h[0])>::value);
@@ -295,8 +295,8 @@ tests_read_write_both_overload_sets_coexist
 */
 bool tests_read_write_both_overload_sets_coexist()
 {
-    dj::read_write_container<std::vector<int> >        m(std::size_t(2), 1);
-    const dj::read_write_container<std::vector<int> >& c = m;
+    dj::DReadWriteContainer<std::vector<int> >        m(std::size_t(2), 1);
+    const dj::DReadWriteContainer<std::vector<int> >& c = m;
 
     // subscript
     D_RW_CHECK((std::is_same<decltype(m[0]), int&>::value));

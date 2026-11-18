@@ -68,7 +68,7 @@ test_state_reduced_wrapper
 */
 bool test_state_reduced_wrapper()
 {
-    const reduced<int> r(42);
+    const DReduced<int> r(42);
 
     D_INTERNAL_TRD_CHECK(r.value() == 42);
 
@@ -84,7 +84,7 @@ test_state_reduced_move
 */
 bool test_state_reduced_move()
 {
-    int moved = reduced<int>(7).value();
+    int moved = DReduced<int>(7).value();
 
     D_INTERNAL_TRD_CHECK(moved == 7);
 

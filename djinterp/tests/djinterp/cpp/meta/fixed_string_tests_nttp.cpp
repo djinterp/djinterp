@@ -36,23 +36,23 @@ bool tests_fixed_string_as_nttp()
     bool ok = true;
 
     // a class template on the NTTP
-    D_FS_CHECK(ok, fs_holder<fixed_string{"abc"}>::value.size() == 3);
+    D_FS_CHECK(ok, fs_holder<DFixedString{"abc"}>::value.size() == 3);
     D_FS_CHECK(ok, fs_binds_nttp<fs_holder>::value);
 
     // a variable template
-    D_FS_CHECK(ok, fs_size_of<fixed_string{"abc"}> == 3);
-    D_FS_CHECK(ok, fs_size_of<fixed_string{""}> == 0);
+    D_FS_CHECK(ok, fs_size_of<DFixedString{"abc"}> == 3);
+    D_FS_CHECK(ok, fs_size_of<DFixedString{""}> == 0);
     D_FS_CHECK(ok, fs_size_of<fs_long> == 31);
 
     // a concept, evaluated on the argument
-    D_FS_CHECK(ok, fs_nonempty<fixed_string{"x"}>);
-    D_FS_CHECK(ok, !fs_nonempty<fixed_string{""}>);
+    D_FS_CHECK(ok, fs_nonempty<DFixedString{"x"}>);
+    D_FS_CHECK(ok, !fs_nonempty<DFixedString{""}>);
     D_FS_CHECK(ok, fs_nonempty<fs_abc>);
     D_FS_CHECK(ok, !fs_nonempty<fs_empty>);
 
     // a constrained function, whose requires-clause is checked before
     // the body is instantiated
-    D_FS_CHECK(ok, fs_guarded<fixed_string{"yz"}>() == 2);
+    D_FS_CHECK(ok, fs_guarded<DFixedString{"yz"}>() == 2);
     D_FS_CHECK(ok, fs_guarded<fs_abc>() == 3);
     D_FS_CHECK(ok, fs_guarded<fs_long>() == 31);
 
@@ -67,9 +67,9 @@ bool tests_fixed_string_as_nttp()
     // ... and the deduced spelling names the same specialization as the
     // explicit one
     D_FS_CHECK(ok, std::is_same_v<fs_holder<"abc">,
-                                  fs_holder<fixed_string{"abc"}>>);
+                                  fs_holder<DFixedString{"abc"}>>);
     D_FS_CHECK(ok, std::is_same_v<fs_holder<"">,
-                                  fs_holder<fixed_string{""}>>);
+                                  fs_holder<DFixedString{""}>>);
 
     return ok;
 }
@@ -96,41 +96,41 @@ bool tests_fixed_string_argument_equivalence()
     bool ok = true;
 
     // equal payloads collide, unequal ones do not
-    D_FS_CHECK(ok, std::is_same_v<fs_holder<fixed_string{"abc"}>,
-                                  fs_holder<fixed_string{"abc"}>>);
-    D_FS_CHECK(ok, !std::is_same_v<fs_holder<fixed_string{"abc"}>,
-                                   fs_holder<fixed_string{"abd"}>>);
-    D_FS_CHECK(ok, !std::is_same_v<fs_holder<fixed_string{"abc"}>,
-                                   fs_holder<fixed_string{"cba"}>>);
+    D_FS_CHECK(ok, std::is_same_v<fs_holder<DFixedString{"abc"}>,
+                                  fs_holder<DFixedString{"abc"}>>);
+    D_FS_CHECK(ok, !std::is_same_v<fs_holder<DFixedString{"abc"}>,
+                                   fs_holder<DFixedString{"abd"}>>);
+    D_FS_CHECK(ok, !std::is_same_v<fs_holder<DFixedString{"abc"}>,
+                                   fs_holder<DFixedString{"cba"}>>);
 
     // a differing length differs before values are compared at all
-    D_FS_CHECK(ok, !std::is_same_v<fs_holder<fixed_string{"ab"}>,
-                                   fs_holder<fixed_string{"abc"}>>);
-    D_FS_CHECK(ok, !std::is_same_v<fs_holder<fixed_string{""}>,
-                                   fs_holder<fixed_string{"a"}>>);
+    D_FS_CHECK(ok, !std::is_same_v<fs_holder<DFixedString{"ab"}>,
+                                   fs_holder<DFixedString{"abc"}>>);
+    D_FS_CHECK(ok, !std::is_same_v<fs_holder<DFixedString{""}>,
+                                   fs_holder<DFixedString{"a"}>>);
 
     // the same bytes reached by different routes still collide: a named
     // object, a deduced temporary and an explicit specialization agree
     D_FS_CHECK(ok, std::is_same_v<fs_holder<fs_abc>,
-                                  fs_holder<fixed_string{"abc"}>>);
+                                  fs_holder<DFixedString{"abc"}>>);
     D_FS_CHECK(ok, std::is_same_v<fs_holder<fs_abc>,
-                                  fs_holder<fixed_string<4>{"abc"}>>);
+                                  fs_holder<DFixedString<4>{"abc"}>>);
     D_FS_CHECK(ok, std::is_same_v<fs_holder<fs_abc>, fs_holder<"abc">>);
     D_FS_CHECK(ok, std::is_same_v<fs_holder<fs_empty>, fs_holder<"">>);
 
     // ... even though the type itself is not equality-comparable, which
     // is what shows the compiler is comparing members rather than
     // calling anything the module supplied
-    D_FS_CHECK(ok, !(fs_is_equality_comparable<fixed_string<4>,
-                                               fixed_string<4>>::value));
+    D_FS_CHECK(ok, !(fs_is_equality_comparable<DFixedString<4>,
+                                               DFixedString<4>>::value));
 
     // every byte participates, including those past an interior null
     D_FS_CHECK(ok, std::is_same_v<fs_holder<fs_embedded>,
-                                  fs_holder<fixed_string{"a\0b"}>>);
-    D_FS_CHECK(ok, !std::is_same_v<fs_holder<fixed_string{"a\0b"}>,
-                                   fs_holder<fixed_string{"a\0c"}>>);
-    D_FS_CHECK(ok, !std::is_same_v<fs_holder<fixed_string{"a\0b"}>,
-                                   fs_holder<fixed_string{"abb"}>>);
+                                  fs_holder<DFixedString{"a\0b"}>>);
+    D_FS_CHECK(ok, !std::is_same_v<fs_holder<DFixedString{"a\0b"}>,
+                                   fs_holder<DFixedString{"a\0c"}>>);
+    D_FS_CHECK(ok, !std::is_same_v<fs_holder<DFixedString{"a\0b"}>,
+                                   fs_holder<DFixedString{"abb"}>>);
 
     return ok;
 }
@@ -157,11 +157,11 @@ bool tests_fixed_string_nttp_round_trip()
     D_FS_CHECK(ok, std::is_same_v<
                        std::remove_const_t<
                            decltype(fs_holder<"abc">::value)>,
-                       fixed_string<4>>);
+                       DFixedString<4>>);
     D_FS_CHECK(ok, std::is_same_v<
                        std::remove_const_t<
                            decltype(fs_holder<"">::value)>,
-                       fixed_string<1>>);
+                       DFixedString<1>>);
 
     // ... and its bytes, terminating null included
     D_FS_CHECK(ok, fs_bytes_equal(fs_holder<"abc">::value, "abc"));

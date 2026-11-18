@@ -25,7 +25,7 @@ tests_write_only_push_back_appends
 */
 bool tests_write_only_push_back_appends()
 {
-    dj::write_only_container<std::vector<int> > sink;
+    dj::DWriteOnlyContainer<std::vector<int> > sink;
 
     sink.push_back(1);
     D_WO_CHECK(sink.size() == 1u);
@@ -48,21 +48,21 @@ bool tests_write_only_push_back_appends()
     D_WO_CHECK(sink.size() == 5u);
 
     // a node container
-    dj::write_only_container<std::list<int> > l;
+    dj::DWriteOnlyContainer<std::list<int> > l;
 
     l.push_back(7);
     l.push_back(8);
     D_WO_CHECK(l.size() == 2u);
 
     // a character container
-    dj::write_only_container<std::string> s;
+    dj::DWriteOnlyContainer<std::string> s;
 
     s.push_back('a');
     s.push_back('b');
     D_WO_CHECK(s.size() == 2u);
 
     // a deque
-    dj::write_only_container<std::deque<int> > d;
+    dj::DWriteOnlyContainer<std::deque<int> > d;
 
     d.push_back(1);
     D_WO_CHECK(d.size() == 1u);
@@ -80,7 +80,7 @@ tests_write_only_emplace_back_forwards_args
 */
 bool tests_write_only_emplace_back_forwards_args()
 {
-    dj::write_only_container<std::vector<int> > sink;
+    dj::DWriteOnlyContainer<std::vector<int> > sink;
 
     sink.emplace_back(1);
     sink.emplace_back(2);
@@ -91,7 +91,7 @@ bool tests_write_only_emplace_back_forwards_args()
     // without reading the element back.
     const int before = wo_probe_type::s_constructed;
 
-    dj::write_only_container<std::vector<wo_probe_type> > objs;
+    dj::DWriteOnlyContainer<std::vector<wo_probe_type> > objs;
 
     objs.emplace_back(7, 'q');
     D_WO_CHECK(objs.size() == 1u);
@@ -105,7 +105,7 @@ bool tests_write_only_emplace_back_forwards_args()
     D_WO_CHECK(objs.size() == 3u);
 
     // a node container
-    dj::write_only_container<std::list<wo_probe_type> > l;
+    dj::DWriteOnlyContainer<std::list<wo_probe_type> > l;
 
     l.emplace_back(5, 'm');
     D_WO_CHECK(l.size() == 1u);
@@ -134,7 +134,7 @@ tests_write_only_clear_empties_the_sink
 */
 bool tests_write_only_clear_empties_the_sink()
 {
-    dj::write_only_container<std::vector<int> > sink(std::size_t(5), 7);
+    dj::DWriteOnlyContainer<std::vector<int> > sink(std::size_t(5), 7);
 
     D_WO_CHECK(sink.size() == 5u);
 
@@ -153,7 +153,7 @@ bool tests_write_only_clear_empties_the_sink()
     // the held elements really are destroyed, which an instance-counting
     // element type can show without any read access
     {
-        dj::write_only_container<std::vector<wo_probe_type> > objs;
+        dj::DWriteOnlyContainer<std::vector<wo_probe_type> > objs;
 
         objs.emplace_back(1, 'a');
         objs.emplace_back(2, 'b');
@@ -170,12 +170,12 @@ bool tests_write_only_clear_empties_the_sink()
     }
 
     // a node container and a character container
-    dj::write_only_container<std::list<int> > l(std::size_t(3), 1);
+    dj::DWriteOnlyContainer<std::list<int> > l(std::size_t(3), 1);
 
     l.clear();
     D_WO_CHECK(l.empty());
 
-    dj::write_only_container<std::string> s(std::size_t(4), 'a');
+    dj::DWriteOnlyContainer<std::string> s(std::size_t(4), 'a');
 
     s.clear();
     D_WO_CHECK(s.empty());
@@ -193,7 +193,7 @@ tests_write_only_append_and_reset_cycle
 */
 bool tests_write_only_append_and_reset_cycle()
 {
-    dj::write_only_container<std::vector<int> > sink;
+    dj::DWriteOnlyContainer<std::vector<int> > sink;
     std::size_t                                 cycle = 0;
 
     for (cycle = 0; cycle < 5u; ++cycle)
@@ -249,7 +249,7 @@ bool tests_write_only_append_stores_the_element()
     const int live_at_entry = wo_probe_type::s_live;
 
     {
-        dj::write_only_container<std::vector<wo_probe_type> > sink;
+        dj::DWriteOnlyContainer<std::vector<wo_probe_type> > sink;
 
         D_WO_CHECK(wo_probe_type::s_live == live_at_entry);
 
@@ -287,9 +287,9 @@ tests_write_only_append_surface_tracks_container
 bool tests_write_only_append_surface_tracks_container()
 {
     // the growable containers keep all three
-    typedef dj::write_only_container<std::vector<int> > vec_sink;
-    typedef dj::write_only_container<std::list<int> >   list_sink;
-    typedef dj::write_only_container<std::string>       str_sink;
+    typedef dj::DWriteOnlyContainer<std::vector<int> > vec_sink;
+    typedef dj::DWriteOnlyContainer<std::list<int> >   list_sink;
+    typedef dj::DWriteOnlyContainer<std::string>       str_sink;
 
     D_WO_CHECK(wo_has_push_back<vec_sink>::value);
     D_WO_CHECK(wo_has_emplace_back<vec_sink>::value);
@@ -303,7 +303,7 @@ bool tests_write_only_append_surface_tracks_container()
     D_WO_CHECK(wo_has_clear<str_sink>::value);
 
     // a fixed-size container offers none of them
-    typedef dj::write_only_container<std::array<int, 3> > arr_sink;
+    typedef dj::DWriteOnlyContainer<std::array<int, 3> > arr_sink;
 
     D_WO_CHECK(!wo_has_push_back<arr_sink>::value);
     D_WO_CHECK(!wo_has_emplace_back<arr_sink>::value);

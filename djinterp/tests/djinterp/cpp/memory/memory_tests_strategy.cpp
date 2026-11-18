@@ -48,9 +48,9 @@ namespace
 
     // the strategies under test, by name
     using arena_strategy     = DArenaMemoryStrategy<>;
-    using pool_strategy      = DPoolMemoryStrategy<pool<double> >;
+    using pool_strategy      = DPoolMemoryStrategy<DPool<double> >;
     using bump_strategy      =
-        DPoolMemoryStrategy<pool<double, D_POOL_POLICY_MONOTONIC> >;
+        DPoolMemoryStrategy<DPool<double, D_POOL_POLICY_MONOTONIC> >;
     using buffer_strategy    = DBufferMemoryStrategy<int, 16>;
     using allocator_strategy = DAllocatorMemoryStrategy<std::allocator<long> >;
 }  // anonymous namespace
@@ -115,7 +115,7 @@ tests_memory_strategy_arena
 bool
 tests_memory_strategy_arena()
 {
-    arena                                   a;
+    DArena                                   a;
     DArenaMemoryStrategy<DMemoryTestsThing> strategy(a);
     unsigned char*                          bytes = nullptr;
     DMemSize                                used  = 0;
@@ -146,7 +146,7 @@ tests_memory_strategy_pool
 bool
 tests_memory_strategy_pool()
 {
-    pool<double>  p;
+    DPool<double>  p;
     pool_strategy strategy(p);
     double*       slot = nullptr;
     bool          threw = false;
@@ -172,7 +172,7 @@ tests_memory_strategy_pool()
 
 #if (D_INTERNAL_MEM_SOURCE_NULL == 1)
     {
-        pool<double>  starved(DMemorySource::refusing());
+        DPool<double>  starved(DMemorySource::refusing());
         pool_strategy hungry(starved);
 
         threw = false;
@@ -271,9 +271,9 @@ tests_memory_strategy_allocator
 bool
 tests_memory_strategy_allocator()
 {
-    node_pool                                         nodes;
-    pool_allocator<long>                              allocator(nodes);
-    DAllocatorMemoryStrategy<pool_allocator<long> >   strategy(allocator);
+    DNodePool                                         nodes;
+    DPoolAllocator<long>                              allocator(nodes);
+    DAllocatorMemoryStrategy<DPoolAllocator<long> >   strategy(allocator);
     allocator_strategy                                plain;
     long*                                             one   = nullptr;
     long*                                             many  = nullptr;

@@ -685,7 +685,7 @@ NS_END  // internal
 // II.  table_base (CRTP read-only rank-2 surface)
 // ===========================================================================
 
-// table_base
+// DTableBase
 //   class: CRTP mixin supplying the read-only surface every rank-2
 // cell-homogeneous table shares -- rank and shape, checked and unchecked cell
 // access, row (subtable) and column (projection) access, and the cell and row
@@ -699,7 +699,7 @@ template<typename Derived,
          typename Type,
          typename SizeType,
          typename DifferenceType>
-class table_base
+class DTableBase
 {
 public:
     // --- member types (the container value function, in STL vocabulary) ---
@@ -756,7 +756,7 @@ public:
     // reveal the nesting; this tag asserts the type-level uniform nesting the
     // chain hides, which the framework's structure classifier then reads as
     // authoritative.
-    using structure_category = hierarchical;
+    using structure_category = DHierarchical;
 
     // depth
     //   the uniform-nesting depth d = rank: leaves sit at level d, each
@@ -768,8 +768,8 @@ public:
 
 protected:
     // only derived tables construct or destroy the mixin.
-    table_base() = default;
-    ~table_base() = default;
+    DTableBase() = default;
+    ~DTableBase() = default;
 
 private:
     D_CONSTEXPR
@@ -1081,6 +1081,13 @@ public:
         return true;
     }
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Derived,
+         typename Type,
+         typename SizeType,
+         typename DifferenceType>
+using table_base = DTableBase<Derived, Type, SizeType, DifferenceType>;
 
 
 NS_END  // djinterp

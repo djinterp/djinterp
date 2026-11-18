@@ -67,7 +67,7 @@ bool tests_class_members()
     D_CCT_CHECK(!none::has_extent);
     D_CCT_CHECK(!none::has_size_expr);
     D_CCT_CHECK(!none::has_iteration);
-    D_CCT_CHECK(none::life == lifetime::runtime);
+    D_CCT_CHECK(none::life == DLifetime::runtime);
     D_CCT_CHECK(!none::is_constexpr);
 
     // a real fixed array: promoted by tuple_size (which the snapshot does not
@@ -76,7 +76,7 @@ bool tests_class_members()
     D_CCT_CHECK(!arr::has_extent);
     D_CCT_CHECK(arr::has_size_expr);
     D_CCT_CHECK(!arr::has_iteration);
-    D_CCT_CHECK(arr::life == lifetime::both);
+    D_CCT_CHECK(arr::life == DLifetime::both);
     D_CCT_CHECK(arr::is_constexpr);
 
     return ok;
@@ -184,17 +184,17 @@ bool tests_class_tuple_size_gap()
     D_CCT_CHECK(!cc::has_iteration);
 
     // ...and reports a positive verdict anyway
-    D_CCT_CHECK(cc::life == lifetime::both);
+    D_CCT_CHECK(cc::life == DLifetime::both);
     D_CCT_CHECK(cc::is_constexpr);
 
     // the same contradiction, one step earlier
-    D_CCT_LIFE(lifetime::both, DSizeLifetime<tuple_conformer>::value);
+    D_CCT_LIFE(DLifetime::both, DSizeLifetime<tuple_conformer>::value);
 
     // and it is not confined to the fixture: std::tuple and std::pair are
     // promoted by tuple_size alone as well
     D_CCT_CHECK(has_tuple_size<std::tuple<int, char>>::value);
     D_CCT_CHECK(!has_constexpr_size_expression<std::tuple<int, char>>::value);
-    D_CCT_LIFE(lifetime::both, DSizeLifetime<std::tuple<int, char>>::value);
+    D_CCT_LIFE(DLifetime::both, DSizeLifetime<std::tuple<int, char>>::value);
     D_CCT_CHECK(
         !DConstexprContainerClass<std::tuple<int, char>>::has_size_expr);
 
@@ -225,8 +225,8 @@ bool tests_class_is_constexpr_and_empty()
     D_CCT_CHECK((!std::integral_constant<bool, vec::has_tag>::value));
 
     // a lifetime constant expression
-    D_CCT_CHECK((std::integral_constant<lifetime::value, arr::life>::value ==
-                 lifetime::both));
+    D_CCT_CHECK((std::integral_constant<DLifetime::value, arr::life>::value ==
+                 DLifetime::both));
     D_CCT_CHECK((std::is_same<DLifetimeConstant<arr::life>,
                               DBothLifetime>::value));
 

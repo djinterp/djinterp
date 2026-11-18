@@ -64,12 +64,12 @@ bool test_pipeline_filtered_adapter()
     DPerson adult = { 1, 30, 10 };
     DPerson minor = { 2, 15, 20 };
 
-    maybe<int> m_ok = ( djinterp::from_member(&DPerson::age)
+    DMaybe<int> m_ok = ( djinterp::from_member(&DPerson::age)
                         | djinterp::filtered(is_adult()) )(adult);
     D_INTERNAL_EXT_CHECK(m_ok.has_value());
     D_INTERNAL_EXT_CHECK(m_ok.value() == 30);
 
-    maybe<int> m_no = ( djinterp::from_member(&DPerson::age)
+    DMaybe<int> m_no = ( djinterp::from_member(&DPerson::age)
                         | djinterp::filtered(is_adult()) )(minor);
     D_INTERNAL_EXT_CHECK(m_no.is_nothing());
 
@@ -89,7 +89,7 @@ bool test_pipeline_chained()
 {
     DPerson minor = { 2, 15, 20 };
 
-    maybe<int> m = ( djinterp::from_member(&DPerson::age)
+    DMaybe<int> m = ( djinterp::from_member(&DPerson::age)
                      | djinterp::mapped(times_two())
                      | djinterp::filtered(is_adult()) )(minor);
 

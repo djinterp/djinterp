@@ -29,10 +29,10 @@ tests_memory_parity_layout
 bool
 tests_memory_parity_layout()
 {
-    arena                     a;
-    raw_pool                  raw(32,
+    DArena                     a;
+    DRawPool                  raw(32,
                                   8);
-    pool<DMemoryTestsThing>   typed;
+    DPool<DMemoryTestsThing>   typed;
     DMemorySource             source;
 
     D_TEST_REQUIRE(static_cast<void*>(&a) ==
@@ -45,12 +45,12 @@ tests_memory_parity_layout()
                    static_cast<void*>(
                        static_cast< ::dj_mem_source* >(&source)));
 
-    D_TEST_REQUIRE(sizeof(arena) == sizeof(::dj_arena));
-    D_TEST_REQUIRE(sizeof(raw_pool) == sizeof(::dj_pool));
-    D_TEST_REQUIRE(sizeof(pool<DMemoryTestsThing>) == sizeof(::dj_pool));
+    D_TEST_REQUIRE(sizeof(DArena) == sizeof(::dj_arena));
+    D_TEST_REQUIRE(sizeof(DRawPool) == sizeof(::dj_pool));
+    D_TEST_REQUIRE(sizeof(DPool<DMemoryTestsThing>) == sizeof(::dj_pool));
     D_TEST_REQUIRE(sizeof(DMemorySource) == sizeof(::dj_mem_source));
-    D_TEST_REQUIRE(sizeof(pool_allocator<double>) == sizeof(void*));
-    D_TEST_REQUIRE(sizeof(arena_allocator<double>) == sizeof(void*));
+    D_TEST_REQUIRE(sizeof(DPoolAllocator<double>) == sizeof(void*));
+    D_TEST_REQUIRE(sizeof(DArenaAllocator<double>) == sizeof(void*));
 
     return true;
 }
@@ -69,7 +69,7 @@ tests_memory_parity_arena()
     alignas(64) static unsigned char c_buffer[16384];
     alignas(64) static unsigned char cpp_buffer[16384];
     ::dj_arena                       c_arena;
-    arena                            cpp_arena(
+    DArena                            cpp_arena(
                                          cpp_buffer,
                                          static_cast<DMemSize>(
                                              sizeof(cpp_buffer)));
@@ -107,9 +107,9 @@ tests_memory_parity_arena()
 tests_memory_parity_pool
   Pool geometry, computed early and late.
   Tests the following:
-  - pool<T>, told sizeof(T) and alignof(T) at compile time, arrives at the
+  - DPool<T>, told sizeof(T) and alignof(T) at compile time, arrives at the
     slot size and alignment the C kernel computes from them at run time
-  - so does raw_pool, told them at run time
+  - so does DRawPool, told them at run time
 */
 bool
 tests_memory_parity_pool()
@@ -118,8 +118,8 @@ tests_memory_parity_pool()
         ::d_pool_config_default(sizeof(DMemoryTestsThing),
                                 alignof(DMemoryTestsThing));
     ::dj_pool               c_pool;
-    pool<DMemoryTestsThing> typed;
-    raw_pool                raw(sizeof(DMemoryTestsThing),
+    DPool<DMemoryTestsThing> typed;
+    DRawPool                raw(sizeof(DMemoryTestsThing),
                                 alignof(DMemoryTestsThing));
 
     D_TEST_REQUIRE(::d_pool_init(&c_pool,

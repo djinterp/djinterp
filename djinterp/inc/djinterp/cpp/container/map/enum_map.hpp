@@ -106,19 +106,24 @@ NS_MAP
 // I.   Vocabulary Types
 // =============================================================================
 
-// enum_entry
+// DEnumEntry
 //   type: canonical entry type for an enum-keyed map. Identical to
 // map_entry<E, V> but provided for clarity at the call site.
 template<typename Enum,
          typename Value>
-using enum_entry = map_entry<Enum, Value>;
+using DEnumEntry = DMapEntry<Enum, Value>;
+
+// old name, until 0.9.0-rc.1
+template<typename Enum,
+         typename Value>
+using enum_entry = DEnumEntry<Enum, Value>;
 
 
 // =============================================================================
 // II.  enum_map Class
 // =============================================================================
 
-// enum_map
+// DEnumMap
 //   class: a map container with an enumeration key type.
 // Delegates storage to Backing and inherits map semantics from
 // map_overlay_base via CRTP. static_assert enforces that Enum is an
@@ -135,9 +140,9 @@ template<typename Enum,
          typename Backing = std::vector<
              std::pair<const Enum, Value>>,
          typename Compare = std::less<Enum>>
-class enum_map
-    : public map_overlay_base<
-          enum_map<Enum, Value, Backing, Compare>,
+class DEnumMap
+    : public DMapOverlayBase<
+          DEnumMap<Enum, Value, Backing, Compare>,
           Enum,
           Value,
           Backing,
@@ -148,8 +153,8 @@ class enum_map
                   "enumeration type.");
 
 private:
-    using self_type = enum_map;
-    using base_type = map_overlay_base<
+    using self_type = DEnumMap;
+    using base_type = DMapOverlayBase<
         self_type, Enum, Value, Backing, Compare>;
 
     friend base_type;
@@ -159,7 +164,7 @@ public:
 
     using key_type               = Enum;
     using mapped_type            = Value;
-    using value_type             = enum_entry<Enum, Value>;
+    using value_type             = DEnumEntry<Enum, Value>;
     using key_compare            = Compare;
     using backing_container_type = Backing;
     using size_type              = std::size_t;
@@ -173,10 +178,10 @@ public:
     // --- constructors ---
 
     // default
-    constexpr enum_map() = default;
+    constexpr DEnumMap() = default;
 
     // initializer_list
-    constexpr enum_map(
+    constexpr DEnumMap(
         std::initializer_list<value_type> _init)
     {
         for (const auto& entry : _init)
@@ -187,7 +192,7 @@ public:
 
     // range
     template<typename InputIt>
-    constexpr enum_map(InputIt _first,
+    constexpr DEnumMap(InputIt _first,
                        InputIt _last)
     {
         for (auto it = _first; it != _last; ++it)
@@ -197,21 +202,21 @@ public:
     }
 
     // copy
-    constexpr enum_map(const enum_map&) = default;
+    constexpr DEnumMap(const DEnumMap&) = default;
 
     // move
-    constexpr enum_map(enum_map&&) = default;
+    constexpr DEnumMap(DEnumMap&&) = default;
 
     // copy assignment
-    constexpr enum_map&
-    operator=(const enum_map&) = default;
+    constexpr DEnumMap&
+    operator=(const DEnumMap&) = default;
 
     // move assignment
-    constexpr enum_map&
-    operator=(enum_map&&) = default;
+    constexpr DEnumMap&
+    operator=(DEnumMap&&) = default;
 
     // initializer_list assignment
-    constexpr enum_map&
+    constexpr DEnumMap&
     operator=(std::initializer_list<value_type> _init)
     {
         this->clear();
@@ -225,7 +230,7 @@ public:
     }
 
     // destructor
-    ~enum_map() = default;
+    ~DEnumMap() = default;
 
     // --- operator[] ---
 
@@ -269,7 +274,7 @@ public:
     // --- swap ---
 
     constexpr void
-    swap(enum_map& _other) noexcept(
+    swap(DEnumMap& _other) noexcept(
         noexcept(std::declval<Backing&>().swap(
             std::declval<Backing&>())))
     {
@@ -279,8 +284,8 @@ public:
     }
 
     friend constexpr void
-    swap(enum_map& _a,
-         enum_map& _b) noexcept(noexcept(_a.swap(_b)))
+    swap(DEnumMap& _a,
+         DEnumMap& _b) noexcept(noexcept(_a.swap(_b)))
     {
         _a.swap(_b);
 
@@ -290,8 +295,8 @@ public:
     // --- comparison ---
 
     friend constexpr bool
-    operator==(const enum_map& _a,
-               const enum_map& _b)
+    operator==(const DEnumMap& _a,
+               const DEnumMap& _b)
     {
         if (_a.size() != _b.size())
         {
@@ -313,8 +318,8 @@ public:
     }
 
     friend constexpr bool
-    operator!=(const enum_map& _a,
-               const enum_map& _b)
+    operator!=(const DEnumMap& _a,
+               const DEnumMap& _b)
     {
         return !(_a == _b);
     }
@@ -345,6 +350,13 @@ private:
     Backing m_backing;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Enum,
+         typename Value,
+         typename Backing = std::vector< std::pair<const Enum, Value>>,
+         typename Compare = std::less<Enum>>
+using enum_map = DEnumMap<Enum, Value, Backing, Compare>;
+
 
 // =============================================================================
 // III. Deduction Guides                     (C++17)
@@ -353,14 +365,14 @@ private:
 // from initializer_list
 template<typename Enum,
          typename Value>
-enum_map(std::initializer_list<
+DEnumMap(std::initializer_list<
              std::pair<const Enum, Value>>)
-    -> enum_map<Enum, Value>;
+    -> DEnumMap<Enum, Value>;
 
 // from iterator pair
 template<typename InputIt>
-enum_map(InputIt, InputIt)
-    -> enum_map<
+DEnumMap(InputIt, InputIt)
+    -> DEnumMap<
         std::remove_const_t<
             typename std::iterator_traits<
                 InputIt>::value_type::first_type>,
@@ -377,11 +389,11 @@ enum_map(InputIt, InputIt)
 template<typename Enum,
          typename Value>
 constexpr
-enum_map<Enum, Value> make_enum_map(
+DEnumMap<Enum, Value> make_enum_map(
     std::initializer_list< std::pair<const Enum, Value>> _init
 )
 {
-    return enum_map<Enum, Value>(_init);
+    return DEnumMap<Enum, Value>(_init);
 }
 
 // make_enum_map (empty)
@@ -389,9 +401,9 @@ enum_map<Enum, Value> make_enum_map(
 template<typename Enum,
          typename Value>
 constexpr
-enum_map<Enum, Value> make_enum_map()
+DEnumMap<Enum, Value> make_enum_map()
 {
-    return enum_map<Enum, Value>{};
+    return DEnumMap<Enum, Value>{};
 }
 
 

@@ -477,12 +477,12 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// iota_view
+// DIotaView
 //   class: view over a numeric range, either bounded
 // [_start, _end) or infinite [_start, ...). The infinite variant
 // becomes finite when combined with take or take_while.
 template<typename Int>
-class iota_view : public DViewBase<iota_view<Int>>
+class DIotaView : public DViewBase<DIotaView<Int>>
 {
 public:
     using iterator       = internal::DIotaIterator<Int>;
@@ -492,7 +492,7 @@ public:
 
     // constructor (bounded)
     D_CONSTEXPR
-    iota_view(
+    DIotaView(
         Int _start,
         Int _end
     )
@@ -503,7 +503,7 @@ public:
 
     // constructor (infinite)
     explicit D_CONSTEXPR
-    iota_view(
+    DIotaView(
         Int _start
     )
         : m_start(_start)
@@ -536,6 +536,10 @@ private:
     Int m_end;
     bool m_has_end;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Int>
+using iota_view = DIotaView<Int>;
 
 
 NS_INTERNAL
@@ -2841,12 +2845,12 @@ internal::DStrideAdapter stride(
 //   function: builds an iota_view over [_start, _end).
 template<typename Int>
 D_CONSTEXPR
-iota_view<Int> iota(
+DIotaView<Int> iota(
     Int _start,
     Int _end
 )
 {
-    return iota_view<Int>(_start, _end);
+    return DIotaView<Int>(_start, _end);
 }
 
 
@@ -2855,11 +2859,11 @@ iota_view<Int> iota(
 // Pair with take or take_while to bound.
 template<typename Int>
 D_CONSTEXPR
-iota_view<Int> iota(
+DIotaView<Int> iota(
     Int _start
 )
 {
-    return iota_view<Int>(_start);
+    return DIotaView<Int>(_start);
 }
 
 // repeat (unbounded)

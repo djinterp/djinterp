@@ -69,7 +69,7 @@ test_drivers_extract_first
 bool test_drivers_extract_first()
 {
     std::vector<DPerson> people = make_people();
-    maybe<int> m = extract_first(get_age(), people);
+    DMaybe<int> m = extract_first(get_age(), people);
 
     D_INTERNAL_EXT_CHECK(m.has_value());
     D_INTERNAL_EXT_CHECK(m.value() == 30);
@@ -87,7 +87,7 @@ test_drivers_extract_first_empty
 bool test_drivers_extract_first_empty()
 {
     std::vector<DPerson> empty;
-    maybe<int> m = extract_first(get_age(), empty);
+    DMaybe<int> m = extract_first(get_age(), empty);
 
     D_INTERNAL_EXT_CHECK(m.is_nothing());
 

@@ -70,7 +70,7 @@ bool tests_status_default_publish_codes()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription s = b.subscribe("known", recorder(&log));
+    DSubscription s = b.subscribe("known", recorder(&log));
 
     bool ok = true;
 
@@ -89,7 +89,7 @@ tests_token_default
 */
 bool tests_token_default()
 {
-    subscription_token t;
+    DSubscriptionToken t;
 
     return (t.id == 0);
 }
@@ -102,7 +102,7 @@ tests_token_explicit
 */
 bool tests_token_explicit()
 {
-    subscription_token t(42);
+    DSubscriptionToken t(42);
 
     return (t.id == 42);
 }
@@ -116,8 +116,8 @@ tests_token_valid
 */
 bool tests_token_valid()
 {
-    subscription_token null_tok;
-    subscription_token real_tok(1);
+    DSubscriptionToken null_tok;
+    DSubscriptionToken real_tok(1);
 
     return (!null_tok.valid() && real_tok.valid());
 }
@@ -131,9 +131,9 @@ tests_token_equality
 */
 bool tests_token_equality()
 {
-    subscription_token a(5);
-    subscription_token b(5);
-    subscription_token c(6);
+    DSubscriptionToken a(5);
+    DSubscriptionToken b(5);
+    DSubscriptionToken c(6);
 
     bool ok = true;
 
@@ -154,13 +154,13 @@ tests_token_id_type
 */
 bool tests_token_id_type()
 {
-    static_assert(std::is_same<subscription_token::id_type, std::uint64_t>::value,
+    static_assert(std::is_same<DSubscriptionToken::id_type, std::uint64_t>::value,
                   "id_type is uint64_t");
-    static_assert(std::is_same<decltype(subscription_token().id),
-                               subscription_token::id_type>::value,
+    static_assert(std::is_same<decltype(DSubscriptionToken().id),
+                               DSubscriptionToken::id_type>::value,
                   "the id member uses id_type");
 
-    return std::is_same<subscription_token::id_type, std::uint64_t>::value;
+    return std::is_same<DSubscriptionToken::id_type, std::uint64_t>::value;
 }
 
 

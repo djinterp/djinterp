@@ -46,13 +46,13 @@ D_TEST_TYPE_PROBE(p_bool_conv,
 template<typename _Type>
 struct refines_runtime_seq
     : ::djinterp::bool_constant<
-          refinement_of<_Type, DRuntimeSeq>::value == order_relation::greater>
+          refinement_of<_Type, DRuntimeSeq>::value == DOrderRelation::greater>
 {};
 
 template<typename _Type>
 struct refined_by_runtime_seq
     : ::djinterp::bool_constant<
-          refinement_of<DRuntimeSeq, _Type>::value == order_relation::greater>
+          refinement_of<DRuntimeSeq, _Type>::value == DOrderRelation::greater>
 {};
 
 // self_realization_equal / self_realization_comparable
@@ -70,7 +70,7 @@ struct self_realization_comparable : realization_comparable<_Type, _Type>
 template<typename _Type>
 struct content_is_none
     : ::djinterp::bool_constant<
-          native_content_level_of<_Type>::value == content_level::none>
+          native_content_level_of<_Type>::value == DContentLevel::none>
 {};
 
 
@@ -146,15 +146,15 @@ bool tests_cvref_axes()
         D_CCM_REL((EXPECTED), (TRAIT<TYPE&&, OTHER>::value));                 \
         D_CCM_REL((EXPECTED), (TRAIT<const TYPE&&, OTHER>::value))
 
-    D_CCM_CVREF_LEFT(discipline_relation, order_relation::greater,
+    D_CCM_CVREF_LEFT(discipline_relation, DOrderRelation::greater,
                      DCapacitySeq, DRuntimeSeq);
-    D_CCM_CVREF_LEFT(lifetime_relation, order_relation::greater,
+    D_CCM_CVREF_LEFT(lifetime_relation, DOrderRelation::greater,
                      DCompileSeq, DRuntimeSeq);
-    D_CCM_CVREF_LEFT(DIterabilityRelation, order_relation::incomparable,
+    D_CCM_CVREF_LEFT(DIterabilityRelation, DOrderRelation::incomparable,
                      DCompileConstSeq, DRuntimeSeq);
-    D_CCM_CVREF_LEFT(storage_relation, order_relation::incomparable,
+    D_CCM_CVREF_LEFT(storage_relation, DOrderRelation::incomparable,
                      static_seq, dynamic_seq);
-    D_CCM_CVREF_LEFT(refinement_of, order_relation::greater,
+    D_CCM_CVREF_LEFT(refinement_of, DOrderRelation::greater,
                      DCapacitySeq, DRuntimeSeq);
 
     #undef D_CCM_CVREF_LEFT
@@ -170,17 +170,17 @@ bool tests_cvref_axes()
         D_CCM_REL((EXPECTED), (TRAIT<OTHER, TYPE&&>::value));                 \
         D_CCM_REL((EXPECTED), (TRAIT<OTHER, const TYPE&&>::value))
 
-    D_CCM_CVREF_RIGHT(discipline_relation, order_relation::greater,
+    D_CCM_CVREF_RIGHT(discipline_relation, DOrderRelation::greater,
                       DCapacitySeq, DRuntimeSeq);
-    D_CCM_CVREF_RIGHT(refinement_of, order_relation::less,
+    D_CCM_CVREF_RIGHT(refinement_of, DOrderRelation::less,
                       DRuntimeSeq, DCapacitySeq);
 
     #undef D_CCM_CVREF_RIGHT
 
     // native_content_level_of cleans too
-    D_CCM_LEVEL(content_level::seq,
+    D_CCM_LEVEL(DContentLevel::seq,
                 native_content_level_of<const volatile DRuntimeSeq&>::value);
-    D_CCM_LEVEL(content_level::str,
+    D_CCM_LEVEL(DContentLevel::str,
                 native_content_level_of<DNestedSeq&&>::value);
 
     return ok;
@@ -227,9 +227,9 @@ bool tests_cvref_profile()
 
     // and reflexivity survives the cv-ref forms, which is the check that would
     // catch a trait that cleaned one operand and not the other
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (refinement_of<const DRuntimeSeq&, DRuntimeSeq&&>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (refinement_of<volatile DCompileSeq, const DCompileSeq&>::value));
     D_CCM_CHECK((realization_equal<const DRuntimeSeq&, DRuntimeSeq>::value));
 
@@ -274,18 +274,18 @@ bool tests_hostile_types()
                                 D_TEST_HOSTILE_TYPES_COMPLETE>::value));
 
     // the shapes most likely to break a probe, by hand
-    D_CCM_LEVEL(content_level::none, native_content_level_of<void>::value);
-    D_CCM_LEVEL(content_level::none, native_content_level_of<fn_type>::value);
-    D_CCM_LEVEL(content_level::none, native_content_level_of<arr_type>::value);
-    D_CCM_LEVEL(content_level::none, native_content_level_of<int&>::value);
+    D_CCM_LEVEL(DContentLevel::none, native_content_level_of<void>::value);
+    D_CCM_LEVEL(DContentLevel::none, native_content_level_of<fn_type>::value);
+    D_CCM_LEVEL(DContentLevel::none, native_content_level_of<arr_type>::value);
+    D_CCM_LEVEL(DContentLevel::none, native_content_level_of<int&>::value);
 
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (refinement_of<void, int>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (refinement_of<fn_type, arr_type>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (refinement_of<fixtures::evil, fixtures::greedy>::value));
-    D_CCM_REL(order_relation::incomparable,
+    D_CCM_REL(DOrderRelation::incomparable,
               (refinement_of<fixtures::abstract, DRuntimeSeq>::value));
 
     // two non-containers "agree" on every axis, so they are realization-equal.
@@ -293,7 +293,7 @@ bool tests_hostile_types()
     // them is a container at all - that is what content_shared is for
     D_CCM_CHECK((realization_equal<void, int>::value));
     D_CCM_CHECK((DComparisonProfile<void, int>::content_shared ==
-                 content_level::none));
+                 DContentLevel::none));
 
     return ok;
 }
@@ -336,23 +336,23 @@ bool tests_incomplete_type()
     using incomplete = fixtures::incomplete;
 
     // the three that tolerate it
-    D_CCM_LEVEL(content_level::none,
+    D_CCM_LEVEL(DContentLevel::none,
                 native_content_level_of<incomplete>::value);
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (discipline_relation<incomplete, incomplete>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (storage_relation<incomplete, incomplete>::value));
 
     // ...and they do so against a real container, too
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (discipline_relation<incomplete, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::incomparable,
+    D_CCM_REL(DOrderRelation::incomparable,
               (storage_relation<incomplete, static_seq>::value));
 
     // through the cv-ref forms as well
-    D_CCM_LEVEL(content_level::none,
+    D_CCM_LEVEL(DContentLevel::none,
                 native_content_level_of<const incomplete&>::value);
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (discipline_relation<incomplete&&,
                                    const incomplete&>::value));
 
@@ -444,8 +444,8 @@ bool tests_trait_shape()
 
     // THE TRAP.  `equivalent` is enumerator ZERO, so a boolean reading of a
     // refinement would be false exactly when the two types AGREE
-    D_CCM_CHECK(static_cast<int>(order_relation::equivalent) == 0);
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_CHECK(static_cast<int>(DOrderRelation::equivalent) == 0);
+    D_CCM_REL(DOrderRelation::equivalent,
               (refinement_of<DRuntimeSeq, DRuntimeSeq>::value));
 
     // the value traits have no conversion to bool, so that reading is a COMPILE

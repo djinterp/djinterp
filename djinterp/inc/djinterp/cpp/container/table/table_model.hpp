@@ -116,7 +116,7 @@ NS_DJINTERP
 // I.   table_model
 // ===========================================================================
 
-// table_model
+// DTableModel
 //   type: the compile-time model -- the shape (the domain I_T and the cell
 // types) and the layout (the cover Gamma), with the option packs that
 // configure how the declaration was read and what the realized container must
@@ -128,10 +128,10 @@ NS_DJINTERP
 //   TableOpts : the table policy set (an option_set; C++17)
 //   AxisOpts : the container axis set (an option_set; C++17)
 template<typename Shape,
-         typename Layout     = trivial_layout,
+         typename Layout     = DTrivialLayout,
          typename TableOpts = void,
          typename AxisOpts   = void>
-struct table_model
+struct DTableModel
 {
     static_assert(is_table_shape<Shape>::value,
         "table_model: Shape must be a table_shape.");
@@ -180,7 +180,7 @@ struct table_model
     // --- realization ---
 
     // realization -- the container family the shape backs onto.
-    static D_CONSTEXPR realization_kind realization =
+    static D_CONSTEXPR DRealizationKind realization =
         realization_of<Shape>::value;
 
     // --- conformance ---
@@ -194,6 +194,13 @@ struct table_model
         "table_model: the layout is not a valid cover of the shape -- a merge "
         "runs past the extents, or two merges overlap.");
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Shape,
+         typename Layout     = DTrivialLayout,
+         typename TableOpts = void,
+         typename AxisOpts   = void>
+using table_model = DTableModel<Shape, Layout, TableOpts, AxisOpts>;
 
 
 // ===========================================================================
@@ -224,7 +231,7 @@ struct model_of;
 template<typename Builder>
 struct model_of<Builder, void_t<typename Builder::shape_type>>
 {
-    using type = table_model<typename Builder::shape_type,
+    using type = DTableModel<typename Builder::shape_type,
                              typename Builder::layout_type,
                              typename Builder::table_options_type,
                              typename Builder::axis_options_type>;
@@ -239,7 +246,7 @@ struct model_of<Builder, void_t<typename Builder::shape_type>>
 template<typename Builder>
 struct model_of<Builder, void_t<typename Builder::shape_type>>
 {
-    using type = table_model<typename Builder::shape_type,
+    using type = DTableModel<typename Builder::shape_type,
                              typename Builder::layout_type>;
 };
 
@@ -255,7 +262,7 @@ using model_of_t = typename model_of<Builder>::type;
 // III. table_model_value
 // ===========================================================================
 
-// table_model_value
+// DTableModelValue
 //   class: the runtime model -- the same three layers as VALUES. The atomic
 // cells sit in a flat store of height x width; the cover is a runtime_layout;
 // the headers and the open key-value metadata are a table_metadata. This is
@@ -270,8 +277,8 @@ using model_of_t = typename model_of<Builder>::type;
 //               natural output before any typing).
 //   Metadata : the metadata / header carrier (a table_metadata).
 template<typename Cell      = std::string,
-         typename Metadata = table_metadata<>>
-class table_model_value
+         typename Metadata = DTableMetadata<>>
+class DTableModelValue
 {
 public:
     // --- member types ---
@@ -283,7 +290,7 @@ public:
 
     // --- construction ---
 
-    table_model_value()
+    DTableModelValue()
         : m_rows(0),
           m_cols(0),
           m_cells(),
@@ -292,7 +299,7 @@ public:
     {}
 
     // an atomic table of _rows x _cols, cells value-initialized.
-    table_model_value(
+    DTableModelValue(
         size_type _rows,
         size_type _cols
     )
@@ -364,7 +371,7 @@ public:
         size_type _c
     ) const
     {
-        const region_value _owner = m_layout.owner_of(_r, _c);
+        const DRegionValue _owner = m_layout.owner_of(_r, _c);
 
         return raw_at(_owner.anchor_row(), _owner.anchor_col());
     }
@@ -416,12 +423,12 @@ public:
         return;
     }
 
-    D_NODISCARD const runtime_layout& layout() const D_NOEXCEPT
+    D_NODISCARD const DRuntimeLayout& layout() const D_NOEXCEPT
     {
         return m_layout;
     }
 
-    D_NODISCARD runtime_layout& layout() D_NOEXCEPT
+    D_NODISCARD DRuntimeLayout& layout() D_NOEXCEPT
     {
         return m_layout;
     }
@@ -467,9 +474,14 @@ private:
     size_type      m_rows;
     size_type      m_cols;
     store_type     m_cells;      // the atomic cells, row-major
-    runtime_layout m_layout;     // the cover Gamma
+    DRuntimeLayout m_layout;     // the cover Gamma
     Metadata       m_metadata;   // headers + open key-value entries
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Cell      = std::string,
+         typename Metadata = DTableMetadata<>>
+using table_model_value = DTableModelValue<Cell, Metadata>;
 
 
 // D_CFG_TABLE_RENDER compiles the compose leg; the parser's round-trip laws
@@ -496,12 +508,12 @@ private:
 //
 // which is merged_width below.  That identity is what keeps the grid square.
 
-// render_options
+// DRenderOptions
 //   struct: the knobs of the text surface. Defaults match the sketch's
 // dialect:
 // a pipe delimiter, a space of padding either side, a dashed separator under
 // the header block.
-struct render_options
+struct DRenderOptions
 {
     char        delimiter;       // the cell delimiter
     char        pad;             // the padding character
@@ -513,7 +525,7 @@ struct render_options
     // and
     // parse must agree on them or the round trip cannot close, so they are
     // configured ONCE and read by both.
-    render_options()
+    DRenderOptions()
         : delimiter(D_INTERNAL_TABLE_DELIMITER),
           pad(D_INTERNAL_TABLE_PAD),
           separator_fill(D_INTERNAL_TABLE_SEPARATOR_FILL),
@@ -521,6 +533,9 @@ struct render_options
           min_width(1)
     {}
 };
+
+// old name, until 0.9.0-rc.1
+using render_options = DRenderOptions;
 
 NS_INTERNAL
 
@@ -605,7 +620,7 @@ struct is_header_stack : std::false_type
 template<typename AllocCell,
          typename AllocLevel>
 struct is_header_stack<
-    std::vector<std::vector<header_cell<std::string>, AllocCell>, AllocLevel>>
+    std::vector<std::vector<DHeaderCell<std::string>, AllocCell>, AllocLevel>>
     : std::true_type
 {};
 
@@ -711,8 +726,8 @@ NS_END  // internal
 template<typename Cell,
          typename Metadata>
 D_NODISCARD std::vector<std::size_t> column_widths(
-    const table_model_value<Cell, Metadata>& _model,
-    const render_options&                    _opts = render_options()
+    const DTableModelValue<Cell, Metadata>& _model,
+    const DRenderOptions&                    _opts = DRenderOptions()
 )
 {
     const std::size_t _rows = _model.rows();
@@ -725,7 +740,7 @@ D_NODISCARD std::vector<std::size_t> column_widths(
     {
         for (std::size_t _c = 0; _c < _cols; ++_c)
         {
-            const region_value _owner = _model.layout().owner_of(_r, _c);
+            const DRegionValue _owner = _model.layout().owner_of(_r, _c);
 
             // a covered position contributes nothing to a single column's width
             if (_owner.is_merge())
@@ -759,11 +774,11 @@ D_NODISCARD std::vector<std::size_t> column_widths(
     // 3. a merged cell must fit the span it covers; the deficit widens the
     // span's
     //    last column, so the identity W = sum(w) + 3(n-1) still holds
-    const runtime_layout::merge_store& _merges = _model.layout().merges();
+    const DRuntimeLayout::merge_store& _merges = _model.layout().merges();
 
     for (std::size_t _i = 0; _i < _merges.size(); ++_i)
     {
-        const region_value& _m = _merges[_i];
+        const DRegionValue& _m = _merges[_i];
 
         const std::size_t _need =
             internal::cell_text(_model.raw_at(_m.row0, _m.col0)).size();
@@ -795,10 +810,10 @@ NS_INTERNAL
              typename Metadata>
     inline
     std::string render_row(
-        const table_model_value<Cell, Metadata>& _model,
+        const DTableModelValue<Cell, Metadata>& _model,
         const std::vector<std::size_t>&          _w,
         std::size_t                              _r,
-        const render_options&                    _opts
+        const DRenderOptions&                    _opts
     )
     {
         std::string _line;
@@ -807,7 +822,7 @@ NS_INTERNAL
 
         while (_c < _model.cols())
         {
-            const region_value _owner = _model.layout().owner_of(_r, _c);
+            const DRegionValue _owner = _model.layout().owner_of(_r, _c);
 
             const std::size_t _span  = _owner.cols;
             const std::size_t _field = internal::merged_width(_w, _c, _span);
@@ -842,7 +857,7 @@ NS_INTERNAL
     inline
     std::string render_separator(
         const std::vector<std::size_t>& _w,
-        const render_options&           _opts
+        const DRenderOptions&           _opts
     )
     {
         std::size_t _inner = 0;
@@ -873,9 +888,9 @@ NS_INTERNAL
     template<typename Label>
     inline
     std::string render_header_level(
-        const header_level<Label>&      _level,
+        const DHeaderLevel<Label>&      _level,
         const std::vector<std::size_t>& _w,
-        const render_options&           _opts
+        const DRenderOptions&           _opts
     )
     {
         std::string _line;
@@ -916,7 +931,7 @@ NS_INTERNAL
     std::string render_header_levels(
         const Stack&                    _stack,
         const std::vector<std::size_t>& _w,
-        const render_options&           _opts,
+        const DRenderOptions&           _opts,
         std::true_type
     )
     {
@@ -946,7 +961,7 @@ NS_INTERNAL
     render_header_levels(
         const Stack&                   /*_stack*/,
         const std::vector<std::size_t>& /*_w*/,
-        const render_options&           /*_opts*/,
+        const DRenderOptions&           /*_opts*/,
         std::false_type)
     {
         return std::string();
@@ -967,8 +982,8 @@ NS_END  // internal
 template<typename Cell,
          typename Metadata>
 D_NODISCARD std::string render(
-    const table_model_value<Cell, Metadata>& _model,
-    const render_options&                    _opts = render_options()
+    const DTableModelValue<Cell, Metadata>& _model,
+    const DRenderOptions&                    _opts = DRenderOptions()
 )
 {
     const std::vector<std::size_t> _w = column_widths(_model, _opts);
@@ -1012,7 +1027,7 @@ NS_INTERNAL
              typename L,
              typename T,
              typename A>
-    struct is_table_model_impl<table_model<S, L, T, A>> : std::true_type
+    struct is_table_model_impl<DTableModel<S, L, T, A>> : std::true_type
     {};
 
     template<typename Type>
@@ -1021,7 +1036,7 @@ NS_INTERNAL
 
     template<typename C,
              typename M>
-    struct is_table_model_value_impl<table_model_value<C, M>> : std::true_type
+    struct is_table_model_value_impl<DTableModelValue<C, M>> : std::true_type
     {};
 
 NS_END  // internal

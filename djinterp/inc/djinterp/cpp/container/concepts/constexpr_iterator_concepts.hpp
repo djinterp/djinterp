@@ -100,7 +100,7 @@ concept ConstexprEndCapable =
 // ===========================================================================
 
 // ConstexprIterAlias
-//   concept: constrains types declaring a nested `constexpr_iterator` type
+//   concept: constrains types declaring a nested `DConstexprIterator` type
 // alias.
 template<typename Type>
 concept ConstexprIterAlias =

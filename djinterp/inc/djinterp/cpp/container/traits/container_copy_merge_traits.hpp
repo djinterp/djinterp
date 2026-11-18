@@ -243,12 +243,12 @@ NS_INTERNAL
 
 NS_END  // internal
 
-// merge_discipline
+// DMergeDiscipline
 //   enum: the combining-relevant discipline of a single operand - the overlay
 // it wears, read locally. A non-container is `unknown`; a comparator-less
-// container is a `sequence`; the associative disciplines split by keyed? and
+// container is a `DSequence`; the associative disciplines split by keyed? and
 // unique?.
-enum class merge_discipline
+enum class DMergeDiscipline
 {
     unknown,    // not a container
     sequence,   // comparator-less (concatenates)
@@ -258,18 +258,21 @@ enum class merge_discipline
     multimap    // keyed, repeatable keys(keyed merge)
 };
 
+// old name, until 0.9.0-rc.1
+using merge_discipline = DMergeDiscipline;
+
 // merge_discipline_name
 //   function: a stable spelling, for diagnostics and agent-facing summaries.
 constexpr
 const char* merge_discipline_name(
-    merge_discipline _d
+    DMergeDiscipline _d
 ) noexcept
 {
-    return ( _d == merge_discipline::unknown  ? "unknown"
-           : _d == merge_discipline::sequence ? "sequence"
-           : _d == merge_discipline::set      ? "set"
-           : _d == merge_discipline::multiset ? "multiset"
-           : _d == merge_discipline::map      ? "map"
+    return ( _d == DMergeDiscipline::unknown  ? "unknown"
+           : _d == DMergeDiscipline::sequence ? "sequence"
+           : _d == DMergeDiscipline::set      ? "set"
+           : _d == DMergeDiscipline::multiset ? "multiset"
+           : _d == DMergeDiscipline::map      ? "map"
            :                                    "multimap" );
 }
 
@@ -278,28 +281,28 @@ const char* merge_discipline_name(
 // unkeyed bag (set or multiset), and a keyed map (map or multimap).
 constexpr
 bool discipline_is_sequence(
-    merge_discipline _d
+    DMergeDiscipline _d
 ) noexcept
 {
-    return ( _d == merge_discipline::sequence );
+    return ( _d == DMergeDiscipline::sequence );
 }
 
 constexpr
 bool discipline_is_bag(
-    merge_discipline _d
+    DMergeDiscipline _d
 ) noexcept
 {
-    return (    _d == merge_discipline::set
-             || _d == merge_discipline::multiset );
+    return (    _d == DMergeDiscipline::set
+             || _d == DMergeDiscipline::multiset );
 }
 
 constexpr
 bool discipline_is_keyed(
-    merge_discipline _d
+    DMergeDiscipline _d
 ) noexcept
 {
-    return (    _d == merge_discipline::map
-             || _d == merge_discipline::multimap );
+    return (    _d == DMergeDiscipline::map
+             || _d == DMergeDiscipline::multimap );
 }
 
 // merge_discipline_of
@@ -314,20 +317,20 @@ private:
     using clean_type = clean_t<Type>;
 
 public:
-    static constexpr merge_discipline value =
+    static constexpr DMergeDiscipline value =
         ( !is_iterable_container<clean_type>::value )
-              ? merge_discipline::unknown
+              ? DMergeDiscipline::unknown
       : (  internal::merge_keyed_value_helper<clean_type>::value )
               ? (  internal::has_unique_insert_helper<clean_type>::value
-                       ? merge_discipline::map
-                       : merge_discipline::multimap )
+                       ? DMergeDiscipline::map
+                       : DMergeDiscipline::multimap )
       : (  internal::merge_equivalence_helper<clean_type>::value )
               ? (  internal::has_unique_insert_helper<clean_type>::value
-                       ? merge_discipline::set
-                       : merge_discipline::multiset )
-      :         merge_discipline::sequence;
+                       ? DMergeDiscipline::set
+                       : DMergeDiscipline::multiset )
+      :         DMergeDiscipline::sequence;
 
-    using type = std::integral_constant<merge_discipline, value>;
+    using type = std::integral_constant<DMergeDiscipline, value>;
 };
 
 // merge_discipline_of_t / merge_discipline_of_v
@@ -338,11 +341,11 @@ using merge_discipline_of_t = typename merge_discipline_of<Type>::type;
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename Type>
-    inline constexpr merge_discipline merge_discipline_of_v =
+    inline constexpr DMergeDiscipline merge_discipline_of_v =
         merge_discipline_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    constexpr merge_discipline merge_discipline_of_v =
+    constexpr DMergeDiscipline merge_discipline_of_v =
         merge_discipline_of<Type>::value;
 #endif
 
@@ -351,10 +354,10 @@ using merge_discipline_of_t = typename merge_discipline_of<Type>::type;
 // IV.  Merge kind
 // ===========================================================================
 
-// merge_kind
+// DMergeKind
 //   enum: the combining operation of a pair, chosen at the shared discipline.
 // `incompatible` covers both a discipline mismatch and incompatible elements.
-enum class merge_kind
+enum class DMergeKind
 {
     concatenation,   // two sequences, appended
     set_union,       // two sets, deduplicating union
@@ -363,17 +366,20 @@ enum class merge_kind
     incompatible     // disciplines disagree, or elements do not combine
 };
 
+// old name, until 0.9.0-rc.1
+using merge_kind = DMergeKind;
+
 // merge_kind_name
 //   function: a stable spelling, for diagnostics and agent-facing summaries.
 constexpr
 const char* merge_kind_name(
-    merge_kind _k
+    DMergeKind _k
 ) noexcept
 {
-    return ( _k == merge_kind::concatenation  ? "concatenation"
-           : _k == merge_kind::set_union      ? "set_union"
-           : _k == merge_kind::multiset_union ? "multiset_union"
-           : _k == merge_kind::keyed_merge    ? "keyed_merge"
+    return ( _k == DMergeKind::concatenation  ? "concatenation"
+           : _k == DMergeKind::set_union      ? "set_union"
+           : _k == DMergeKind::multiset_union ? "multiset_union"
+           : _k == DMergeKind::keyed_merge    ? "keyed_merge"
            :                                    "incompatible" );
 }
 
@@ -383,21 +389,21 @@ const char* merge_kind_name(
 // else a multiset_union, since the union may repeat); two keyed maps merge by
 // key; anything across the three families is incompatible.
 constexpr
-merge_kind merge_kind_from_disciplines(
-    merge_discipline _a,
-    merge_discipline _b
+DMergeKind merge_kind_from_disciplines(
+    DMergeDiscipline _a,
+    DMergeDiscipline _b
 ) noexcept
 {
     return ( discipline_is_sequence(_a) && discipline_is_sequence(_b) )
-               ? merge_kind::concatenation
+               ? DMergeKind::concatenation
          : ( discipline_is_bag(_a) && discipline_is_bag(_b) )
-               ? (    ( _a == merge_discipline::set )
-                   && ( _b == merge_discipline::set )
-                          ? merge_kind::set_union
-                          : merge_kind::multiset_union )
+               ? (    ( _a == DMergeDiscipline::set )
+                   && ( _b == DMergeDiscipline::set )
+                          ? DMergeKind::set_union
+                          : DMergeKind::multiset_union )
          : ( discipline_is_keyed(_a) && discipline_is_keyed(_b) )
-               ? merge_kind::keyed_merge
-         :         merge_kind::incompatible;
+               ? DMergeKind::keyed_merge
+         :         DMergeKind::incompatible;
 }
 
 // merge_kind_of
@@ -412,14 +418,14 @@ private:
     using right_type = clean_t<Right>;
 
 public:
-    static constexpr merge_kind value =
+    static constexpr DMergeKind value =
         ( !merge_elements_compatible<left_type, right_type>::value )
-              ? merge_kind::incompatible
+              ? DMergeKind::incompatible
       :         merge_kind_from_disciplines(
                     merge_discipline_of<left_type>::value,
                     merge_discipline_of<right_type>::value );
 
-    using type = std::integral_constant<merge_kind, value>;
+    using type = std::integral_constant<DMergeKind, value>;
 };
 
 // merge_kind_of_t / merge_kind_of_v
@@ -432,12 +438,12 @@ using merge_kind_of_t = typename merge_kind_of<Left, Right>::type;
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename Left,
              typename Right>
-    inline constexpr merge_kind merge_kind_of_v =
+    inline constexpr DMergeKind merge_kind_of_v =
         merge_kind_of<Left, Right>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Left,
              typename Right>
-    constexpr merge_kind merge_kind_of_v =
+    constexpr DMergeKind merge_kind_of_v =
         merge_kind_of<Left, Right>::value;
 #endif
 
@@ -447,7 +453,7 @@ template<typename Left,
          typename Right>
 struct is_mergeable
     : std::integral_constant<bool,
-          merge_kind_of<Left, Right>::value != merge_kind::incompatible>
+          merge_kind_of<Left, Right>::value != DMergeKind::incompatible>
 {};
 
 // is_mergeable_v  (two-param, so the `_v` is written by hand)
@@ -494,11 +500,11 @@ template<typename Left,
          typename Right>
 struct merge_has_key_conflict
     : std::integral_constant<bool,
-            ( merge_kind_of<Left, Right>::value == merge_kind::keyed_merge )
+            ( merge_kind_of<Left, Right>::value == DMergeKind::keyed_merge )
          && (    merge_discipline_of<clean_t<Left>>::value
-                     == merge_discipline::map
+                     == DMergeDiscipline::map
               || merge_discipline_of<clean_t<Right>>::value
-                     == merge_discipline::map )>
+                     == DMergeDiscipline::map )>
 {};
 
 // merge_has_key_conflict_v  (two-param, so the `_v` is written by hand)
@@ -568,11 +574,11 @@ private:
     using right_type = clean_t<Right>;
 
 public:
-    static constexpr merge_discipline left_discipline =
+    static constexpr DMergeDiscipline left_discipline =
         merge_discipline_of<left_type>::value;
-    static constexpr merge_discipline right_discipline =
+    static constexpr DMergeDiscipline right_discipline =
         merge_discipline_of<right_type>::value;
-    static constexpr merge_kind kind =
+    static constexpr DMergeKind kind =
         merge_kind_of<left_type, right_type>::value;
     static constexpr const char* kind_name =
         merge_kind_name(kind);

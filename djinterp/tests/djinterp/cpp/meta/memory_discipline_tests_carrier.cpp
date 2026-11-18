@@ -29,28 +29,28 @@ tests_memory_discipline_carrier
 bool tests_memory_discipline_carrier()
 {
     // the carrier reports its value
-    D_MD_CHECK(memory_discipline_constant<memory_discipline::none>::value
-               == memory_discipline::none);
-    D_MD_CHECK(memory_discipline_constant<memory_discipline::arena>::value
-               == memory_discipline::arena);
+    D_MD_CHECK(memory_discipline_constant<DMemoryDiscipline::none>::value
+               == DMemoryDiscipline::none);
+    D_MD_CHECK(memory_discipline_constant<DMemoryDiscipline::arena>::value
+               == DMemoryDiscipline::arena);
 
     // it is an integral_constant over memory_discipline::value
     D_MD_CHECK((std::is_same<
                     memory_discipline_constant<
-                        memory_discipline::pooled>::value_type,
-                    memory_discipline::value>::value));
+                        DMemoryDiscipline::pooled>::value_type,
+                    DMemoryDiscipline::value>::value));
     D_MD_CHECK((std::is_same<
-                    std::integral_constant<memory_discipline::value,
-                                           memory_discipline::pooled>,
+                    std::integral_constant<DMemoryDiscipline::value,
+                                           DMemoryDiscipline::pooled>,
                     memory_discipline_constant<
-                        memory_discipline::pooled>>::value));
+                        DMemoryDiscipline::pooled>>::value));
 
     // the five named aliases
-    D_MD_CHECK(unknown_discipline::value    == memory_discipline::unknown);
-    D_MD_CHECK(none_discipline::value       == memory_discipline::none);
-    D_MD_CHECK(individual_discipline::value == memory_discipline::individual);
-    D_MD_CHECK(pooled_discipline::value     == memory_discipline::pooled);
-    D_MD_CHECK(arena_discipline::value      == memory_discipline::arena);
+    D_MD_CHECK(unknown_discipline::value    == DMemoryDiscipline::unknown);
+    D_MD_CHECK(none_discipline::value       == DMemoryDiscipline::none);
+    D_MD_CHECK(individual_discipline::value == DMemoryDiscipline::individual);
+    D_MD_CHECK(pooled_discipline::value     == DMemoryDiscipline::pooled);
+    D_MD_CHECK(arena_discipline::value      == DMemoryDiscipline::arena);
 
     // distinct values are distinct types
     D_MD_CHECK((!std::is_same<none_discipline, arena_discipline>::value));
@@ -58,7 +58,7 @@ bool tests_memory_discipline_carrier()
 
     // an alias matches the corresponding carrier instantiation
     D_MD_CHECK((std::is_same<pooled_discipline,
-                             memory_discipline_constant<memory_discipline::pooled>>::value));
+                             memory_discipline_constant<DMemoryDiscipline::pooled>>::value));
 
     return true;
 }

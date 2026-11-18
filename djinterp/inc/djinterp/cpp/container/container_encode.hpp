@@ -29,7 +29,7 @@
 * first, bounds the element count" - so a decoder knows exactly how many
 * components follow and where this container's field ends, even nested inside
 * another.  The count is written through encode.hpp's fixed-width leaf writer
-* (8 bytes, big-endian: `encode_length_type`), itself uniquely decodable.
+* (8 bytes, big-endian: `DEncodeLengthType`), itself uniquely decodable.
 *
 *   WHAT THE STREAM CARRIES (and what it need not):
 *   Per the model, faithfulness at the native level fixes what the stream
@@ -302,7 +302,7 @@ void encode_container_into(
     // 1. the length prefix |c| - a fixed-width leaf, so the component count and
     //    this container's field boundary are recoverable (uniquely decodable)
     encode_into(_sink,
-        static_cast<encode_length_type>(
+        static_cast<DEncodeLengthType>(
             internal::encode_element_count(_container)));
 
     // 2. the components, in traversal order - each dispatched leaf-or-node
@@ -341,13 +341,13 @@ encode_into(Sink& _sink, const Container& _container)
 
 // encode_container
 //   function: the container encoder as a total map to B* - allocates a fresh
-// `byte_string`, writes `_container` into it, and returns it.
+// `DByteString`, writes `_container` into it, and returns it.
 template<typename Container>
-byte_string encode_container(
+DByteString encode_container(
     const Container& _container
 )
 {
-    byte_string _out;
+    DByteString _out;
     encode_container_into(_out, _container);
 
     return _out;

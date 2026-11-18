@@ -25,10 +25,10 @@ tests_classification_opt_in_takes_priority
 */
 bool tests_classification_opt_in_takes_priority()
 {
-    D_LT_CHECK(lifetime_of<opt_ct>::value == lifetime::compile_time);
-    D_LT_CHECK(lifetime_of<opt_rt>::value == lifetime::runtime);
-    D_LT_CHECK(lifetime_of<opt_both>::value == lifetime::both);
-    D_LT_CHECK(lifetime_of<opt_none>::value == lifetime::none);
+    D_LT_CHECK(lifetime_of<opt_ct>::value == DLifetime::compile_time);
+    D_LT_CHECK(lifetime_of<opt_rt>::value == DLifetime::runtime);
+    D_LT_CHECK(lifetime_of<opt_both>::value == DLifetime::both);
+    D_LT_CHECK(lifetime_of<opt_none>::value == DLifetime::none);
 
     return true;
 }
@@ -47,17 +47,17 @@ bool tests_classification_opt_in_overrides_literal()
     // opt_rt is structurally literal ...
     D_LT_CHECK(is_literal_type<opt_rt>::value);
     // ... but the opt-in wins: runtime, not both
-    D_LT_CHECK(lifetime_of<opt_rt>::value == lifetime::runtime);
-    D_LT_CHECK(lifetime_of<opt_rt>::value != lifetime::both);
+    D_LT_CHECK(lifetime_of<opt_rt>::value == DLifetime::runtime);
+    D_LT_CHECK(lifetime_of<opt_rt>::value != DLifetime::both);
 
     // opt_none is structurally literal but classifies as none
     D_LT_CHECK(is_literal_type<opt_none>::value);
-    D_LT_CHECK(lifetime_of<opt_none>::value == lifetime::none);
+    D_LT_CHECK(lifetime_of<opt_none>::value == DLifetime::none);
 
     // contrast: a literal type with no opt-in is both
-    D_LT_CHECK(lifetime_of<DLiteralNoopt>::value == lifetime::both);
+    D_LT_CHECK(lifetime_of<DLiteralNoopt>::value == DLifetime::both);
 
-    static_assert(lifetime_of<opt_rt>::value == lifetime::runtime,
+    static_assert(lifetime_of<opt_rt>::value == DLifetime::runtime,
                   "opt-in overrides literal at compile time");
 
     return true;
@@ -74,12 +74,12 @@ tests_classification_literal_without_opt_in_is_both
 */
 bool tests_classification_literal_without_opt_in_is_both()
 {
-    D_LT_CHECK(lifetime_of<DLiteralNoopt>::value == lifetime::both);
-    D_LT_CHECK(lifetime_of<int>::value == lifetime::both);
-    D_LT_CHECK(lifetime_of<double>::value == lifetime::both);
+    D_LT_CHECK(lifetime_of<DLiteralNoopt>::value == DLifetime::both);
+    D_LT_CHECK(lifetime_of<int>::value == DLifetime::both);
+    D_LT_CHECK(lifetime_of<double>::value == DLifetime::both);
 
     struct trivial_local { int a; char b; };
-    D_LT_CHECK(lifetime_of<trivial_local>::value == lifetime::both);
+    D_LT_CHECK(lifetime_of<trivial_local>::value == DLifetime::both);
 
     return true;
 }
@@ -95,13 +95,13 @@ tests_classification_nonliteral_falls_back_to_runtime
 */
 bool tests_classification_nonliteral_falls_back_to_runtime()
 {
-    D_LT_CHECK(lifetime_of<nonliteral>::value == lifetime::runtime);
-    D_LT_CHECK(lifetime_of<std::string>::value == lifetime::runtime);
+    D_LT_CHECK(lifetime_of<nonliteral>::value == DLifetime::runtime);
+    D_LT_CHECK(lifetime_of<std::string>::value == DLifetime::runtime);
 
     struct holds_string { std::string s; };
-    D_LT_CHECK(lifetime_of<holds_string>::value == lifetime::runtime);
+    D_LT_CHECK(lifetime_of<holds_string>::value == DLifetime::runtime);
 
-    D_LT_CHECK(lifetime_of<void>::value == lifetime::runtime);
+    D_LT_CHECK(lifetime_of<void>::value == DLifetime::runtime);
 
     return true;
 }
@@ -127,7 +127,7 @@ bool tests_classification_carrier_type()
 
     // the carrier's value equals the classified lifetime
     D_LT_CHECK(lifetime_of<int>::type::value == lifetime_of<int>::value);
-    D_LT_CHECK(lifetime_of<opt_rt>::type::value == lifetime::runtime);
+    D_LT_CHECK(lifetime_of<opt_rt>::type::value == DLifetime::runtime);
 
     return true;
 }
@@ -144,13 +144,13 @@ tests_classification_strips_cv_ref
 bool tests_classification_strips_cv_ref()
 {
     D_LT_CHECK(lifetime_of<const opt_ct&>::value == lifetime_of<opt_ct>::value);
-    D_LT_CHECK(lifetime_of<const opt_ct&>::value == lifetime::compile_time);
+    D_LT_CHECK(lifetime_of<const opt_ct&>::value == DLifetime::compile_time);
 
-    D_LT_CHECK(lifetime_of<const int&>::value == lifetime::both);
-    D_LT_CHECK(lifetime_of<const std::string&>::value == lifetime::runtime);
+    D_LT_CHECK(lifetime_of<const int&>::value == DLifetime::both);
+    D_LT_CHECK(lifetime_of<const std::string&>::value == DLifetime::runtime);
 
-    D_LT_CHECK(lifetime_of<opt_rt&&>::value == lifetime::runtime);
-    D_LT_CHECK(lifetime_of<volatile int>::value == lifetime::both);
+    D_LT_CHECK(lifetime_of<opt_rt&&>::value == DLifetime::runtime);
+    D_LT_CHECK(lifetime_of<volatile int>::value == DLifetime::both);
 
     return true;
 }
@@ -171,8 +171,8 @@ bool tests_classification_value_companion()
     D_LT_CHECK(lifetime_of_v<int> == lifetime_of<int>::value);
     D_LT_CHECK(lifetime_of_v<std::string> == lifetime_of<std::string>::value);
 
-    static_assert(lifetime_of_v<int> == lifetime::both, "companion is constexpr");
-    static_assert(lifetime_of_v<opt_rt> == lifetime::runtime, "override is constexpr");
+    static_assert(lifetime_of_v<int> == DLifetime::both, "companion is constexpr");
+    static_assert(lifetime_of_v<opt_rt> == DLifetime::runtime, "override is constexpr");
 #else
     D_LT_CHECK(lifetime_of<int>::value == lifetime::both);
 #endif

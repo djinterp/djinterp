@@ -26,7 +26,7 @@
 * undefined however universally it works, and offsetof needs the member's NAME,
 * so only a macro at the declaration site can supply it.
 *
-*   `member_field` therefore carries the offset as an optional non-type
+*   `DMemberField` therefore carries the offset as an optional non-type
 * parameter defaulting to `kv_offset_unknown`, and the functions that hand a
 * field to C -- section V -- are enable_if'd on it being known. A field built
 * by hand from a bare pointer-to-member is a perfectly good compile-time field
@@ -42,7 +42,7 @@
 *
 * WHY BOTH FORMS STILL EXIST
 * ==========================
-*   `member_field::get()` is `record.*pointer` -- the member's own type, its
+*   `DMemberField::get()` is `record.*pointer` -- the member's own type, its
 * own alignment, no bounds check, because the type system already did the
 * checking a bounds check would repeat. Nothing in section V should be reached
 * for when the record type is visible.
@@ -221,7 +221,7 @@ struct is_kv_scalar
 D_CONSTEXPR_INLINE_VAR std::size_t kv_offset_unknown =
     static_cast<std::size_t>(-1);
 
-// member_field
+// DMemberField
 //   trait: a field named by a pointer-to-member. Costs nothing: `get()` is
 // `record.*pointer`, which the compiler resolves to the member's own type at
 // its own alignment with no bounds check, because the type system already did
@@ -232,7 +232,7 @@ template<typename           Record,
          typename           Member,
          Member Record::* Pointer,
          std::size_t        Offset = kv_offset_unknown>
-struct member_field
+struct DMemberField
 {
     using record_type = Record;
     using member_type = Member;
@@ -271,6 +271,13 @@ struct member_field
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename           Record,
+         typename           Member,
+         Member Record::* Pointer,
+         std::size_t        Offset = kv_offset_unknown>
+using member_field = DMemberField<Record, Member, Pointer, Offset>;
+
 // D_KV_MEMBER_TYPE
 //   macro: the declared type of a member. The sizeof/decltype operand is
 // unevaluated, so the null pointer is never dereferenced.
@@ -283,7 +290,7 @@ struct member_field
 // this is the declaration-site spelling that supplies it, and a field built
 // this way is the one that can address bytes through C.
 #define D_KV_MEMBER_FIELD(record, member)                                      \
-    ::djinterp::member_field<record,                                           \
+    ::djinterp::DMemberField<record,                                           \
                              D_KV_MEMBER_TYPE(record, member),                 \
                              &record::member,                                  \
                              offsetof(record, member)>
@@ -293,7 +300,7 @@ struct member_field
 // and therefore has no offsets to speak of. Usable everywhere in C++ and
 // nowhere across the boundary, which section V enforces rather than documents.
 #define D_KV_MEMBER_FIELD_NO_OFFSET(record, member)                            \
-    ::djinterp::member_field<record,                                           \
+    ::djinterp::DMemberField<record,                                           \
                              D_KV_MEMBER_TYPE(record, member),                 \
                              &record::member>
 

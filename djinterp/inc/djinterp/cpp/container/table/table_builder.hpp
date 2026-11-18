@@ -137,52 +137,68 @@ NS_DJINTERP
 //   The DSL's vocabulary.  Each is an empty type -- a declarator is read by the
 // fold, never instantiated as an object.
 
-// columns
+// DColumns
 //   type: one axis of the table, given by its cell types -- the axis-typed
 // reading tau_{r,c} = tau_c, of extent sizeof...(Types). Leading a
 // declaration with columns<> makes the columns the INDEPENDENT axis (the
 // ordinary reading). A second columns<> group adds a dimension (k = groups +
 // 1).
 template<typename... Types>
-struct columns
+struct DColumns
 {
     static D_CONSTEXPR std::size_t extent = sizeof...(Types);
 
     using types_type = std::tuple<Types...>;
 };
 
-// rows
+// old name, until 0.9.0-rc.1
+template<typename... Types>
+using columns = DColumns<Types...>;
+
+// DRows
 //   type: the transposed counterpart of columns<> when it LEADS a declaration
 // (the rows become the independent axis); otherwise, a flat run of cell
 // entries, wrapped at the table's width, so the individual rows are inferred
 // -- the "every four entries is a row" reading of a four-column table.
 template<typename... Types>
-struct rows
+struct DRows
 {
     static D_CONSTEXPR std::size_t extent = sizeof...(Types);
 
     using types_type = std::tuple<Types...>;
 };
 
-// row
+// old name, until 0.9.0-rc.1
+template<typename... Types>
+using rows = DRows<Types...>;
+
+// DRow
 //   type: exactly one row of the table, given by its cell entries. An entry
 // may be a bare cell type, a cell<>, a merged_cell<>, or a split_cell<>; the
 // row's width is the sum of their column spans.
 template<typename... Cells>
-struct row
+struct DRow
 {
     static D_CONSTEXPR std::size_t count = sizeof...(Cells);
 };
 
-// column
+// old name, until 0.9.0-rc.1
+template<typename... Cells>
+using row = DRow<Cells...>;
+
+// DColumn
 //   type: exactly one COLUMN of the table, given by its cell entries -- the
 // transpose of row<>, used to fill a declaration whose independent axis is the
 // rows (one that leads with rows<>).
 template<typename... Cells>
-struct column
+struct DColumn
 {
     static D_CONSTEXPR std::size_t count = sizeof...(Cells);
 };
+
+// old name, until 0.9.0-rc.1
+template<typename... Cells>
+using column = DColumn<Cells...>;
 
 // cell
 //   type: one atomic cell holding Value -- the trivial layout cell (Gamma_0,
@@ -194,14 +210,14 @@ struct cell
     using value_type = Value;
 };
 
-// merged_cell
+// DMergedCell
 //   type: a cell spanning Rows x Cols atomic positions and holding one value
 // (|R_C| > 1: layout-aware access returns Value for every covered position,
 // which defers to the anchor -- the position the merge is declared at).
 template<std::size_t Rows,
          std::size_t Cols,
          typename    Value>
-struct merged_cell
+struct DMergedCell
 {
     using value_type = Value;
 
@@ -209,7 +225,13 @@ struct merged_cell
     static D_CONSTEXPR std::size_t cols = Cols;
 };
 
-// split_cell
+// old name, until 0.9.0-rc.1
+template<std::size_t Rows,
+         std::size_t Cols,
+         typename    Value>
+using merged_cell = DMergedCell<Rows, Cols, Value>;
+
+// DSplitCell
 //   type: a cell spanning Rows x Cols, refined into Pieces sub-cells whose
 // contents are Content (typically a row<>). The refinement of a layout cell:
 // its region is partitioned into finer pieces.
@@ -217,7 +239,7 @@ template<std::size_t Rows,
          std::size_t Cols,
          std::size_t Pieces,
          typename    Content>
-struct split_cell
+struct DSplitCell
 {
     using content_type = Content;
 
@@ -225,6 +247,13 @@ struct split_cell
     static D_CONSTEXPR std::size_t cols   = Cols;
     static D_CONSTEXPR std::size_t pieces = Pieces;
 };
+
+// old name, until 0.9.0-rc.1
+template<std::size_t Rows,
+         std::size_t Cols,
+         std::size_t Pieces,
+         typename    Content>
+using split_cell = DSplitCell<Rows, Cols, Pieces, Content>;
 
 //   A value cell is meta/carrier.hpp's val_t<V> (C++17): it lifts a
 // compile-time VALUE into the type-level cell vocabulary, so a value cell reads
@@ -277,11 +306,11 @@ NS_INTERNAL
 
     // list_to_layout<type_list<Regions...>>
     //   trait: the `type_list<Regions...>` case; it maps to
-    // `layout<Regions...>`.
+    // `DTableLayout<Regions...>`.
     template<typename... Regions>
     struct list_to_layout<type_list<Regions...>>
     {
-        using type = layout<Regions...>;
+        using type = DTableLayout<Regions...>;
     };
 
     // list_to_shape
@@ -293,12 +322,12 @@ NS_INTERNAL
 
     // list_to_shape<Height, type_list<Cols...>>
     //   trait: the `type_list<Cols...>` case; it maps to
-    // `table_shape<Height, Cols...>`.
+    // `DTableShape<Height, Cols...>`.
     template<std::size_t Height,
              typename... Cols>
     struct list_to_shape<Height, type_list<Cols...>>
     {
-        using type = table_shape<Height, Cols...>;
+        using type = DTableShape<Height, Cols...>;
     };
 
 NS_END  // internal
@@ -326,14 +355,14 @@ struct cell_cols : std::integral_constant<std::size_t, 1>
 template<std::size_t R,
          std::size_t C,
          typename    V>
-struct cell_rows<merged_cell<R, C, V>>
+struct cell_rows<DMergedCell<R, C, V>>
     : std::integral_constant<std::size_t, R>
 {};
 
 template<std::size_t R,
          std::size_t C,
          typename    V>
-struct cell_cols<merged_cell<R, C, V>>
+struct cell_cols<DMergedCell<R, C, V>>
     : std::integral_constant<std::size_t, C>
 {};
 
@@ -341,7 +370,7 @@ template<std::size_t R,
          std::size_t C,
          std::size_t P,
          typename    Content>
-struct cell_rows<split_cell<R, C, P, Content>>
+struct cell_rows<DSplitCell<R, C, P, Content>>
     : std::integral_constant<std::size_t, R>
 {};
 
@@ -349,7 +378,7 @@ template<std::size_t R,
          std::size_t C,
          std::size_t P,
          typename    Content>
-struct cell_cols<split_cell<R, C, P, Content>>
+struct cell_cols<DSplitCell<R, C, P, Content>>
     : std::integral_constant<std::size_t, C>
 {};
 
@@ -372,7 +401,7 @@ struct cell_value<cell<Value>>
 template<std::size_t R,
          std::size_t C,
          typename    V>
-struct cell_value<merged_cell<R, C, V>>
+struct cell_value<DMergedCell<R, C, V>>
 {
     using type = V;
 };
@@ -395,7 +424,7 @@ NS_INTERNAL
     {};
 
     template<typename... Ts>
-    struct is_columns_impl<columns<Ts...>> : std::true_type
+    struct is_columns_impl<DColumns<Ts...>> : std::true_type
     {};
 
     template<typename Type>
@@ -403,7 +432,7 @@ NS_INTERNAL
     {};
 
     template<typename... Ts>
-    struct is_rows_impl<rows<Ts...>> : std::true_type
+    struct is_rows_impl<DRows<Ts...>> : std::true_type
     {};
 
     template<typename Type>
@@ -411,7 +440,7 @@ NS_INTERNAL
     {};
 
     template<typename... Ts>
-    struct is_row_impl<row<Ts...>> : std::true_type
+    struct is_row_impl<DRow<Ts...>> : std::true_type
     {};
 
 NS_END  // internal
@@ -430,15 +459,18 @@ template<typename Type>
 struct is_row : internal::is_row_impl<clean_t<Type>>
 {};
 
-// table_axis
+// DTableAxis
 //   enum: which axis a declaration makes independent -- read from its FIRST
 // axis declarator. Leading with columns<> is the ordinary column-wise reading;
 // leading with rows<> declares the transpose.
-enum class table_axis
+enum class DTableAxis
 {
     column_major,   // columns<> leads: the columns are the independent axis
     row_major       // rows<> leads: the transpose reading
 };
+
+// old name, until 0.9.0-rc.1
+using table_axis = DTableAxis;
 
 
 // ===========================================================================
@@ -465,52 +497,52 @@ struct transpose_decl
 };
 
 // transpose_decl<columns<Ts...>>
-//   trait: the `columns<Ts...>` case; it maps to `rows<Ts...>`.
+//   trait: the `DColumns<Ts...>` case; it maps to `DRows<Ts...>`.
 template<typename... Ts>
-struct transpose_decl<columns<Ts...>>
+struct transpose_decl<DColumns<Ts...>>
 {
-    using type = rows<Ts...>;
+    using type = DRows<Ts...>;
 };
 
 // transpose_decl<rows<Ts...>>
-//   trait: the `rows<Ts...>` case; it maps to `columns<Ts...>`.
+//   trait: the `DRows<Ts...>` case; it maps to `DColumns<Ts...>`.
 template<typename... Ts>
-struct transpose_decl<rows<Ts...>>
+struct transpose_decl<DRows<Ts...>>
 {
-    using type = columns<Ts...>;
+    using type = DColumns<Ts...>;
 };
 
 // a line of cells and its opposite (its entries transpose with it)
 // transpose_decl<row<Cells...>>
-//   trait: the `row<Cells...>` case; it maps to `column<typename
+//   trait: the `DRow<Cells...>` case; it maps to `column<typename
 // transpose_decl<Cells>::type...>`.
 template<typename... Cells>
-struct transpose_decl<row<Cells...>>
+struct transpose_decl<DRow<Cells...>>
 {
-    using type = column<typename transpose_decl<Cells>::type...>;
+    using type = DColumn<typename transpose_decl<Cells>::type...>;
 };
 
 template<typename... Cells>
-struct transpose_decl<column<Cells...>>
+struct transpose_decl<DColumn<Cells...>>
 {
-    using type = row<typename transpose_decl<Cells>::type...>;
+    using type = DRow<typename transpose_decl<Cells>::type...>;
 };
 
 template<std::size_t R,
          std::size_t C,
          typename    V>
-struct transpose_decl<merged_cell<R, C, V>>
+struct transpose_decl<DMergedCell<R, C, V>>
 {
-    using type = merged_cell<C, R, V>;
+    using type = DMergedCell<C, R, V>;
 };
 
 template<std::size_t R,
          std::size_t C,
          std::size_t P,
          typename    Content>
-struct transpose_decl<split_cell<R, C, P, Content>>
+struct transpose_decl<DSplitCell<R, C, P, Content>>
 {
-    using type = split_cell<C, R, P,
+    using type = DSplitCell<C, R, P,
                             typename transpose_decl<Content>::type>;
 };
 
@@ -569,7 +601,7 @@ NS_INTERNAL
         // a spanning entry registers a layout cell; a 1x1 entry does not
         using here =
             typename std::conditional<((r * c) > 1),
-                type_list<region<Row, Col, r, c>>,
+                type_list<DRegion<Row, Col, r, c>>,
                 type_list<>
             >::type;
 
@@ -609,7 +641,7 @@ NS_INTERNAL
 
         using here =
             typename std::conditional<((r * c) > 1),
-                type_list<region<Row, Col, r, c>>,
+                type_list<DRegion<Row, Col, r, c>>,
                 type_list<>
             >::type;
 
@@ -649,7 +681,7 @@ NS_INTERNAL
              std::size_t Row,
              typename... Cells,
              typename... Rest>
-    struct decl_walk<Width, Row, row<Cells...>, Rest...>
+    struct decl_walk<Width, Row, DRow<Cells...>, Rest...>
     {
     private:
         using here = typename row_merges<Row, 0, Cells...>::type;
@@ -666,7 +698,7 @@ NS_INTERNAL
              std::size_t Row,
              typename... Cells,
              typename... Rest>
-    struct decl_walk<Width, Row, rows<Cells...>, Rest...>
+    struct decl_walk<Width, Row, DRows<Cells...>, Rest...>
     {
     private:
         using walk = flat_walk<Width, Row, 0, Cells...>;
@@ -713,12 +745,12 @@ NS_INTERNAL
     };
 
     // collect_columns<columns<Ts...>, Rest...>
-    //   trait: the `columns<Ts...>` case; it maps to
+    //   trait: the `DColumns<Ts...>` case; it maps to
     // `list_cat_t<type_list<Ts...>, typename
     // collect_columns<Rest...>::type>`.
     template<typename... Ts,
              typename... Rest>
-    struct collect_columns<columns<Ts...>, Rest...>
+    struct collect_columns<DColumns<Ts...>, Rest...>
     {
         using type = list_cat_t<type_list<Ts...>,
                                 typename collect_columns<Rest...>::type>;
@@ -739,7 +771,7 @@ NS_INTERNAL
 
     template<typename... Ts,
              typename... Rest>
-    struct count_groups<columns<Ts...>, Rest...>
+    struct count_groups<DColumns<Ts...>, Rest...>
         : std::integral_constant<std::size_t,
             (1 + count_groups<Rest...>::value)>
     {};
@@ -758,17 +790,17 @@ NS_INTERNAL
     {};
 
     // has_data<row<Cs...>, Rest...>
-    //   trait: the `row<Cs...>` case; it reports true.
+    //   trait: the `DRow<Cs...>` case; it reports true.
     template<typename... Cs,
              typename... Rest>
-    struct has_data<row<Cs...>, Rest...> : std::true_type
+    struct has_data<DRow<Cs...>, Rest...> : std::true_type
     {};
 
     // has_data<rows<Cs...>, Rest...>
-    //   trait: the `rows<Cs...>` case; it reports true.
+    //   trait: the `DRows<Cs...>` case; it reports true.
     template<typename... Cs,
              typename... Rest>
-    struct has_data<rows<Cs...>, Rest...> : std::true_type
+    struct has_data<DRows<Cs...>, Rest...> : std::true_type
     {};
 
     template<typename    D0,
@@ -782,24 +814,24 @@ NS_INTERNAL
     // transpose. With no axis declarator at all, column-major is assumed.
     template<typename... Decls>
     struct leading_axis
-        : std::integral_constant<table_axis, table_axis::column_major>
+        : std::integral_constant<DTableAxis, DTableAxis::column_major>
     {};
 
     // leading_axis<columns<Ts...>, Rest...>
-    //   trait: the `columns<Ts...>` case; it reports
-    // `table_axis::column_major`.
+    //   trait: the `DColumns<Ts...>` case; it reports
+    // `DTableAxis::column_major`.
     template<typename... Ts,
              typename... Rest>
-    struct leading_axis<columns<Ts...>, Rest...>
-        : std::integral_constant<table_axis, table_axis::column_major>
+    struct leading_axis<DColumns<Ts...>, Rest...>
+        : std::integral_constant<DTableAxis, DTableAxis::column_major>
     {};
 
     // leading_axis<rows<Ts...>, Rest...>
-    //   trait: the `rows<Ts...>` case; it reports `table_axis::row_major`.
+    //   trait: the `DRows<Ts...>` case; it reports `DTableAxis::row_major`.
     template<typename... Ts,
              typename... Rest>
-    struct leading_axis<rows<Ts...>, Rest...>
-        : std::integral_constant<table_axis, table_axis::row_major>
+    struct leading_axis<DRows<Ts...>, Rest...>
+        : std::integral_constant<DTableAxis, DTableAxis::row_major>
     {};
 
     template<typename    D0,
@@ -815,14 +847,14 @@ NS_INTERNAL
     // tolerates a shortfall (it is filled); lenient tolerates either.
     D_CONSTEXPR inline
     bool row_width_ok(
-        table_strictness _s,
+        DTableStrictness _s,
         std::size_t      _actual,
         std::size_t      _required
     )
     {
-        return ( (_s == table_strictness::exact)    ? (_actual == _required)
-               : (_s == table_strictness::truncate) ? (_actual >= _required)
-               : (_s == table_strictness::pad)      ? (_actual <= _required)
+        return ( (_s == DTableStrictness::exact)    ? (_actual == _required)
+               : (_s == DTableStrictness::truncate) ? (_actual >= _required)
+               : (_s == DTableStrictness::pad)      ? (_actual <= _required)
                :                                      true );
     }
 
@@ -833,13 +865,13 @@ NS_INTERNAL
     // accept the partial last row they are named for.
     D_CONSTEXPR inline
     bool flat_span_ok(
-        table_strictness _s,
+        DTableStrictness _s,
         std::size_t      _total,
         std::size_t      _required
     )
     {
         return ( (_required == 0)                ? (_total == 0)
-               : (_s == table_strictness::exact) ? ((_total % _required) == 0)
+               : (_s == DTableStrictness::exact) ? ((_total % _required) == 0)
                :                                   true );
     }
 
@@ -847,39 +879,39 @@ NS_INTERNAL
     //   trait: every data declarator fits the table's width under S. A row<>
     // is checked against the width directly; a flat rows<> against whole rows.
     // Non-data declarators are skipped.
-    template<table_strictness S,
+    template<DTableStrictness S,
              std::size_t      Width,
              typename...      Decls>
     struct check_decl_widths : std::true_type
     {};
 
     // check_decl_widths<S, Width, row<Cells...>, Rest...>
-    //   trait: the `row<Cells...>` case; it reports `( row_width_ok(S,
+    //   trait: the `DRow<Cells...>` case; it reports `( row_width_ok(S,
     // span_sum<Cells...`.
-    template<table_strictness S,
+    template<DTableStrictness S,
              std::size_t      Width,
              typename...      Cells,
              typename...      Rest>
-    struct check_decl_widths<S, Width, row<Cells...>, Rest...>
+    struct check_decl_widths<S, Width, DRow<Cells...>, Rest...>
         : std::integral_constant<bool,
             ( row_width_ok(S, span_sum<Cells...>::value, Width) &&
               check_decl_widths<S, Width, Rest...>::value )>
     {};
 
     // check_decl_widths<S, Width, rows<Cells...>, Rest...>
-    //   trait: the `rows<Cells...>` case; it reports `( flat_span_ok(S,
+    //   trait: the `DRows<Cells...>` case; it reports `( flat_span_ok(S,
     // span_sum<Cells...`.
-    template<table_strictness S,
+    template<DTableStrictness S,
              std::size_t      Width,
              typename...      Cells,
              typename...      Rest>
-    struct check_decl_widths<S, Width, rows<Cells...>, Rest...>
+    struct check_decl_widths<S, Width, DRows<Cells...>, Rest...>
         : std::integral_constant<bool,
             ( flat_span_ok(S, span_sum<Cells...>::value, Width) &&
               check_decl_widths<S, Width, Rest...>::value )>
     {};
 
-    template<table_strictness S,
+    template<DTableStrictness S,
              std::size_t      Width,
              typename         D0,
              typename...      Rest>
@@ -939,7 +971,7 @@ NS_INTERNAL
         // widths_conform -- whether every data declarator fits the width under
         // a given cell_count strictness. A member template so the grade is
         // read once, by table_builder, from the option pack.
-        template<table_strictness S>
+        template<DTableStrictness S>
         struct widths_conform
             : check_decl_widths<S, width, Decls...>
         {};
@@ -952,7 +984,7 @@ NS_END  // internal
 // VIII. table_builder
 // ===========================================================================
 
-// table_builder
+// DTableBuilder
 //   type: a table declared as a type. Reads its declarators, folds them into a
 // shape and a layout, and exposes the model the realization consumes.
 //
@@ -969,18 +1001,18 @@ NS_END  // internal
 //   static_assert(t::height == 1, "");
 //   static_assert(t::has_merges, "");
 template<typename... Decls>
-struct table_builder
+struct DTableBuilder
 {
 private:
     // the declaration as WRITTEN, then NORMALIZED: a row-major declaration is
     // transposed into the equivalent column-wise one, and the single fold runs
     // on that (section V).
-    static D_CONSTEXPR table_axis declared_axis_ =
+    static D_CONSTEXPR DTableAxis declared_axis_ =
         internal::leading_axis<Decls...>::value;
 
     using normalized_ =
         typename internal::normalize_decls<
-            (declared_axis_ == table_axis::row_major), Decls...>::type;
+            (declared_axis_ == DTableAxis::row_major), Decls...>::type;
 
     using model_ = internal::builder_model<normalized_>;
 
@@ -1005,22 +1037,22 @@ public:
 
     // cell_count_strictness -- how strictly a row's width must match the
     // declared columns (the cell_count policy, or its default).
-    static D_CONSTEXPR table_strictness cell_count_strictness =
+    static D_CONSTEXPR DTableStrictness cell_count_strictness =
         cell_count_of<table_options_type>;
 
     // shape_strictness -- which domain shapes the declaration admits. Read,
     // and not yet consulted: the cell count alone admits a row, and shape
     // will decide what an admitted short row becomes (cfg_table.h, at
     // D_CFG_TABLE_DEFAULT_SHAPE).
-    static D_CONSTEXPR shape_policy shape_strictness =
+    static D_CONSTEXPR DShapePolicy shape_strictness =
         shape_of<table_options_type>;
 #else
     // pre-C++17: no option surface; the fold runs at the default grades,
     // which cfg_table.h resolves (table_options.hpp, section II).
-    static D_CONSTEXPR table_strictness cell_count_strictness =
+    static D_CONSTEXPR DTableStrictness cell_count_strictness =
         default_cell_count;
 
-    static D_CONSTEXPR shape_policy shape_strictness =
+    static D_CONSTEXPR DShapePolicy shape_strictness =
         default_shape;
 #endif
 
@@ -1030,7 +1062,7 @@ public:
     // columns<> is the ordinary reading; leading with rows<> declares the
     // transpose, and the canonical model below is that transpose (a row-typed
     // table is a column-typed one read the other way).
-    static D_CONSTEXPR table_axis independent_axis = declared_axis_;
+    static D_CONSTEXPR DTableAxis independent_axis = declared_axis_;
 
     // normalized_decls_type -- the declaration after normalization: as written
     // for a column-major declaration, transposed for a row-major one.
@@ -1062,10 +1094,10 @@ public:
     // They are the canonical pair for a column-major declaration and the
     // swapped pair for a row-major one, the two being transposes of one table.
     static D_CONSTEXPR std::size_t declared_width =
-        (declared_axis_ == table_axis::row_major) ? height : width;
+        (declared_axis_ == DTableAxis::row_major) ? height : width;
 
     static D_CONSTEXPR std::size_t declared_height =
-        (declared_axis_ == table_axis::row_major) ? width : height;
+        (declared_axis_ == DTableAxis::row_major) ? width : height;
 
     // declares_data -- whether any cells were declared (an empty typed table
     // declares a shape alone).
@@ -1099,7 +1131,7 @@ public:
     static D_CONSTEXPR std::size_t merge_count = layout_type::merge_count;
 
     // realization -- the container family the shape backs onto.
-    static D_CONSTEXPR realization_kind realization =
+    static D_CONSTEXPR DRealizationKind realization =
         realization_of<shape_type>::value;
 
     // owner_of -- the layout cell owning atomic position (R, C): a declared
@@ -1136,6 +1168,10 @@ public:
         "may share an atomic position.");
 };
 
+// old name, until 0.9.0-rc.1
+template<typename... Decls>
+using table_builder = DTableBuilder<Decls...>;
+
 
 // ===========================================================================
 // IX.  detection
@@ -1148,7 +1184,7 @@ NS_INTERNAL
     {};
 
     template<typename... Decls>
-    struct is_table_builder_impl<table_builder<Decls...>> : std::true_type
+    struct is_table_builder_impl<DTableBuilder<Decls...>> : std::true_type
     {};
 
 NS_END  // internal

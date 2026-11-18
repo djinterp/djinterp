@@ -102,15 +102,15 @@ bool tests_access_container_class_kind()
 
     // kind, per capability
     D_RW_CHECK(DAccessContainerClass<DRwInert>::kind
-                   == access_capability::none);
+                   == DAccessCapability::none);
     D_RW_CHECK(DAccessContainerClass<DRwObserver>::kind
-                   == access_capability::read_only);
+                   == DAccessCapability::read_only);
     D_RW_CHECK(DAccessContainerClass<DRwSink>::kind
-                   == access_capability::write_only);
+                   == DAccessCapability::write_only);
     D_RW_CHECK(DAccessContainerClass<DRwVector>::kind
-                   == access_capability::read_write);
+                   == DAccessCapability::read_write);
     D_RW_CHECK(DAccessContainerClass<DRwTagNoneBits>::kind
-                   == access_capability::none);
+                   == DAccessCapability::none);
 
     // restating the classifier
     D_RW_CHECK(DAccessContainerClass<DRwSet>::kind
@@ -140,7 +140,7 @@ bool tests_access_container_class_kind()
 
     // constexpr
     D_RW_STATIC_CHECK(DAccessContainerClass<DRwVector>::kind
-                          == access_capability::read_write);
+                          == DAccessCapability::read_write);
     D_RW_STATIC_CHECK(DAccessContainerClass<DRwInert>::kind_name[0] == 'n');
 
     return ok;
@@ -211,10 +211,10 @@ bool tests_access_container_class_predicates()
     // derived from kind
     D_RW_CHECK(DAccessContainerClass<DRwTagOverrides>::is_read_only
                    == ( DAccessContainerClass<DRwTagOverrides>::kind
-                            == access_capability::read_only ));
+                            == DAccessCapability::read_only ));
     D_RW_CHECK(DAccessContainerClass<DRwSet>::is_read_write
                    == ( DAccessContainerClass<DRwSet>::kind
-                            == access_capability::read_write ));
+                            == DAccessCapability::read_write ));
 
     return ok;
 }
@@ -315,11 +315,11 @@ bool tests_access_container_class_cv_ref()
                    == DAccessContainerClass<DRwVector>::kind);
 
     D_RW_CHECK(DAccessContainerClass<const DRwObserver&>::kind
-                   == access_capability::read_only);
+                   == DAccessCapability::read_only);
     D_RW_CHECK(DAccessContainerClass<volatile DRwSink>::kind
-                   == access_capability::write_only);
+                   == DAccessCapability::write_only);
     D_RW_CHECK(DAccessContainerClass<const volatile DRwInert&>::kind
-                   == access_capability::none);
+                   == DAccessCapability::none);
 
     // the bits and the flag
     D_RW_CHECK(DAccessContainerClass<volatile DRwSink>::can_write

@@ -63,7 +63,7 @@ NS_DJINTERP
 //   The LargeFetch template parameter selects the modern enumeration hints;
 // windows10_scanner is the specialization with it enabled.
 template<bool LargeFetch>
-struct basic_windows_scanner
+struct DBasicWindowsScanner
 {
 #if defined(_WIN32)
 
@@ -166,7 +166,7 @@ struct basic_windows_scanner
     void scan(
         Ctx&               _ctx,
         const std::string& _dir_path,
-        file_node_id       _parent
+        DFileNodeId       _parent
     )
     {
         std::wstring pattern = widen(_dir_path + "\\*");
@@ -216,7 +216,7 @@ struct basic_windows_scanner
                 (static_cast<re_std::uint64_t>(fd.nFileSizeHigh) << 32) |
                 static_cast<re_std::uint64_t>(fd.nFileSizeLow);
 
-            file_node_id id = _ctx.intern_child(
+            DFileNodeId id = _ctx.intern_child(
                 _parent,
                 child_name.c_str(),
                 child_name.size(),
@@ -244,7 +244,7 @@ struct basic_windows_scanner
     void scan(
         Ctx&,
         const std::string&,
-        file_node_id
+        DFileNodeId
     )
     {
         return;
@@ -253,15 +253,25 @@ struct basic_windows_scanner
 #endif  // _WIN32
 };
 
+// old name, until 0.9.0-rc.1
+template<bool LargeFetch>
+using basic_windows_scanner = DBasicWindowsScanner<LargeFetch>;
 
-// windows_scanner
+
+// DWindowsScanner
 //   policy: standard Win32 enumeration.
-using windows_scanner = basic_windows_scanner<false>;
+using DWindowsScanner = DBasicWindowsScanner<false>;
 
-// windows10_scanner
+// old name, until 0.9.0-rc.1
+using windows_scanner = DWindowsScanner;
+
+// DWindows10Scanner
 //   policy: Win32 enumeration with FindExInfoBasic +
 // FIND_FIRST_EX_LARGE_FETCH. Also the Windows 11 backend.
-using windows10_scanner = basic_windows_scanner<true>;
+using DWindows10Scanner = DBasicWindowsScanner<true>;
+
+// old name, until 0.9.0-rc.1
+using windows10_scanner = DWindows10Scanner;
 
 
 NS_END  // djinterp

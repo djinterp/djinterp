@@ -124,11 +124,11 @@ bool tests_hazard_destructor()
     // precedes has_constexpr_size_expression in the disjunction.  This is the
     // accident the whole finding turns on
     D_CCT_CHECK(has_tuple_size<std::array<std::string, 3>>::value);
-    D_CCT_LIFE(lifetime::both,
+    D_CCT_LIFE(DLifetime::both,
                DSizeLifetime<std::array<std::string, 3>>::value);
-    D_CCT_LIFE(lifetime::runtime,
+    D_CCT_LIFE(DLifetime::runtime,
                lifetime_of<std::array<std::string, 3>>::value);
-    D_CCT_LIFE(lifetime::runtime,
+    D_CCT_LIFE(DLifetime::runtime,
                container_lifetime_of<std::array<std::string, 3>>::value);
     D_CCT_CHECK(!is_constexpr_container<std::array<std::string, 3>>::value);
 

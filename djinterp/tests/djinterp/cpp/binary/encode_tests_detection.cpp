@@ -27,7 +27,7 @@ tests_encode_has_push_back_byte
 bool tests_encode_has_push_back_byte()
 {
     // positive: the default medium and a minimal hand-rolled sink
-    D_EN_CHECK(has_push_back_byte<byte_string>::value);
+    D_EN_CHECK(has_push_back_byte<DByteString>::value);
     D_EN_CHECK(has_push_back_byte<DRecordingSink>::value);
 
     // negative: a struct without push_back, and a fundamental type
@@ -35,7 +35,7 @@ bool tests_encode_has_push_back_byte()
     D_EN_CHECK(!has_push_back_byte<int>::value);
 
     // the _v companion tracks the trait
-    D_EN_CHECK(has_push_back_byte_v<byte_string> == has_push_back_byte<byte_string>::value);
+    D_EN_CHECK(has_push_back_byte_v<DByteString> == has_push_back_byte<DByteString>::value);
     D_EN_CHECK(has_push_back_byte_v<DRecordingSink> == true);
     D_EN_CHECK(has_push_back_byte_v<DNotASink> == false);
 
@@ -55,15 +55,15 @@ tests_encode_has_member_encode_into
 bool tests_encode_has_member_encode_into()
 {
     // positive: the custom leaf writes itself into either sink type
-    D_EN_CHECK((has_member_encode_into<DEncCustomLeaf, byte_string>::value));
+    D_EN_CHECK((has_member_encode_into<DEncCustomLeaf, DByteString>::value));
     D_EN_CHECK((has_member_encode_into<DEncCustomLeaf, DRecordingSink>::value));
 
     // negative: a plain aggregate and a fundamental type have no member surface
-    D_EN_CHECK((!has_member_encode_into<DEncPlain, byte_string>::value));
-    D_EN_CHECK((!has_member_encode_into<int, byte_string>::value));
+    D_EN_CHECK((!has_member_encode_into<DEncPlain, DByteString>::value));
+    D_EN_CHECK((!has_member_encode_into<int, DByteString>::value));
 
     // the probe strips to a const object; a const-qualified argument still matches
-    D_EN_CHECK((has_member_encode_into<const DEncCustomLeaf, byte_string>::value));
+    D_EN_CHECK((has_member_encode_into<const DEncCustomLeaf, DByteString>::value));
 
     return true;
 }

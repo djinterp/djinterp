@@ -69,28 +69,28 @@
 NS_DJINTERP
 
 
-// write_only_container
+// DWriteOnlyContainer
 //   class: holds a Container privately and forwards only its append surface
 // plus value-free metadata, under the write_only capability.
 template<typename Container>
-class write_only_container
+class DWriteOnlyContainer
 {
 public:
     using container_type = Container;
-    using capability     = write_only;
+    using capability     = DWriteOnly;
     using value_type     = typename Container::value_type;
 
     // --- construction ---
 
-    D_CONSTEXPR write_only_container()
+    D_CONSTEXPR DWriteOnlyContainer()
         : m_container()
     {}
 
     template<typename     First,
              typename...  Rest,
              typename = typename std::enable_if<
-                 !std::is_same<clean_t<First>, write_only_container>::value>::type>
-    explicit D_CONSTEXPR write_only_container(First&& _first, Rest&&... _rest)
+                 !std::is_same<clean_t<First>, DWriteOnlyContainer>::value>::type>
+    explicit D_CONSTEXPR DWriteOnlyContainer(First&& _first, Rest&&... _rest)
         : m_container(static_cast<First&&>(_first), static_cast<Rest&&>(_rest)...)
     {}
 
@@ -127,17 +127,21 @@ private:
     Container m_container;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Container>
+using write_only_container = DWriteOnlyContainer<Container>;
+
 
 // make_write_only
 //   function: wraps a container value under the write_only capability,
 // deducing the container type from the argument.
 template<typename Container>
 D_CONSTEXPR
-write_only_container<clean_t<Container>> make_write_only(
+DWriteOnlyContainer<clean_t<Container>> make_write_only(
     Container&& _c
 )
 {
-    return write_only_container<clean_t<Container>>(
+    return DWriteOnlyContainer<clean_t<Container>>(
         static_cast<Container&&>(_c));
 }
 

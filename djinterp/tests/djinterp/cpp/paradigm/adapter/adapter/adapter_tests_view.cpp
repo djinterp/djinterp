@@ -51,7 +51,7 @@ bool tests_adapted_ref_basic()
     legacy_seq s;
     s.data = { 1, 2, 3 };
 
-    adapted_ref<legacy_seq, legacy_policy> r(s);
+    DAdaptedRef<legacy_seq, legacy_policy> r(s);
 
     static_assert(std::is_same<decltype(r)::adaptee_type, legacy_seq>::value,
                   "adaptee_type");
@@ -81,7 +81,7 @@ bool tests_adapted_ref_mutation()
     legacy_seq s;
     s.data = { 1, 2, 3 };
 
-    adapted_ref<legacy_seq, legacy_policy> r(s);
+    DAdaptedRef<legacy_seq, legacy_policy> r(s);
 
     bool ok = true;
 
@@ -107,7 +107,7 @@ bool tests_adapted_ref_const()
     legacy_seq s;
     s.data = { 5, 6, 7 };
 
-    const adapted_ref<legacy_seq, legacy_policy> r(s);
+    const DAdaptedRef<legacy_seq, legacy_policy> r(s);
 
     bool ok = true;
 
@@ -134,7 +134,7 @@ bool tests_adapted_const_ref()
     legacy_seq s;
     s.data = { 10, 20 };
 
-    adapted_const_ref<legacy_seq, legacy_policy> r(s);
+    DAdaptedConstRef<legacy_seq, legacy_policy> r(s);
 
     static_assert(std::is_same<decltype(r)::adaptee_type, legacy_seq>::value,
                   "adaptee_type");
@@ -160,7 +160,7 @@ bool tests_adapted_view_iteration()
 {
     std::vector<int> v = { 1, 2, 3 };
 
-    adapted_view<std::vector<int>, DTimesTen> view(v, DTimesTen{});
+    DAdaptedView<std::vector<int>, DTimesTen> view(v, DTimesTen{});
 
     static_assert(std::is_same<decltype(view)::adaptee_type,
                                std::vector<int>>::value,
@@ -199,7 +199,7 @@ bool tests_adapted_view_iterator_ops()
 {
     std::vector<int> v = { 1, 2, 3 };
 
-    adapted_view<std::vector<int>, DTimesTen> view(v, DTimesTen{});
+    DAdaptedView<std::vector<int>, DTimesTen> view(v, DTimesTen{});
 
     bool ok = true;
 
@@ -240,7 +240,7 @@ bool tests_adapted_view_size()
 {
     std::vector<int> v = { 1, 2, 3, 4 };
 
-    adapted_view<std::vector<int>, DTimesTen> view(v, DTimesTen{});
+    DAdaptedView<std::vector<int>, DTimesTen> view(v, DTimesTen{});
 
     bool ok = true;
 

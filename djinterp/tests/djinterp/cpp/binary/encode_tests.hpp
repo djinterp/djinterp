@@ -73,7 +73,7 @@ NS_TESTING
 // through any push_back sink, not merely the default byte_string.
 struct DRecordingSink
 {
-    byte_string data;
+    DByteString data;
 
     void push_back(
         byte _b

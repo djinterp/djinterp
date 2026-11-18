@@ -178,10 +178,10 @@ struct is_override_policy
 // III. atomic primitives
 // ===========================================================================
 
-// keep_base
+// DKeepBase
 //   primitive: on_both = base; on_base_only = base; on_delta_only = drop.
 // Base wins everywhere; delta keys not in base are silently discarded.
-struct keep_base
+struct DKeepBase
 {
     template<typename B>
     using on_base_only = B;
@@ -192,6 +192,9 @@ struct keep_base
     template<typename B, typename D>
     using on_both = B;
 };
+
+// old name, until 0.9.0-rc.1
+using keep_base = DKeepBase;
 
 // DKeepDelta
 //   primitive: on_both = delta; on_base_only = base; on_delta_only = delta.

@@ -14,7 +14,7 @@
 * runtime contract the DTest runner is built around.
 *
 *   HELPER TYPES.  multiplicity_kind_of resolves by a precedence: a non-countable
-* type is unknown; an opt-in `multiplicity` bound is authoritative; static
+* type is unknown; an opt-in `DMultiplicity` bound is authoritative; static
 * interval bounds are unique; a comparator-less container is a sequence; and a
 * keyed container is unique or an unbounded multiset by its insert signature.
 * No standard container reaches the bounded_multiset kind, the opt-in path, or

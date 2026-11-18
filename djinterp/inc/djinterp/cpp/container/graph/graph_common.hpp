@@ -8,8 +8,8 @@
 * graph itself; only describes properties.
 *
 *   Most of the property / classification enums refine concepts already
-* declared in `math_common.hpp` -- e.g., `graph_direction` reuses
-* `math::directionality`, `graph_acyclicity` is a refinement of the
+* declared in `math_common.hpp` -- e.g., `DGraphDirection` reuses
+* `math::directionality`, `DGraphAcyclicity` is a refinement of the
 * acyclic-relation property.  Consumers that want the most general form
 * should use the `math::` enums directly; `graph_*` enums add finer
 * graph-only categories (e.g. tournament, DAG, tree, forest).
@@ -21,7 +21,7 @@
 *      is a typed wrapper around an unsigned integer, every policy is
 *      a tag struct of type aliases and `static constexpr` flags.
 *   3. Containers as storage: the adjacency container per vertex is
-*      a template parameter of `graph<>`, so any djinterp container --
+*      a template parameter of `DGraph<>`, so any djinterp container --
 *      sequential, sorted, hashed, threadsafe, even another graph --
 *      may serve as the adjacency list.
 *   4. C++11 baseline; feature-gated extensions for >= C++14/17/20.
@@ -175,13 +175,13 @@ NS_CONTAINER
     using default_graph_id_t = re_std::uint32_t;
 
 
-    // vertex_descriptor
+    // DVertexDescriptor
     //   class: a typed wrapper around an unsigned-integer vertex ID. The
     // wrapping prevents accidental cross-pollination of vertex IDs and edge
     // IDs at the type system level. Comparison and hashing are provided so the
     // descriptor can be used as a key in std::map / std::unordered_map.
     template<typename IdType = default_graph_id_t>
-    class vertex_descriptor
+    class DVertexDescriptor
     {
     public:
         using id_type = IdType;
@@ -190,12 +190,12 @@ NS_CONTAINER
                       "vertex_descriptor id_type must be unsigned.");
 
         D_CONSTEXPR
-        vertex_descriptor() noexcept
+        DVertexDescriptor() noexcept
             : m_id(djinterp::container::invalid_id<id_type>())
         {}
 
         D_CONSTEXPR explicit
-        vertex_descriptor(id_type _id) noexcept
+        DVertexDescriptor(id_type _id) noexcept
             : m_id(_id)
         {}
 
@@ -214,38 +214,38 @@ NS_CONTAINER
             return m_id;
         }
 
-        D_CONSTEXPR friend bool operator==(vertex_descriptor _a,
-                                           vertex_descriptor _b) noexcept
+        D_CONSTEXPR friend bool operator==(DVertexDescriptor _a,
+                                           DVertexDescriptor _b) noexcept
         {
             return _a.m_id == _b.m_id;
         }
 
-        D_CONSTEXPR friend bool operator!=(vertex_descriptor _a,
-                                           vertex_descriptor _b) noexcept
+        D_CONSTEXPR friend bool operator!=(DVertexDescriptor _a,
+                                           DVertexDescriptor _b) noexcept
         {
             return _a.m_id != _b.m_id;
         }
 
-        D_CONSTEXPR friend bool operator<(vertex_descriptor _a,
-                                          vertex_descriptor _b) noexcept
+        D_CONSTEXPR friend bool operator<(DVertexDescriptor _a,
+                                          DVertexDescriptor _b) noexcept
         {
             return _a.m_id < _b.m_id;
         }
 
-        D_CONSTEXPR friend bool operator<=(vertex_descriptor _a,
-                                           vertex_descriptor _b) noexcept
+        D_CONSTEXPR friend bool operator<=(DVertexDescriptor _a,
+                                           DVertexDescriptor _b) noexcept
         {
             return _a.m_id <= _b.m_id;
         }
 
-        D_CONSTEXPR friend bool operator>(vertex_descriptor _a,
-                                          vertex_descriptor _b) noexcept
+        D_CONSTEXPR friend bool operator>(DVertexDescriptor _a,
+                                          DVertexDescriptor _b) noexcept
         {
             return _a.m_id > _b.m_id;
         }
 
-        D_CONSTEXPR friend bool operator>=(vertex_descriptor _a,
-                                           vertex_descriptor _b) noexcept
+        D_CONSTEXPR friend bool operator>=(DVertexDescriptor _a,
+                                           DVertexDescriptor _b) noexcept
         {
             return _a.m_id >= _b.m_id;
         }
@@ -254,12 +254,16 @@ NS_CONTAINER
         id_type m_id;
     };
 
+    // old name, until 0.9.0-rc.1
+    template<typename IdType = default_graph_id_t>
+    using vertex_descriptor = DVertexDescriptor<IdType>;
 
-    // edge_descriptor
+
+    // DEdgeDescriptor
     //   class: typed wrapper around an unsigned-integer edge ID, mirror of
     // vertex_descriptor.
     template<typename IdType = default_graph_id_t>
-    class edge_descriptor
+    class DEdgeDescriptor
     {
     public:
         using id_type = IdType;
@@ -268,12 +272,12 @@ NS_CONTAINER
                       "edge_descriptor id_type must be unsigned.");
 
         D_CONSTEXPR
-        edge_descriptor() noexcept
+        DEdgeDescriptor() noexcept
             : m_id(djinterp::container::invalid_id<id_type>())
         {}
 
         D_CONSTEXPR explicit
-        edge_descriptor(id_type _id) noexcept
+        DEdgeDescriptor(id_type _id) noexcept
             : m_id(_id)
         {}
 
@@ -292,20 +296,20 @@ NS_CONTAINER
             return m_id;
         }
 
-        D_CONSTEXPR friend bool operator==(edge_descriptor _a,
-                                           edge_descriptor _b) noexcept
+        D_CONSTEXPR friend bool operator==(DEdgeDescriptor _a,
+                                           DEdgeDescriptor _b) noexcept
         {
             return _a.m_id == _b.m_id;
         }
 
-        D_CONSTEXPR friend bool operator!=(edge_descriptor _a,
-                                           edge_descriptor _b) noexcept
+        D_CONSTEXPR friend bool operator!=(DEdgeDescriptor _a,
+                                           DEdgeDescriptor _b) noexcept
         {
             return _a.m_id != _b.m_id;
         }
 
-        D_CONSTEXPR friend bool operator<(edge_descriptor _a,
-                                          edge_descriptor _b) noexcept
+        D_CONSTEXPR friend bool operator<(DEdgeDescriptor _a,
+                                          DEdgeDescriptor _b) noexcept
         {
             return _a.m_id < _b.m_id;
         }
@@ -314,22 +318,26 @@ NS_CONTAINER
         id_type m_id;
     };
 
+    // old name, until 0.9.0-rc.1
+    template<typename IdType = default_graph_id_t>
+    using edge_descriptor = DEdgeDescriptor<IdType>;
+
 
     // null_vertex
     //   function: returns the sentinel vertex_descriptor for the given ID
     // type. Equivalent to a default-constructed descriptor.
     template<typename IdType = default_graph_id_t>
-    D_CONSTEXPR_INLINE vertex_descriptor<IdType> null_vertex() noexcept
+    D_CONSTEXPR_INLINE DVertexDescriptor<IdType> null_vertex() noexcept
     {
-        return vertex_descriptor<IdType>();
+        return DVertexDescriptor<IdType>();
     }
 
     // null_edge
     //   function: returns the sentinel edge_descriptor for the given ID type.
     template<typename IdType = default_graph_id_t>
-    D_CONSTEXPR_INLINE edge_descriptor<IdType> null_edge() noexcept
+    D_CONSTEXPR_INLINE DEdgeDescriptor<IdType> null_edge() noexcept
     {
-        return edge_descriptor<IdType>();
+        return DEdgeDescriptor<IdType>();
     }
 
 
@@ -337,11 +345,11 @@ NS_CONTAINER
     // II.  GRAPH DIRECTION
     // =========================================================================
 
-    // graph_direction
+    // DGraphDirection
     //   enum: graph-wide direction policy. This is a re-spelling of
     // math::directionality with names tuned for graph theory; the values are
     // kept in sync via the conversion helpers below.
-    enum class graph_direction : re_std::uint8_t
+    enum class DGraphDirection : re_std::uint8_t
     {
         // unspecified / heterogeneous; treat per-edge
         unspecified = 0,
@@ -367,20 +375,23 @@ NS_CONTAINER
         bidirected  = 6
     };
 
+    // old name, until 0.9.0-rc.1
+    using graph_direction = DGraphDirection;
+
     // to_math_directionality
     //   function: convert graph_direction into math::directionality.
     D_CONSTEXPR_INLINE
-    djinterp::math::directionality to_math_directionality(
-        graph_direction _d
+    djinterp::math::DDirectionality to_math_directionality(
+        DGraphDirection _d
     ) noexcept
     {
-        return ( (_d == graph_direction::undirected) ? djinterp::math::directionality::undirected :
-                 (_d == graph_direction::directed)   ? djinterp::math::directionality::directed   :
-                 (_d == graph_direction::mixed)      ? djinterp::math::directionality::mixed      :
-                 (_d == graph_direction::oriented)   ? djinterp::math::directionality::oriented   :
-                 (_d == graph_direction::tournament) ? djinterp::math::directionality::tournament :
-                 (_d == graph_direction::bidirected) ? djinterp::math::directionality::bidirected :
-                                                       djinterp::math::directionality::unknown );
+        return ( (_d == DGraphDirection::undirected) ? djinterp::math::DDirectionality::undirected :
+                 (_d == DGraphDirection::directed)   ? djinterp::math::DDirectionality::directed   :
+                 (_d == DGraphDirection::mixed)      ? djinterp::math::DDirectionality::mixed      :
+                 (_d == DGraphDirection::oriented)   ? djinterp::math::DDirectionality::oriented   :
+                 (_d == DGraphDirection::tournament) ? djinterp::math::DDirectionality::tournament :
+                 (_d == DGraphDirection::bidirected) ? djinterp::math::DDirectionality::bidirected :
+                                                       djinterp::math::DDirectionality::unknown );
     }
 
 
@@ -388,10 +399,10 @@ NS_CONTAINER
     // III. EDGE MULTIPLICITY / SELF-LOOP POLICY
     // =========================================================================
 
-    // edge_multiplicity
+    // DEdgeMultiplicity
     //   enum: graph-wide policy on duplicate edges between the same (u, v)
     // pair. Refines math::multiplicity in graph terms.
-    enum class edge_multiplicity : re_std::uint8_t
+    enum class DEdgeMultiplicity : re_std::uint8_t
     {
         unspecified = 0,
 
@@ -405,20 +416,26 @@ NS_CONTAINER
         bounded     = 3
     };
 
-    // loop_policy
+    // old name, until 0.9.0-rc.1
+    using edge_multiplicity = DEdgeMultiplicity;
+
+    // DLoopPolicy
     //   alias: re-export math::self_loop_policy under a graph-friendly name.
-    using loop_policy = djinterp::math::self_loop_policy;
+    using DLoopPolicy = djinterp::math::DSelfLoopPolicy;
+
+    // old name, until 0.9.0-rc.1
+    using loop_policy = DLoopPolicy;
 
 
     // =========================================================================
     // IV.  STORAGE STRATEGY
     // =========================================================================
 
-    // graph_storage
+    // DGraphStorage
     //   enum: how the graph lays its data out in memory. Selected by the user
-    // as a template argument of `graph<>`; consumed by every method that has
+    // as a template argument of `DGraph<>`; consumed by every method that has
     // multiple physical implementations.
-    enum class graph_storage : re_std::uint8_t
+    enum class DGraphStorage : re_std::uint8_t
     {
         unspecified         = 0,
 
@@ -462,15 +479,18 @@ NS_CONTAINER
         implicit            = 10
     };
 
+    // old name, until 0.9.0-rc.1
+    using graph_storage = DGraphStorage;
+
 
     // =========================================================================
     // V.   DENSITY / ACYCLICITY / CONNECTIVITY / PLANARITY
     // =========================================================================
 
-    // graph_density
+    // DGraphDensity
     //   enum: known a priori density class. Used by algorithm dispatch to
     // choose between O(V^2) and O(V+E) implementations.
-    enum class graph_density : re_std::uint8_t
+    enum class DGraphDensity : re_std::uint8_t
     {
         unknown      = 0,
 
@@ -487,9 +507,12 @@ NS_CONTAINER
         empty        = 4
     };
 
-    // graph_acyclicity
+    // old name, until 0.9.0-rc.1
+    using graph_density = DGraphDensity;
+
+    // DGraphAcyclicity
     //   enum: known cycle structure of the graph.
-    enum class graph_acyclicity : re_std::uint8_t
+    enum class DGraphAcyclicity : re_std::uint8_t
     {
         unknown   = 0,
 
@@ -512,9 +535,12 @@ NS_CONTAINER
         rooted_tree = 6
     };
 
-    // graph_connectivity
+    // old name, until 0.9.0-rc.1
+    using graph_acyclicity = DGraphAcyclicity;
+
+    // DGraphConnectivity
     //   enum: connectivity class.
-    enum class graph_connectivity : re_std::uint8_t
+    enum class DGraphConnectivity : re_std::uint8_t
     {
         unknown            = 0,
 
@@ -535,9 +561,12 @@ NS_CONTAINER
         trivial            = 5
     };
 
-    // graph_planarity
+    // old name, until 0.9.0-rc.1
+    using graph_connectivity = DGraphConnectivity;
+
+    // DGraphPlanarity
     //   enum: planarity class.
-    enum class graph_planarity : re_std::uint8_t
+    enum class DGraphPlanarity : re_std::uint8_t
     {
         unknown    = 0,
         planar     = 1,    // can be drawn without crossings
@@ -546,16 +575,19 @@ NS_CONTAINER
         toroidal   = 4     // embeddable on a torus
     };
 
+    // old name, until 0.9.0-rc.1
+    using graph_planarity = DGraphPlanarity;
+
 
     // =========================================================================
     // VI.  EDGE PRIMITIVES
     // =========================================================================
 
-    // unweighted_edge
+    // DUnweightedEdge
     //   struct: a (source, target) pair with no payload. The default edge type
     // for unweighted graphs.
     template<typename VertexId = default_graph_id_t>
-    struct unweighted_edge
+    struct DUnweightedEdge
     {
         using vertex_id_type = VertexId;
         using weight_type    = void;
@@ -564,40 +596,44 @@ NS_CONTAINER
         vertex_id_type target;
 
         D_CONSTEXPR
-        unweighted_edge() noexcept
+        DUnweightedEdge() noexcept
             : source(djinterp::container::invalid_id<vertex_id_type>()),
               target(djinterp::container::invalid_id<vertex_id_type>())
         {}
 
         D_CONSTEXPR
-        unweighted_edge(vertex_id_type _src,
+        DUnweightedEdge(vertex_id_type _src,
                         vertex_id_type _tgt) noexcept
             : source(_src),
               target(_tgt)
         {}
 
         D_CONSTEXPR friend bool
-        operator==(const unweighted_edge& _a,
-                   const unweighted_edge& _b) noexcept
+        operator==(const DUnweightedEdge& _a,
+                   const DUnweightedEdge& _b) noexcept
         {
             return ( (_a.source == _b.source) &&
                      (_a.target == _b.target) );
         }
 
         D_CONSTEXPR friend bool
-        operator!=(const unweighted_edge& _a,
-                   const unweighted_edge& _b) noexcept
+        operator!=(const DUnweightedEdge& _a,
+                   const DUnweightedEdge& _b) noexcept
         {
             return !(_a == _b);
         }
     };
 
-    // weighted_edge
+    // old name, until 0.9.0-rc.1
+    template<typename VertexId = default_graph_id_t>
+    using unweighted_edge = DUnweightedEdge<VertexId>;
+
+    // DWeightedEdge
     //   struct: a (source, target, weight) triple. The weight type is
     // user-controlled; arithmetic types, ratios, and user weights all work.
     template<typename VertexId = default_graph_id_t,
              typename Weight    = double>
-    struct weighted_edge
+    struct DWeightedEdge
     {
         using vertex_id_type = VertexId;
         using weight_type    = Weight;
@@ -607,14 +643,14 @@ NS_CONTAINER
         weight_type    weight;
 
         D_CONSTEXPR
-        weighted_edge() noexcept
+        DWeightedEdge() noexcept
             : source(djinterp::container::invalid_id<vertex_id_type>()),
               target(djinterp::container::invalid_id<vertex_id_type>()),
               weight()
         {}
 
         D_CONSTEXPR
-        weighted_edge(vertex_id_type _src,
+        DWeightedEdge(vertex_id_type _src,
                       vertex_id_type _tgt,
                       weight_type    _w) noexcept
             : source(_src),
@@ -623,8 +659,8 @@ NS_CONTAINER
         {}
 
         D_CONSTEXPR friend bool
-        operator==(const weighted_edge& _a,
-                   const weighted_edge& _b) noexcept
+        operator==(const DWeightedEdge& _a,
+                   const DWeightedEdge& _b) noexcept
         {
             return ( (_a.source == _b.source) &&
                      (_a.target == _b.target) &&
@@ -632,19 +668,24 @@ NS_CONTAINER
         }
 
         D_CONSTEXPR friend bool
-        operator!=(const weighted_edge& _a,
-                   const weighted_edge& _b) noexcept
+        operator!=(const DWeightedEdge& _a,
+                   const DWeightedEdge& _b) noexcept
         {
             return !(_a == _b);
         }
     };
 
-    // labeled_edge
+    // old name, until 0.9.0-rc.1
+    template<typename VertexId = default_graph_id_t,
+             typename Weight    = double>
+    using weighted_edge = DWeightedEdge<VertexId, Weight>;
+
+    // DLabeledEdge
     //   struct: an edge with a string-or-otherwise label, plus an optional
     // weight.
     template<typename VertexId = default_graph_id_t,
              typename Label     = std::size_t>
-    struct labeled_edge
+    struct DLabeledEdge
     {
         using vertex_id_type = VertexId;
         using label_type     = Label;
@@ -655,14 +696,14 @@ NS_CONTAINER
         label_type     label;
 
         D_CONSTEXPR
-        labeled_edge() noexcept
+        DLabeledEdge() noexcept
             : source(djinterp::container::invalid_id<vertex_id_type>()),
               target(djinterp::container::invalid_id<vertex_id_type>()),
               label()
         {}
 
         D_CONSTEXPR
-        labeled_edge(vertex_id_type _src,
+        DLabeledEdge(vertex_id_type _src,
                      vertex_id_type _tgt,
                      label_type     _lbl)
             : source(_src),
@@ -671,12 +712,17 @@ NS_CONTAINER
         {}
     };
 
-    // property_edge
+    // old name, until 0.9.0-rc.1
+    template<typename VertexId = default_graph_id_t,
+             typename Label     = std::size_t>
+    using labeled_edge = DLabeledEdge<VertexId, Label>;
+
+    // DPropertyEdge
     //   struct: an edge carrying an arbitrary user property type. Generalises
     // weighted_edge / labeled_edge.
     template<typename VertexId = default_graph_id_t,
              typename Property = void>
-    struct property_edge
+    struct DPropertyEdge
     {
         using vertex_id_type = VertexId;
         using property_type  = Property;
@@ -687,14 +733,14 @@ NS_CONTAINER
         property_type  property;
 
         D_CONSTEXPR
-        property_edge() noexcept
+        DPropertyEdge() noexcept
             : source(djinterp::container::invalid_id<vertex_id_type>()),
               target(djinterp::container::invalid_id<vertex_id_type>()),
               property()
         {}
 
         D_CONSTEXPR
-        property_edge(vertex_id_type _src,
+        DPropertyEdge(vertex_id_type _src,
                       vertex_id_type _tgt,
                       property_type  _prop)
             : source(_src),
@@ -703,14 +749,19 @@ NS_CONTAINER
         {}
     };
 
-    // hyperedge
+    // old name, until 0.9.0-rc.1
+    template<typename VertexId = default_graph_id_t,
+             typename Property = void>
+    using property_edge = DPropertyEdge<VertexId, Property>;
+
+    // DHyperedge
     //   struct: a set of `Arity` vertex IDs related as a single edge. Used by
     // graphs whose storage strategy is `hyperedge_list`. Use Arity == 0 for
     // runtime-variable hyperedges (where the user should switch to the
     // dynamic_hyperedge type below).
     template<std::size_t Arity,
              typename    VertexId = default_graph_id_t>
-    struct hyperedge
+    struct DHyperedge
     {
         using vertex_id_type             = VertexId;
         static D_CONSTEXPR std::size_t arity = Arity;
@@ -718,17 +769,22 @@ NS_CONTAINER
         std::array<vertex_id_type, Arity> vertices;
 
         D_CONSTEXPR
-        hyperedge() noexcept
+        DHyperedge() noexcept
             : vertices{}
         {}
     };
 
-    // dynamic_hyperedge
+    // old name, until 0.9.0-rc.1
+    template<std::size_t Arity,
+             typename    VertexId = default_graph_id_t>
+    using hyperedge = DHyperedge<Arity, VertexId>;
+
+    // DDynamicHyperedge
     //   struct: a hyperedge with runtime-variable arity, backed by a
     // user-chosen container.
     template<typename VertexId   = default_graph_id_t,
              typename Container = std::vector<VertexId>>
-    struct dynamic_hyperedge
+    struct DDynamicHyperedge
     {
         using vertex_id_type = VertexId;
         using container_type = Container;
@@ -740,6 +796,11 @@ NS_CONTAINER
             return vertices.size();
         }
     };
+
+    // old name, until 0.9.0-rc.1
+    template<typename VertexId   = default_graph_id_t,
+             typename Container = std::vector<VertexId>>
+    using dynamic_hyperedge = DDynamicHyperedge<VertexId, Container>;
 
 
     // =========================================================================
@@ -755,11 +816,11 @@ NS_CONTAINER
     struct no_property
     {};
 
-    // weight_policy
-    //   struct: tag carrying a weight type. Use `weight_policy<void>` (or the
-    // default `unweighted_policy` alias below) to declare an unweighted graph.
+    // DWeightPolicy
+    //   struct: tag carrying a weight type. Use `DWeightPolicy<void>` (or the
+    // default `DUnweightedPolicy` alias below) to declare an unweighted graph.
     template<typename Weight = double>
-    struct weight_policy
+    struct DWeightPolicy
     {
         using weight_type = Weight;
 
@@ -767,14 +828,21 @@ NS_CONTAINER
             !std::is_same<Weight, void>::value;
     };
 
-    // unweighted_policy
-    //   alias: explicit unweighted policy.
-    using unweighted_policy = weight_policy<void>;
+    // old name, until 0.9.0-rc.1
+    template<typename Weight = double>
+    using weight_policy = DWeightPolicy<Weight>;
 
-    // property_policy
+    // DUnweightedPolicy
+    //   alias: explicit unweighted policy.
+    using DUnweightedPolicy = DWeightPolicy<void>;
+
+    // old name, until 0.9.0-rc.1
+    using unweighted_policy = DUnweightedPolicy;
+
+    // DPropertyPolicy
     //   struct: tag carrying a vertex / edge / graph property type.
     template<typename Property = no_property>
-    struct property_policy
+    struct DPropertyPolicy
     {
         using property_type = Property;
 
@@ -782,6 +850,10 @@ NS_CONTAINER
             !std::is_same<Property, no_property>::value &&
             !std::is_same<Property, void>::value;
     };
+
+    // old name, until 0.9.0-rc.1
+    template<typename Property = no_property>
+    using property_policy = DPropertyPolicy<Property>;
 
 
     // =========================================================================
@@ -932,10 +1004,10 @@ NS_END  // djinterp
 namespace std
 {
     template<typename IdType>
-    struct hash<djinterp::container::vertex_descriptor<IdType>>
+    struct hash<djinterp::container::DVertexDescriptor<IdType>>
     {
         std::size_t operator()(
-            const djinterp::container::vertex_descriptor<IdType>& _v
+            const djinterp::container::DVertexDescriptor<IdType>& _v
         ) const noexcept
         {
             return std::hash<IdType>{}(_v.id());
@@ -943,10 +1015,10 @@ namespace std
     };
 
     template<typename IdType>
-    struct hash<djinterp::container::edge_descriptor<IdType>>
+    struct hash<djinterp::container::DEdgeDescriptor<IdType>>
     {
         std::size_t operator()(
-            const djinterp::container::edge_descriptor<IdType>& _e
+            const djinterp::container::DEdgeDescriptor<IdType>& _e
         ) const noexcept
         {
             return std::hash<IdType>{}(_e.id());

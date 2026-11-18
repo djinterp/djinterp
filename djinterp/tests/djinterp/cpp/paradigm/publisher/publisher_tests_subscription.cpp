@@ -43,8 +43,8 @@ namespace
     // with the same object twice exercises scoped_subscription's run-time
     // self-move guard without the aliasing being visible at the call site.
     void move_assign(
-        scoped_subscription& _lhs,
-        scoped_subscription& _rhs
+        DScopedSubscription& _lhs,
+        DScopedSubscription& _rhs
     )
     {
         _lhs = std::move(_rhs);
@@ -62,7 +62,7 @@ tests_subscription_default
 */
 bool tests_subscription_default()
 {
-    subscription s;
+    DSubscription s;
 
     bool ok = true;
 
@@ -83,7 +83,7 @@ bool tests_subscription_active()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription s = b.subscribe("t", recorder(&log));
+    DSubscription s = b.subscribe("t", recorder(&log));
 
     return s.active();
 }
@@ -100,7 +100,7 @@ bool tests_subscription_token_accessor()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription s = b.subscribe("t", recorder(&log));
+    DSubscription s = b.subscribe("t", recorder(&log));
 
     bool ok = (s.token().valid());
 
@@ -121,7 +121,7 @@ bool tests_subscription_unsubscribe()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription s = b.subscribe("t", recorder(&log));
+    DSubscription s = b.subscribe("t", recorder(&log));
 
     s.unsubscribe();
 
@@ -145,7 +145,7 @@ bool tests_subscription_unsubscribe_idempotent()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription s = b.subscribe("t", recorder(&log));
+    DSubscription s = b.subscribe("t", recorder(&log));
 
     s.unsubscribe();
     s.unsubscribe();      // must be a safe no-op
@@ -161,7 +161,7 @@ tests_subscription_default_unsubscribe_safe
 */
 bool tests_subscription_default_unsubscribe_safe()
 {
-    subscription s;
+    DSubscription s;
 
     s.unsubscribe();      // no shared flag held: must be a no-op
     s.release();
@@ -183,8 +183,8 @@ bool tests_subscription_release()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription       s   = b.subscribe("t", recorder(&log));
-    subscription_token tok = s.token();
+    DSubscription       s   = b.subscribe("t", recorder(&log));
+    DSubscriptionToken tok = s.token();
 
     s.release();
 
@@ -212,8 +212,8 @@ bool tests_subscription_copies_share_flag()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription original = b.subscribe("t", recorder(&log));
-    subscription copy     = original;
+    DSubscription original = b.subscribe("t", recorder(&log));
+    DSubscription copy     = original;
 
     bool ok = (original.active() && copy.active());
 
@@ -240,7 +240,7 @@ tests_subscription_outlives_broker
 */
 bool tests_subscription_outlives_broker()
 {
-    subscription s;
+    DSubscription s;
 
     {
         string_bus            b;
@@ -269,7 +269,7 @@ tests_scoped_subscription_default
 */
 bool tests_scoped_subscription_default()
 {
-    scoped_subscription g;
+    DScopedSubscription g;
 
     return (!g.active());
 }
@@ -287,10 +287,10 @@ bool tests_scoped_subscription_raii()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription unguarded;
+    DSubscription unguarded;
 
     {
-        scoped_subscription g = b.subscribe("t", recorder(&log));   // implicit adopt
+        DScopedSubscription g = b.subscribe("t", recorder(&log));   // implicit adopt
         unguarded = b.subscribe("t", recorder(&log));
 
         if (b.subscriber_count("t") != 2 || !g.active()) { return false; }
@@ -317,10 +317,10 @@ bool tests_scoped_subscription_move_ctor()
     string_bus            b;
     std::vector<delivery> log;
 
-    scoped_subscription source = b.subscribe("t", recorder(&log));
+    DScopedSubscription source = b.subscribe("t", recorder(&log));
 
     {
-        scoped_subscription sink = std::move(source);
+        DScopedSubscription sink = std::move(source);
 
         if (b.subscriber_count("t") != 1 || !sink.active()) { return false; }
     }   // sink revokes
@@ -345,11 +345,11 @@ bool tests_scoped_subscription_move_assign()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription first  = b.subscribe("a", recorder(&log));
-    subscription second = b.subscribe("b", recorder(&log));
+    DSubscription first  = b.subscribe("a", recorder(&log));
+    DSubscription second = b.subscribe("b", recorder(&log));
 
-    scoped_subscription g{ first };
-    g = scoped_subscription{ second };    // must revoke `first`
+    DScopedSubscription g{ first };
+    g = DScopedSubscription{ second };    // must revoke `first`
 
     bool ok = true;
 
@@ -374,7 +374,7 @@ bool tests_scoped_subscription_self_move()
     string_bus            b;
     std::vector<delivery> log;
 
-    scoped_subscription g = b.subscribe("t", recorder(&log));
+    DScopedSubscription g = b.subscribe("t", recorder(&log));
 
     move_assign(g, g);                    // guarded self-move
 
@@ -398,10 +398,10 @@ bool tests_scoped_subscription_release()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription kept;
+    DSubscription kept;
 
     {
-        scoped_subscription g = b.subscribe("t", recorder(&log));
+        DScopedSubscription g = b.subscribe("t", recorder(&log));
         kept = g.release();
 
         if (!kept.active()) { return false; }
@@ -426,7 +426,7 @@ bool tests_scoped_subscription_unsubscribe()
     string_bus            b;
     std::vector<delivery> log;
 
-    scoped_subscription g = b.subscribe("t", recorder(&log));
+    DScopedSubscription g = b.subscribe("t", recorder(&log));
 
     g.unsubscribe();
 
@@ -448,17 +448,17 @@ tests_scoped_subscription_move_only
 */
 bool tests_scoped_subscription_move_only()
 {
-    static_assert( std::is_move_constructible<scoped_subscription>::value, "movable");
-    static_assert( std::is_move_assignable<scoped_subscription>::value,    "move-assignable");
-    static_assert(!std::is_copy_constructible<scoped_subscription>::value, "not copyable");
-    static_assert(!std::is_copy_assignable<scoped_subscription>::value,    "not copy-assignable");
-    static_assert( std::is_copy_constructible<subscription>::value,        "subscription copies");
+    static_assert( std::is_move_constructible<DScopedSubscription>::value, "movable");
+    static_assert( std::is_move_assignable<DScopedSubscription>::value,    "move-assignable");
+    static_assert(!std::is_copy_constructible<DScopedSubscription>::value, "not copyable");
+    static_assert(!std::is_copy_assignable<DScopedSubscription>::value,    "not copy-assignable");
+    static_assert( std::is_copy_constructible<DSubscription>::value,        "subscription copies");
 
     bool ok = true;
 
-    ok = ok && ( std::is_move_constructible<scoped_subscription>::value);
-    ok = ok && (!std::is_copy_constructible<scoped_subscription>::value);
-    ok = ok && ( std::is_copy_constructible<subscription>::value);
+    ok = ok && ( std::is_move_constructible<DScopedSubscription>::value);
+    ok = ok && (!std::is_copy_constructible<DScopedSubscription>::value);
+    ok = ok && ( std::is_copy_constructible<DSubscription>::value);
 
     return ok;
 }
@@ -471,7 +471,7 @@ tests_scoped_subscriptions_default
 */
 bool tests_scoped_subscriptions_default()
 {
-    scoped_subscriptions g;
+    DScopedSubscriptions g;
 
     return (g.empty() && g.size() == 0);
 }
@@ -487,7 +487,7 @@ bool tests_scoped_subscriptions_add()
     string_bus            b;
     std::vector<delivery> log;
 
-    scoped_subscriptions g;
+    DScopedSubscriptions g;
     g.add(b.subscribe("a", recorder(&log)));
     g.add(b.subscribe("b", recorder(&log)));
 
@@ -511,7 +511,7 @@ bool tests_scoped_subscriptions_plus_equals()
     string_bus            b;
     std::vector<delivery> log;
 
-    scoped_subscriptions g;
+    DScopedSubscriptions g;
     g += b.subscribe("a", recorder(&log));
     g += b.subscribe("a", recorder(&log));
 
@@ -536,10 +536,10 @@ bool tests_scoped_subscriptions_raii()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription untracked = b.subscribe("keep", recorder(&log));
+    DSubscription untracked = b.subscribe("keep", recorder(&log));
 
     {
-        scoped_subscriptions g;
+        DScopedSubscriptions g;
         g.add(b.subscribe("a", recorder(&log)));
         g.add(b.subscribe("a", recorder(&log)));
         g.add(b.subscribe("b", recorder(&log)));
@@ -567,7 +567,7 @@ bool tests_scoped_subscriptions_unsubscribe_all()
     string_bus            b;
     std::vector<delivery> log;
 
-    scoped_subscriptions g;
+    DScopedSubscriptions g;
     g.add(b.subscribe("a", recorder(&log)));
     g.add(b.subscribe("b", recorder(&log)));
 

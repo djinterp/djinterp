@@ -244,7 +244,7 @@ struct DWoNonconstObserver
 struct DWoTagged
 {
     using value_type = int;
-    using capability = write_only;
+    using capability = DWriteOnly;
 
     void push_back(
         int _value
@@ -258,7 +258,7 @@ struct DWoTagged
 struct DWoTaggedOverride
 {
     using value_type = int;
-    using capability = write_only;
+    using capability = DWriteOnly;
 
     const int& operator[](
         std::size_t _i
@@ -279,7 +279,7 @@ struct DWoTaggedOverride
 struct DWoTaggedElsewhere
 {
     using value_type = int;
-    using capability = read_only;
+    using capability = DReadOnly;
 
     void push_back(
         int _value

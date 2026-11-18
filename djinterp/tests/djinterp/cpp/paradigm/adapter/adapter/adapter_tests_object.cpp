@@ -37,17 +37,17 @@ tests_object_adapter_typedefs
 */
 bool tests_object_adapter_typedefs()
 {
-    using oa = object_adapter<legacy_seq, legacy_policy, by_pointer>;
+    using oa = DObjectAdapter<legacy_seq, legacy_policy, DByPointer>;
 
     static_assert(std::is_same<oa::adaptee_type, legacy_seq>::value,
                   "adaptee_type");
     static_assert(std::is_same<oa::adaptation_policy, legacy_policy>::value,
                   "adaptation_policy");
-    static_assert(std::is_same<oa::ownership_policy, by_pointer>::value,
+    static_assert(std::is_same<oa::ownership_policy, DByPointer>::value,
                   "ownership_policy");
     static_assert(std::is_same<
-                      object_adapter<legacy_seq, legacy_policy>::ownership_policy,
-                      by_reference>::value,
+                      DObjectAdapter<legacy_seq, legacy_policy>::ownership_policy,
+                      DByReference>::value,
                   "default ownership is by_reference");
 
     return true;
@@ -67,7 +67,7 @@ bool tests_object_adapter_by_reference()
     legacy_seq s;
     s.data = { 10, 20, 30 };
 
-    object_adapter<legacy_seq, legacy_policy> a(s);   // default: by_reference
+    DObjectAdapter<legacy_seq, legacy_policy> a(s);   // default: by_reference
 
     bool ok = true;
 
@@ -100,7 +100,7 @@ bool tests_object_adapter_by_pointer()
     legacy_seq s;
     s.data = { 10, 20, 30 };
 
-    object_adapter<legacy_seq, legacy_policy, by_pointer> a(&s);
+    DObjectAdapter<legacy_seq, legacy_policy, DByPointer> a(&s);
 
     bool ok = true;
 
@@ -134,7 +134,7 @@ bool tests_object_adapter_by_value()
     legacy_seq s;
     s.data = { 1, 2, 3 };
 
-    object_adapter<legacy_seq, legacy_policy, by_value> a(s);   // owning copy
+    DObjectAdapter<legacy_seq, legacy_policy, DByValue> a(s);   // owning copy
 
     bool ok = true;
 
@@ -164,7 +164,7 @@ bool tests_object_adapter_by_shared_ptr()
     std::shared_ptr<legacy_seq> sp = std::make_shared<legacy_seq>();
     sp->data = { 5, 6 };
 
-    object_adapter<legacy_seq, legacy_policy, by_shared_ptr> a(sp);
+    DObjectAdapter<legacy_seq, legacy_policy, DBySharedPtr> a(sp);
 
     bool ok = true;
 
@@ -193,7 +193,7 @@ bool tests_object_adapter_by_unique_ptr()
     std::unique_ptr<legacy_seq> up(new legacy_seq());
     up->data = { 7, 8, 9 };
 
-    object_adapter<legacy_seq, legacy_policy, by_unique_ptr> a(std::move(up));
+    DObjectAdapter<legacy_seq, legacy_policy, DByUniquePtr> a(std::move(up));
 
     bool ok = true;
 
@@ -222,7 +222,7 @@ bool tests_object_adapter_const_access()
     legacy_seq s;
     s.data = { 11, 22, 33 };
 
-    const object_adapter<legacy_seq, legacy_policy, by_pointer> a(&s);
+    const DObjectAdapter<legacy_seq, legacy_policy, DByPointer> a(&s);
 
     bool ok = true;
 
@@ -249,7 +249,7 @@ bool tests_object_adapter_forward()
     legacy_seq s;
     s.data = { 1, 2 };
 
-    object_adapter<legacy_seq, legacy_policy, by_pointer> a(&s);
+    DObjectAdapter<legacy_seq, legacy_policy, DByPointer> a(&s);
 
     bool ok = true;
 

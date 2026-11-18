@@ -90,11 +90,11 @@ NS_DJINTERP
 
 // ─── non_owning_policy ──────────────────────────────────────────────────────
 
-// non_owning_policy
+// DNonOwningPolicy
 //   struct: entry point held as a raw pointer. The container does NOT destroy
 // nodes. Caller or derived type manages lifetime. This is the
 // backward-compatible default.
-struct non_owning_policy
+struct DNonOwningPolicy
 {
     static D_CONSTEXPR bool owns     = false;
     static D_CONSTEXPR bool copyable = true;
@@ -195,13 +195,16 @@ struct non_owning_policy
     }
 };
 
+// old name, until 0.9.0-rc.1
+using non_owning_policy = DNonOwningPolicy;
+
 
 // ─── unique_owning_policy ───────────────────────────────────────────────────
 
-// unique_owning_policy
+// DUniqueOwningPolicy
 //   struct: entry point held via std::unique_ptr. The container exclusively
 // owns the node graph. Move-only - copy is a compile-time error.
-struct unique_owning_policy
+struct DUniqueOwningPolicy
 {
     static D_CONSTEXPR bool owns     = true;
     static D_CONSTEXPR bool copyable = false;
@@ -316,14 +319,17 @@ struct unique_owning_policy
     }
 };
 
+// old name, until 0.9.0-rc.1
+using unique_owning_policy = DUniqueOwningPolicy;
+
 
 // ─── shared_owning_policy ───────────────────────────────────────────────────
 
-// shared_owning_policy
+// DSharedOwningPolicy
 //   struct: entry point held via std::shared_ptr. Multiple containers can
 // share the same node graph with reference- counted lifetime management.
 // Copyable and movable.
-struct shared_owning_policy
+struct DSharedOwningPolicy
 {
     static D_CONSTEXPR bool owns     = true;
     static D_CONSTEXPR bool copyable = true;
@@ -435,6 +441,9 @@ struct shared_owning_policy
     }
 };
 
+// old name, until 0.9.0-rc.1
+using shared_owning_policy = DSharedOwningPolicy;
+
 
 // ===========================================================================
 //  2.  NODE CONTAINER
@@ -457,7 +466,7 @@ template<typename ValueType,
          typename NodeType,
          typename Allocator        = std::allocator<NodeType>,
          typename LockPolicy       = void,
-         typename OwnershipPolicy = non_owning_policy>
+         typename OwnershipPolicy = DNonOwningPolicy>
 class DNodeContainer
 {
 private:
@@ -692,7 +701,7 @@ public:
     template<typename Dummy = OwnershipPolicy,
              std::enable_if_t<
                  std::is_same<Dummy,
-                              unique_owning_policy>::value,
+                              DUniqueOwningPolicy>::value,
                  int> = 0>
     void
     adopt_entry(
@@ -709,7 +718,7 @@ public:
     template<typename Dummy = OwnershipPolicy,
              std::enable_if_t<
                  std::is_same<Dummy,
-                              shared_owning_policy>::value,
+                              DSharedOwningPolicy>::value,
                  int> = 0>
     void
     share_entry(
@@ -856,7 +865,7 @@ using DOwningNodeContainer =
                    NodeType,
                    Allocator,
                    LockPolicy,
-                   unique_owning_policy>;
+                   DUniqueOwningPolicy>;
 
 // DSharedNodeContainer
 //   alias: DNodeContainer with shared_owning_policy.
@@ -869,7 +878,7 @@ using DSharedNodeContainer =
                    NodeType,
                    Allocator,
                    LockPolicy,
-                   shared_owning_policy>;
+                   DSharedOwningPolicy>;
 
 
 NS_END  // djinterp

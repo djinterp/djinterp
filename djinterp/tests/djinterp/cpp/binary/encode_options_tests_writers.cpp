@@ -21,23 +21,23 @@ NS_TESTING
 // they are exercised here by direct call.
 template<DSerialEndian _E>
 static
-byte_string pu(
+DByteString pu(
     re_std::uint64_t _v,
     std::size_t   _w
 )
 {
-    byte_string _o;
+    DByteString _o;
     djinterp::internal::put_uint<_E>(_o, _v, _w);
 
     return _o;
 }
 
 static
-byte_string pv(
+DByteString pv(
     re_std::uint64_t _v
 )
 {
-    byte_string _o;
+    DByteString _o;
     djinterp::internal::put_varint(_o, _v);
 
     return _o;
@@ -46,11 +46,11 @@ byte_string pv(
 template<DSerialLength _L,
          DSerialEndian  _E>
 static
-byte_string pl(
+DByteString pl(
     re_std::uint64_t _c
 )
 {
-    byte_string _o;
+    DByteString _o;
     djinterp::internal::put_length<_L, _E>(_o, _c);
 
     return _o;
@@ -68,25 +68,25 @@ tests_encode_options_put_uint
 bool tests_encode_options_put_uint()
 {
     // big-endian widths
-    D_EO_CHECK((pu<DSerialEndian::big>(0x2A, 1) == byte_string{ 0x2A }));
-    D_EO_CHECK((pu<DSerialEndian::big>(0x1234, 2) == byte_string{ 0x12, 0x34 }));
+    D_EO_CHECK((pu<DSerialEndian::big>(0x2A, 1) == DByteString{ 0x2A }));
+    D_EO_CHECK((pu<DSerialEndian::big>(0x1234, 2) == DByteString{ 0x12, 0x34 }));
     D_EO_CHECK((pu<DSerialEndian::big>(0xDEADBEEF, 4)
-                == byte_string{ 0xDE, 0xAD, 0xBE, 0xEF }));
+                == DByteString{ 0xDE, 0xAD, 0xBE, 0xEF }));
     D_EO_CHECK((pu<DSerialEndian::big>(0x0102030405060708ull, 8)
-                == byte_string{ 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 }));
+                == DByteString{ 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 }));
 
     // little-endian widths
-    D_EO_CHECK((pu<DSerialEndian::little>(0x2A, 1) == byte_string{ 0x2A }));
-    D_EO_CHECK((pu<DSerialEndian::little>(0x1234, 2) == byte_string{ 0x34, 0x12 }));
+    D_EO_CHECK((pu<DSerialEndian::little>(0x2A, 1) == DByteString{ 0x2A }));
+    D_EO_CHECK((pu<DSerialEndian::little>(0x1234, 2) == DByteString{ 0x34, 0x12 }));
     D_EO_CHECK((pu<DSerialEndian::little>(0xDEADBEEF, 4)
-                == byte_string{ 0xEF, 0xBE, 0xAD, 0xDE }));
+                == DByteString{ 0xEF, 0xBE, 0xAD, 0xDE }));
     D_EO_CHECK((pu<DSerialEndian::little>(0x0102030405060708ull, 8)
-                == byte_string{ 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01 }));
+                == DByteString{ 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01 }));
 
     // overflow wrap to the low `width` bytes
-    D_EO_CHECK((pu<DSerialEndian::big>(0x10000, 2) == byte_string{ 0x00, 0x00 }));
-    D_EO_CHECK((pu<DSerialEndian::big>(0x12345, 2) == byte_string{ 0x23, 0x45 }));
-    D_EO_CHECK((pu<DSerialEndian::little>(0x12345, 2) == byte_string{ 0x45, 0x23 }));
+    D_EO_CHECK((pu<DSerialEndian::big>(0x10000, 2) == DByteString{ 0x00, 0x00 }));
+    D_EO_CHECK((pu<DSerialEndian::big>(0x12345, 2) == DByteString{ 0x23, 0x45 }));
+    D_EO_CHECK((pu<DSerialEndian::little>(0x12345, 2) == DByteString{ 0x45, 0x23 }));
 
     return true;
 }
@@ -102,13 +102,13 @@ tests_encode_options_put_varint
 */
 bool tests_encode_options_put_varint()
 {
-    D_EO_CHECK((pv(0) == byte_string{ 0x00 }));
-    D_EO_CHECK((pv(127) == byte_string{ 0x7F }));
-    D_EO_CHECK((pv(128) == byte_string{ 0x80, 0x01 }));
-    D_EO_CHECK((pv(300) == byte_string{ 0xAC, 0x02 }));
-    D_EO_CHECK((pv(16384) == byte_string{ 0x80, 0x80, 0x01 }));
+    D_EO_CHECK((pv(0) == DByteString{ 0x00 }));
+    D_EO_CHECK((pv(127) == DByteString{ 0x7F }));
+    D_EO_CHECK((pv(128) == DByteString{ 0x80, 0x01 }));
+    D_EO_CHECK((pv(300) == DByteString{ 0xAC, 0x02 }));
+    D_EO_CHECK((pv(16384) == DByteString{ 0x80, 0x80, 0x01 }));
     D_EO_CHECK((pv(0xFFFFFFFFFFFFFFFFull)
-                == byte_string{ 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                == DByteString{ 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
                                 0xFF, 0xFF, 0xFF, 0xFF, 0x01 }));
 
     return true;
@@ -127,27 +127,27 @@ bool tests_encode_options_put_length()
 {
     // fixed widths, big-endian
     D_EO_CHECK((pl<DSerialLength::u16, DSerialEndian::big>(5)
-                == byte_string{ 0x00, 0x05 }));
+                == DByteString{ 0x00, 0x05 }));
     D_EO_CHECK((pl<DSerialLength::u32, DSerialEndian::big>(5)
-                == byte_string{ 0x00, 0x00, 0x00, 0x05 }));
+                == DByteString{ 0x00, 0x00, 0x00, 0x05 }));
     D_EO_CHECK((pl<DSerialLength::u64, DSerialEndian::big>(5)
-                == byte_string{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05 }));
+                == DByteString{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05 }));
 
     // fixed width honours byte order
     D_EO_CHECK((pl<DSerialLength::u16, DSerialEndian::little>(5)
-                == byte_string{ 0x05, 0x00 }));
+                == DByteString{ 0x05, 0x00 }));
     D_EO_CHECK((pl<DSerialLength::u32, DSerialEndian::little>(0x11223344)
-                == byte_string{ 0x44, 0x33, 0x22, 0x11 }));
+                == DByteString{ 0x44, 0x33, 0x22, 0x11 }));
 
     // varint is order-independent and self-delimiting
     D_EO_CHECK((pl<DSerialLength::varint, DSerialEndian::big>(300)
-                == byte_string{ 0xAC, 0x02 }));
+                == DByteString{ 0xAC, 0x02 }));
     D_EO_CHECK((pl<DSerialLength::varint, DSerialEndian::little>(300)
-                == byte_string{ 0xAC, 0x02 }));
+                == DByteString{ 0xAC, 0x02 }));
 
     // a fixed width wraps an over-large count
     D_EO_CHECK((pl<DSerialLength::u16, DSerialEndian::big>(0x10000)
-                == byte_string{ 0x00, 0x00 }));
+                == DByteString{ 0x00, 0x00 }));
 
     return true;
 }

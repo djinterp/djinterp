@@ -60,7 +60,7 @@ tests_by_reference
 */
 bool tests_by_reference()
 {
-    using storage = by_reference::storage<int>;
+    using storage = DByReference::storage<int>;
 
     static_assert(std::is_same<storage::stored_type, int&>::value,
                   "by_reference::stored_type must be _Adaptee&");
@@ -92,7 +92,7 @@ tests_by_pointer
 */
 bool tests_by_pointer()
 {
-    using storage = by_pointer::storage<int>;
+    using storage = DByPointer::storage<int>;
 
     static_assert(std::is_same<storage::stored_type, int*>::value,
                   "by_pointer::stored_type must be _Adaptee*");
@@ -124,7 +124,7 @@ tests_by_value
 */
 bool tests_by_value()
 {
-    using storage = by_value::storage<int>;
+    using storage = DByValue::storage<int>;
 
     static_assert(std::is_same<storage::stored_type, int>::value,
                   "by_value::stored_type must be _Adaptee");
@@ -156,7 +156,7 @@ tests_by_shared_ptr
 */
 bool tests_by_shared_ptr()
 {
-    using storage = by_shared_ptr::storage<int>;
+    using storage = DBySharedPtr::storage<int>;
 
     static_assert(std::is_same<storage::stored_type,
                                std::shared_ptr<int>>::value,
@@ -189,7 +189,7 @@ tests_by_unique_ptr
 */
 bool tests_by_unique_ptr()
 {
-    using storage = by_unique_ptr::storage<int>;
+    using storage = DByUniquePtr::storage<int>;
 
     static_assert(std::is_same<storage::stored_type,
                                std::unique_ptr<int>>::value,

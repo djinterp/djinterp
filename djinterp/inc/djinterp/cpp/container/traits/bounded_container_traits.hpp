@@ -189,26 +189,29 @@ D_TYPE_TRAIT_VALUE_BOOL(is_domain_bounded_container)
 // IV.  Capacity-bound summary
 // ===========================================================================
 
-// capacity_bound
+// DCapacityBound
 //   enum: the container's position on the capacity sub-axis. Ordered by
 // permissiveness: bounded (kappa < inf) is the more restrictive, unbounded the
 // more permissive; unknown is reserved for types that are not containers.
-enum class capacity_bound
+enum class DCapacityBound
 {
     unknown,    // not a container
     bounded,    // kappa < inf
     unbounded   // kappa = inf
 };
 
+// old name, until 0.9.0-rc.1
+using capacity_bound = DCapacityBound;
+
 // capacity_bound_name
 //   function: a stable spelling, for diagnostics and agent-facing summaries.
 constexpr
 const char* capacity_bound_name(
-    capacity_bound _b
+    DCapacityBound _b
 ) noexcept
 {
-    return ( _b == capacity_bound::unknown ? "unknown"
-           : _b == capacity_bound::bounded ? "bounded"
+    return ( _b == DCapacityBound::unknown ? "unknown"
+           : _b == DCapacityBound::bounded ? "bounded"
            :                                 "unbounded" );
 }
 
@@ -222,14 +225,14 @@ private:
     using clean_type = clean_t<Type>;
 
 public:
-    static constexpr capacity_bound value =
+    static constexpr DCapacityBound value =
         (  is_bounded_container<clean_type>::value )
-              ? capacity_bound::bounded
+              ? DCapacityBound::bounded
       : (  has_size_signal<clean_type>::value )
-              ? capacity_bound::unbounded
-      :         capacity_bound::unknown;
+              ? DCapacityBound::unbounded
+      :         DCapacityBound::unknown;
 
-    using type = std::integral_constant<capacity_bound, value>;
+    using type = std::integral_constant<DCapacityBound, value>;
 };
 
 // capacity_bound_of_t / capacity_bound_of_v
@@ -240,11 +243,11 @@ using capacity_bound_of_t = typename capacity_bound_of<Type>::type;
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename Type>
-    inline constexpr capacity_bound capacity_bound_of_v =
+    inline constexpr DCapacityBound capacity_bound_of_v =
         capacity_bound_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    constexpr capacity_bound capacity_bound_of_v =
+    constexpr DCapacityBound capacity_bound_of_v =
         capacity_bound_of<Type>::value;
 #endif
 
@@ -289,7 +292,7 @@ public:
         is_domain_bounded_container<clean_type>::value;
 
     // summary
-    static constexpr capacity_bound capacity =
+    static constexpr DCapacityBound capacity =
         capacity_bound_of<clean_type>::value;
     static constexpr const char*   capacity_name =
         capacity_bound_name(capacity);

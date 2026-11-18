@@ -320,9 +320,12 @@ struct mediator_capability
 // to mediator_base and call send(); the mediator's receive() routes
 // events to the appropriate colleagues.
 
-// colleague_id
+// DColleagueId
 //   type: opaque identifier for a registered colleague.
-using colleague_id = std::size_t;
+using DColleagueId = std::size_t;
+
+// old name, until 0.9.0-rc.1
+using colleague_id = DColleagueId;
 
 // mediator_base
 //   class: abstract base for classic mediators. Concrete mediators
@@ -339,30 +342,30 @@ public:
     // the type-erased payload.
     virtual
     void receive(
-        colleague_id       _sender,
+        DColleagueId       _sender,
         const re_std::any& _event
     ) = 0;
 };
 
-// colleague_base
+// DColleagueBase
 //   class: abstract base for participants in classic mediation.
 // Each colleague holds a mediator pointer and a unique id.
-class colleague_base
+class DColleagueBase
 {
 public:
-    colleague_base()
+    DColleagueBase()
         : m_mediator(nullptr),
           m_id(0)
     {}
 
-    virtual ~colleague_base()
+    virtual ~DColleagueBase()
     {}
 
     // set_mediator
     //   function: binds this colleague to a mediator.
     void set_mediator(
         mediator_base* _mediator,
-        colleague_id   _id
+        DColleagueId   _id
     ) noexcept
     {
         m_mediator = _mediator;
@@ -373,7 +376,7 @@ public:
 
     // id
     //   function: returns this colleague's identifier.
-    colleague_id id() const noexcept
+    DColleagueId id() const noexcept
     {
         return m_id;
     }
@@ -383,7 +386,7 @@ public:
     // Override in concrete colleagues.
     virtual
     void on_event(
-        colleague_id       _sender,
+        DColleagueId       _sender,
         const re_std::any& _event
     ) = 0;
 
@@ -410,24 +413,27 @@ protected:
 
 private:
     mediator_base* m_mediator;
-    colleague_id   m_id;
+    DColleagueId   m_id;
 };
 
-// concrete_mediator
+// old name, until 0.9.0-rc.1
+using colleague_base = DColleagueBase;
+
+// DConcreteMediator
 //   class: a generic concrete mediator that manages a dynamic set
 // of colleagues. receive() broadcasts the event to all registered
 // colleagues except the sender.
-class concrete_mediator : public mediator_base
+class DConcreteMediator : public mediator_base
 {
 public:
     // add_colleague
     //   function: registers a colleague, assigns it an id, and
     // binds it to this mediator.
-    colleague_id add_colleague(
-        colleague_base* _colleague
+    DColleagueId add_colleague(
+        DColleagueBase* _colleague
     )
     {
-        colleague_id cid = m_next_id++;
+        DColleagueId cid = m_next_id++;
         _colleague->set_mediator(this, cid);
         m_colleagues.push_back(_colleague);
 
@@ -437,13 +443,13 @@ public:
     // remove_colleague
     //   function: unregisters a colleague by id.
     void remove_colleague(
-        colleague_id _id
+        DColleagueId _id
     )
     {
         m_colleagues.erase(
             std::remove_if(m_colleagues.begin(),
                            m_colleagues.end(),
-                           [_id](colleague_base* c)
+                           [_id](DColleagueBase* c)
                            {
                                return (c->id() == _id);
                            }),
@@ -456,7 +462,7 @@ public:
     //   function: broadcasts an event to all colleagues except the
     // sender.
     void receive(
-        colleague_id       _sender,
+        DColleagueId       _sender,
         const re_std::any& _event
     ) override
     {
@@ -479,9 +485,12 @@ public:
     }
 
 private:
-    std::vector<colleague_base*> m_colleagues;
-    colleague_id                 m_next_id = 0;
+    std::vector<DColleagueBase*> m_colleagues;
+    DColleagueId                 m_next_id = 0;
 };
+
+// old name, until 0.9.0-rc.1
+using concrete_mediator = DConcreteMediator;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -545,12 +554,15 @@ NS_INTERNAL
 
 NS_END  // internal
 
-// subscription_id
+// DSubscriptionId
 //   type: opaque handle returned by event_bus::subscribe, used
 // to unsubscribe a specific handler.
-using subscription_id = std::size_t;
+using DSubscriptionId = std::size_t;
 
-// event_bus
+// old name, until 0.9.0-rc.1
+using subscription_id = DSubscriptionId;
+
+// DEventBus
 //   class: type-indexed publish/subscribe mediator. Handlers
 // subscribe to specific event types and are invoked when an event
 // of that type is published.
@@ -561,7 +573,7 @@ using subscription_id = std::size_t;
 //       [](const mouse_click& e) { handle(e); });
 //   bus.publish(mouse_click{42, 100});
 //   bus.unsubscribe(tok);
-class event_bus
+class DEventBus
 {
 public:
     // subscribe
@@ -569,11 +581,11 @@ public:
     // Returns a token that can be used to unsubscribe.
     template<typename Event,
              typename Fn>
-    subscription_id subscribe(
+    DSubscriptionId subscribe(
         Fn _fn
     )
     {
-        subscription_id tok = m_next_token++;
+        DSubscriptionId tok = m_next_token++;
 
         m_handlers.push_back(
             { tok,
@@ -587,7 +599,7 @@ public:
     // unsubscribe
     //   function: removes a handler by its token.
     void unsubscribe(
-        subscription_id _token
+        DSubscriptionId _token
     )
     {
         m_handlers.erase(
@@ -708,13 +720,16 @@ public:
 private:
     struct DHandlerEntry
     {
-        subscription_id                               token;
+        DSubscriptionId                               token;
         std::unique_ptr<internal::event_handler_base> handler;
     };
 
     std::vector<DHandlerEntry> m_handlers;
-    subscription_id            m_next_token = 0;
+    DSubscriptionId            m_next_token = 0;
 };
+
+// old name, until 0.9.0-rc.1
+using event_bus = DEventBus;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -723,7 +738,7 @@ private:
 
 #if D_MEDIATOR_HAS_VARIANT
 
-// variant_event_bus
+// DVariantEventBus
 //   class: closed-set event bus parameterised on a fixed list of event
 // types. Uses std::variant internally, enabling exhaustive handling and
 // compile-time verification that all events are covered.
@@ -736,7 +751,7 @@ private:
 //   b.subscribe([](const resize& r) { ... });
 //   b.publish(click{10, 20});
 template<typename... Events>
-class variant_event_bus
+class DVariantEventBus
 {
 public:
     using event_variant = std::variant<Events...>;
@@ -745,7 +760,7 @@ public:
     //   function: registers a handler for a single event type Event.
     template<typename Event,
              typename Fn>
-    subscription_id subscribe(
+    DSubscriptionId subscribe(
         Fn _fn
     )
     {
@@ -753,7 +768,7 @@ public:
             (std::is_same<Event, Events>::value || ...),
             "Event type is not in this variant_event_bus's type list.");
 
-        subscription_id tok = m_next_token++;
+        DSubscriptionId tok = m_next_token++;
 
         m_handlers.push_back(
             { tok,
@@ -772,11 +787,11 @@ public:
     //   function: registers a visitor-style handler that is invoked
     // for every event type. Fn must be callable with each Events&.
     template<typename Fn>
-    subscription_id subscribe_all(
+    DSubscriptionId subscribe_all(
         Fn _fn
     )
     {
-        subscription_id tok = m_next_token++;
+        DSubscriptionId tok = m_next_token++;
 
         m_handlers.push_back(
             { tok,
@@ -791,7 +806,7 @@ public:
     // unsubscribe
     //   function: removes a handler by its token.
     void unsubscribe(
-        subscription_id _token
+        DSubscriptionId _token
     )
     {
         m_handlers.erase(
@@ -845,13 +860,17 @@ public:
 private:
     struct DHandlerEntry
     {
-        subscription_id                           token;
+        DSubscriptionId                           token;
         std::function<void(const event_variant&)> handler;
     };
 
     std::vector<DHandlerEntry> m_handlers;
-    subscription_id            m_next_token = 0;
+    DSubscriptionId            m_next_token = 0;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename... Events>
+using variant_event_bus = DVariantEventBus<Events...>;
 
 #endif  // D_MEDIATOR_HAS_VARIANT
 
@@ -865,11 +884,14 @@ private:
 // connected callbacks. Channel names are std::string (C++11) or
 // std::string_view (C++17).
 
-// signal_id
+// DSignalId
 //   type: channel identifier.
-using signal_id = std::string;
+using DSignalId = std::string;
 
-// signal_hub
+// old name, until 0.9.0-rc.1
+using signal_id = DSignalId;
+
+// DSignalHub
 //   class: named-signal multicast mediator. Callbacks are registered
 // under string keys and invoked when that signal is emitted.
 //
@@ -879,7 +901,7 @@ using signal_id = std::string;
 //       [](const re_std::any& e) { handle(e); });
 //   hub.emit("button_clicked", re_std::any(42));
 //   hub.disconnect(tok);
-class signal_hub
+class DSignalHub
 {
 public:
     using handler_fn = std::function<void(const re_std::any&)>;
@@ -887,12 +909,12 @@ public:
     // connect
     //   function: registers a handler on the named channel. Returns
     // a token for disconnection.
-    subscription_id connect(
-        const signal_id& _channel,
+    DSubscriptionId connect(
+        const DSignalId& _channel,
         handler_fn       _fn
     )
     {
-        subscription_id tok = m_next_token++;
+        DSubscriptionId tok = m_next_token++;
         m_slots.push_back({ tok, _channel, std::move(_fn) });
 
         return tok;
@@ -904,22 +926,22 @@ public:
     // C++17, so connect("chan", fn) is ambiguous. A const char* parameter binds
     // the literal by array-to-pointer (a standard conversion), which is a
     // better match than either user-defined conversion.
-    subscription_id connect(
+    DSubscriptionId connect(
         const char* _channel,
         handler_fn  _fn
     )
     {
-        return connect(signal_id(_channel), std::move(_fn));
+        return connect(DSignalId(_channel), std::move(_fn));
     }
 
 #if D_MEDIATOR_HAS_STRING_VIEW
     // connect (string_view overload)
-    subscription_id connect(
+    DSubscriptionId connect(
         std::string_view _channel,
         handler_fn       _fn
     )
     {
-        return connect(signal_id(_channel), std::move(_fn));
+        return connect(DSignalId(_channel), std::move(_fn));
     }
 #endif
 
@@ -953,8 +975,8 @@ public:
     // extracts the event type from the re_std::any wrapper.
     template<typename Event,
              typename Fn>
-    subscription_id connect_typed(
-        const signal_id& _channel,
+    DSubscriptionId connect_typed(
+        const DSignalId& _channel,
         Fn               _fn
     )
     {
@@ -966,7 +988,7 @@ public:
     // disconnect
     //   function: removes a handler by its token.
     void disconnect(
-        subscription_id _token
+        DSubscriptionId _token
     )
     {
         m_slots.erase(
@@ -984,7 +1006,7 @@ public:
     // disconnect_all
     //   function: removes all handlers on a named channel.
     void disconnect_all(
-        const signal_id& _channel
+        const DSignalId& _channel
     )
     {
         m_slots.erase(
@@ -1003,7 +1025,7 @@ public:
     //   function: invokes all handlers connected to the named channel,
     // passing the type-erased event payload.
     void emit(
-        const signal_id&   _channel,
+        const DSignalId&   _channel,
         const re_std::any& _event
     )
     {
@@ -1023,7 +1045,7 @@ public:
     // and emits on the channel.
     template<typename Event>
     void emit_typed(
-        const signal_id& _channel,
+        const DSignalId& _channel,
         const Event&     _event
     )
     {
@@ -1042,7 +1064,7 @@ public:
     // slot_count_for
     //   function: number of slots on a specific channel.
     std::size_t slot_count_for(
-        const signal_id& _channel
+        const DSignalId& _channel
     ) const noexcept
     {
         std::size_t count = 0;
@@ -1062,7 +1084,7 @@ public:
     //   function: true if at least one handler is connected to the
     // named channel.
     bool has_channel(
-        const signal_id& _channel
+        const DSignalId& _channel
     ) const noexcept
     {
         for (const auto& slot : m_slots)
@@ -1088,14 +1110,17 @@ public:
 private:
     struct slot_entry
     {
-        subscription_id token;
-        signal_id          channel;
+        DSubscriptionId token;
+        DSignalId          channel;
         handler_fn         handler;
     };
 
     std::vector<slot_entry> m_slots;
-    subscription_id         m_next_token = 0;
+    DSubscriptionId         m_next_token = 0;
 };
+
+// old name, until 0.9.0-rc.1
+using signal_hub = DSignalHub;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1106,15 +1131,15 @@ private:
 // mediator whose colleague set is fixed at compile time. Zero virtual
 // dispatch; all routing resolved statically.
 
-// static_colleague
+// DStaticColleague
 //   class: CRTP base for colleagues in a static mediator. Derived is
 // the concrete colleague; Mediator is the static mediator type.
 template<typename Derived,
          typename Mediator>
-class static_colleague
+class DStaticColleague
 {
 public:
-    static_colleague()
+    DStaticColleague()
         : m_mediator(nullptr)
     {}
 
@@ -1154,7 +1179,12 @@ private:
     Mediator* m_mediator;
 };
 
-// static_mediator
+// old name, until 0.9.0-rc.1
+template<typename Derived,
+         typename Mediator>
+using static_colleague = DStaticColleague<Derived, Mediator>;
+
+// DStaticMediator
 //   class: CRTP-based compile-time mediator. Derived implements
 // the routing logic; Colleagues is the fixed set of colleague types.
 // Each colleague is stored by pointer.
@@ -1173,10 +1203,10 @@ private:
 //   };
 template<typename Derived,
          typename... Colleagues>
-class static_mediator
+class DStaticMediator
 {
 public:
-    static_mediator()
+    DStaticMediator()
         : m_colleagues{}
     {}
 
@@ -1261,6 +1291,11 @@ private:
     std::tuple<Colleagues*...> m_colleagues;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Derived,
+         typename... Colleagues>
+using static_mediator = DStaticMediator<Derived, Colleagues...>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///          VIII. DISPATCH POLICIES                                        ///
@@ -1270,9 +1305,9 @@ private:
 // stateless structs with a single static dispatch() method that
 // receives the handler list and the event.
 
-// broadcast_policy
+// DBroadcastPolicy
 //   policy: delivers the event to every handler unconditionally.
-struct broadcast_policy
+struct DBroadcastPolicy
 {
     template<typename HandlerRange,
              typename Event>
@@ -1291,10 +1326,13 @@ struct broadcast_policy
     }
 };
 
-// targeted_policy
+// old name, until 0.9.0-rc.1
+using broadcast_policy = DBroadcastPolicy;
+
+// DTargetedPolicy
 //   policy: delivers the event only to a handler matching a target
 // predicate. The predicate is passed alongside the event.
-struct targeted_policy
+struct DTargetedPolicy
 {
     template<typename HandlerRange,
              typename Event,
@@ -1318,10 +1356,13 @@ struct targeted_policy
     }
 };
 
-// filtered_policy
+// old name, until 0.9.0-rc.1
+using targeted_policy = DTargetedPolicy;
+
+// DFilteredPolicy
 //   policy: delivers the event only if a filter predicate applied
 // to the event itself returns true.
-struct filtered_policy
+struct DFilteredPolicy
 {
     template<typename HandlerRange,
              typename Event,
@@ -1345,6 +1386,9 @@ struct filtered_policy
     }
 };
 
+// old name, until 0.9.0-rc.1
+using filtered_policy = DFilteredPolicy;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///         IX.   CONVENIENCE FACTORIES (C++14+)                           ///
@@ -1355,17 +1399,17 @@ struct filtered_policy
 // make_event_bus
 //   function: creates an event_bus.
 inline
-event_bus make_event_bus()
+DEventBus make_event_bus()
 {
-    return event_bus{};
+    return DEventBus{};
 }
 
 // make_signal_hub
 //   function: creates a signal_hub.
 inline
-signal_hub make_signal_hub()
+DSignalHub make_signal_hub()
 {
-    return signal_hub{};
+    return DSignalHub{};
 }
 
 // subscribe_many
@@ -1374,12 +1418,12 @@ signal_hub make_signal_hub()
 template<typename Event,
          typename... Fns>
 inline
-std::vector<subscription_id> subscribe_many(
-    event_bus& _bus,
+std::vector<DSubscriptionId> subscribe_many(
+    DEventBus& _bus,
     Fns&&...   _fns
 )
 {
-    std::vector<subscription_id> tokens;
+    std::vector<DSubscriptionId> tokens;
     tokens.reserve(sizeof...(Fns));
 
     // fold via initialiser list
@@ -1397,8 +1441,8 @@ std::vector<subscription_id> subscribe_many(
 //   function: unsubscribes a batch of tokens from an event bus.
 inline
 void unsubscribe_all(
-    event_bus&                          _bus,
-    const std::vector<subscription_id>& _tokens
+    DEventBus&                          _bus,
+    const std::vector<DSubscriptionId>& _tokens
 )
 {
     for (auto tok : _tokens)
@@ -1452,8 +1496,8 @@ concept mediator_handler_for = std::invocable<Fn, const Event&>;
 template<typename Event,
          mediator_handler_for<Event> Fn>
 inline
-subscription_id constrained_subscribe(
-    event_bus& _bus,
+DSubscriptionId constrained_subscribe(
+    DEventBus& _bus,
     Fn         _fn
 )
 {
@@ -1464,10 +1508,10 @@ subscription_id constrained_subscribe(
 //   function: concept-constrained connection to a signal hub.
 template<typename Fn>
     requires std::invocable<Fn, const re_std::any&>
-inline subscription_id
+inline DSubscriptionId
 constrained_connect(
-    signal_hub&      _hub,
-    const signal_id& _channel,
+    DSignalHub&      _hub,
+    const DSignalId& _channel,
     Fn               _fn
 )
 {

@@ -36,11 +36,11 @@ bool tests_sum_newtype()
     bool ok = true;
 
     // default constructs to the additive identity, 0.
-    sum<int> a;
+    DSum<int> a;
     ok = ok && (a.value == 0);
 
     // explicit ctor stores the value verbatim.
-    sum<int> b(7);
+    DSum<int> b(7);
     ok = ok && (b.value == 7);
 
     // the wrapped value is a public, mutable member.
@@ -48,19 +48,19 @@ bool tests_sum_newtype()
     ok = ok && (b.value == -3);
 
     // works over a floating element type; default is 0.0.
-    sum<double> c;
+    DSum<double> c;
     ok = ok && close_enough(c.value, 0.0);
 
-    sum<double> d(2.5);
+    DSum<double> d(2.5);
     ok = ok && close_enough(d.value, 2.5);
 
     // the value ctor is explicit.
-    ok = ok && (std::is_constructible<sum<int>, int>::value);
-    ok = ok && (!std::is_convertible<int, sum<int> >::value);
+    ok = ok && (std::is_constructible<DSum<int>, int>::value);
+    ok = ok && (!std::is_convertible<int, DSum<int> >::value);
 
     // constexpr-constructible.
-    static_assert(sum<int>(4).value == 4, "sum<int> explicit ctor is constexpr");
-    static_assert(sum<int>().value  == 0, "sum<int> default is constexpr 0");
+    static_assert(DSum<int>(4).value == 4, "sum<int> explicit ctor is constexpr");
+    static_assert(DSum<int>().value  == 0, "sum<int> default is constexpr 0");
 
     return ok;
 }
@@ -83,11 +83,11 @@ bool tests_product_newtype()
 
     // default constructs to the multiplicative identity, 1 -- the defining
     // difference from sum<T>.
-    product<int> a;
+    DProduct<int> a;
     ok = ok && (a.value == 1);
 
     // explicit ctor stores the value.
-    product<int> b(6);
+    DProduct<int> b(6);
     ok = ok && (b.value == 6);
 
     // public, mutable value.
@@ -95,19 +95,19 @@ bool tests_product_newtype()
     ok = ok && (b.value == 9);
 
     // floating element type; default is 1.0.
-    product<double> c;
+    DProduct<double> c;
     ok = ok && close_enough(c.value, 1.0);
 
-    product<double> d(3.5);
+    DProduct<double> d(3.5);
     ok = ok && close_enough(d.value, 3.5);
 
     // explicit value ctor.
-    ok = ok && (std::is_constructible<product<int>, int>::value);
-    ok = ok && (!std::is_convertible<int, product<int> >::value);
+    ok = ok && (std::is_constructible<DProduct<int>, int>::value);
+    ok = ok && (!std::is_convertible<int, DProduct<int> >::value);
 
     // constexpr.
-    static_assert(product<int>(4).value == 4, "product explicit ctor constexpr");
-    static_assert(product<int>().value  == 1, "product default is constexpr 1");
+    static_assert(DProduct<int>(4).value == 4, "product explicit ctor constexpr");
+    static_assert(DProduct<int>().value  == 1, "product default is constexpr 1");
 
     return ok;
 }
@@ -128,12 +128,12 @@ bool tests_all_newtype()
     bool ok = true;
 
     // default is the conjunctive identity, true.
-    all a;
+    DAll a;
     ok = ok && (a.value == true);
 
     // explicit ctor stores the flag.
-    all t(true);
-    all f(false);
+    DAll t(true);
+    DAll f(false);
     ok = ok && (t.value == true);
     ok = ok && (f.value == false);
 
@@ -142,12 +142,12 @@ bool tests_all_newtype()
     ok = ok && (f.value == true);
 
     // explicit ctor from bool.
-    ok = ok && (std::is_constructible<all, bool>::value);
-    ok = ok && (!std::is_convertible<bool, all>::value);
+    ok = ok && (std::is_constructible<DAll, bool>::value);
+    ok = ok && (!std::is_convertible<bool, DAll>::value);
 
     // constexpr.
-    static_assert(all().value       == true,  "all default is constexpr true");
-    static_assert(all(false).value  == false, "all explicit ctor is constexpr");
+    static_assert(DAll().value       == true,  "all default is constexpr true");
+    static_assert(DAll(false).value  == false, "all explicit ctor is constexpr");
 
     return ok;
 }
@@ -168,12 +168,12 @@ bool tests_any_newtype()
     bool ok = true;
 
     // default is the disjunctive identity, false.
-    any a;
+    DAny a;
     ok = ok && (a.value == false);
 
     // explicit ctor stores the flag.
-    any t(true);
-    any f(false);
+    DAny t(true);
+    DAny f(false);
     ok = ok && (t.value == true);
     ok = ok && (f.value == false);
 
@@ -182,12 +182,12 @@ bool tests_any_newtype()
     ok = ok && (t.value == false);
 
     // explicit ctor from bool.
-    ok = ok && (std::is_constructible<any, bool>::value);
-    ok = ok && (!std::is_convertible<bool, any>::value);
+    ok = ok && (std::is_constructible<DAny, bool>::value);
+    ok = ok && (!std::is_convertible<bool, DAny>::value);
 
     // constexpr.
-    static_assert(any().value      == false, "any default is constexpr false");
-    static_assert(any(true).value  == true,  "any explicit ctor is constexpr");
+    static_assert(DAny().value      == false, "any default is constexpr false");
+    static_assert(DAny(true).value  == true,  "any explicit ctor is constexpr");
 
     return ok;
 }
@@ -209,7 +209,7 @@ bool tests_min_newtype()
     bool ok = true;
 
     // explicit ctor stores the value.
-    min<int> a(5);
+    DMin<int> a(5);
     ok = ok && (a.value == 5);
 
     // public, mutable value.
@@ -217,18 +217,18 @@ bool tests_min_newtype()
     ok = ok && (a.value == -1);
 
     // floating element type.
-    min<double> b(2.5);
+    DMin<double> b(2.5);
     ok = ok && close_enough(b.value, 2.5);
 
     // NO default ctor -- min<T> is value-only.
-    ok = ok && (!std::is_default_constructible<min<int> >::value);
+    ok = ok && (!std::is_default_constructible<DMin<int> >::value);
 
     // explicit value ctor.
-    ok = ok && (std::is_constructible<min<int>, int>::value);
-    ok = ok && (!std::is_convertible<int, min<int> >::value);
+    ok = ok && (std::is_constructible<DMin<int>, int>::value);
+    ok = ok && (!std::is_convertible<int, DMin<int> >::value);
 
     // constexpr.
-    static_assert(min<int>(5).value == 5, "min explicit ctor is constexpr");
+    static_assert(DMin<int>(5).value == 5, "min explicit ctor is constexpr");
 
     return ok;
 }
@@ -250,7 +250,7 @@ bool tests_max_newtype()
     bool ok = true;
 
     // explicit ctor stores the value.
-    max<int> a(9);
+    DMax<int> a(9);
     ok = ok && (a.value == 9);
 
     // public, mutable value.
@@ -258,18 +258,18 @@ bool tests_max_newtype()
     ok = ok && (a.value == 42);
 
     // floating element type.
-    max<double> b(3.5);
+    DMax<double> b(3.5);
     ok = ok && close_enough(b.value, 3.5);
 
     // NO default ctor.
-    ok = ok && (!std::is_default_constructible<max<int> >::value);
+    ok = ok && (!std::is_default_constructible<DMax<int> >::value);
 
     // explicit value ctor.
-    ok = ok && (std::is_constructible<max<int>, int>::value);
-    ok = ok && (!std::is_convertible<int, max<int> >::value);
+    ok = ok && (std::is_constructible<DMax<int>, int>::value);
+    ok = ok && (!std::is_convertible<int, DMax<int> >::value);
 
     // constexpr.
-    static_assert(max<int>(9).value == 9, "max explicit ctor is constexpr");
+    static_assert(DMax<int>(9).value == 9, "max explicit ctor is constexpr");
 
     return ok;
 }
@@ -288,20 +288,20 @@ bool tests_newtype_default_constructibility()
     bool ok = true;
 
     // identity-seeding default ctors.
-    ok = ok && (std::is_default_constructible<sum<int> >::value);
-    ok = ok && (std::is_default_constructible<product<int> >::value);
-    ok = ok && (std::is_default_constructible<all>::value);
-    ok = ok && (std::is_default_constructible<any>::value);
+    ok = ok && (std::is_default_constructible<DSum<int> >::value);
+    ok = ok && (std::is_default_constructible<DProduct<int> >::value);
+    ok = ok && (std::is_default_constructible<DAll>::value);
+    ok = ok && (std::is_default_constructible<DAny>::value);
 
     // value-only newtypes: no default ctor.
-    ok = ok && (!std::is_default_constructible<min<int> >::value);
-    ok = ok && (!std::is_default_constructible<max<int> >::value);
+    ok = ok && (!std::is_default_constructible<DMin<int> >::value);
+    ok = ok && (!std::is_default_constructible<DMax<int> >::value);
 
     // their value ctors are explicit.
-    ok = ok && (std::is_constructible<min<int>, int>::value);
-    ok = ok && (!std::is_convertible<int, min<int> >::value);
-    ok = ok && (std::is_constructible<max<int>, int>::value);
-    ok = ok && (!std::is_convertible<int, max<int> >::value);
+    ok = ok && (std::is_constructible<DMin<int>, int>::value);
+    ok = ok && (!std::is_convertible<int, DMin<int> >::value);
+    ok = ok && (std::is_constructible<DMax<int>, int>::value);
+    ok = ok && (!std::is_convertible<int, DMax<int> >::value);
 
     return ok;
 }
@@ -318,16 +318,16 @@ tests_newtype_constexpr_construction
 bool tests_newtype_constexpr_construction()
 {
     // every newtype is usable in a constant expression.
-    static_assert(sum<int>(3).value      == 3,     "sum ce");
-    static_assert(sum<int>().value       == 0,     "sum default ce");
-    static_assert(product<int>(4).value  == 4,     "product ce");
-    static_assert(product<int>().value   == 1,     "product default ce");
-    static_assert(all(false).value       == false, "all ce");
-    static_assert(all().value            == true,  "all default ce");
-    static_assert(any(true).value        == true,  "any ce");
-    static_assert(any().value            == false, "any default ce");
-    static_assert(min<int>(5).value      == 5,     "min ce");
-    static_assert(max<int>(9).value      == 9,     "max ce");
+    static_assert(DSum<int>(3).value      == 3,     "sum ce");
+    static_assert(DSum<int>().value       == 0,     "sum default ce");
+    static_assert(DProduct<int>(4).value  == 4,     "product ce");
+    static_assert(DProduct<int>().value   == 1,     "product default ce");
+    static_assert(DAll(false).value       == false, "all ce");
+    static_assert(DAll().value            == true,  "all default ce");
+    static_assert(DAny(true).value        == true,  "any ce");
+    static_assert(DAny().value            == false, "any default ce");
+    static_assert(DMin<int>(5).value      == 5,     "min ce");
+    static_assert(DMax<int>(9).value      == 9,     "max ce");
 
     return true;
 }

@@ -158,7 +158,7 @@ DTestMaybe<_Value> t_nothing()
 // template, so mu<nat_f> is a well-formed fixed point whose fold/unfold the
 // cata / ana integration test drives through the poly functor instances.
 template<typename _X>
-using nat_f = poly_sum<poly_unit<_X>, poly_var<_X> >;
+using nat_f = DPolySum<DPolyUnit<_X>, DPolyVar<_X> >;
 #endif  // !DTEST_SPEC_MODE  (fixtures)
 
 

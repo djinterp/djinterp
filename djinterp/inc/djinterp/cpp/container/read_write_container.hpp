@@ -73,22 +73,22 @@
 NS_DJINTERP
 
 
-// read_write_container
+// DReadWriteContainer
 //   class: holds a Container privately and forwards its full surface under
 // the read_write capability.
 template<typename Container>
-class read_write_container
+class DReadWriteContainer
 {
 public:
     using container_type = Container;
-    using capability     = read_write;
+    using capability     = DReadWrite;
     using value_type     = typename Container::value_type;
 
     // --- construction ---
 
     // default: present (and instantiable) only when Container is default-
     // constructible, by the usual lazy-instantiation rule.
-    D_CONSTEXPR read_write_container()
+    D_CONSTEXPR DReadWriteContainer()
         : m_container()
     {}
 
@@ -99,8 +99,8 @@ public:
     template<typename     First,
              typename...  Rest,
              typename = typename std::enable_if<
-                 !std::is_same<clean_t<First>, read_write_container>::value>::type>
-    explicit D_CONSTEXPR read_write_container(First&& _first, Rest&&... _rest)
+                 !std::is_same<clean_t<First>, DReadWriteContainer>::value>::type>
+    explicit D_CONSTEXPR DReadWriteContainer(First&& _first, Rest&&... _rest)
         : m_container(static_cast<First&&>(_first), static_cast<Rest&&>(_rest)...)
     {}
 
@@ -244,17 +244,21 @@ private:
     Container m_container;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Container>
+using read_write_container = DReadWriteContainer<Container>;
+
 
 // make_read_write
 //   function: wraps a container value under the read_write capability,
 // deducing the container type from the argument.
 template<typename Container>
 D_CONSTEXPR
-read_write_container<clean_t<Container>> make_read_write(
+DReadWriteContainer<clean_t<Container>> make_read_write(
     Container&& _c
 )
 {
-    return read_write_container<clean_t<Container>>(
+    return DReadWriteContainer<clean_t<Container>>(
         static_cast<Container&&>(_c));
 }
 

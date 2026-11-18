@@ -77,8 +77,8 @@ TABLE OF CONTENTS
 13.   combined classification
       -----------------------
 
-14.   C++20 concept wrappers (feature-gated)
-      --------------------------------------
+14.   C++20 concept wrappers (in nary_tree_concepts.hpp, W5)
+      ------------------------------------------------------
 */
 
 #ifndef DJINTERP_CONTAINER_TREE_NARY_NARY_TREE_TRAITS_HPP
@@ -398,7 +398,7 @@ struct has_edge_count_method<Type,
 // it at the node level (node.first_child).
 
 // root() and has_root() on the container are node_container_traits.hpp's
-// has_root_method and has_root_member_method (decision L1).
+// has_root_method and has_has_root_method (decisions L1 and W5).
 
 // has_parent_field
 //   trait: true if Type has a `parent` data member: node_common.hpp's
@@ -843,11 +843,11 @@ template<typename Type>
 using root_handle_type_t =
     typename root_handle_type<Type>::type;
 
-// uses_index_handles
+// DUsesIndexHandles
 //   trait: true if root() returns a non-bool integral type (index into an
 // arena or flat array).
 template<typename Type>
-struct uses_index_handles
+struct DUsesIndexHandles
 {
     using handle = root_handle_type_t<Type>;
 
@@ -857,16 +857,20 @@ struct uses_index_handles
           !std::is_void<handle>::value );
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using uses_index_handles = DUsesIndexHandles<Type>;
+
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
     D_CONSTEXPR bool uses_index_handles_v =
-        uses_index_handles<Type>::value;
+        DUsesIndexHandles<Type>::value;
 #endif
 
-// uses_pointer_handles
+// DUsesPointerHandles
 //   trait: true if root() returns a raw pointer.
 template<typename Type>
-struct uses_pointer_handles
+struct DUsesPointerHandles
 {
     using handle = root_handle_type_t<Type>;
 
@@ -874,10 +878,14 @@ struct uses_pointer_handles
         ( std::is_pointer<handle>::value );
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using uses_pointer_handles = DUsesPointerHandles<Type>;
+
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
     D_CONSTEXPR bool uses_pointer_handles_v =
-        uses_pointer_handles<Type>::value;
+        DUsesPointerHandles<Type>::value;
 #endif
 
 // uses_smart_pointer_handles
@@ -895,7 +903,7 @@ NS_INTERNAL
 NS_END  // internal
 
 template<typename Type>
-struct uses_smart_pointer_handles
+struct DUsesSmartPointerHandles
 {
     using handle = root_handle_type_t<Type>;
 
@@ -903,10 +911,14 @@ struct uses_smart_pointer_handles
         internal::is_any_smart_ptr<handle>::value;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using uses_smart_pointer_handles = DUsesSmartPointerHandles<Type>;
+
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
     D_CONSTEXPR bool uses_smart_pointer_handles_v =
-        uses_smart_pointer_handles<Type>::value;
+        DUsesSmartPointerHandles<Type>::value;
 #endif
 
 
@@ -993,7 +1005,7 @@ struct is_arena_backed
     static D_CONSTEXPR bool value =
         ( has_payload_type<Type>::value    &&
           has_link_policy_type<Type>::value &&
-          uses_index_handles<Type>::value );
+          DUsesIndexHandles<Type>::value );
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
@@ -1130,10 +1142,10 @@ using nary_tree_data_type_t =
 // VIII. Child Access Strategy Enum
 // ===========================================================================
 
-// nary_child_access
+// DNaryChildAccess
 //   enum: compile-time classification of how a tree or node exposes its
 // children.
-enum class nary_child_access
+enum class DNaryChildAccess
 {
     // left-child/right-sibling encoding
     lcrs,
@@ -1155,6 +1167,9 @@ enum class nary_child_access
     // no child access detected
     none
 };
+
+// old name, until 0.9.0-rc.1
+using nary_child_access = DNaryChildAccess;
 
 NS_INTERNAL
 
@@ -1184,12 +1199,12 @@ NS_INTERNAL
             (has_cont ? 1 : 0) +
             (has_edge ? 1 : 0);
 
-        static D_CONSTEXPR nary_child_access value =
-            (count > 1) ? nary_child_access::hybrid
-            : has_lcrs  ? nary_child_access::lcrs
-            : has_cont  ? nary_child_access::container
-            : has_edge  ? nary_child_access::edges
-                        : nary_child_access::none;
+        static D_CONSTEXPR DNaryChildAccess value =
+            (count > 1) ? DNaryChildAccess::hybrid
+            : has_lcrs  ? DNaryChildAccess::lcrs
+            : has_cont  ? DNaryChildAccess::container
+            : has_edge  ? DNaryChildAccess::edges
+                        : DNaryChildAccess::none;
     };
 
 NS_END  // internal
@@ -1197,13 +1212,13 @@ NS_END  // internal
 template<typename Type>
 struct child_access_strategy
 {
-    static D_CONSTEXPR nary_child_access value =
+    static D_CONSTEXPR DNaryChildAccess value =
         internal::child_access_strategy_impl<Type>::value;
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    D_CONSTEXPR nary_child_access child_access_strategy_v =
+    D_CONSTEXPR DNaryChildAccess child_access_strategy_v =
         child_access_strategy<Type>::value;
 #endif
 
@@ -1212,7 +1227,7 @@ struct child_access_strategy
 // IX.  Node Reference Strategy Enum
 // ===========================================================================
 
-enum class nary_handle_form
+enum class DNaryHandleForm
 {
     // integer index into a flat arena
     index,
@@ -1227,22 +1242,25 @@ enum class nary_handle_form
     unknown
 };
 
+// old name, until 0.9.0-rc.1
+using nary_handle_form = DNaryHandleForm;
+
 template<typename Type>
 struct handle_form_strategy
 {
-    static D_CONSTEXPR nary_handle_form value =
-        uses_index_handles<Type>::value
-            ? nary_handle_form::index
-        : uses_pointer_handles<Type>::value
-            ? nary_handle_form::raw_pointer
-        : uses_smart_pointer_handles<Type>::value
-            ? nary_handle_form::smart_pointer
-            : nary_handle_form::unknown;
+    static D_CONSTEXPR DNaryHandleForm value =
+        DUsesIndexHandles<Type>::value
+            ? DNaryHandleForm::index
+        : DUsesPointerHandles<Type>::value
+            ? DNaryHandleForm::raw_pointer
+        : DUsesSmartPointerHandles<Type>::value
+            ? DNaryHandleForm::smart_pointer
+            : DNaryHandleForm::unknown;
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    D_CONSTEXPR nary_handle_form handle_form_strategy_v =
+    D_CONSTEXPR DNaryHandleForm handle_form_strategy_v =
         handle_form_strategy<Type>::value;
 #endif
 
@@ -1251,7 +1269,7 @@ struct handle_form_strategy
 // X.   Memory Strategy Enum
 // ===========================================================================
 
-enum class nary_memory_model
+enum class DNaryMemoryModel
 {
     // flat arena with index-based referencing
     arena,
@@ -1263,22 +1281,25 @@ enum class nary_memory_model
     undetected
 };
 
+// old name, until 0.9.0-rc.1
+using nary_memory_model = DNaryMemoryModel;
+
 template<typename Type>
 struct memory_model_strategy
 {
-    static D_CONSTEXPR nary_memory_model value =
+    static D_CONSTEXPR DNaryMemoryModel value =
         is_arena_backed<Type>::value
-            ? nary_memory_model::arena
+            ? DNaryMemoryModel::arena
         : is_pool_backed<Type>::value
-            ? nary_memory_model::pool
+            ? DNaryMemoryModel::pool
         : has_allocator_type<Type>::value
-            ? nary_memory_model::standard
-            : nary_memory_model::undetected;
+            ? DNaryMemoryModel::standard
+            : DNaryMemoryModel::undetected;
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    D_CONSTEXPR nary_memory_model memory_model_strategy_v =
+    D_CONSTEXPR DNaryMemoryModel memory_model_strategy_v =
         memory_model_strategy<Type>::value;
 #endif
 
@@ -1353,15 +1374,15 @@ struct has_o1_sibling_insert
 template<typename Type>
 struct is_nary_tree
 {
-    static D_CONSTEXPR nary_child_access strategy =
+    static D_CONSTEXPR DNaryChildAccess strategy =
         child_access_strategy<Type>::value;
 
     static D_CONSTEXPR bool value =
         ( has_root_method<Type>::value &&
-          ( strategy == nary_child_access::lcrs      ||
-            strategy == nary_child_access::container  ||
-            strategy == nary_child_access::edges      ||
-            strategy == nary_child_access::hybrid ) );
+          ( strategy == DNaryChildAccess::lcrs      ||
+            strategy == DNaryChildAccess::container  ||
+            strategy == DNaryChildAccess::edges      ||
+            strategy == DNaryChildAccess::hybrid ) );
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
@@ -1401,12 +1422,12 @@ struct is_nary_tree_node
 // XIII. Combined Classification
 // ===========================================================================
 
-// nary_tree_class
+// DNaryTreeClass
 //   struct: comprehensive n-ary tree classification.
 // Works on any tree implementation: arena_tree, poly_tree, DTreeContainer,
 // pointer-based custom trees, etc.
 template<typename Type>
-struct nary_tree_class
+struct DNaryTreeClass
 {
     // -----------------------------------------------------------------
     // Identity
@@ -1427,7 +1448,7 @@ struct nary_tree_class
     // -----------------------------------------------------------------
     // Child Access Model
     // -----------------------------------------------------------------
-    static D_CONSTEXPR nary_child_access child_model =
+    static D_CONSTEXPR DNaryChildAccess child_model =
         child_access_strategy<Type>::value;
 
     static D_CONSTEXPR bool has_lcrs =
@@ -1464,13 +1485,13 @@ struct nary_tree_class
     // -----------------------------------------------------------------
     // Handle Form
     // -----------------------------------------------------------------
-    static D_CONSTEXPR nary_handle_form handle_form =
+    static D_CONSTEXPR DNaryHandleForm handle_form =
         handle_form_strategy<Type>::value;
 
     // -----------------------------------------------------------------
     // Memory Model
     // -----------------------------------------------------------------
-    static D_CONSTEXPR nary_memory_model memory =
+    static D_CONSTEXPR DNaryMemoryModel memory =
         memory_model_strategy<Type>::value;
 
     static D_CONSTEXPR bool arena_backed =
@@ -1533,67 +1554,22 @@ struct nary_tree_class
     static D_CONSTEXPR bool policy_driven = has_link_policy_type<Type>::value;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using nary_tree_class = DNaryTreeClass<Type>;
+
 
 // ===========================================================================
-// XIV. C++20 Concept Wrappers (feature-gated)
+// XIV. C++20 Concept Wrappers
 // ===========================================================================
-
-#if defined(__cpp_concepts) && (__cpp_concepts >= 201907L)
-
-    // nary_tree_type
-    //   concept: constrains types that satisfy the n-ary tree protocol.
-    template<typename Type>
-    concept nary_tree_type =
-        is_nary_tree<Type>::value;
-
-    // nary_tree_node_type
-    //   concept: constrains types that are n-ary tree nodes.
-    template<typename Type>
-    concept nary_node_type =
-        is_nary_tree_node<Type>::value;
-
-    // rooted_nary_tree
-    //   concept: constrains n-ary trees with root ownership.
-    template<typename Type>
-    concept rooted_nary_tree =
-        ( nary_tree_type<Type> &&
-          has_root_member_method<Type>::value );
-
-    // mutable_nary_tree
-    //   concept: constrains n-ary trees with mutation support.
-    template<typename Type>
-    concept mutable_nary_tree =
-        ( nary_tree_type<Type> &&
-          has_append_child_method<Type>::value &&
-          has_detach_method<Type>::value );
-
-    // navigable_nary_tree
-    //   concept: constrains fully navigable n-ary trees (parent +
-    // bidirectional siblings + first/last child).
-    template<typename Type>
-    concept navigable_nary_tree =
-        ( nary_tree_type<Type> &&
-          nary_tree_class<Type>::fully_navigable );
-
-    // (arena_nary_tree, an arena-backed n-ary tree, is gone: arena_tree.hpp's
-    // arena_nary_tree names the arena tree type, and nary_tree_concepts.hpp's
-    // arena_backed_nary_tree is the same constraint (decision L1).)
-
-    // pool_nary_tree
-    //   concept: constrains pool-backed n-ary trees.
-    template<typename Type>
-    concept pool_nary_tree =
-        ( nary_tree_type<Type> &&
-          is_pool_backed<Type>::value );
-
-    // versioned_nary_tree
-    //   concept: constrains n-ary trees with change tracking.
-    template<typename Type>
-    concept versioned_nary_tree =
-        ( nary_tree_type<Type> &&
-          nary_tree_class<Type>::has_change_tracking );
-
-#endif  // __cpp_concepts
+//   The seven wrappers that stood here were exact twins of
+// nary_tree_concepts.hpp's nary_tree_container_type, nary_tree_node_like,
+// rooted_nary_tree_type, mutable_nary_tree_type, fully_navigable_nary_tree,
+// pool_backed_nary_tree and change_tracked_nary_tree (decision W5). Their old
+// names are aliases there, until 0.9.0-rc.1.
+//   (arena_nary_tree, an arena-backed n-ary tree, went earlier: arena_tree.hpp's
+// arena_nary_tree names the arena tree type, and nary_tree_concepts.hpp's
+// arena_backed_nary_tree is the same constraint (decision L1).)
 
 
 NS_END  // djinterp

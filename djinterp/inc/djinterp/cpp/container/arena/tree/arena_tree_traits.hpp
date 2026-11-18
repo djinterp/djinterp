@@ -327,10 +327,10 @@ struct is_nary_arena
 // V.   Combined Classification
 // ===========================================================================
 
-// arena_tree_class
+// DArenaTreeClass
 //   struct: comprehensive classification of an arena tree.
 template<typename Type>
-struct arena_tree_class
+struct DArenaTreeClass
 {
     using policy = internal::safe_link_policy_t<Type>;
 
@@ -388,6 +388,10 @@ struct arena_tree_class
     static D_CONSTEXPR unsigned link_flags =
         policy::flags;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using arena_tree_class = DArenaTreeClass<Type>;
 
 
 NS_END  // djinterp

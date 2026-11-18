@@ -35,14 +35,14 @@ bool tests_iteration_mode_name()
 {
     bool _ic_ok = true;
 
-    D_IC_CHECK( (ic_cstr_eq(iteration_mode_name(iteration_mode::none),       "none")) );
-    D_IC_CHECK( (ic_cstr_eq(iteration_mode_name(iteration_mode::const_only), "const_only")) );
-    D_IC_CHECK( (ic_cstr_eq(iteration_mode_name(iteration_mode::non_const),  "non_const")) );
+    D_IC_CHECK( (ic_cstr_eq(iteration_mode_name(DIterationMode::none),       "none")) );
+    D_IC_CHECK( (ic_cstr_eq(iteration_mode_name(DIterationMode::const_only), "const_only")) );
+    D_IC_CHECK( (ic_cstr_eq(iteration_mode_name(DIterationMode::non_const),  "non_const")) );
 
     // the spellings are distinct
-    D_IC_CHECK( (!ic_cstr_eq(iteration_mode_name(iteration_mode::const_only),
-                             iteration_mode_name(iteration_mode::non_const))) );
-    D_IC_CHECK( (!ic_cstr_eq(iteration_mode_name(iteration_mode::none), "none_")) );
+    D_IC_CHECK( (!ic_cstr_eq(iteration_mode_name(DIterationMode::const_only),
+                             iteration_mode_name(DIterationMode::non_const))) );
+    D_IC_CHECK( (!ic_cstr_eq(iteration_mode_name(DIterationMode::none), "none_")) );
 
     return _ic_ok;
 }
@@ -56,19 +56,19 @@ bool tests_mode_value_predicates()
     bool _ic_ok = true;
 
     // none
-    D_IC_CHECK( (is_no_iteration_mode(iteration_mode::none)) );
-    D_IC_CHECK( (!is_const_only_mode(iteration_mode::none)) );
-    D_IC_CHECK( (!is_non_const_mode(iteration_mode::none)) );
+    D_IC_CHECK( (is_no_iteration_mode(DIterationMode::none)) );
+    D_IC_CHECK( (!is_const_only_mode(DIterationMode::none)) );
+    D_IC_CHECK( (!is_non_const_mode(DIterationMode::none)) );
 
     // const_only
-    D_IC_CHECK( (!is_no_iteration_mode(iteration_mode::const_only)) );
-    D_IC_CHECK( (is_const_only_mode(iteration_mode::const_only)) );
-    D_IC_CHECK( (!is_non_const_mode(iteration_mode::const_only)) );
+    D_IC_CHECK( (!is_no_iteration_mode(DIterationMode::const_only)) );
+    D_IC_CHECK( (is_const_only_mode(DIterationMode::const_only)) );
+    D_IC_CHECK( (!is_non_const_mode(DIterationMode::const_only)) );
 
     // non_const
-    D_IC_CHECK( (!is_no_iteration_mode(iteration_mode::non_const)) );
-    D_IC_CHECK( (!is_const_only_mode(iteration_mode::non_const)) );
-    D_IC_CHECK( (is_non_const_mode(iteration_mode::non_const)) );
+    D_IC_CHECK( (!is_no_iteration_mode(DIterationMode::non_const)) );
+    D_IC_CHECK( (!is_const_only_mode(DIterationMode::non_const)) );
+    D_IC_CHECK( (is_non_const_mode(DIterationMode::non_const)) );
 
     return _ic_ok;
 }
@@ -81,20 +81,20 @@ bool tests_mode_grants()
     bool _ic_ok = true;
 
     // observation - granted by BOTH iterable modes, denied only by none
-    D_IC_CHECK( (!mode_grants_observation(iteration_mode::none)) );
-    D_IC_CHECK( (mode_grants_observation(iteration_mode::const_only)) );
-    D_IC_CHECK( (mode_grants_observation(iteration_mode::non_const)) );
+    D_IC_CHECK( (!mode_grants_observation(DIterationMode::none)) );
+    D_IC_CHECK( (mode_grants_observation(DIterationMode::const_only)) );
+    D_IC_CHECK( (mode_grants_observation(DIterationMode::non_const)) );
 
     // mutation - granted by non_const alone
-    D_IC_CHECK( (!mode_grants_mutation(iteration_mode::none)) );
-    D_IC_CHECK( (!mode_grants_mutation(iteration_mode::const_only)) );
-    D_IC_CHECK( (mode_grants_mutation(iteration_mode::non_const)) );
+    D_IC_CHECK( (!mode_grants_mutation(DIterationMode::none)) );
+    D_IC_CHECK( (!mode_grants_mutation(DIterationMode::const_only)) );
+    D_IC_CHECK( (mode_grants_mutation(DIterationMode::non_const)) );
 
     // mutation implies observation, never the converse (the capability order)
-    D_IC_CHECK( (!mode_grants_mutation(iteration_mode::const_only)
-                 || mode_grants_observation(iteration_mode::const_only)) );
-    D_IC_CHECK( (mode_grants_observation(iteration_mode::const_only)
-                 && !mode_grants_mutation(iteration_mode::const_only)) );
+    D_IC_CHECK( (!mode_grants_mutation(DIterationMode::const_only)
+                 || mode_grants_observation(DIterationMode::const_only)) );
+    D_IC_CHECK( (mode_grants_observation(DIterationMode::const_only)
+                 && !mode_grants_mutation(DIterationMode::const_only)) );
 
     return _ic_ok;
 }
@@ -106,15 +106,15 @@ bool tests_iteration_mode_rank()
 {
     bool _ic_ok = true;
 
-    D_IC_CHECK( (iteration_mode_rank(iteration_mode::none)       == 0) );
-    D_IC_CHECK( (iteration_mode_rank(iteration_mode::const_only) == 1) );
-    D_IC_CHECK( (iteration_mode_rank(iteration_mode::non_const)  == 2) );
+    D_IC_CHECK( (iteration_mode_rank(DIterationMode::none)       == 0) );
+    D_IC_CHECK( (iteration_mode_rank(DIterationMode::const_only) == 1) );
+    D_IC_CHECK( (iteration_mode_rank(DIterationMode::non_const)  == 2) );
 
     // strictly increasing along the capability order
-    D_IC_CHECK( (iteration_mode_rank(iteration_mode::none)
-                     < iteration_mode_rank(iteration_mode::const_only)) );
-    D_IC_CHECK( (iteration_mode_rank(iteration_mode::const_only)
-                     < iteration_mode_rank(iteration_mode::non_const)) );
+    D_IC_CHECK( (iteration_mode_rank(DIterationMode::none)
+                     < iteration_mode_rank(DIterationMode::const_only)) );
+    D_IC_CHECK( (iteration_mode_rank(DIterationMode::const_only)
+                     < iteration_mode_rank(DIterationMode::non_const)) );
 
     return _ic_ok;
 }
@@ -127,28 +127,28 @@ bool tests_iteration_mode_subsumes()
     bool _ic_ok = true;
 
     // reflexive on every value
-    D_IC_CHECK( (iteration_mode_subsumes(iteration_mode::none,       iteration_mode::none)) );
-    D_IC_CHECK( (iteration_mode_subsumes(iteration_mode::const_only, iteration_mode::const_only)) );
-    D_IC_CHECK( (iteration_mode_subsumes(iteration_mode::non_const,  iteration_mode::non_const)) );
+    D_IC_CHECK( (iteration_mode_subsumes(DIterationMode::none,       DIterationMode::none)) );
+    D_IC_CHECK( (iteration_mode_subsumes(DIterationMode::const_only, DIterationMode::const_only)) );
+    D_IC_CHECK( (iteration_mode_subsumes(DIterationMode::non_const,  DIterationMode::non_const)) );
 
     // non_const subsumes everything
-    D_IC_CHECK( (iteration_mode_subsumes(iteration_mode::non_const, iteration_mode::const_only)) );
-    D_IC_CHECK( (iteration_mode_subsumes(iteration_mode::non_const, iteration_mode::none)) );
+    D_IC_CHECK( (iteration_mode_subsumes(DIterationMode::non_const, DIterationMode::const_only)) );
+    D_IC_CHECK( (iteration_mode_subsumes(DIterationMode::non_const, DIterationMode::none)) );
 
     // const_only subsumes none, but NOT non_const
-    D_IC_CHECK( (iteration_mode_subsumes(iteration_mode::const_only, iteration_mode::none)) );
-    D_IC_CHECK( (!iteration_mode_subsumes(iteration_mode::const_only, iteration_mode::non_const)) );
+    D_IC_CHECK( (iteration_mode_subsumes(DIterationMode::const_only, DIterationMode::none)) );
+    D_IC_CHECK( (!iteration_mode_subsumes(DIterationMode::const_only, DIterationMode::non_const)) );
 
     // none subsumes only itself
-    D_IC_CHECK( (!iteration_mode_subsumes(iteration_mode::none, iteration_mode::const_only)) );
-    D_IC_CHECK( (!iteration_mode_subsumes(iteration_mode::none, iteration_mode::non_const)) );
+    D_IC_CHECK( (!iteration_mode_subsumes(DIterationMode::none, DIterationMode::const_only)) );
+    D_IC_CHECK( (!iteration_mode_subsumes(DIterationMode::none, DIterationMode::non_const)) );
 
     // antisymmetry on a strict pair, and transitivity through the middle rung
-    D_IC_CHECK( (iteration_mode_subsumes(iteration_mode::non_const, iteration_mode::const_only)
-                 && !iteration_mode_subsumes(iteration_mode::const_only, iteration_mode::non_const)) );
-    D_IC_CHECK( (iteration_mode_subsumes(iteration_mode::non_const, iteration_mode::const_only)
-                 && iteration_mode_subsumes(iteration_mode::const_only, iteration_mode::none)
-                 && iteration_mode_subsumes(iteration_mode::non_const, iteration_mode::none)) );
+    D_IC_CHECK( (iteration_mode_subsumes(DIterationMode::non_const, DIterationMode::const_only)
+                 && !iteration_mode_subsumes(DIterationMode::const_only, DIterationMode::non_const)) );
+    D_IC_CHECK( (iteration_mode_subsumes(DIterationMode::non_const, DIterationMode::const_only)
+                 && iteration_mode_subsumes(DIterationMode::const_only, DIterationMode::none)
+                 && iteration_mode_subsumes(DIterationMode::non_const, DIterationMode::none)) );
 
     return _ic_ok;
 }

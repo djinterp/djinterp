@@ -64,9 +64,9 @@ bool tests_event_connect_slot_ids()
 {
     event<void(int), 4> e;
 
-    slot_id a = e.connect(&bump);
-    slot_id b = e.connect(&bump);
-    slot_id c = e.connect(&bump);
+    DSlotId a = e.connect(&bump);
+    DSlotId b = e.connect(&bump);
+    DSlotId c = e.connect(&bump);
 
     bool ok = true;
 
@@ -92,7 +92,7 @@ bool tests_event_connect_full_no_slot()
 
     bool ok = (e.full());
 
-    slot_id overflow = e.connect(&bump);
+    DSlotId overflow = e.connect(&bump);
     ok = ok && (overflow == no_slot);
     ok = ok && (e.count() == 2);
 
@@ -111,7 +111,7 @@ bool tests_event_disconnect_and_reuse()
     event<void(int), 3> e;
 
     e.connect(&bump);
-    slot_id mid = e.connect(&bump);
+    DSlotId mid = e.connect(&bump);
     e.connect(&bump);
 
     e.disconnect(mid);
@@ -121,7 +121,7 @@ bool tests_event_disconnect_and_reuse()
     ok = ok && (e.count() == 2);
     ok = ok && (!e.slot_connected(mid));
 
-    slot_id reused = e.connect(&bump);
+    DSlotId reused = e.connect(&bump);
     ok = ok && (reused == mid);          // first null slot reused
     ok = ok && (e.count() == 3);
 
@@ -156,7 +156,7 @@ tests_event_slot_connected
 bool tests_event_slot_connected()
 {
     event<void(int), 2> e;
-    slot_id a = e.connect(&bump);
+    DSlotId a = e.connect(&bump);
 
     bool ok = true;
 
@@ -217,7 +217,7 @@ tests_event_at
 bool tests_event_at()
 {
     event<void(int), 2> e;
-    slot_id a = e.connect(&bump);
+    DSlotId a = e.connect(&bump);
 
     bool ok = true;
 
@@ -238,9 +238,9 @@ bool tests_event_compact()
 {
     event<void(int), 5> e;
     e.connect(&bump);            // 0
-    slot_id b = e.connect(&bump); // 1
+    DSlotId b = e.connect(&bump); // 1
     e.connect(&bump);            // 2
-    slot_id d = e.connect(&bump); // 3
+    DSlotId d = e.connect(&bump); // 3
 
     e.disconnect(b);
     e.disconnect(d);             // holes at 1 and 3

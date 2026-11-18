@@ -29,7 +29,7 @@ namespace
     // _is_early says; either way the scope must rewind.
     bool
     memory_tests_scoped_work(
-        arena& _arena,
+        DArena& _arena,
         bool   _is_early
     )
     {
@@ -65,7 +65,7 @@ bool
 tests_memory_arena_buffer()
 {
     alignas(16) static unsigned char storage[1024];
-    arena                            a(storage,
+    DArena                            a(storage,
                                        static_cast<DMemSize>(sizeof(storage)));
     unsigned char*                   bytes = nullptr;
     DMemBlock                        block = {};
@@ -111,9 +111,9 @@ tests_memory_arena_growth
 bool
 tests_memory_arena_growth()
 {
-    arena          a(DMemorySource::default_source(),
+    DArena          a(DMemorySource::default_source(),
                      256);
-    arena          capped(DMemorySource::default_source(),
+    DArena          capped(DMemorySource::default_source(),
                           256,
                           1024);
     unsigned char* blocks[32] = {};
@@ -167,7 +167,7 @@ tests_memory_arena_objects
 bool
 tests_memory_arena_objects()
 {
-    arena              a;
+    DArena              a;
     DMemoryTestsThing* thing  = nullptr;
     int*               ints   = nullptr;
     DMemoryTestsThing* made   = nullptr;
@@ -237,7 +237,7 @@ bool
 tests_memory_arena_marks()
 {
 #if (D_INTERNAL_ARENA_MARKS == 1)
-    arena          a(DMemorySource::default_source(),
+    DArena          a(DMemorySource::default_source(),
                      256);
     ::dj_arena_mark mark;
     void*          first  = nullptr;
@@ -297,7 +297,7 @@ bool
 tests_memory_arena_scope()
 {
 #if (D_INTERNAL_ARENA_MARKS == 1)
-    arena    a;
+    DArena    a;
     DMemSize used = 0;
 
     D_TEST_REQUIRE(a.allocate(16) != nullptr);
@@ -336,14 +336,14 @@ tests_memory_arena_lifetime
 bool
 tests_memory_arena_lifetime()
 {
-    arena a;
+    DArena a;
     char* text = nullptr;
 
     text = a.duplicate_string("moved");
     D_TEST_REQUIRE(text != nullptr);
 
     {
-        arena b(std::move(a));
+        DArena b(std::move(a));
 
         D_TEST_REQUIRE(b.region_count() == 1);
         D_TEST_REQUIRE(std::strcmp(text,

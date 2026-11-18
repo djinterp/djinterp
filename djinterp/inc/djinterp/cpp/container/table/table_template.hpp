@@ -115,22 +115,25 @@ NS_DJINTERP
 // I.   template_syntax
 // ===========================================================================
 
-// template_syntax
+// DTemplateSyntax
 //   struct: the markers the text surface spells a template with. Kept as data
 // rather than baked in, so a dialect that collides with the defaults (a table
 // of C++ ellipses, say) can move them.
-struct template_syntax
+struct DTemplateSyntax
 {
     std::string ellipsis;         // marks a MULTI-cell placeholder: "headers..."
     char        iteration_sigil;  // marks an ITERATED cell: "bar#"
 
     //   Read from cfg_table.h so a dialect that collides with the defaults
     // moves them in ONE place rather than in each module that spells them.
-    template_syntax()
+    DTemplateSyntax()
         : ellipsis(D_INTERNAL_TABLE_ELLIPSIS),
           iteration_sigil(D_INTERNAL_TABLE_ITERATION_SIGIL)
     {}
 };
+
+// old name, until 0.9.0-rc.1
+using template_syntax = DTemplateSyntax;
 
 
 // ===========================================================================
@@ -142,7 +145,7 @@ struct template_syntax
 // with the ellipsis. `headers...` is the run; `headers` is an ordinary cell.
 D_NODISCARD inline bool is_multi_placeholder(
     const std::string&     _text,
-    const template_syntax& _syntax = template_syntax()
+    const DTemplateSyntax& _syntax = DTemplateSyntax()
 )
 {
     const std::size_t _n = _syntax.ellipsis.size();
@@ -161,7 +164,7 @@ D_NODISCARD inline bool is_multi_placeholder(
 // ellipsis.
 D_NODISCARD inline std::string multi_placeholder_key(
     const std::string&     _text,
-    const template_syntax& _syntax = template_syntax()
+    const DTemplateSyntax& _syntax = DTemplateSyntax()
 )
 {
     if (!is_multi_placeholder(_text, _syntax))
@@ -177,7 +180,7 @@ D_NODISCARD inline std::string multi_placeholder_key(
 // sketch writes both `bar#` and `#gamma`, so neither position is privileged.
 D_NODISCARD inline bool is_iterated(
     const std::string&     _text,
-    const template_syntax& _syntax = template_syntax()
+    const DTemplateSyntax& _syntax = DTemplateSyntax()
 )
 {
     if (_text.size() < 2)
@@ -194,7 +197,7 @@ D_NODISCARD inline bool is_iterated(
 // sigil. `bar#` and `#bar` both name bar.
 D_NODISCARD inline std::string iteration_of(
     const std::string&     _text,
-    const template_syntax& _syntax = template_syntax()
+    const DTemplateSyntax& _syntax = DTemplateSyntax()
 )
 {
     if (!is_iterated(_text, _syntax))
@@ -216,19 +219,19 @@ D_NODISCARD inline std::string iteration_of(
 // III. multi_bindings
 // ===========================================================================
 
-// multi_bindings
+// DMultiBindings
 //   class: what a run placeholder resolves to -- a key bound to a RUN of
 // values (as opposed to interpolate.hpp's resolvers, which bind a key to ONE
 // value). The distinction is the whole reason this layer exists: `{name}`
 // fills a cell, `name...` fills a span.
-class multi_bindings
+class DMultiBindings
 {
 public:
     using run_type   = std::vector<std::string>;
     using entry_type = std::pair<std::string, run_type>;
     using store_type = std::vector<entry_type>;
 
-    multi_bindings()
+    DMultiBindings()
         : m_entries()
     {}
 
@@ -288,6 +291,9 @@ private:
     store_type m_entries;
 };
 
+// old name, until 0.9.0-rc.1
+using multi_bindings = DMultiBindings;
+
 
 // ===========================================================================
 // IV.  expand_multi_placeholders
@@ -302,14 +308,14 @@ NS_INTERNAL
     // row_span_ok) -- one rule, three call sites.
     inline
     bool run_fits(
-        table_strictness _s,
+        DTableStrictness _s,
         std::size_t      _have,
         std::size_t      _want
     )
     {
-        return ( (_s == table_strictness::exact)    ? (_have == _want)
-               : (_s == table_strictness::truncate) ? (_have >= _want)
-               : (_s == table_strictness::pad)      ? (_have <= _want)
+        return ( (_s == DTableStrictness::exact)    ? (_have == _want)
+               : (_s == DTableStrictness::truncate) ? (_have >= _want)
+               : (_s == DTableStrictness::pad)      ? (_have <= _want)
                :                                      true );
     }
 
@@ -326,9 +332,9 @@ NS_INTERNAL
     inline
     bool expand_header_stack(
         Stack&                 _stack,
-        const multi_bindings&  _bindings,
-        table_strictness       _fit,
-        const template_syntax& _syntax,
+        const DMultiBindings&  _bindings,
+        DTableStrictness       _fit,
+        const DTemplateSyntax& _syntax,
         std::string&           _key_out,
         std::true_type
     )
@@ -346,7 +352,7 @@ NS_INTERNAL
 
                 const bool _is_run = is_multi_placeholder(_label, _syntax);
 
-                const multi_bindings::run_type* _run =
+                const DMultiBindings::run_type* _run =
                     _is_run
                         ? _bindings.find(multi_placeholder_key(_label, _syntax))
                         : nullptr;
@@ -374,7 +380,7 @@ NS_INTERNAL
                         (_j < _run->size()) ? (*_run)[_j] : std::string();
 
                     _level.push_back(
-                        header_cell<std::string>(_value, 1));
+                        DHeaderCell<std::string>(_value, 1));
                 }
             }
 
@@ -393,9 +399,9 @@ NS_INTERNAL
     inline bool
     expand_header_stack(
         Stack&                /*_stack*/,
-        const multi_bindings&  /*_bindings*/,
-        table_strictness       /*_fit*/,
-        const template_syntax& /*_syntax*/,
+        const DMultiBindings&  /*_bindings*/,
+        DTableStrictness       /*_fit*/,
+        const DTemplateSyntax& /*_syntax*/,
         std::string&           /*_key_out*/,
         std::false_type)
     {
@@ -427,14 +433,14 @@ NS_END  // internal
 //     lenient   -> | a | b | c | d |   |
 template<typename Cell,
          typename Metadata>
-D_NODISCARD parse::parse_result<table_model_value<Cell, Metadata>> expand_multi_placeholders(
-    const table_model_value<Cell, Metadata>& _model,
-    const multi_bindings&                    _bindings,
-    table_strictness                         _fit = default_placeholder_fit,
-    const template_syntax&                   _syntax = template_syntax()
+D_NODISCARD parse::parse_result<DTableModelValue<Cell, Metadata>> expand_multi_placeholders(
+    const DTableModelValue<Cell, Metadata>& _model,
+    const DMultiBindings&                    _bindings,
+    DTableStrictness                         _fit = default_placeholder_fit,
+    const DTemplateSyntax&                   _syntax = DTemplateSyntax()
 )
 {
-    using model_type  = table_model_value<Cell, Metadata>;
+    using model_type  = DTableModelValue<Cell, Metadata>;
     using result_type = parse::parse_result<model_type>;
 
     model_type _out(_model.rows(), _model.cols());
@@ -472,7 +478,7 @@ D_NODISCARD parse::parse_result<table_model_value<Cell, Metadata>> expand_multi_
 
         while (_c < _model.cols())
         {
-            const region_value _owner = _model.layout().owner_of(_r, _c);
+            const DRegionValue _owner = _model.layout().owner_of(_r, _c);
 
             const std::size_t _span = _owner.cols;
 
@@ -493,7 +499,7 @@ D_NODISCARD parse::parse_result<table_model_value<Cell, Metadata>> expand_multi_
             const std::string _key =
                 _is_run ? multi_placeholder_key(_text, _syntax) : std::string();
 
-            const multi_bindings::run_type* _run =
+            const DMultiBindings::run_type* _run =
                 _is_run ? _bindings.find(_key) : nullptr;
 
             // an unbound (or non-) placeholder is carried across verbatim,
@@ -568,21 +574,21 @@ D_NODISCARD parse::parse_result<table_model_value<Cell, Metadata>> expand_multi_
 template<typename Cell,
          typename Metadata,
          typename Resolver>
-D_NODISCARD table_model_value<Cell, Metadata> interpolate_cells(
-    const table_model_value<Cell, Metadata>& _model,
+D_NODISCARD DTableModelValue<Cell, Metadata> interpolate_cells(
+    const DTableModelValue<Cell, Metadata>& _model,
     const Resolver&                          _resolver
 )
 {
-    table_model_value<Cell, Metadata> _out(_model.rows(), _model.cols());
+    DTableModelValue<Cell, Metadata> _out(_model.rows(), _model.cols());
 
     _out.metadata() = _model.metadata();
 
     // carry the cover across: interpolation rewrites text, never structure
-    const runtime_layout::merge_store& _merges = _model.layout().merges();
+    const DRuntimeLayout::merge_store& _merges = _model.layout().merges();
 
     for (std::size_t _i = 0; _i < _merges.size(); ++_i)
     {
-        const region_value& _m = _merges[_i];
+        const DRegionValue& _m = _merges[_i];
 
         _out.layout().add_merge(_m.row0, _m.col0, _m.rows, _m.cols);
     }

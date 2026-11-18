@@ -120,12 +120,12 @@ NS_DJINTERP
 // I.   is_hierarchical_registry (detection trait)
 // ===========================================================================
 
-// hierarchical_registry (fwd)
+// DHierarchicalRegistry (fwd)
 template<typename Key,
          typename Value,
          typename KeyCompare,
          typename SizeType>
-class hierarchical_registry;
+class DHierarchicalRegistry;
 
 NS_INTERNAL
 
@@ -134,7 +134,7 @@ NS_INTERNAL
     {};
 
     template<typename K, typename V, typename KC, typename S>
-    struct is_hierarchical_registry_impl<hierarchical_registry<K, V, KC, S>>
+    struct is_hierarchical_registry_impl<DHierarchicalRegistry<K, V, KC, S>>
         : std::true_type
     {};
 
@@ -156,14 +156,14 @@ inline constexpr bool is_hierarchical_registry_v =
 // II.  hierarchical_registry (class)
 // ===========================================================================
 
-// hierarchical_registry
+// DHierarchicalRegistry
 //   class: a keyed, sorted node whose cells are leaves (value : Value) or
 // nodes (a child hierarchical_registry). One class is every level of the tree.
 template<typename Key,
          typename Value,
          typename KeyCompare = std::less<>,
          typename SizeType    = std::size_t>
-class hierarchical_registry
+class DHierarchicalRegistry
 {
 public:
     // --- 1. member types, cell kind, markers ---
@@ -176,11 +176,11 @@ public:
     // node_type -- the F[T] node summand: a sub-registry is one of THESE. This
     // container-shaped alias is the STRONG structural tell the hierarchy
     // traits read (hierarchical_container_traits.hpp).
-    using node_type = hierarchical_registry;
+    using node_type = DHierarchicalRegistry;
 
     // structure_category -- the OPT-IN structure tag; its `nests` bit (true)
     // asserts hierarchy the value_type chain cannot show.
-    using structure_category = hierarchical;
+    using structure_category = DHierarchical;
 
     // cell_kind -- a cell is a leaf or a node (the composite's two summands).
     enum class cell_kind
@@ -198,20 +198,20 @@ public:
     static constexpr bool key_const        = true;                 // keys immutable
     static constexpr bool value_mutable    = true;                 // leaves writable
     static constexpr bool nests            = true;                 // node summand present
-    static constexpr std::size_t min_depth = hierarchical::min_depth;  // 2
+    static constexpr std::size_t min_depth = DHierarchical::min_depth;  // 2
 
-    static constexpr container_structure     structure     =
-        container_structure::hierarchical;
+    static constexpr DContainerStructure     structure     =
+        DContainerStructure::hierarchical;
     static constexpr DContainerOrdering      ordering      =
         DContainerOrdering::sorted;
-    static constexpr container_lifetime      lifetime      =
-        container_lifetime::mutable_storage;
+    static constexpr DContainerLifetime      lifetime      =
+        DContainerLifetime::mutable_storage;
     static constexpr DContainerStorageKind  storage_kind  =
         DContainerStorageKind::dynamic_storage;
     static constexpr DContainerBounds        bounds        =
         DContainerBounds::unbounded;
-    static constexpr container_iterability   iterability   =
-        container_iterability::iterable;
+    static constexpr DContainerIterability   iterability   =
+        DContainerIterability::iterable;
     static constexpr DContainerMultiplicity  multiplicity_grade =
         DContainerMultiplicity::unique;   // a key names ONE cell per node
 
@@ -224,7 +224,7 @@ private:
         Key                                    m_key;
         cell_kind                              m_kind;
         Value                                  m_leaf;    // valid when m_kind == leaf
-        std::unique_ptr<hierarchical_registry> m_child;   // valid when m_kind == node
+        std::unique_ptr<DHierarchicalRegistry> m_child;   // valid when m_kind == node
 
         entry()
             : m_key(), m_kind(cell_kind::leaf), m_leaf(), m_child()
@@ -275,16 +275,16 @@ private:
 public:
     // --- 2. construction ---
 
-    hierarchical_registry()
+    DHierarchicalRegistry()
         : m_entries(), m_cmp()
     {}
 
-    explicit hierarchical_registry(KeyCompare _cmp)
+    explicit DHierarchicalRegistry(KeyCompare _cmp)
         : m_entries(), m_cmp(_cmp)
     {}
 
     // deep copy -- clone the whole tree (nodes are cloned recursively).
-    hierarchical_registry(const hierarchical_registry& _other)
+    DHierarchicalRegistry(const DHierarchicalRegistry& _other)
         : m_entries(), m_cmp(_other.m_cmp)
     {
         m_entries.reserve(_other.m_entries.size());
@@ -301,26 +301,26 @@ public:
             }
             else if (e.m_child)
             {
-                ne.m_child.reset(new hierarchical_registry(*e.m_child));
+                ne.m_child.reset(new DHierarchicalRegistry(*e.m_child));
             }
 
             m_entries.push_back(std::move(ne));
         }
     }
 
-    hierarchical_registry(hierarchical_registry&&) = default;
+    DHierarchicalRegistry(DHierarchicalRegistry&&) = default;
 
     // copy-and-swap assignment (serves copy AND move: _other is built by the
     // deep-copy or the move constructor, then swapped in).
-    hierarchical_registry& operator=(hierarchical_registry _other) noexcept
+    DHierarchicalRegistry& operator=(DHierarchicalRegistry _other) noexcept
     {
         swap(_other);
         return *this;
     }
 
-    ~hierarchical_registry() = default;
+    ~DHierarchicalRegistry() = default;
 
-    void swap(hierarchical_registry& _other) noexcept
+    void swap(DHierarchicalRegistry& _other) noexcept
     {
         m_entries.swap(_other.m_entries);
         std::swap(m_cmp, _other.m_cmp);
@@ -373,14 +373,14 @@ public:
 
     // local_node -- pointer to the child registry at _k, or nullptr (absent,
     // or a leaf). const and mutable.
-    D_NODISCARD const hierarchical_registry* local_node(const Key& _k) const
+    D_NODISCARD const DHierarchicalRegistry* local_node(const Key& _k) const
     {
         const entry* e = find_entry(_k);
         return (e != nullptr && e->m_kind == cell_kind::node) ? e->m_child.get()
                                                               : nullptr;
     }
 
-    D_NODISCARD hierarchical_registry* local_node(const Key& _k)
+    D_NODISCARD DHierarchicalRegistry* local_node(const Key& _k)
     {
         entry* e = find_entry(_k);
         return (e != nullptr && e->m_kind == cell_kind::node) ? e->m_child.get()
@@ -420,7 +420,7 @@ public:
     // make_node -- ensure a child node at _k and return it. Returns the
     // existing child if _k is already a node; throws std::logic_error if _k
     // holds a leaf (convert only through an explicit erase).
-    hierarchical_registry& make_node(const Key& _k)
+    DHierarchicalRegistry& make_node(const Key& _k)
     {
         auto it = lb(_k);
 
@@ -438,7 +438,7 @@ public:
         entry ne;
         ne.m_key  = _k;
         ne.m_kind = cell_kind::node;
-        ne.m_child.reset(new hierarchical_registry(m_cmp));
+        ne.m_child.reset(new DHierarchicalRegistry(m_cmp));
 
         auto ins = m_entries.insert(it, std::move(ne));
         return *ins->m_child;
@@ -470,7 +470,7 @@ private:
     // _out. nullptr if the path is empty or an intermediate key is missing / a
     // leaf.
     template<typename It>
-    const hierarchical_registry*
+    const DHierarchicalRegistry*
     descend_parent(It _first, It _last, Key& _out) const
     {
         if (_first == _last)
@@ -478,14 +478,14 @@ private:
             return nullptr;
         }
 
-        const hierarchical_registry* cur = this;
+        const DHierarchicalRegistry* cur = this;
         It it  = _first;
         It nxt = it;
         ++nxt;
 
         while (nxt != _last)
         {
-            const hierarchical_registry* child = cur->local_node(*it);
+            const DHierarchicalRegistry* child = cur->local_node(*it);
             if (child == nullptr)
             {
                 return nullptr;   // missing, or a leaf blocks the descent
@@ -503,7 +503,7 @@ private:
     // nodes (mkdir -p). nullptr only if the path is empty or an intermediate
     // key is a LEAF (which cannot become a node implicitly).
     template<typename It>
-    hierarchical_registry*
+    DHierarchicalRegistry*
     descend_parent_create(It _first, It _last, Key& _out)
     {
         if (_first == _last)
@@ -511,14 +511,14 @@ private:
             return nullptr;
         }
 
-        hierarchical_registry* cur = this;
+        DHierarchicalRegistry* cur = this;
         It it  = _first;
         It nxt = it;
         ++nxt;
 
         while (nxt != _last)
         {
-            hierarchical_registry* child = cur->local_node(*it);
+            DHierarchicalRegistry* child = cur->local_node(*it);
             if (child == nullptr)
             {
                 if (cur->local_contains(*it))
@@ -541,10 +541,10 @@ public:
     // nodes. Returns false (changing nothing) if the path is empty, an
     // intermediate key is a leaf, or the final key already holds a node.
     template<typename It>
-    bool set(It _first, It _last, Value _value)
+    bool DSet(It _first, It _last, Value _value)
     {
         Key last_key;
-        hierarchical_registry* parent =
+        DHierarchicalRegistry* parent =
             descend_parent_create(_first, _last, last_key);
 
         if (parent == nullptr)
@@ -566,7 +566,7 @@ public:
     D_NODISCARD const Value* get(It _first, It _last) const
     {
         Key last_key;
-        const hierarchical_registry* parent =
+        const DHierarchicalRegistry* parent =
             descend_parent(_first, _last, last_key);
 
         return (parent != nullptr) ? parent->local_leaf(last_key) : nullptr;
@@ -599,9 +599,9 @@ public:
     // node_at (range) -- pointer to the sub-registry at the path (every key
     // followed as a node), or nullptr. const and mutable.
     template<typename It>
-    D_NODISCARD const hierarchical_registry* node_at(It _first, It _last) const
+    D_NODISCARD const DHierarchicalRegistry* node_at(It _first, It _last) const
     {
-        const hierarchical_registry* cur = this;
+        const DHierarchicalRegistry* cur = this;
         for (It it = _first; it != _last; ++it)
         {
             cur = cur->local_node(*it);
@@ -613,16 +613,16 @@ public:
         return cur;
     }
 
-    D_NODISCARD const hierarchical_registry*
+    D_NODISCARD const DHierarchicalRegistry*
     node_at(std::initializer_list<Key> _path) const
     {
         return node_at(_path.begin(), _path.end());
     }
 
     template<typename It>
-    D_NODISCARD hierarchical_registry* node_at(It _first, It _last)
+    D_NODISCARD DHierarchicalRegistry* node_at(It _first, It _last)
     {
-        hierarchical_registry* cur = this;
+        DHierarchicalRegistry* cur = this;
         for (It it = _first; it != _last; ++it)
         {
             cur = cur->local_node(*it);
@@ -634,7 +634,7 @@ public:
         return cur;
     }
 
-    D_NODISCARD hierarchical_registry*
+    D_NODISCARD DHierarchicalRegistry*
     node_at(std::initializer_list<Key> _path)
     {
         return node_at(_path.begin(), _path.end());
@@ -645,7 +645,7 @@ public:
     D_NODISCARD bool contains(It _first, It _last) const
     {
         Key last_key;
-        const hierarchical_registry* parent =
+        const DHierarchicalRegistry* parent =
             descend_parent(_first, _last, last_key);
         return (parent != nullptr) && parent->local_contains(last_key);
     }
@@ -659,7 +659,7 @@ public:
     D_NODISCARD bool is_leaf(It _first, It _last) const
     {
         Key last_key;
-        const hierarchical_registry* parent =
+        const DHierarchicalRegistry* parent =
             descend_parent(_first, _last, last_key);
         return (parent != nullptr) && parent->local_is_leaf(last_key);
     }
@@ -673,7 +673,7 @@ public:
     D_NODISCARD bool is_node(It _first, It _last) const
     {
         Key last_key;
-        const hierarchical_registry* parent =
+        const DHierarchicalRegistry* parent =
             descend_parent(_first, _last, last_key);
         return (parent != nullptr) && parent->local_is_node(last_key);
     }
@@ -690,7 +690,7 @@ public:
     {
         Key last_key;
         // descend without creating; the parent must already exist
-        hierarchical_registry* cur = this;
+        DHierarchicalRegistry* cur = this;
         if (_first == _last)
         {
             return size_type(0);
@@ -775,11 +775,18 @@ public:
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Key,
+         typename Value,
+         typename KeyCompare = std::less<>,
+         typename SizeType    = std::size_t>
+using hierarchical_registry = DHierarchicalRegistry<Key, Value, KeyCompare, SizeType>;
+
 // swap (free) -- ADL swap for hierarchical_registry.
 template<typename K, typename V, typename KC, typename S>
 void swap(
-    hierarchical_registry<K, V, KC, S>& _a,
-    hierarchical_registry<K, V, KC, S>& _b
+    DHierarchicalRegistry<K, V, KC, S>& _a,
+    DHierarchicalRegistry<K, V, KC, S>& _b
 ) noexcept
 {
     _a.swap(_b);
@@ -790,14 +797,20 @@ void swap(
 // III. hkey_registry
 // ===========================================================================
 
-// hkey_registry
+// DHkeyRegistry
 //   alias: the common hierarchical registry -- keys of type Key naming leaf
 // values of type Value or sub-trees of the same shape. (Named for the
 // registry-hive idiom: an HKEY addresses a tree of keyed values.)
 template<typename Key,
          typename Value,
          typename KeyCompare = std::less<>>
-using hkey_registry = hierarchical_registry<Key, Value, KeyCompare>;
+using DHkeyRegistry = DHierarchicalRegistry<Key, Value, KeyCompare>;
+
+// old name, until 0.9.0-rc.1
+template<typename Key,
+         typename Value,
+         typename KeyCompare = std::less<>>
+using hkey_registry = DHkeyRegistry<Key, Value, KeyCompare>;
 
 
 NS_END  // djinterp

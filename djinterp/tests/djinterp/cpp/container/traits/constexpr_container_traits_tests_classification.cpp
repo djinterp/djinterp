@@ -151,7 +151,7 @@ bool tests_is_constexpr_is_the_compile_time_bit()
 
     // the bit, not the value: compile_time counts, and it is not `both`
     D_CCT_CHECK(container_lifetime_of<life_compile_sized>::value !=
-                lifetime::both);
+                DLifetime::both);
     D_CCT_CHECK(is_constexpr_container<life_compile_sized>::value);
 
     return ok;

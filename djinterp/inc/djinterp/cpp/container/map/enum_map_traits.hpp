@@ -1000,11 +1000,11 @@ constexpr bool enum_map_does_know_cardinality =
 // X.   Combined Classification              (enum_map_class)
 // =============================================================================
 
-// enum_map_class
+// DEnumMapClass
 //   struct: complete compile-time classification of an enum-keyed map
 // container type.
 template<typename Map>
-struct enum_map_class
+struct DEnumMapClass
 {
     using C = clean_t<Map>;
 
@@ -1044,6 +1044,10 @@ struct enum_map_class
     static constexpr bool is_backed             =
         is_underlying_container_v<C>;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Map>
+using enum_map_class = DEnumMapClass<Map>;
 
 
 NS_END  // traits

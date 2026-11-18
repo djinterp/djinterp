@@ -61,7 +61,7 @@ bool tests_has_capability_bits_helper()
     D_RW_CHECK(internal::has_capability_bits_helper<
                    DRwTagPartialWrite>::value == false);
     D_RW_CHECK(access_capability_of<DRwTagPartialWrite>::value
-                   == access_capability::read_write);
+                   == DAccessCapability::read_write);
 
     // the tag must name a type carrying bits
     D_RW_CHECK(internal::has_capability_bits_helper<
@@ -136,7 +136,7 @@ bool tests_capability_tag_shapes()
     D_RW_CHECK(access_capability_of<DRwTagNoneBits>::can_read  == false);
     D_RW_CHECK(access_capability_of<DRwTagNoneBits>::can_write == false);
     D_RW_CHECK(access_capability_of<DRwTagNoneBits>::value
-                   == access_capability::none);
+                   == DAccessCapability::none);
 
     // ... though the type has BOTH structural surfaces
     D_RW_CHECK(   ( internal::has_read_surface<DRwTagNoneBits>::value
@@ -144,17 +144,17 @@ bool tests_capability_tag_shapes()
                && ( internal::has_write_surface<DRwTagNoneBits>::value
                         == true )
                && ( access_capability_of<DRwTagNoneBits>::value
-                        == access_capability::none ));
+                        == DAccessCapability::none ));
 
     // the shapes correctly ignored all fall back to structure
     D_RW_CHECK(access_capability_of<DRwTagPartial>::value
-                   == access_capability::read_write);
+                   == DAccessCapability::read_write);
     D_RW_CHECK(access_capability_of<DRwTagAliasNoBits>::value
-                   == access_capability::read_write);
+                   == DAccessCapability::read_write);
     D_RW_CHECK(access_capability_of<DRwTagDataMember>::value
-                   == access_capability::read_write);
+                   == DAccessCapability::read_write);
     D_RW_CHECK(access_capability_of<DRwTagPrivate>::value
-                   == access_capability::read_write);
+                   == DAccessCapability::read_write);
 
     // and a private tag reads exactly as if it were not there
     D_RW_CHECK(access_capability_of<DRwTagPrivate>::value
@@ -247,17 +247,17 @@ bool tests_access_bits_tagged()
 
     // the bits agree with the tag type's own members
     D_RW_CHECK(internal::access_bits<DRwTagReadOnly>::can_read
-                   == read_only::can_read);
+                   == DReadOnly::can_read);
     D_RW_CHECK(internal::access_bits<DRwTagReadOnly>::can_write
-                   == read_only::can_write);
+                   == DReadOnly::can_write);
     D_RW_CHECK(internal::access_bits<DRwTagWriteOnly>::can_read
-                   == write_only::can_read);
+                   == DWriteOnly::can_read);
     D_RW_CHECK(internal::access_bits<DRwTagWriteOnly>::can_write
-                   == write_only::can_write);
+                   == DWriteOnly::can_write);
     D_RW_CHECK(internal::access_bits<DRwTagReadWrite>::can_read
-                   == read_write::can_read);
+                   == DReadWrite::can_read);
     D_RW_CHECK(internal::access_bits<DRwTagReadWrite>::can_write
-                   == read_write::can_write);
+                   == DReadWrite::can_write);
 
     // and NOT from the structure, which says otherwise
     D_RW_CHECK(   ( internal::has_write_surface<DRwTagReadOnly>::value
@@ -299,14 +299,14 @@ bool tests_access_bits_precedence()
                && ( internal::has_write_surface<DRwTagOverrides>::value
                         == true )
                && ( access_capability_of<DRwTagOverrides>::value
-                        == access_capability::read_only ));
+                        == DAccessCapability::read_only ));
     D_RW_CHECK(access_capability_of<DRwTagOverrides>::can_write == false);
 
     // ... and would have been read_write without it
     D_RW_CHECK(access_capability_from_bits(
                    internal::has_read_surface<DRwTagOverrides>::value,
                    internal::has_write_surface<DRwTagOverrides>::value)
-                   == access_capability::read_write);
+                   == DAccessCapability::read_write);
     D_RW_CHECK(access_capability_of<DRwTagOverrides>::value
                    != access_capability_from_bits(
                           internal::has_read_surface<DRwTagOverrides>::value,
@@ -323,7 +323,7 @@ bool tests_access_bits_precedence()
     D_RW_CHECK(   ( internal::has_read_surface<DRwTagNoneBits>::value
                         == true )
                && ( access_capability_of<DRwTagNoneBits>::value
-                        == access_capability::none ));
+                        == DAccessCapability::none ));
 
     // which path was taken stays visible
     D_RW_CHECK(access_capability_of<DRwTagOverrides>::has_capability_tag

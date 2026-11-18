@@ -79,13 +79,13 @@ NS_TESTING
 // string_bus
 //   alias: the canonical bus under test - std::string topics, int payloads, the
 // default std::function handler.
-using string_bus = bus<std::string, int>;
+using string_bus = DBus<std::string, int>;
 
 // string_registry
 //   alias: a registry matching string_bus, for testing the storage core on its
 // own (without a broker wrapped around it).
 using string_registry =
-    subscriber_registry<std::string, std::function<void(const std::string&, const int&)> >;
+    DSubscriberRegistry<std::string, std::function<void(const std::string&, const int&)> >;
 
 
 // delivery

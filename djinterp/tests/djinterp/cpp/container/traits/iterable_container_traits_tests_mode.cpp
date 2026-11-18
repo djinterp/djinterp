@@ -118,39 +118,39 @@ bool tests_iteration_mode_of()
     bool _ic_ok = true;
 
     // non_const: settable traversals
-    D_IC_CHECK( (iteration_mode_of<std::vector<int>>::value  == iteration_mode::non_const) );
-    D_IC_CHECK( (iteration_mode_of<std::deque<int>>::value   == iteration_mode::non_const) );
-    D_IC_CHECK( (iteration_mode_of<std::list<int>>::value    == iteration_mode::non_const) );
-    D_IC_CHECK( (iteration_mode_of<std::string>::value       == iteration_mode::non_const) );
-    D_IC_CHECK( (iteration_mode_of<std::array<int, 4>>::value == iteration_mode::non_const) );
-    D_IC_CHECK( (iteration_mode_of<std::vector<bool>>::value == iteration_mode::non_const) );  // via the proxy
-    D_IC_CHECK( (iteration_mode_of<DMutableOnlyIter>::value == iteration_mode::non_const) );
+    D_IC_CHECK( (iteration_mode_of<std::vector<int>>::value  == DIterationMode::non_const) );
+    D_IC_CHECK( (iteration_mode_of<std::deque<int>>::value   == DIterationMode::non_const) );
+    D_IC_CHECK( (iteration_mode_of<std::list<int>>::value    == DIterationMode::non_const) );
+    D_IC_CHECK( (iteration_mode_of<std::string>::value       == DIterationMode::non_const) );
+    D_IC_CHECK( (iteration_mode_of<std::array<int, 4>>::value == DIterationMode::non_const) );
+    D_IC_CHECK( (iteration_mode_of<std::vector<bool>>::value == DIterationMode::non_const) );  // via the proxy
+    D_IC_CHECK( (iteration_mode_of<DMutableOnlyIter>::value == DIterationMode::non_const) );
 
     // const_only: iterable, but not settable through the element
-    D_IC_CHECK( (iteration_mode_of<std::set<int>>::value      == iteration_mode::const_only) );
-    D_IC_CHECK( (iteration_mode_of<std::map<int, int>>::value == iteration_mode::const_only) );
-    D_IC_CHECK( (iteration_mode_of<std::unordered_set<int>>::value == iteration_mode::const_only) );
-    D_IC_CHECK( (iteration_mode_of<DConstOnlyIter>::value    == iteration_mode::const_only) );
+    D_IC_CHECK( (iteration_mode_of<std::set<int>>::value      == DIterationMode::const_only) );
+    D_IC_CHECK( (iteration_mode_of<std::map<int, int>>::value == DIterationMode::const_only) );
+    D_IC_CHECK( (iteration_mode_of<std::unordered_set<int>>::value == DIterationMode::const_only) );
+    D_IC_CHECK( (iteration_mode_of<DConstOnlyIter>::value    == DIterationMode::const_only) );
     // ... including the value_type-less traversal, whose settability cannot be probed
-    D_IC_CHECK( (iteration_mode_of<DNoValueTypeIter>::value == iteration_mode::const_only) );
+    D_IC_CHECK( (iteration_mode_of<DNoValueTypeIter>::value == DIterationMode::const_only) );
 
     // none: iterability is checked FIRST, so a settable half-traversal still reads none
-    D_IC_CHECK( (iteration_mode_of<DBeginOnly>::value == iteration_mode::none) );
+    D_IC_CHECK( (iteration_mode_of<DBeginOnly>::value == DIterationMode::none) );
     D_IC_CHECK( (provides_mutable_iteration<DBeginOnly>::value) );   // ... despite this being true
-    D_IC_CHECK( (iteration_mode_of<DEndOnly>::value        == iteration_mode::none) );
-    D_IC_CHECK( (iteration_mode_of<positional_only>::value == iteration_mode::none) );
-    D_IC_CHECK( (iteration_mode_of<DAliasOnly>::value      == iteration_mode::none) );
-    D_IC_CHECK( (iteration_mode_of<int>::value             == iteration_mode::none) );
-    D_IC_CHECK( (iteration_mode_of<int[4]>::value          == iteration_mode::none) );
+    D_IC_CHECK( (iteration_mode_of<DEndOnly>::value        == DIterationMode::none) );
+    D_IC_CHECK( (iteration_mode_of<positional_only>::value == DIterationMode::none) );
+    D_IC_CHECK( (iteration_mode_of<DAliasOnly>::value      == DIterationMode::none) );
+    D_IC_CHECK( (iteration_mode_of<int>::value             == DIterationMode::none) );
+    D_IC_CHECK( (iteration_mode_of<int[4]>::value          == DIterationMode::none) );
 
     // cv-ref is stripped: a const view of a vector reads non_const, NOT const_only -
     // the trait classifies the underlying type, not the qualified view
-    D_IC_CHECK( (iteration_mode_of<const std::vector<int>&>::value == iteration_mode::non_const) );
+    D_IC_CHECK( (iteration_mode_of<const std::vector<int>&>::value == DIterationMode::non_const) );
 
     // ::type carrier
-    D_IC_CHECK( (iteration_mode_of_t<std::vector<int>>::value == iteration_mode::non_const) );
-    D_IC_CHECK( (iteration_mode_of_t<std::set<int>>::value    == iteration_mode::const_only) );
-    D_IC_CHECK( (iteration_mode_of_t<int>::value              == iteration_mode::none) );
+    D_IC_CHECK( (iteration_mode_of_t<std::vector<int>>::value == DIterationMode::non_const) );
+    D_IC_CHECK( (iteration_mode_of_t<std::set<int>>::value    == DIterationMode::const_only) );
+    D_IC_CHECK( (iteration_mode_of_t<int>::value              == DIterationMode::none) );
 
     return _ic_ok;
 }

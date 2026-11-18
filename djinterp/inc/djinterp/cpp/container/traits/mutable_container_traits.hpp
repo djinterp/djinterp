@@ -12,7 +12,7 @@
 * inline array overwrites elements but cannot grow (element-only); an ordered
 * set inserts and erases but exposes no writable element handle
 * (structural-only); a vector does both. The four corners are named by the
-* `mutability` grade: immutable neither - only const observation;
+* `DMutability` grade: immutable neither - only const observation;
 * element_mutable element mutation, no structural; structural_mutable
 * structural mutation, no element; fully_mutable both. "Mutable" (the
 * umbrella) is element OR structural; "immutable" is a type that LOOKS like a
@@ -190,10 +190,10 @@ D_TYPE_TRAIT_VALUE_BOOL(is_immutable_container)
 // III. The mutability grade
 // ===========================================================================
 
-// mutability
+// DMutability
 //   enum: the summary of the two independent capabilities - the four corners
 // of the (element, structural) square.
-enum class mutability
+enum class DMutability
 {
     immutable,          // neither capability
     element_mutable,    // element only
@@ -201,16 +201,19 @@ enum class mutability
     fully_mutable       // both
 };
 
+// old name, until 0.9.0-rc.1
+using mutability = DMutability;
+
 // mutability_name
 //   function: a stable spelling, for diagnostics and agent-facing summaries.
 constexpr
 const char* mutability_name(
-    mutability _m
+    DMutability _m
 ) noexcept
 {
-    return ( _m == mutability::immutable          ? "immutable"
-           : _m == mutability::element_mutable    ? "element_mutable"
-           : _m == mutability::structural_mutable ? "structural_mutable"
+    return ( _m == DMutability::immutable          ? "immutable"
+           : _m == DMutability::element_mutable    ? "element_mutable"
+           : _m == DMutability::structural_mutable ? "structural_mutable"
            :                                        "fully_mutable" );
 }
 
@@ -218,34 +221,34 @@ const char* mutability_name(
 //   function: value-level predicates over a mutability grade.
 constexpr
 bool is_immutable_grade(
-    mutability _m
+    DMutability _m
 ) noexcept
 {
-    return ( _m == mutability::immutable );
+    return ( _m == DMutability::immutable );
 }
 
 constexpr
 bool is_element_mutable_grade(
-    mutability _m
+    DMutability _m
 ) noexcept
 {
-    return ( _m == mutability::element_mutable );
+    return ( _m == DMutability::element_mutable );
 }
 
 constexpr
 bool is_structural_mutable_grade(
-    mutability _m
+    DMutability _m
 ) noexcept
 {
-    return ( _m == mutability::structural_mutable );
+    return ( _m == DMutability::structural_mutable );
 }
 
 constexpr
 bool is_fully_mutable_grade(
-    mutability _m
+    DMutability _m
 ) noexcept
 {
-    return ( _m == mutability::fully_mutable );
+    return ( _m == DMutability::fully_mutable );
 }
 
 // grade_admits_element_mutation
@@ -253,11 +256,11 @@ bool is_fully_mutable_grade(
 // full).
 constexpr
 bool grade_admits_element_mutation(
-    mutability _m
+    DMutability _m
 ) noexcept
 {
-    return ( ( _m == mutability::element_mutable ) ||
-             ( _m == mutability::fully_mutable ) );
+    return ( ( _m == DMutability::element_mutable ) ||
+             ( _m == DMutability::fully_mutable ) );
 }
 
 // grade_admits_structural_mutation
@@ -265,11 +268,11 @@ bool grade_admits_element_mutation(
 // full).
 constexpr
 bool grade_admits_structural_mutation(
-    mutability _m
+    DMutability _m
 ) noexcept
 {
-    return ( ( _m == mutability::structural_mutable ) ||
-             ( _m == mutability::fully_mutable ) );
+    return ( ( _m == DMutability::structural_mutable ) ||
+             ( _m == DMutability::fully_mutable ) );
 }
 
 // mutability_of
@@ -288,13 +291,13 @@ private:
         is_structurally_mutable_container<clean_type>::value;
 
 public:
-    static constexpr mutability value =
-        ( element && structural ) ? mutability::fully_mutable
-      : ( structural )            ? mutability::structural_mutable
-      : ( element )               ? mutability::element_mutable
-      :                             mutability::immutable;
+    static constexpr DMutability value =
+        ( element && structural ) ? DMutability::fully_mutable
+      : ( structural )            ? DMutability::structural_mutable
+      : ( element )               ? DMutability::element_mutable
+      :                             DMutability::immutable;
 
-    using type = std::integral_constant<mutability, value>;
+    using type = std::integral_constant<DMutability, value>;
 };
 
 // mutability_of_t / mutability_of_v
@@ -305,17 +308,20 @@ using mutability_of_t = typename mutability_of<Type>::type;
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename Type>
-    inline constexpr mutability mutability_of_v = mutability_of<Type>::value;
+    inline constexpr DMutability mutability_of_v = mutability_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    constexpr mutability mutability_of_v = mutability_of<Type>::value;
+    constexpr DMutability mutability_of_v = mutability_of<Type>::value;
 #endif
 
-// mutability_grade / mutability_grade_of
+// DMutabilityGrade / mutability_grade_of
 //   alias: the GRADE dimension of the 2-D model is exactly the existing
-// `mutability` enum and `mutability_of` trait; these name them by their
+// `DMutability` enum and `mutability_of` trait; these name them by their
 // dimension, for callers that pair the grade with the access dimension below.
-using mutability_grade = mutability;
+using DMutabilityGrade = DMutability;
+
+// old name, until 0.9.0-rc.1
+using mutability_grade = DMutabilityGrade;
 
 template<typename Type>
 using mutability_grade_of = mutability_of<Type>;
@@ -355,28 +361,31 @@ NS_INTERNAL
 
 NS_END  // internal
 
-// access_restriction
+// DAccessRestriction
 //   enum: which coordinate the discipline holds const - the access dimension.
 // `none` for a plain sequence (the whole element is settable in place, if the
 // grade allows); `element_const` for a set / multiset (the element is frozen,
 // so no in-place value write - change is structural); `key_const` for a map /
 // multimap (the key is frozen, the value settable).
-enum class access_restriction
+enum class DAccessRestriction
 {
     none,           // no coordinate held const by the discipline
     element_const,  // the element coordinate is held const (set / multiset)
     key_const       // the key held const, the value settable (map / multimap)
 };
 
+// old name, until 0.9.0-rc.1
+using access_restriction = DAccessRestriction;
+
 // access_restriction_name
 //   function: a stable spelling, for diagnostics and agent-facing summaries.
 constexpr
 const char* access_restriction_name(
-    access_restriction _a
+    DAccessRestriction _a
 ) noexcept
 {
-    return ( _a == access_restriction::none          ? "none"
-           : _a == access_restriction::element_const ? "element_const"
+    return ( _a == DAccessRestriction::none          ? "none"
+           : _a == DAccessRestriction::element_const ? "element_const"
            :                                           "key_const" );
 }
 
@@ -392,14 +401,14 @@ private:
     using clean_type = clean_t<Type>;
 
 public:
-    static constexpr access_restriction value =
+    static constexpr DAccessRestriction value =
         (  internal::access_keyed_value_helper<clean_type>::value )
-              ? access_restriction::key_const
+              ? DAccessRestriction::key_const
       : (  internal::access_equivalence_helper<clean_type>::value )
-              ? access_restriction::element_const
-      :         access_restriction::none;
+              ? DAccessRestriction::element_const
+      :         DAccessRestriction::none;
 
-    using type = std::integral_constant<access_restriction, value>;
+    using type = std::integral_constant<DAccessRestriction, value>;
 };
 
 // access_restriction_of_t / access_restriction_of_v
@@ -410,11 +419,11 @@ using access_restriction_of_t = typename access_restriction_of<Type>::type;
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename Type>
-    inline constexpr access_restriction access_restriction_of_v =
+    inline constexpr DAccessRestriction access_restriction_of_v =
         access_restriction_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    constexpr access_restriction access_restriction_of_v =
+    constexpr DAccessRestriction access_restriction_of_v =
         access_restriction_of<Type>::value;
 #endif
 
@@ -425,7 +434,7 @@ template<typename Type>
 struct constrains_element
     : std::integral_constant<bool,
           access_restriction_of<clean_t<Type>>::value
-              == access_restriction::element_const>
+              == DAccessRestriction::element_const>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(constrains_element)
@@ -437,7 +446,7 @@ template<typename Type>
 struct constrains_key
     : std::integral_constant<bool,
           access_restriction_of<clean_t<Type>>::value
-              == access_restriction::key_const>
+              == DAccessRestriction::key_const>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(constrains_key)
@@ -479,13 +488,13 @@ public:
         is_mutable_container<clean_type>::value;
     static constexpr bool       is_immutable =
         is_immutable_container<clean_type>::value;
-    static constexpr mutability grade =
+    static constexpr DMutability grade =
         mutability_of<clean_type>::value;
     static constexpr const char* grade_name =
         mutability_name(grade);
 
     // access dimension (the 2-D model's second coordinate)
-    static constexpr access_restriction access =
+    static constexpr DAccessRestriction access =
         access_restriction_of<clean_type>::value;
     static constexpr const char* access_name =
         access_restriction_name(access);
@@ -512,8 +521,8 @@ public:
 // replacements:
 // - DRefinedMutabilityGrade: a four-grade refinement (fixed / value_mutable /
 // structure_mutable / fully_mutable) with its _name and predicates -- a finer
-// companion to `mutability` above (the name `mutability_grade` is already taken
-// -- it aliases `mutability` as the grade DIMENSION of the 2-D model), which
+// companion to `DMutability` above (the name `DMutabilityGrade` is already taken
+// -- it aliases `DMutability` as the grade DIMENSION of the 2-D model), which
 // stays because existing callers name it. - settable_coordinate_of +
 // DCoordinateAccessRestriction: a coordinate-indexed view of the access
 // dimension. Left as the documented stub it was, pending is_keyed_container /

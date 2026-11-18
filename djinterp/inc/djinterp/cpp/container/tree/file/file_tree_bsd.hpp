@@ -56,16 +56,16 @@ NS_DJINTERP
 //  bsd_scanner
 // ================================================================
 
-// bsd_scanner
+// DBsdScanner
 //   policy: BSD/Linux directory walk that consults dirent::d_type before
 // paying for a stat.
-struct bsd_scanner
+struct DBsdScanner
 {
     // type_from_dtype
     //   maps a dirent d_type onto a file_type, or file_type_unknown if the
     // type is not directly representable (caller stats).
     static
-    file_type type_from_dtype(
+    DFileType type_from_dtype(
         unsigned char _dtype
     )
     {
@@ -92,7 +92,7 @@ struct bsd_scanner
     void scan(
         Ctx&               _ctx,
         const std::string& _dir_path,
-        file_node_id       _parent
+        DFileNodeId       _parent
     )
     {
         DIR* dir = ::opendir(_dir_path.c_str());
@@ -110,7 +110,7 @@ struct bsd_scanner
         {
             const char* child_name = ent->d_name;
 
-            if (posix_scanner::is_dot_entry(child_name))
+            if (DPosixScanner::is_dot_entry(child_name))
             {
                 continue;
             }
@@ -118,7 +118,7 @@ struct bsd_scanner
             std::size_t child_len = std::strlen(child_name);
 
 #ifdef DT_DIR
-            file_type type = type_from_dtype(ent->d_type);
+            DFileType type = type_from_dtype(ent->d_type);
 #else
             file_type type = file_type_unknown;
 #endif
@@ -136,7 +136,7 @@ struct bsd_scanner
                 {
                     if (type == file_type_unknown)
                     {
-                        type = posix_scanner::classify(st.st_mode);
+                        type = DPosixScanner::classify(st.st_mode);
                     }
 
                     sz = static_cast<re_std::uint64_t>(st.st_size);
@@ -148,7 +148,7 @@ struct bsd_scanner
                 }
             }
 
-            file_node_id id = _ctx.intern_child(
+            DFileNodeId id = _ctx.intern_child(
                 _parent, child_name, child_len, type, sz);
 
             if (type == file_type_directory)
@@ -162,6 +162,9 @@ struct bsd_scanner
         return;
     }
 };
+
+// old name, until 0.9.0-rc.1
+using bsd_scanner = DBsdScanner;
 
 
 NS_END  // djinterp

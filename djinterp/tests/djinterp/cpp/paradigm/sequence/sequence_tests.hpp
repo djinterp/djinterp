@@ -72,13 +72,13 @@ NS_TESTING
 //   alias: the workhorse instantiation.  An arithmetic element type is the one
 // that hides the two-argument construction bug behind a silent wrong answer
 // rather than a compile error, so most construction tests run through it.
-using DIntSequence = sequence<int>;
+using DIntSequence = DSequence<int>;
 
 // DStringSequence
 //   alias: a class element type.  Exercises the move overloads meaningfully and
 // is the instantiation for which the unfixed two-argument variadic call did not
 // compile at all.
-using DStringSequence = sequence<std::string>;
+using DStringSequence = DSequence<std::string>;
 
 
 // probe
@@ -152,7 +152,7 @@ struct probe
 // same surface a caller would.
 template<typename _Type>
 bool matches(
-    const sequence<_Type>&       _seq,
+    const DSequence<_Type>&       _seq,
     std::initializer_list<_Type> _expected
 )
 {

@@ -96,12 +96,12 @@ NS_DJINTERP
 // I.   The memory-discipline taxonomy
 // ===========================================================================
 
-// memory_discipline
+// DMemoryDiscipline
 //   enum: the acquisition-and-release discipline a strategy governs storage by.
 // The values are MUTUALLY EXCLUSIVE - a strategy is classified once - unlike
 // the storage and lifetime lattices, since a discipline is a single verdict on
 // the release pattern, not a set of independent facts.
-struct memory_discipline
+struct DMemoryDiscipline
 {
     enum value
     {
@@ -112,6 +112,9 @@ struct memory_discipline
         arena        // cohort reclaimed together; no per-object free (region / bump)
     };
 };
+
+// old name, until 0.9.0-rc.1
+using memory_discipline = DMemoryDiscipline;
 
 
 // ===========================================================================
@@ -125,50 +128,50 @@ struct memory_discipline
 //   function: true iff the strategy allocates nothing (descriptive / inline).
 constexpr
 bool is_no_allocation_discipline(
-    memory_discipline::value _d
+    DMemoryDiscipline::value _d
 ) noexcept
 {
-    return ( _d == memory_discipline::none );
+    return ( _d == DMemoryDiscipline::none );
 }
 
 // is_individual_discipline
 //   function: true iff the discipline is the plain (NOT pointer-stable) heap.
 constexpr
 bool is_individual_discipline(
-    memory_discipline::value _d
+    DMemoryDiscipline::value _d
 ) noexcept
 {
-    return ( _d == memory_discipline::individual );
+    return ( _d == DMemoryDiscipline::individual );
 }
 
 // is_pooled_discipline
 //   function: true iff the discipline is a pointer-stable pool.
 constexpr
 bool is_pooled_discipline(
-    memory_discipline::value _d
+    DMemoryDiscipline::value _d
 ) noexcept
 {
-    return ( _d == memory_discipline::pooled );
+    return ( _d == DMemoryDiscipline::pooled );
 }
 
 // is_arena_discipline
 //   function: true iff the discipline is an arena / region (cohort release).
 constexpr
 bool is_arena_discipline(
-    memory_discipline::value _d
+    DMemoryDiscipline::value _d
 ) noexcept
 {
-    return ( _d == memory_discipline::arena );
+    return ( _d == DMemoryDiscipline::arena );
 }
 
 // is_unknown_discipline
 //   function: true iff the discipline could not be determined.
 constexpr
 bool is_unknown_discipline(
-    memory_discipline::value _d
+    DMemoryDiscipline::value _d
 ) noexcept
 {
-    return ( _d == memory_discipline::unknown );
+    return ( _d == DMemoryDiscipline::unknown );
 }
 
 // is_individual_family_discipline
@@ -177,11 +180,11 @@ bool is_unknown_discipline(
 // stability does not.
 constexpr
 bool is_individual_family_discipline(
-    memory_discipline::value _d
+    DMemoryDiscipline::value _d
 ) noexcept
 {
-    return ( ( _d == memory_discipline::individual ) ||
-             ( _d == memory_discipline::pooled ) );
+    return ( ( _d == DMemoryDiscipline::individual ) ||
+             ( _d == DMemoryDiscipline::pooled ) );
 }
 
 // discipline_allocates
@@ -189,12 +192,12 @@ bool is_individual_family_discipline(
 // individual, pooled, OR arena (i.e. everything but none / unknown).
 constexpr
 bool discipline_allocates(
-    memory_discipline::value _d
+    DMemoryDiscipline::value _d
 ) noexcept
 {
-    return ( ( _d == memory_discipline::individual ) ||
-             ( _d == memory_discipline::pooled )     ||
-             ( _d == memory_discipline::arena ) );
+    return ( ( _d == DMemoryDiscipline::individual ) ||
+             ( _d == DMemoryDiscipline::pooled )     ||
+             ( _d == DMemoryDiscipline::arena ) );
 }
 
 // memory_discipline_name
@@ -202,13 +205,13 @@ bool discipline_allocates(
 // facing summaries.
 constexpr
 const char* memory_discipline_name(
-    memory_discipline::value _d
+    DMemoryDiscipline::value _d
 ) noexcept
 {
-    return ( _d == memory_discipline::none       ? "none"
-           : _d == memory_discipline::individual ? "individual"
-           : _d == memory_discipline::pooled     ? "pooled"
-           : _d == memory_discipline::arena      ? "arena"
+    return ( _d == DMemoryDiscipline::none       ? "none"
+           : _d == DMemoryDiscipline::individual ? "individual"
+           : _d == DMemoryDiscipline::pooled     ? "pooled"
+           : _d == DMemoryDiscipline::arena      ? "arena"
            :                                       "unknown" );
 }
 
@@ -219,17 +222,17 @@ const char* memory_discipline_name(
 
 // memory_discipline_constant
 //   type: an integral_constant specialized to a memory_discipline value.
-template<memory_discipline::value Discipline>
+template<DMemoryDiscipline::value Discipline>
 using memory_discipline_constant =
-    std::integral_constant<memory_discipline::value, Discipline>;
+    std::integral_constant<DMemoryDiscipline::value, Discipline>;
 
 // unknown_discipline / none_discipline / ...
 //   type: named carriers for the five values, for tag dispatch.
-using unknown_discipline    = memory_discipline_constant<memory_discipline::unknown>;
-using none_discipline       = memory_discipline_constant<memory_discipline::none>;
-using individual_discipline = memory_discipline_constant<memory_discipline::individual>;
-using pooled_discipline     = memory_discipline_constant<memory_discipline::pooled>;
-using arena_discipline      = memory_discipline_constant<memory_discipline::arena>;
+using unknown_discipline    = memory_discipline_constant<DMemoryDiscipline::unknown>;
+using none_discipline       = memory_discipline_constant<DMemoryDiscipline::none>;
+using individual_discipline = memory_discipline_constant<DMemoryDiscipline::individual>;
+using pooled_discipline     = memory_discipline_constant<DMemoryDiscipline::pooled>;
+using arena_discipline      = memory_discipline_constant<DMemoryDiscipline::arena>;
 
 
 // ===========================================================================
@@ -245,14 +248,14 @@ using arena_discipline      = memory_discipline_constant<memory_discipline::aren
 // dynamic (an acquired region; static storage takes no allocator); arena ->
 // unknown (a bump may run over inline OR heap storage).
 constexpr
-storage_duration::value discipline_implies_siting(
-    memory_discipline::value _d
+DStorageDuration::value discipline_implies_siting(
+    DMemoryDiscipline::value _d
 ) noexcept
 {
-    return ( _d == memory_discipline::none       ? storage_duration::static_storage
-           : _d == memory_discipline::individual ? storage_duration::dynamic_storage
-           : _d == memory_discipline::pooled     ? storage_duration::dynamic_storage
-           :                                       storage_duration::unknown );
+    return ( _d == DMemoryDiscipline::none       ? DStorageDuration::static_storage
+           : _d == DMemoryDiscipline::individual ? DStorageDuration::dynamic_storage
+           : _d == DMemoryDiscipline::pooled     ? DStorageDuration::dynamic_storage
+           :                                       DStorageDuration::unknown );
 }
 
 // discipline_siting_consistent
@@ -263,13 +266,13 @@ storage_duration::value discipline_implies_siting(
 // is the contradiction this catches.
 constexpr
 bool discipline_siting_consistent(
-    memory_discipline::value _d,
-    storage_duration::value  _s
+    DMemoryDiscipline::value _d,
+    DStorageDuration::value  _s
 ) noexcept
 {
-    return ( ( discipline_implies_siting(_d) == storage_duration::unknown ) ||
+    return ( ( discipline_implies_siting(_d) == DStorageDuration::unknown ) ||
              ( is_unknown_storage(_s) )                                     ||
-             ( discipline_implies_siting(_d) == storage_duration::static_storage
+             ( discipline_implies_siting(_d) == DStorageDuration::static_storage
                    ? has_static_storage_component(_s)
                    : has_dynamic_storage_component(_s) ) );
 }
@@ -348,17 +351,17 @@ private:
     using clean_type = clean_t<Type>;
 
 public:
-    static constexpr memory_discipline::value value =
+    static constexpr DMemoryDiscipline::value value =
         ( !has_strategy_kind_signal<clean_type>::value )
-              ? memory_discipline::unknown
+              ? DMemoryDiscipline::unknown
       : ( !( has_element_allocate_signal<clean_type>::value ||
              has_byte_allocate_signal<clean_type>::value ) )
-              ? memory_discipline::none
+              ? DMemoryDiscipline::none
       : ( !internal::read_individual_release<clean_type>::value )
-              ? memory_discipline::arena
+              ? DMemoryDiscipline::arena
       : (  internal::read_pointer_stable<clean_type>::value )
-              ? memory_discipline::pooled
-      :       memory_discipline::individual;
+              ? DMemoryDiscipline::pooled
+      :       DMemoryDiscipline::individual;
 
     using type = memory_discipline_constant<value>;
 };
@@ -373,11 +376,11 @@ using discipline_of_t = typename discipline_of<Type>::type;
 // not a bool; same language degradation as the meta layer's enum-valued _v's).
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename Type>
-    inline constexpr memory_discipline::value discipline_of_v =
+    inline constexpr DMemoryDiscipline::value discipline_of_v =
         discipline_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    constexpr memory_discipline::value discipline_of_v =
+    constexpr DMemoryDiscipline::value discipline_of_v =
         discipline_of<Type>::value;
 #endif
 

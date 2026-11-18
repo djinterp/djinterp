@@ -24,7 +24,7 @@ tests_read_only_exposes_container_type
 */
 bool tests_read_only_exposes_container_type()
 {
-    typedef dj::read_only_container<std::vector<int> > vec_handle;
+    typedef dj::DReadOnlyContainer<std::vector<int> > vec_handle;
 
     D_RO_CHECK((std::is_same<vec_handle::container_type,
                              std::vector<int> >::value));
@@ -35,12 +35,12 @@ bool tests_read_only_exposes_container_type()
     D_RO_CHECK(!std::is_const<vec_handle::container_type>::value);
 
     // it follows the parameter
-    typedef dj::read_only_container<std::list<char> > list_handle;
+    typedef dj::DReadOnlyContainer<std::list<char> > list_handle;
 
     D_RO_CHECK((std::is_same<list_handle::container_type,
                              std::list<char> >::value));
 
-    typedef dj::read_only_container<std::array<double, 2> > arr_handle;
+    typedef dj::DReadOnlyContainer<std::array<double, 2> > arr_handle;
 
     D_RO_CHECK((std::is_same<arr_handle::container_type,
                              std::array<double, 2> >::value));
@@ -58,7 +58,7 @@ tests_read_only_exposes_value_type
 */
 bool tests_read_only_exposes_value_type()
 {
-    typedef dj::read_only_container<std::vector<int> > vec_handle;
+    typedef dj::DReadOnlyContainer<std::vector<int> > vec_handle;
 
     D_RO_CHECK((std::is_same<vec_handle::value_type, int>::value));
     D_RO_CHECK((std::is_same<vec_handle::value_type,
@@ -67,19 +67,19 @@ bool tests_read_only_exposes_value_type()
 
     // other element types
     D_RO_CHECK((std::is_same<
-                    dj::read_only_container<std::list<char> >::value_type,
+                    dj::DReadOnlyContainer<std::list<char> >::value_type,
                     char>::value));
     D_RO_CHECK((std::is_same<
-                    dj::read_only_container<std::string>::value_type,
+                    dj::DReadOnlyContainer<std::string>::value_type,
                     char>::value));
     D_RO_CHECK((std::is_same<
-                    dj::read_only_container<
+                    dj::DReadOnlyContainer<
                         std::array<double, 2> >::value_type,
                     double>::value));
 
     // including a user-defined element type
     D_RO_CHECK((std::is_same<
-                    dj::read_only_container<
+                    dj::DReadOnlyContainer<
                         std::vector<ro_probe_type> >::value_type,
                     ro_probe_type>::value));
 
@@ -96,24 +96,24 @@ tests_read_only_capability_is_read_only
 */
 bool tests_read_only_capability_is_read_only()
 {
-    typedef dj::read_only_container<std::vector<int> > handle;
+    typedef dj::DReadOnlyContainer<std::vector<int> > handle;
 
-    D_RO_CHECK((std::is_same<handle::capability, dj::read_only>::value));
+    D_RO_CHECK((std::is_same<handle::capability, dj::DReadOnly>::value));
 
     // and not a sibling
-    D_RO_CHECK(!(std::is_same<handle::capability, dj::read_write>::value));
-    D_RO_CHECK(!(std::is_same<handle::capability, dj::write_only>::value));
+    D_RO_CHECK(!(std::is_same<handle::capability, dj::DReadWrite>::value));
+    D_RO_CHECK(!(std::is_same<handle::capability, dj::DWriteOnly>::value));
 
     // the tag does not vary with the container
     D_RO_CHECK((std::is_same<
-                    dj::read_only_container<std::list<char> >::capability,
-                    dj::read_only>::value));
+                    dj::DReadOnlyContainer<std::list<char> >::capability,
+                    dj::DReadOnly>::value));
     D_RO_CHECK((std::is_same<
-                    dj::read_only_container<std::array<int, 1> >::capability,
-                    dj::read_only>::value));
+                    dj::DReadOnlyContainer<std::array<int, 1> >::capability,
+                    dj::DReadOnly>::value));
     D_RO_CHECK((std::is_same<
-                    dj::read_only_container<std::string>::capability,
-                    dj::read_only>::value));
+                    dj::DReadOnlyContainer<std::string>::capability,
+                    dj::DReadOnly>::value));
 
     return true;
 }
@@ -128,7 +128,7 @@ tests_read_only_capability_tag_semantics
 */
 bool tests_read_only_capability_tag_semantics()
 {
-    typedef dj::read_only_container<std::vector<int> >::capability cap;
+    typedef dj::DReadOnlyContainer<std::vector<int> >::capability cap;
 
     D_RO_CHECK(cap::can_read);
     D_RO_CHECK(!cap::can_write);
@@ -141,13 +141,13 @@ bool tests_read_only_capability_tag_semantics()
     D_RO_CHECK(std::string(cap::name()) == "read_only");
 
     // the sibling tags differ, which is what makes the axis meaningful
-    D_RO_CHECK(dj::read_write::can_read);
-    D_RO_CHECK(dj::read_write::can_write);
-    D_RO_CHECK(!dj::write_only::can_read);
-    D_RO_CHECK(dj::write_only::can_write);
+    D_RO_CHECK(dj::DReadWrite::can_read);
+    D_RO_CHECK(dj::DReadWrite::can_write);
+    D_RO_CHECK(!dj::DWriteOnly::can_read);
+    D_RO_CHECK(dj::DWriteOnly::can_write);
 
-    D_RO_CHECK(std::string(dj::read_write::name()) == "read_write");
-    D_RO_CHECK(std::string(dj::write_only::name()) == "write_only");
+    D_RO_CHECK(std::string(dj::DReadWrite::name()) == "read_write");
+    D_RO_CHECK(std::string(dj::DWriteOnly::name()) == "write_only");
 
     // read_only is the only tag that reads but does not write
     D_RO_CHECK(cap::can_read && !cap::can_write);
@@ -165,10 +165,10 @@ tests_read_only_typedefs_track_container
 */
 bool tests_read_only_typedefs_track_container()
 {
-    typedef dj::read_only_container<std::vector<int> >      h_vec;
-    typedef dj::read_only_container<std::list<char> >       h_list;
-    typedef dj::read_only_container<std::array<double, 4> > h_arr;
-    typedef dj::read_only_container<std::deque<long> >      h_deq;
+    typedef dj::DReadOnlyContainer<std::vector<int> >      h_vec;
+    typedef dj::DReadOnlyContainer<std::list<char> >       h_list;
+    typedef dj::DReadOnlyContainer<std::array<double, 4> > h_arr;
+    typedef dj::DReadOnlyContainer<std::deque<long> >      h_deq;
 
     // value_type is always the container's own
     D_RO_CHECK((std::is_same<h_vec::value_type,
@@ -181,10 +181,10 @@ bool tests_read_only_typedefs_track_container()
                              h_deq::container_type::value_type>::value));
 
     // the capability is invariant across all four
-    D_RO_CHECK((std::is_same<h_vec::capability, dj::read_only>::value));
-    D_RO_CHECK((std::is_same<h_list::capability, dj::read_only>::value));
-    D_RO_CHECK((std::is_same<h_arr::capability, dj::read_only>::value));
-    D_RO_CHECK((std::is_same<h_deq::capability, dj::read_only>::value));
+    D_RO_CHECK((std::is_same<h_vec::capability, dj::DReadOnly>::value));
+    D_RO_CHECK((std::is_same<h_list::capability, dj::DReadOnly>::value));
+    D_RO_CHECK((std::is_same<h_arr::capability, dj::DReadOnly>::value));
+    D_RO_CHECK((std::is_same<h_deq::capability, dj::DReadOnly>::value));
 
     // while the other two are not
     D_RO_CHECK(!(std::is_same<h_vec::value_type,

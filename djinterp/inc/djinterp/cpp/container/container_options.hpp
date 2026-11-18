@@ -10,7 +10,7 @@
 * only) gets:
 *
 *     1. an enum naming the valid positions on that axis,
-*     2. an enumerator of `container_axis` that serves as the option key, and
+*     2. an enumerator of `DContainerAxis` that serves as the option key, and
 *     3. a `container_opt_<axis>` alias that wraps a value of the enum
 *        into a fully-formed `option<key, integral_constant<...>>`.
 *
@@ -20,14 +20,14 @@
 * exposed as configuration options because they are not selected by
 * the user; they are observed from the container's structure.
 *
-*   This header also exports the `options_container_base` mixin, which
+*   This header also exports the `DOptionsContainerBase` mixin, which
 * every container in the framework inherits to gain the options surface
 * (::options_type, ::option_count, ::has_option_v<>, ::option_t<>).  It
 * wraps an `option_set<Options...>` and re-exports its query surface.
 *
 * HOW IT IS USED:
 *   Container modules consume an arbitrary user pack of options by
-* inheriting `options_container_base<Options...>` and querying per-axis
+* inheriting `DOptionsContainerBase<Options...>` and querying per-axis
 * keys.  A per-axis position is read with
 * `container_axis_value_v<options_type, container_axis::<axis>, <default>>`,
 * which yields the configured enum value or the supplied default when the
@@ -38,16 +38,16 @@
 * KEYS ARE NTTPs:
 *   `option<>` keys are values (NTTPs), and `option_set` compares keys with
 * `==`, so every key must share one type.  The nine axis keys are therefore
-* enumerators of a single `container_axis` enum, not distinct tag structs.
+* enumerators of a single `DContainerAxis` enum, not distinct tag structs.
 * (This replaces the pre-2026.07 per-axis empty-tag keys, which predated the
 * NTTP-keyed `option<>` and no longer form a valid key.)
 *
 * STANDARD:
 *   The configuration ENUMS are available at the C++14 baseline.  The
-* option-carrying layer (aliases, `options_container_base`, the value-lookup
+* option-carrying layer (aliases, `DOptionsContainerBase`, the value-lookup
 * trait) is built on `option<>` / `option_set<>`, which require auto NTTPs
 * and inline variables, so it is compiled only under C++17 and later; below
-* that, `options_container_base` degrades to an empty base so a container's
+* that, `DOptionsContainerBase` degrades to an empty base so a container's
 * core remains buildable while its options surface is simply unavailable.
 *
 * SCOPE:
@@ -132,13 +132,16 @@ NS_DJINTERP
 // I.   Per-Axis Configuration Enums
 // ===========================================================================
 
-// container_lifetime
-enum class container_lifetime
+// DContainerLifetime
+enum class DContainerLifetime
 {
     constexpr_storage,
     immutable,
     mutable_storage
 };
+
+// old name, until 0.9.0-rc.1
+using container_lifetime = DContainerLifetime;
 
 
 // DContainerOrdering
@@ -166,12 +169,15 @@ enum class DContainerMultiplicity
 };
 
 
-// container_structure
-enum class container_structure
+// DContainerStructure
+enum class DContainerStructure
 {
     flat,
     hierarchical
 };
+
+// old name, until 0.9.0-rc.1
+using container_structure = DContainerStructure;
 
 
 // DContainerStorageKind
@@ -204,24 +210,27 @@ enum class DContainerBacking
 };
 
 
-// container_iterability
-enum class container_iterability
+// DContainerIterability
+enum class DContainerIterability
 {
     iterable,
     non_iterable
 };
+
+// old name, until 0.9.0-rc.1
+using container_iterability = DContainerIterability;
 
 
 // ===========================================================================
 // II.  Per-Axis Option Keys
 // ===========================================================================
 
-// container_axis
+// DContainerAxis
 //   enum: the option key for each configurable axis. option<> keys are NTTPs
 // and option_set resolves them with ==, so all keys share this one type rather
 // than being distinct empty-tag structs. `lock_policy` names the type-carrying
 // key of Section IV.
-enum class container_axis
+enum class DContainerAxis
 {
     lifetime,
     ordering,
@@ -240,6 +249,9 @@ enum class container_axis
     extent
 };
 
+// old name, until 0.9.0-rc.1
+using container_axis = DContainerAxis;
+
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
@@ -251,50 +263,50 @@ enum class container_axis
 // integral_constant<enum, value>> - a fully-formed, NTTP-keyed option<> ready
 // to drop into a container's Options pack.
 
-template<container_lifetime V>
+template<DContainerLifetime V>
 using DContainerOptLifetime = option<
-    container_axis::lifetime,
-    std::integral_constant<container_lifetime, V>>;
+    DContainerAxis::lifetime,
+    std::integral_constant<DContainerLifetime, V>>;
 
 template<DContainerOrdering V>
 using DContainerOptOrdering = option<
-    container_axis::ordering,
+    DContainerAxis::ordering,
     std::integral_constant<DContainerOrdering, V>>;
 
 template<DContainerBounds V>
 using DContainerOptBounds = option<
-    container_axis::bounds,
+    DContainerAxis::bounds,
     std::integral_constant<DContainerBounds, V>>;
 
 template<DContainerMultiplicity V>
 using DContainerOptMultiplicity = option<
-    container_axis::multiplicity,
+    DContainerAxis::multiplicity,
     std::integral_constant<DContainerMultiplicity, V>>;
 
-template<container_structure V>
+template<DContainerStructure V>
 using DContainerOptStructure = option<
-    container_axis::structure,
-    std::integral_constant<container_structure, V>>;
+    DContainerAxis::structure,
+    std::integral_constant<DContainerStructure, V>>;
 
 template<DContainerStorageKind V>
 using DContainerOptStorageKind = option<
-    container_axis::storage_kind,
+    DContainerAxis::storage_kind,
     std::integral_constant<DContainerStorageKind, V>>;
 
 template<DContainerThreadSafety V>
 using DContainerOptThreadSafety = option<
-    container_axis::thread_safety,
+    DContainerAxis::thread_safety,
     std::integral_constant<DContainerThreadSafety, V>>;
 
 template<DContainerBacking V>
 using DContainerOptBacking = option<
-    container_axis::backing,
+    DContainerAxis::backing,
     std::integral_constant<DContainerBacking, V>>;
 
-template<container_iterability V>
+template<DContainerIterability V>
 using DContainerOptIterability = option<
-    container_axis::iterability,
-    std::integral_constant<container_iterability, V>>;
+    DContainerAxis::iterability,
+    std::integral_constant<DContainerIterability, V>>;
 
 
 // ===========================================================================
@@ -304,11 +316,11 @@ using DContainerOptIterability = option<
 // DContainerOptLockPolicy
 //   alias: `option<container_axis::lock_policy, Policy>` for the lock-policy
 // axis. The value position is a class, not an integral_constant. This key
-// complements `container_axis::thread_safety` (enum-valued): the enum names a
+// complements `DContainerAxis::thread_safety` (enum-valued): the enum names a
 // category, the class delivers the implementation. When both appear in the
 // same pack, lock_policy is the one that pins the exact type.
 template<typename Policy>
-using DContainerOptLockPolicy = option<container_axis::lock_policy, Policy>;
+using DContainerOptLockPolicy = option<DContainerAxis::lock_policy, Policy>;
 
 //   container_axis::element_type and container_axis::extent are the two keys
 // of a container whose element type and capacity are options rather than
@@ -324,7 +336,7 @@ using DContainerOptLockPolicy = option<container_axis::lock_policy, Policy>;
 // V.   options_container_base
 // ===========================================================================
 
-// options_container_base
+// DOptionsContainerBase
 //   class: the canonical base mixin every container in the framework inherits
 // to gain the options surface. It wraps an `option_set<Options...>` and
 // re-exports its query surface:
@@ -344,7 +356,7 @@ using DContainerOptLockPolicy = option<container_axis::lock_policy, Policy>;
 //         // ::options_type, ::option_count, ::has_option_v<>, ::option_t<>
 //     };
 template<typename... Options>
-class options_container_base
+class DOptionsContainerBase
 {
 public:
     // options_type
@@ -377,9 +389,13 @@ public:
     using option_t = option_set_find_t<options_type, Key>;
 
 protected:
-    options_container_base() = default;
-    ~options_container_base() = default;
+    DOptionsContainerBase() = default;
+    ~DOptionsContainerBase() = default;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename... Options>
+using options_container_base = DOptionsContainerBase<Options...>;
 
 
 // ===========================================================================
@@ -431,7 +447,7 @@ NS_END  // internal
 //       container_axis_value<options_type, container_axis::structure,
 //                            container_structure::flat>::value;
 template<typename       Set,
-         container_axis Axis,
+         DContainerAxis Axis,
          auto           Default>
 struct container_axis_value
 {
@@ -445,7 +461,7 @@ struct container_axis_value
 // container_axis_value_v
 //   value: shorthand for container_axis_value<Set, Axis, Default>::value.
 template<typename       Set,
-         container_axis Axis,
+         DContainerAxis Axis,
          auto           Default>
 inline constexpr auto container_axis_value_v =
     container_axis_value<Set, Axis, Default>::value;
@@ -489,7 +505,7 @@ NS_END  // internal
 //                                        container_axis::lock_policy,
 //                                        null_lock_policy>;
 template<typename       Set,
-         container_axis Axis,
+         DContainerAxis Axis,
          typename       Default>
 struct container_axis_type
 {
@@ -502,7 +518,7 @@ struct container_axis_type
 // container_axis_type_t
 //   type: shorthand for container_axis_type<Set, Axis, Default>::type.
 template<typename       Set,
-         container_axis Axis,
+         DContainerAxis Axis,
          typename       Default>
 using container_axis_type_t =
     typename container_axis_type<Set, Axis, Default>::type;
@@ -511,16 +527,20 @@ using container_axis_type_t =
 #else  // pre-C++17: the option layer is unavailable (auto NTTPs / inline vars)
 
 
-// options_container_base (pre-C++17 fallback)
+// DOptionsContainerBase (pre-C++17 fallback)
 //   class: an empty base. The option-carrying surface needs C++17; below it a
 // container still builds, simply without ::options_type and the query members.
 template<typename... Options>
-class options_container_base
+class DOptionsContainerBase
 {
 protected:
-    options_container_base() = default;
-    ~options_container_base() = default;
+    DOptionsContainerBase() = default;
+    ~DOptionsContainerBase() = default;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename... Options>
+using options_container_base = DOptionsContainerBase<Options...>;
 
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

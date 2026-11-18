@@ -248,8 +248,8 @@ tests_memento_capability_aggregate
 */
 bool tests_memento_capability_aggregate()
 {
-    using full  = memento_capability<full_state>;
-    using plain = memento_capability<plain_state>;
+    using full  = DMementoCapability<full_state>;
+    using plain = DMementoCapability<plain_state>;
 
     bool ok = true;
 

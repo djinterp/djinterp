@@ -24,7 +24,7 @@ tests_read_write_exposes_container_type
 */
 bool tests_read_write_exposes_container_type()
 {
-    typedef dj::read_write_container<std::vector<int> > vec_handle;
+    typedef dj::DReadWriteContainer<std::vector<int> > vec_handle;
 
     D_RW_CHECK((std::is_same<vec_handle::container_type,
                              std::vector<int> >::value));
@@ -33,18 +33,18 @@ bool tests_read_write_exposes_container_type()
     D_RW_CHECK(!std::is_const<vec_handle::container_type>::value);
 
     D_RW_CHECK((std::is_same<
-                    dj::read_write_container<std::list<char> >
+                    dj::DReadWriteContainer<std::list<char> >
                         ::container_type,
                     std::list<char> >::value));
     D_RW_CHECK((std::is_same<
-                    dj::read_write_container<std::array<double, 2> >
+                    dj::DReadWriteContainer<std::array<double, 2> >
                         ::container_type,
                     std::array<double, 2> >::value));
 
     // the three overlays over one container agree on the held type
     D_RW_CHECK((std::is_same<
                     vec_handle::container_type,
-                    dj::read_only_container<std::vector<int> >
+                    dj::DReadOnlyContainer<std::vector<int> >
                         ::container_type>::value));
 
     return true;
@@ -60,7 +60,7 @@ tests_read_write_exposes_value_type
 */
 bool tests_read_write_exposes_value_type()
 {
-    typedef dj::read_write_container<std::vector<int> > vec_handle;
+    typedef dj::DReadWriteContainer<std::vector<int> > vec_handle;
 
     D_RW_CHECK((std::is_same<vec_handle::value_type, int>::value));
     D_RW_CHECK((std::is_same<vec_handle::value_type,
@@ -69,17 +69,17 @@ bool tests_read_write_exposes_value_type()
     D_RW_CHECK(!std::is_const<vec_handle::value_type>::value);
 
     D_RW_CHECK((std::is_same<
-                    dj::read_write_container<std::list<char> >::value_type,
+                    dj::DReadWriteContainer<std::list<char> >::value_type,
                     char>::value));
     D_RW_CHECK((std::is_same<
-                    dj::read_write_container<std::string>::value_type,
+                    dj::DReadWriteContainer<std::string>::value_type,
                     char>::value));
     D_RW_CHECK((std::is_same<
-                    dj::read_write_container<std::array<double, 2> >
+                    dj::DReadWriteContainer<std::array<double, 2> >
                         ::value_type,
                     double>::value));
     D_RW_CHECK((std::is_same<
-                    dj::read_write_container<std::vector<rw_probe_type> >
+                    dj::DReadWriteContainer<std::vector<rw_probe_type> >
                         ::value_type,
                     rw_probe_type>::value));
 
@@ -96,30 +96,30 @@ tests_read_write_capability_is_read_write
 */
 bool tests_read_write_capability_is_read_write()
 {
-    typedef dj::read_write_container<std::vector<int> > handle;
+    typedef dj::DReadWriteContainer<std::vector<int> > handle;
 
-    D_RW_CHECK((std::is_same<handle::capability, dj::read_write>::value));
-    D_RW_CHECK(!(std::is_same<handle::capability, dj::read_only>::value));
-    D_RW_CHECK(!(std::is_same<handle::capability, dj::write_only>::value));
+    D_RW_CHECK((std::is_same<handle::capability, dj::DReadWrite>::value));
+    D_RW_CHECK(!(std::is_same<handle::capability, dj::DReadOnly>::value));
+    D_RW_CHECK(!(std::is_same<handle::capability, dj::DWriteOnly>::value));
 
     D_RW_CHECK((std::is_same<
-                    dj::read_write_container<std::list<char> >::capability,
-                    dj::read_write>::value));
+                    dj::DReadWriteContainer<std::list<char> >::capability,
+                    dj::DReadWrite>::value));
     D_RW_CHECK((std::is_same<
-                    dj::read_write_container<std::array<int, 1> >::capability,
-                    dj::read_write>::value));
+                    dj::DReadWriteContainer<std::array<int, 1> >::capability,
+                    dj::DReadWrite>::value));
     D_RW_CHECK((std::is_same<
-                    dj::read_write_container<std::string>::capability,
-                    dj::read_write>::value));
+                    dj::DReadWriteContainer<std::string>::capability,
+                    dj::DReadWrite>::value));
 
     // the three overlays over one container carry three different tags
     D_RW_CHECK(!(std::is_same<
                      handle::capability,
-                     dj::read_only_container<std::vector<int> >
+                     dj::DReadOnlyContainer<std::vector<int> >
                          ::capability>::value));
     D_RW_CHECK(!(std::is_same<
                      handle::capability,
-                     dj::write_only_container<std::vector<int> >
+                     dj::DWriteOnlyContainer<std::vector<int> >
                          ::capability>::value));
 
     return true;
@@ -135,7 +135,7 @@ tests_read_write_capability_tag_semantics
 */
 bool tests_read_write_capability_tag_semantics()
 {
-    typedef dj::read_write_container<std::vector<int> >::capability cap;
+    typedef dj::DReadWriteContainer<std::vector<int> >::capability cap;
 
     D_RW_CHECK(cap::can_read);
     D_RW_CHECK(cap::can_write);
@@ -147,8 +147,8 @@ bool tests_read_write_capability_tag_semantics()
 
     // it is the only tag of the three permitting both
     D_RW_CHECK(cap::can_read && cap::can_write);
-    D_RW_CHECK(!(dj::read_only::can_read && dj::read_only::can_write));
-    D_RW_CHECK(!(dj::write_only::can_read && dj::write_only::can_write));
+    D_RW_CHECK(!(dj::DReadOnly::can_read && dj::DReadOnly::can_write));
+    D_RW_CHECK(!(dj::DWriteOnly::can_read && dj::DWriteOnly::can_write));
 
     // and the three names are distinct
     D_RW_CHECK(std::string(dj::read_only::name()) != std::string(cap::name()));
@@ -168,10 +168,10 @@ tests_read_write_typedefs_track_container
 */
 bool tests_read_write_typedefs_track_container()
 {
-    typedef dj::read_write_container<std::vector<int> >      h_vec;
-    typedef dj::read_write_container<std::list<char> >       h_list;
-    typedef dj::read_write_container<std::array<double, 4> > h_arr;
-    typedef dj::read_write_container<std::deque<long> >      h_deq;
+    typedef dj::DReadWriteContainer<std::vector<int> >      h_vec;
+    typedef dj::DReadWriteContainer<std::list<char> >       h_list;
+    typedef dj::DReadWriteContainer<std::array<double, 4> > h_arr;
+    typedef dj::DReadWriteContainer<std::deque<long> >      h_deq;
 
     D_RW_CHECK((std::is_same<h_vec::value_type,
                              h_vec::container_type::value_type>::value));
@@ -182,10 +182,10 @@ bool tests_read_write_typedefs_track_container()
     D_RW_CHECK((std::is_same<h_deq::value_type,
                              h_deq::container_type::value_type>::value));
 
-    D_RW_CHECK((std::is_same<h_vec::capability, dj::read_write>::value));
-    D_RW_CHECK((std::is_same<h_list::capability, dj::read_write>::value));
-    D_RW_CHECK((std::is_same<h_arr::capability, dj::read_write>::value));
-    D_RW_CHECK((std::is_same<h_deq::capability, dj::read_write>::value));
+    D_RW_CHECK((std::is_same<h_vec::capability, dj::DReadWrite>::value));
+    D_RW_CHECK((std::is_same<h_list::capability, dj::DReadWrite>::value));
+    D_RW_CHECK((std::is_same<h_arr::capability, dj::DReadWrite>::value));
+    D_RW_CHECK((std::is_same<h_deq::capability, dj::DReadWrite>::value));
 
     D_RW_CHECK(!(std::is_same<h_vec::value_type,
                               h_list::value_type>::value));

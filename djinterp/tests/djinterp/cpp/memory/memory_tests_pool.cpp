@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [cpp][memory]                                   memory_tests_pool.cpp
 *
-* The memory suite, block "pool": pool.hpp's raw_pool, the typed pool<T>,
+* The memory suite, block "pool": pool.hpp's DRawPool, the typed DPool<T>,
 * and the generational policy's DPoolHandle<T>.
 *
 *
@@ -23,7 +23,7 @@ NS_TESTING
 
 /*
 tests_memory_pool_raw
-  raw_pool.
+  DRawPool.
   Tests the following:
   - the slot is at least the size asked and aligned as asked
   - acquire gives distinct aligned slots; size counts the ones held
@@ -33,7 +33,7 @@ tests_memory_pool_raw
 bool
 tests_memory_pool_raw()
 {
-    raw_pool p(24,
+    DRawPool p(24,
                16);
     void*    slots[40] = {};
     void*    again     = nullptr;
@@ -102,7 +102,7 @@ tests_memory_pool_refusals()
     config.max_slots       = 4;
 
     {
-        raw_pool  p(config);
+        DRawPool  p(config);
         DMemBlock block = {};
 
         slot = p.acquire();
@@ -133,7 +133,7 @@ tests_memory_pool_refusals()
 
 #if (D_INTERNAL_MEM_SOURCE_NULL == 1)
     {
-        pool<double> starved(DMemorySource::refusing());
+        DPool<double> starved(DMemorySource::refusing());
 
         D_TEST_REQUIRE(starved.acquire() == nullptr);
         D_TEST_REQUIRE(starved.create(1.0) == nullptr);
@@ -145,7 +145,7 @@ tests_memory_pool_refusals()
 
 /*
 tests_memory_pool_objects
-  pool<T>.
+  DPool<T>.
   Tests the following:
   - its slot geometry is T's, fixed at compile time
   - create forwards to T's constructor; destroy runs T's destructor and
@@ -156,15 +156,15 @@ tests_memory_pool_objects
 bool
 tests_memory_pool_objects()
 {
-    pool<DMemoryTestsCounted> p;
+    DPool<DMemoryTestsCounted> p;
     const int                 before  = DMemoryTestsCounted::live();
     DMemoryTestsCounted*      a       = nullptr;
     DMemoryTestsCounted*      b       = nullptr;
 
-    static_assert(pool<DMemoryTestsThing>::slot_bytes ==
+    static_assert(DPool<DMemoryTestsThing>::slot_bytes ==
                       sizeof(DMemoryTestsThing),
                   "pool<T>'s slot is T's size");
-    static_assert(pool<DMemoryTestsThing>::slot_alignment ==
+    static_assert(DPool<DMemoryTestsThing>::slot_alignment ==
                       alignof(DMemoryTestsThing),
                   "pool<T>'s slot is T's alignment");
     D_TEST_REQUIRE(p.slot_size() >= sizeof(DMemoryTestsCounted));
@@ -185,7 +185,7 @@ tests_memory_pool_objects()
     D_TEST_REQUIRE(DMemoryTestsCounted::live() == before);
 
     {
-        pool<int, D_POOL_POLICY_MONOTONIC> bump;
+        DPool<int, D_POOL_POLICY_MONOTONIC> bump;
         int*                               slot = bump.acquire();
 
         D_TEST_REQUIRE(slot != nullptr);
@@ -213,7 +213,7 @@ bool
 tests_memory_pool_handles()
 {
 #if (D_INTERNAL_POOL_GENERATIONAL == 1)
-    using handle_pool = pool<DMemoryTestsThing, D_POOL_POLICY_GENERATIONAL>;
+    using handle_pool = DPool<DMemoryTestsThing, D_POOL_POLICY_GENERATIONAL>;
 
     handle_pool              p;
     handle_pool::handle_type first;
@@ -258,7 +258,7 @@ tests_memory_pool_lifetime
 bool
 tests_memory_pool_lifetime()
 {
-    raw_pool a(40,
+    DRawPool a(40,
                8);
     void*    slot = a.acquire();
 
@@ -268,7 +268,7 @@ tests_memory_pool_lifetime()
                 40);
 
     {
-        raw_pool b(std::move(a));
+        DRawPool b(std::move(a));
 
         D_TEST_REQUIRE(b.size() == 1);
 #if (D_INTERNAL_POOL_OWNS == 1)

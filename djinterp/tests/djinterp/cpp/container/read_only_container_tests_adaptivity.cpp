@@ -27,33 +27,33 @@ bool tests_read_only_observers_mirror_the_container()
 {
     // vector: every observer present on both sides
     D_RO_CHECK(ro_observers_match(
-                   ro_probe<dj::read_only_container<std::vector<int> > >(),
+                   ro_probe<dj::DReadOnlyContainer<std::vector<int> > >(),
                    ro_probe<std::vector<int> >()));
 
     // array
     D_RO_CHECK(ro_observers_match(
-                   ro_probe<dj::read_only_container<std::array<int, 4> > >(),
+                   ro_probe<dj::DReadOnlyContainer<std::array<int, 4> > >(),
                    ro_probe<std::array<int, 4> >()));
 
     // list: no subscript, no data on either side
     D_RO_CHECK(ro_observers_match(
-                   ro_probe<dj::read_only_container<std::list<int> > >(),
+                   ro_probe<dj::DReadOnlyContainer<std::list<int> > >(),
                    ro_probe<std::list<int> >()));
 
     // deque: subscript but no data on either side
     D_RO_CHECK(ro_observers_match(
-                   ro_probe<dj::read_only_container<std::deque<int> > >(),
+                   ro_probe<dj::DReadOnlyContainer<std::deque<int> > >(),
                    ro_probe<std::deque<int> >()));
 
     // string
     D_RO_CHECK(ro_observers_match(
-                   ro_probe<dj::read_only_container<std::string> >(),
+                   ro_probe<dj::DReadOnlyContainer<std::string> >(),
                    ro_probe<std::string>()));
 
     // the mutating side, by contrast, does NOT mirror
     D_RO_CHECK(ro_any_mutator(ro_probe<std::vector<int> >()));
     D_RO_CHECK(!ro_any_mutator(
-                   ro_probe<dj::read_only_container<std::vector<int> > >()));
+                   ro_probe<dj::DReadOnlyContainer<std::vector<int> > >()));
 
     return true;
 }
@@ -71,7 +71,7 @@ tests_read_only_omits_subscript_for_list
 */
 bool tests_read_only_omits_subscript_for_list()
 {
-    typedef dj::read_only_container<std::list<int> > list_handle;
+    typedef dj::DReadOnlyContainer<std::list<int> > list_handle;
 
     // std::list has no subscript, so neither does the handle
     D_RO_CHECK(!ro_has_sub<std::list<int> >::value);
@@ -89,11 +89,11 @@ bool tests_read_only_omits_subscript_for_list()
 
     // and a random-access container keeps its subscript
     D_RO_CHECK(ro_has_sub<
-                   dj::read_only_container<std::vector<int> > >::value);
+                   dj::DReadOnlyContainer<std::vector<int> > >::value);
     D_RO_CHECK(ro_has_sub<
-                   dj::read_only_container<std::deque<int> > >::value);
+                   dj::DReadOnlyContainer<std::deque<int> > >::value);
     D_RO_CHECK(ro_has_sub<
-                   dj::read_only_container<std::array<int, 2> > >::value);
+                   dj::DReadOnlyContainer<std::array<int, 2> > >::value);
 
     return true;
 }
@@ -110,23 +110,23 @@ bool tests_read_only_omits_data_for_node_containers()
 {
     // a list has no contiguous storage
     D_RO_CHECK(!ro_has_data<std::list<int> >::value);
-    D_RO_CHECK(!ro_has_data<dj::read_only_container<std::list<int> > >::value);
+    D_RO_CHECK(!ro_has_data<dj::DReadOnlyContainer<std::list<int> > >::value);
 
     // nor does a deque, despite offering random access
     D_RO_CHECK(!ro_has_data<std::deque<int> >::value);
     D_RO_CHECK(!ro_has_data<
-                   dj::read_only_container<std::deque<int> > >::value);
+                   dj::DReadOnlyContainer<std::deque<int> > >::value);
 
     // a vector, array and string all do
     D_RO_CHECK(ro_has_data<std::vector<int> >::value);
     D_RO_CHECK(ro_has_data<
-                   dj::read_only_container<std::vector<int> > >::value);
+                   dj::DReadOnlyContainer<std::vector<int> > >::value);
     D_RO_CHECK(ro_has_data<
-                   dj::read_only_container<std::array<int, 3> > >::value);
-    D_RO_CHECK(ro_has_data<dj::read_only_container<std::string> >::value);
+                   dj::DReadOnlyContainer<std::array<int, 3> > >::value);
+    D_RO_CHECK(ro_has_data<dj::DReadOnlyContainer<std::string> >::value);
 
     // the deque case is the interesting one: subscript without data
-    typedef dj::read_only_container<std::deque<int> > deque_handle;
+    typedef dj::DReadOnlyContainer<std::deque<int> > deque_handle;
 
     D_RO_CHECK(ro_has_sub<deque_handle>::value);
     D_RO_CHECK(!ro_has_data<deque_handle>::value);
@@ -148,7 +148,7 @@ bool tests_read_only_supports_array_and_string()
     // a fixed-size container is never empty and knows its own size
     std::array<int, 3> raw = { { 7, 8, 9 } };
 
-    const dj::read_only_container<std::array<int, 3> > a(raw);
+    const dj::DReadOnlyContainer<std::array<int, 3> > a(raw);
 
     D_RO_CHECK(a.size() == 3u);
     D_RO_CHECK(!a.empty());
@@ -159,13 +159,13 @@ bool tests_read_only_supports_array_and_string()
     D_RO_CHECK(a.data()[1] == 8);
 
     // a default-constructed one still reports its fixed size
-    const dj::read_only_container<std::array<int, 3> > d;
+    const dj::DReadOnlyContainer<std::array<int, 3> > d;
 
     D_RO_CHECK(d.size() == 3u);
     D_RO_CHECK(!d.empty());
 
     // a character container
-    const dj::read_only_container<std::string> s(std::string("hello"));
+    const dj::DReadOnlyContainer<std::string> s(std::string("hello"));
 
     D_RO_CHECK(s.size() == 5u);
     D_RO_CHECK(!s.empty());
@@ -177,9 +177,9 @@ bool tests_read_only_supports_array_and_string()
 
     // both carry the full contiguous surface and no mutator
     D_RO_CHECK(!ro_any_mutator(
-                   ro_probe<dj::read_only_container<std::array<int, 3> > >()));
+                   ro_probe<dj::DReadOnlyContainer<std::array<int, 3> > >()));
     D_RO_CHECK(!ro_any_mutator(
-                   ro_probe<dj::read_only_container<std::string> >()));
+                   ro_probe<dj::DReadOnlyContainer<std::string> >()));
 
     return true;
 }
@@ -195,7 +195,7 @@ tests_read_only_is_usable_in_constant_expressions
 */
 bool tests_read_only_is_usable_in_constant_expressions()
 {
-    typedef dj::read_only_container<std::array<int, 3> > handle;
+    typedef dj::DReadOnlyContainer<std::array<int, 3> > handle;
 
     // built and observed entirely at compile time
     constexpr std::array<int, 3> raw = { { 4, 5, 6 } };

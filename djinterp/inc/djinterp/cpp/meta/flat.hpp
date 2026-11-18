@@ -44,9 +44,9 @@
 NS_DJINTERP
 
 
-// flat
+// DFlat
 //   tag: the structural kind of a container that holds only leaves (depth 1).
-struct flat
+struct DFlat
 {
     static D_CONSTEXPR_VAR bool        nests     = false;   // no node summand
     static D_CONSTEXPR_VAR std::size_t min_depth = 1;       // every component a
@@ -57,6 +57,9 @@ struct flat
     // taking the name never requires an out-of-line definition).
     static D_CONSTEXPR const char* name() D_NOEXCEPT { return "flat"; }
 };
+
+// old name, until 0.9.0-rc.1
+typedef DFlat flat;
 
 
 NS_END  // djinterp

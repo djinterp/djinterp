@@ -38,38 +38,38 @@ bool tests_container_memory_discipline()
     bool _cm_ok = true;
 
     // -- individual: the plain-allocator default (step 2, discipline_of -> unknown) --
-    D_CM_CHECK( (container_memory_discipline<std::vector<int>>::value        == memory_discipline::individual) );
-    D_CM_CHECK( (container_memory_discipline<std::deque<int>>::value         == memory_discipline::individual) );
-    D_CM_CHECK( (container_memory_discipline<std::list<int>>::value          == memory_discipline::individual) );
-    D_CM_CHECK( (container_memory_discipline<std::forward_list<int>>::value  == memory_discipline::individual) );
-    D_CM_CHECK( (container_memory_discipline<std::set<int>>::value           == memory_discipline::individual) );
-    D_CM_CHECK( (container_memory_discipline<std::multiset<int>>::value      == memory_discipline::individual) );
-    D_CM_CHECK( (container_memory_discipline<std::unordered_set<int>>::value == memory_discipline::individual) );
-    D_CM_CHECK( (container_memory_discipline<std::map<int, int>>::value      == memory_discipline::individual) );
-    D_CM_CHECK( (container_memory_discipline<std::string>::value            == memory_discipline::individual) );
+    D_CM_CHECK( (container_memory_discipline<std::vector<int>>::value        == DMemoryDiscipline::individual) );
+    D_CM_CHECK( (container_memory_discipline<std::deque<int>>::value         == DMemoryDiscipline::individual) );
+    D_CM_CHECK( (container_memory_discipline<std::list<int>>::value          == DMemoryDiscipline::individual) );
+    D_CM_CHECK( (container_memory_discipline<std::forward_list<int>>::value  == DMemoryDiscipline::individual) );
+    D_CM_CHECK( (container_memory_discipline<std::set<int>>::value           == DMemoryDiscipline::individual) );
+    D_CM_CHECK( (container_memory_discipline<std::multiset<int>>::value      == DMemoryDiscipline::individual) );
+    D_CM_CHECK( (container_memory_discipline<std::unordered_set<int>>::value == DMemoryDiscipline::individual) );
+    D_CM_CHECK( (container_memory_discipline<std::map<int, int>>::value      == DMemoryDiscipline::individual) );
+    D_CM_CHECK( (container_memory_discipline<std::string>::value            == DMemoryDiscipline::individual) );
     // individual via the bare out-of-line shape (step 4: reserve(), no allocator)
-    D_CM_CHECK( (container_memory_discipline<reserve_only>::value            == memory_discipline::individual) );
+    D_CM_CHECK( (container_memory_discipline<reserve_only>::value            == DMemoryDiscipline::individual) );
     // individual via an explicit heap strategy (step 1 -> discipline_of -> individual)
-    D_CM_CHECK( (container_memory_discipline<inconsistent_individual_static>::value == memory_discipline::individual) );
+    D_CM_CHECK( (container_memory_discipline<inconsistent_individual_static>::value == DMemoryDiscipline::individual) );
     // individual via allocator precedence over a static signal (step 2 beats step 3)
-    D_CM_CHECK( (container_memory_discipline<alloc_beats_static>::value      == memory_discipline::individual) );
+    D_CM_CHECK( (container_memory_discipline<alloc_beats_static>::value      == DMemoryDiscipline::individual) );
 
     // -- none: an inline aggregate (step 3) or a descriptive strategy (step 1) --
-    D_CM_CHECK( (container_memory_discipline<std::array<int, 4>>::value      == memory_discipline::none) );  // tuple_size signal
-    D_CM_CHECK( (container_memory_discipline<extent_aggregate>::value        == memory_discipline::none) );  // extent signal
-    D_CM_CHECK( (container_memory_discipline<descriptive_via_strategy>::value == memory_discipline::none) );  // strategy allocates nothing
+    D_CM_CHECK( (container_memory_discipline<std::array<int, 4>>::value      == DMemoryDiscipline::none) );  // tuple_size signal
+    D_CM_CHECK( (container_memory_discipline<extent_aggregate>::value        == DMemoryDiscipline::none) );  // extent signal
+    D_CM_CHECK( (container_memory_discipline<descriptive_via_strategy>::value == DMemoryDiscipline::none) );  // strategy allocates nothing
 
     // -- pooled: an explicit alias, or an allocator that declares the discipline --
-    D_CM_CHECK( (container_memory_discipline<pooled_via_strategy>::value     == memory_discipline::pooled) );   // step 1
-    D_CM_CHECK( (container_memory_discipline<pooled_via_allocator>::value    == memory_discipline::pooled) );   // step 2 declared
+    D_CM_CHECK( (container_memory_discipline<pooled_via_strategy>::value     == DMemoryDiscipline::pooled) );   // step 1
+    D_CM_CHECK( (container_memory_discipline<pooled_via_allocator>::value    == DMemoryDiscipline::pooled) );   // step 2 declared
 
     // -- arena: an explicit alias to a monotone strategy --
-    D_CM_CHECK( (container_memory_discipline<arena_via_strategy>::value      == memory_discipline::arena) );
+    D_CM_CHECK( (container_memory_discipline<arena_via_strategy>::value      == DMemoryDiscipline::arena) );
 
     // -- unknown: not resolvable --
-    D_CM_CHECK( (container_memory_discipline<int>::value                     == memory_discipline::unknown) );  // step 5
+    D_CM_CHECK( (container_memory_discipline<int>::value                     == DMemoryDiscipline::unknown) );  // step 5
     // alias precedence: the alias resolves to unknown and wins over the allocator
-    D_CM_CHECK( (container_memory_discipline<alias_unknown_container>::value == memory_discipline::unknown) );
+    D_CM_CHECK( (container_memory_discipline<alias_unknown_container>::value == DMemoryDiscipline::unknown) );
 
     return _cm_ok;
 }
@@ -82,18 +82,18 @@ bool tests_container_memory_discipline_companions()
     bool _cm_ok = true;
 
     // the ::type carrier exposes the same value
-    D_CM_CHECK( (container_memory_discipline_t<std::vector<int>>::value == memory_discipline::individual) );
-    D_CM_CHECK( (container_memory_discipline_t<std::array<int, 4>>::value == memory_discipline::none) );
-    D_CM_CHECK( (container_memory_discipline_t<pooled_via_strategy>::value == memory_discipline::pooled) );
-    D_CM_CHECK( (container_memory_discipline_t<int>::value == memory_discipline::unknown) );
+    D_CM_CHECK( (container_memory_discipline_t<std::vector<int>>::value == DMemoryDiscipline::individual) );
+    D_CM_CHECK( (container_memory_discipline_t<std::array<int, 4>>::value == DMemoryDiscipline::none) );
+    D_CM_CHECK( (container_memory_discipline_t<pooled_via_strategy>::value == DMemoryDiscipline::pooled) );
+    D_CM_CHECK( (container_memory_discipline_t<int>::value == DMemoryDiscipline::unknown) );
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // the _v companion mirrors ::value
     D_CM_CHECK( (container_memory_discipline_v<std::vector<int>>
                      == container_memory_discipline<std::vector<int>>::value) );
-    D_CM_CHECK( (container_memory_discipline_v<arena_via_strategy>  == memory_discipline::arena) );
-    D_CM_CHECK( (container_memory_discipline_v<pooled_via_allocator> == memory_discipline::pooled) );
-    D_CM_CHECK( (container_memory_discipline_v<std::array<int, 4>>  == memory_discipline::none) );
+    D_CM_CHECK( (container_memory_discipline_v<arena_via_strategy>  == DMemoryDiscipline::arena) );
+    D_CM_CHECK( (container_memory_discipline_v<pooled_via_allocator> == DMemoryDiscipline::pooled) );
+    D_CM_CHECK( (container_memory_discipline_v<std::array<int, 4>>  == DMemoryDiscipline::none) );
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
     return _cm_ok;

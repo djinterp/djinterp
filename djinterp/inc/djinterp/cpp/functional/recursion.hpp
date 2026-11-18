@@ -87,7 +87,7 @@ NS_DJINTERP
 //  I.   mu<F>  —  the least fixed point μF
 // ================================================================
 
-// mu
+// DMu
 //   class: the least fixed point of the functor F.  A value is one
 // F-layer whose recursive holes contain further mu<F> values —
 // In : F(μF) → μF is the initial algebra, out : μF → F(μF) its
@@ -100,16 +100,16 @@ NS_DJINTERP
 // shape functional::free and the poly_* functors use), and must be
 // a registered Functor for mu<F> to be foldable via cata.
 template<template<typename> class F>
-class mu
+class DMu
 {
 public:
     // layer_type
     //   alias: one unrolled layer, F(μF).  Naming this type does
     // not instantiate F<mu<F>> — instantiation is deferred to In
     // / out bodies, by which point mu<F> is complete.
-    using layer_type = F<mu<F> >;
+    using layer_type = F<DMu<F> >;
 
-    mu()
+    DMu()
         : m_out()
     {}
 
@@ -117,11 +117,11 @@ public:
     //   factory: the initial algebra F(μF) → μF.  Boxes one layer.
     D_NODISCARD
     static
-    mu In(
+    DMu In(
         const layer_type& _layer
     )
     {
-        mu _m;
+        DMu _m;
         _m.m_out = std::make_shared<layer_type>(_layer);
         return _m;
     }
@@ -146,6 +146,10 @@ public:
 private:
     std::shared_ptr<layer_type> m_out;
 };
+
+// old name, until 0.9.0-rc.1
+template<template<typename> class F>
+using mu = DMu<F>;
 
 
 // ================================================================
@@ -282,7 +286,7 @@ struct is_corecursive
 // recursive_traits<mu<F>>
 //   specialisation: the canonical fixed point folds via out.
 template<template<typename> class F>
-struct recursive_traits<mu<F>, void>
+struct recursive_traits<DMu<F>, void>
 {
     using is_specialized = std::true_type;
 
@@ -290,8 +294,8 @@ struct recursive_traits<mu<F>, void>
     using base = F<A>;
 
     static
-    F<mu<F> > project(
-        const mu<F>& _m
+    F<DMu<F> > project(
+        const DMu<F>& _m
     )
     {
         return _m.out();
@@ -301,7 +305,7 @@ struct recursive_traits<mu<F>, void>
 // corecursive_traits<mu<F>>
 //   specialisation: the canonical fixed point builds via In.
 template<template<typename> class F>
-struct corecursive_traits<mu<F>, void>
+struct corecursive_traits<DMu<F>, void>
 {
     using is_specialized = std::true_type;
 
@@ -309,11 +313,11 @@ struct corecursive_traits<mu<F>, void>
     using base = F<A>;
 
     static
-    mu<F> embed(
-        const F<mu<F> >& _layer
+    DMu<F> embed(
+        const F<DMu<F> >& _layer
     )
     {
-        return mu<F>::In(_layer);
+        return DMu<F>::In(_layer);
     }
 };
 

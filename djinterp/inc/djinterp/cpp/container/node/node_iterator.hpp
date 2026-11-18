@@ -47,10 +47,10 @@ NS_DJINTERP
     // I.   TRAVERSAL POLICIES
     // =========================================================================
 
-    // dfs_policy
+    // DDfsPolicy
     //   struct: Depth-First Search (pre-order) policy. State requirement: LIFO
     // stack (std::vector used as stack).
-    struct dfs_policy
+    struct DDfsPolicy
     {
         template<typename State,
                  typename Node>
@@ -87,11 +87,14 @@ NS_DJINTERP
         }
     };
 
-    // bfs_policy
+    // old name, until 0.9.0-rc.1
+    using dfs_policy = DDfsPolicy;
+
+    // DBfsPolicy
     //   struct: Breadth-First Search (level-order) policy. State requirement:
     // FIFO queue. Implemented via vector with a read-head for constexpr
     // safety.
-    struct bfs_policy
+    struct DBfsPolicy
     {
         template<typename State,
                  typename Node>
@@ -125,12 +128,15 @@ NS_DJINTERP
         }
     };
 
-    // post_order_policy
+    // old name, until 0.9.0-rc.1
+    using bfs_policy = DBfsPolicy;
+
+    // DPostOrderPolicy
     //   struct: Depth-First Post-Order policy. Uses a two-stack approach: push
     // children to a work stack,
     // transfer to an output stack, then pop from output to yield nodes in
     // post-order.
-    struct post_order_policy
+    struct DPostOrderPolicy
     {
         template<typename State,
                  typename Node>
@@ -188,6 +194,9 @@ NS_DJINTERP
         }
     };
 
+    // old name, until 0.9.0-rc.1
+    using post_order_policy = DPostOrderPolicy;
+
 
     // =========================================================================
     // II.  ITERATOR STATE WRAPPERS
@@ -237,7 +246,7 @@ NS_DJINTERP
     // III. ARENA ITERATOR
     // =========================================================================
 
-    // arena_iterator
+    // DArenaIterator
     //   class: a stateful, forward iterator that traverses an external arena
     // of variant nodes using a specified traversal policy.
     //
@@ -249,9 +258,9 @@ NS_DJINTERP
     //   IsConst — when true, yields const references
     template<typename ArenaType,
              typename ValueType,
-             typename Policy   = dfs_policy,
+             typename Policy   = DDfsPolicy,
              bool     IsConst = false>
-    class arena_iterator
+    class DArenaIterator
     {
     public:
         using iterator_category = std::forward_iterator_tag;
@@ -272,10 +281,10 @@ NS_DJINTERP
     private:
         // Resolve state type based on policy
         using state_type = std::conditional_t<
-            std::is_same_v<Policy, bfs_policy>,
+            std::is_same_v<Policy, DBfsPolicy>,
             internal::bfs_state<index_type>,
             std::conditional_t<
-                std::is_same_v<Policy, post_order_policy>,
+                std::is_same_v<Policy, DPostOrderPolicy>,
                 internal::post_order_state<index_type>,
                 std::vector<index_type>
             >
@@ -293,7 +302,7 @@ NS_DJINTERP
         // arena_iterator
         //   constructor: default. Constructs an end() iterator.
         D_CONSTEXPR
-        arena_iterator()
+        DArenaIterator()
             : m_arena(nullptr),
               m_current_id(npos)
         {}
@@ -301,23 +310,23 @@ NS_DJINTERP
         // arena_iterator
         //   constructor: constructs from an arena and a starting root ID.
         D_CONSTEXPR
-        arena_iterator(arena_ptr  _arena,
+        DArenaIterator(arena_ptr  _arena,
                        index_type _root_id)
             : m_arena(_arena),
               m_current_id(_root_id)
         {
             if (m_arena && (m_current_id < m_arena->size()))
             {
-                if constexpr (std::is_same_v<Policy, post_order_policy>)
+                if constexpr (std::is_same_v<Policy, DPostOrderPolicy>)
                 {
                     // Post-order: build the entire output stack up front
                     m_state.work.push_back(m_current_id);
-                    post_order_policy::build_output(m_state, *m_arena);
+                    DPostOrderPolicy::build_output(m_state, *m_arena);
 
                     // Prime the first element
                     if (!m_state.empty())
                     {
-                        m_current_id = post_order_policy::pop(m_state);
+                        m_current_id = DPostOrderPolicy::pop(m_state);
                     }
                     else
                     {
@@ -358,16 +367,16 @@ NS_DJINTERP
         // traversal
         // -----------------------------------------------------------------
 
-        D_CONSTEXPR arena_iterator& operator++()
+        D_CONSTEXPR DArenaIterator& operator++()
         {
             advance();
 
             return *this;
         }
 
-        D_CONSTEXPR arena_iterator operator++(int)
+        D_CONSTEXPR DArenaIterator operator++(int)
         {
-            arena_iterator tmp = *this;
+            DArenaIterator tmp = *this;
             advance();
 
             return tmp;
@@ -378,14 +387,14 @@ NS_DJINTERP
         // comparison
         // -----------------------------------------------------------------
 
-        D_CONSTEXPR friend bool operator==(const arena_iterator& _a,
-                                           const arena_iterator& _b)
+        D_CONSTEXPR friend bool operator==(const DArenaIterator& _a,
+                                           const DArenaIterator& _b)
         {
             return (_a.m_current_id == _b.m_current_id);
         }
 
-        D_CONSTEXPR friend bool operator!=(const arena_iterator& _a,
-                                           const arena_iterator& _b)
+        D_CONSTEXPR friend bool operator!=(const DArenaIterator& _a,
+                                           const DArenaIterator& _b)
         {
             return !(_a == _b);
         }
@@ -393,11 +402,11 @@ NS_DJINTERP
     private:
         D_CONSTEXPR void push_to_state(index_type _id)
         {
-            if constexpr (std::is_same_v<Policy, bfs_policy>)
+            if constexpr (std::is_same_v<Policy, DBfsPolicy>)
             {
                 m_state.queue.push_back(_id);
             }
-            else if constexpr (std::is_same_v<Policy, post_order_policy>)
+            else if constexpr (std::is_same_v<Policy, DPostOrderPolicy>)
             {
                 m_state.work.push_back(_id);
             }
@@ -409,7 +418,7 @@ NS_DJINTERP
 
         D_CONSTEXPR void advance()
         {
-            if constexpr (std::is_same_v<Policy, post_order_policy>)
+            if constexpr (std::is_same_v<Policy, DPostOrderPolicy>)
             {
                 if (m_state.empty())
                 {
@@ -418,7 +427,7 @@ NS_DJINTERP
                     return;
                 }
 
-                m_current_id = post_order_policy::pop(m_state);
+                m_current_id = DPostOrderPolicy::pop(m_state);
             }
             else
             {
@@ -444,17 +453,30 @@ NS_DJINTERP
         state_type m_state;
     };
 
+    // old name, until 0.9.0-rc.1
+    template<typename ArenaType,
+             typename ValueType,
+             typename Policy   = DDfsPolicy,
+             bool     IsConst = false>
+    using arena_iterator = DArenaIterator<ArenaType, ValueType, Policy, IsConst>;
+
     // =========================================================================
     // IV.  CONVENIENCE ALIASES
     // =========================================================================
 
-    // const_arena_iterator
+    // DConstArenaIterator
     //   type: const variant of arena_iterator.
     template<typename ArenaType,
              typename ValueType,
-             typename Policy = dfs_policy>
-    using const_arena_iterator =
-        arena_iterator<ArenaType, ValueType, Policy, true>;
+             typename Policy = DDfsPolicy>
+    using DConstArenaIterator =
+        DArenaIterator<ArenaType, ValueType, Policy, true>;
+
+    // old name, until 0.9.0-rc.1
+    template<typename ArenaType,
+             typename ValueType,
+             typename Policy = DDfsPolicy>
+    using const_arena_iterator = DConstArenaIterator<ArenaType, ValueType, Policy>;
 
 
 NS_END  // djinterp

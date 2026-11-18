@@ -36,24 +36,24 @@ bool tests_lifetime_relation()
     bool ok = true;
 
     // equal stages
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (lifetime_relation<DRuntimeSeq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (lifetime_relation<DCompileSeq, DCompileSeq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (lifetime_relation<DRuntimeSeq, DConstSeq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (lifetime_relation<DCompileSeq, DCompileConstSeq>::value));
 
     // compile-time is the stronger end
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (lifetime_relation<DCompileSeq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::less,
+    D_CCM_REL(DOrderRelation::less,
               (lifetime_relation<DRuntimeSeq, DCompileSeq>::value));
 
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (lifetime_relation<DCompileConstSeq, DConstSeq>::value));
-    D_CCM_REL(order_relation::less,
+    D_CCM_REL(DOrderRelation::less,
               (lifetime_relation<DConstSeq, DCompileConstSeq>::value));
 
     // and the stages really are what they say
@@ -61,9 +61,9 @@ bool tests_lifetime_relation()
     D_CCM_CHECK(!is_compile_time(container_lifetime_of<DRuntimeSeq>::value));
 
     // a non-container is runtime, so it is `less` than any compile-time container
-    D_CCM_REL(order_relation::less,
+    D_CCM_REL(DOrderRelation::less,
               (lifetime_relation<DNotAContainer, DCompileSeq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (lifetime_relation<DNotAContainer, DRuntimeSeq>::value));
 
     return ok;
@@ -93,9 +93,9 @@ bool tests_lifetime_is_total()
 
     #define D_CCM_NOT_IC(LEFT, RIGHT)                                         \
         D_CCM_CHECK((lifetime_relation<LEFT, RIGHT>::value) !=                \
-                    order_relation::incomparable);                            \
+                    DOrderRelation::incomparable);                            \
         D_CCM_CHECK((lifetime_relation<RIGHT, LEFT>::value) !=                \
-                    order_relation::incomparable)
+                    DOrderRelation::incomparable)
 
     D_CCM_NOT_IC(DRuntimeSeq,       DCompileSeq);
     D_CCM_NOT_IC(DRuntimeSeq,       DConstSeq);
@@ -112,10 +112,10 @@ bool tests_lifetime_is_total()
 
     // ONE BIT out of four lattice values.  A container declared to have NO
     // lifetime at all reads the same as a runtime one on this axis
-    D_CCM_CHECK(!is_compile_time(lifetime::none));
-    D_CCM_CHECK(!is_compile_time(lifetime::runtime));
-    D_CCM_CHECK(is_compile_time(lifetime::compile_time));
-    D_CCM_CHECK(is_compile_time(lifetime::both));
+    D_CCM_CHECK(!is_compile_time(DLifetime::none));
+    D_CCM_CHECK(!is_compile_time(DLifetime::runtime));
+    D_CCM_CHECK(is_compile_time(DLifetime::compile_time));
+    D_CCM_CHECK(is_compile_time(DLifetime::both));
 
     return ok;
 }
@@ -138,20 +138,20 @@ bool tests_iterability_bottom()
     bool ok = true;
 
     // both at the bottom
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (DIterabilityRelation<DNotAContainer, DNotAContainer>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (DIterabilityRelation<DNotIterable, DNotIterable>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (DIterabilityRelation<DNotAContainer, DNotIterable>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (DIterabilityRelation<int, void>::value));
 
     // the bottom is below all four iterable kinds
     #define D_CCM_ABOVE_BOTTOM(ITERABLE)                                      \
-        D_CCM_REL(order_relation::greater,                                    \
+        D_CCM_REL(DOrderRelation::greater,                                    \
                   (DIterabilityRelation<ITERABLE, DNotIterable>::value));     \
-        D_CCM_REL(order_relation::less,                                       \
+        D_CCM_REL(DOrderRelation::less,                                       \
                   (DIterabilityRelation<DNotIterable, ITERABLE>::value))
 
     D_CCM_ABOVE_BOTTOM(DConstSeq);          // (runtime, const)
@@ -165,7 +165,7 @@ bool tests_iterability_bottom()
     D_CCM_CHECK(!is_iterable_container<DNotIterable>::value);
     D_CCM_CHECK(!is_iterable_container<DNotAContainer>::value);
     D_CCM_CHECK(is_iterable_container<DConstSeq>::value);
-    D_CCM_CHECK(iteration_mode_of<DNotIterable>::value == iteration_mode::none);
+    D_CCM_CHECK(iteration_mode_of<DNotIterable>::value == DIterationMode::none);
 
     return ok;
 }
@@ -201,37 +201,37 @@ bool tests_iterability_lattice()
                   (DIterabilityRelation<RIGHT, LEFT>::value))
 
     // the diagonal: both bits up
-    D_CCM_ITER(order_relation::greater, DCompileSeq, DConstSeq);
+    D_CCM_ITER(DOrderRelation::greater, DCompileSeq, DConstSeq);
 
     // one bit at a time, up from the bottom iterable kind
-    D_CCM_ITER(order_relation::greater, DRuntimeSeq,       DConstSeq);
-    D_CCM_ITER(order_relation::greater, DCompileConstSeq, DConstSeq);
+    D_CCM_ITER(DOrderRelation::greater, DRuntimeSeq,       DConstSeq);
+    D_CCM_ITER(DOrderRelation::greater, DCompileConstSeq, DConstSeq);
 
     // one bit at a time, up to the top
-    D_CCM_ITER(order_relation::greater, DCompileSeq, DRuntimeSeq);
-    D_CCM_ITER(order_relation::greater, DCompileSeq, DCompileConstSeq);
+    D_CCM_ITER(DOrderRelation::greater, DCompileSeq, DRuntimeSeq);
+    D_CCM_ITER(DOrderRelation::greater, DCompileSeq, DCompileConstSeq);
 
     #undef D_CCM_ITER
 
     // equal on both bits - and between different types
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (DIterabilityRelation<DRuntimeSeq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (DIterabilityRelation<DRuntimeSeq, DNestedSeq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (DIterabilityRelation<DRuntimeSeq, DSortedSeq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (DIterabilityRelation<DConstSeq, DConstSeq>::value));
 
     // the four cells really are the four cells
     D_CCM_CHECK(iteration_mode_of<DConstSeq>::value ==
-                iteration_mode::const_only);
+                DIterationMode::const_only);
     D_CCM_CHECK(iteration_mode_of<DRuntimeSeq>::value ==
-                iteration_mode::non_const);
+                DIterationMode::non_const);
     D_CCM_CHECK(iteration_mode_of<DCompileConstSeq>::value ==
-                iteration_mode::const_only);
+                DIterationMode::const_only);
     D_CCM_CHECK(iteration_mode_of<DCompileSeq>::value ==
-                iteration_mode::non_const);
+                DIterationMode::non_const);
 
     D_CCM_CHECK(!is_compile_time(container_lifetime_of<DConstSeq>::value));
     D_CCM_CHECK(!is_compile_time(container_lifetime_of<DRuntimeSeq>::value));
@@ -269,40 +269,40 @@ bool tests_iterability_mixed_kinds()
     bool ok = true;
 
     // *** the mixed kinds ***
-    D_CCM_REL(order_relation::incomparable,
+    D_CCM_REL(DOrderRelation::incomparable,
               (DIterabilityRelation<DCompileConstSeq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::incomparable,
+    D_CCM_REL(DOrderRelation::incomparable,
               (DIterabilityRelation<DRuntimeSeq, DCompileConstSeq>::value));
 
     // ...and they really are mixed: each has one bit the other lacks
     D_CCM_CHECK(is_compile_time(container_lifetime_of<DCompileConstSeq>::value) &&
                 !is_compile_time(container_lifetime_of<DRuntimeSeq>::value));
     D_CCM_CHECK((iteration_mode_of<DRuntimeSeq>::value ==
-                 iteration_mode::non_const) &&
+                 DIterationMode::non_const) &&
                 (iteration_mode_of<DCompileConstSeq>::value ==
-                 iteration_mode::const_only));
+                 DIterationMode::const_only));
 
     // each is strictly between the bottom and the top iterable kind, so the
     // lattice really has a middle
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (DIterabilityRelation<DCompileConstSeq, DConstSeq>::value));
-    D_CCM_REL(order_relation::less,
+    D_CCM_REL(DOrderRelation::less,
               (DIterabilityRelation<DCompileConstSeq, DCompileSeq>::value));
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (DIterabilityRelation<DRuntimeSeq, DConstSeq>::value));
-    D_CCM_REL(order_relation::less,
+    D_CCM_REL(DOrderRelation::less,
               (DIterabilityRelation<DRuntimeSeq, DCompileSeq>::value));
 
     // and the meet consequence: one incomparable axis is enough
-    D_CCM_REL(order_relation::incomparable,
+    D_CCM_REL(DOrderRelation::incomparable,
               (refinement_of<DCompileConstSeq, DRuntimeSeq>::value));
 
     // ...even though the LIFETIME axis, taken alone, would have ordered them
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (lifetime_relation<DCompileConstSeq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (discipline_relation<DCompileConstSeq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (storage_relation<DCompileConstSeq, DRuntimeSeq>::value));
 
     // meet(equivalent, greater, incomparable, equivalent) = incomparable.  A
@@ -328,20 +328,20 @@ bool tests_storage_relation()
     bool ok = true;
 
     // same siting
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (storage_relation<static_seq, static_seq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (storage_relation<dynamic_seq, dynamic_seq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (storage_relation<DHybridSeq, DHybridSeq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (storage_relation<DRuntimeSeq, DConstSeq>::value));   // both unknown
 
     // different siting: INCOMPARABLE, both ways, always
     #define D_CCM_STOR_IC(LEFT, RIGHT)                                        \
-        D_CCM_REL(order_relation::incomparable,                               \
+        D_CCM_REL(DOrderRelation::incomparable,                               \
                   (storage_relation<LEFT, RIGHT>::value));                    \
-        D_CCM_REL(order_relation::incomparable,                               \
+        D_CCM_REL(DOrderRelation::incomparable,                               \
                   (storage_relation<RIGHT, LEFT>::value))
 
     D_CCM_STOR_IC(static_seq,  dynamic_seq);
@@ -354,17 +354,17 @@ bool tests_storage_relation()
 
     // hybrid CONTAINS static as a bit pattern - and the axis still does not order
     // them, because it is an equivalence and not a lattice
-    D_CCM_CHECK((static_cast<unsigned>(storage_duration::hybrid_storage) &
-                 static_cast<unsigned>(storage_duration::static_storage)) != 0u);
-    D_CCM_REL(order_relation::incomparable,
+    D_CCM_CHECK((static_cast<unsigned>(DStorageDuration::hybrid_storage) &
+                 static_cast<unsigned>(DStorageDuration::static_storage)) != 0u);
+    D_CCM_REL(DOrderRelation::incomparable,
               (storage_relation<DHybridSeq, static_seq>::value));
 
     // the axis NEVER orders
     #define D_CCM_NEVER_ORDERED(LEFT, RIGHT)                                  \
         D_CCM_CHECK((storage_relation<LEFT, RIGHT>::value) !=                 \
-                    order_relation::greater);                                 \
+                    DOrderRelation::greater);                                 \
         D_CCM_CHECK((storage_relation<LEFT, RIGHT>::value) !=                 \
-                    order_relation::less)
+                    DOrderRelation::less)
 
     D_CCM_NEVER_ORDERED(static_seq, dynamic_seq);
     D_CCM_NEVER_ORDERED(DHybridSeq, static_seq);
@@ -425,36 +425,36 @@ bool tests_storage_inert()
 
     // nothing in the standard library declares a siting
     D_CCM_CHECK(storage_of<std_vector>::value ==
-                storage_duration::unknown);
+                DStorageDuration::unknown);
     D_CCM_CHECK(storage_of<std_array>::value ==
-                storage_duration::unknown);
+                DStorageDuration::unknown);
     D_CCM_CHECK(storage_of<std_list>::value ==
-                storage_duration::unknown);
-    D_CCM_CHECK(storage_of<std_set>::value == storage_duration::unknown);
-    D_CCM_CHECK(storage_of<int>::value == storage_duration::unknown);
+                DStorageDuration::unknown);
+    D_CCM_CHECK(storage_of<std_set>::value == DStorageDuration::unknown);
+    D_CCM_CHECK(storage_of<int>::value == DStorageDuration::unknown);
 
     // ...so every pair of them "agrees"
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (storage_relation<std_vector, std_array>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (storage_relation<std_vector, std_list>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (storage_relation<std_vector, DNotAContainer>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (storage_relation<int, void>::value));
 
     // and the axis is the meet's IDENTITY for them, so it drops out entirely
     D_CCM_CHECK(order_relation_meet(
-                    order_relation::greater,
+                    DOrderRelation::greater,
                     storage_relation<std_vector,
                                      std_array>::value) ==
-                order_relation::greater);
+                DOrderRelation::greater);
 
     // it is not BROKEN - it works perfectly for a type that opts in.  It simply
     // has no data
     D_CCM_CHECK(storage_of<static_seq>::value ==
-                storage_duration::static_storage);
-    D_CCM_REL(order_relation::incomparable,
+                DStorageDuration::static_storage);
+    D_CCM_REL(DOrderRelation::incomparable,
               (storage_relation<static_seq, dynamic_seq>::value));
 
     return ok;

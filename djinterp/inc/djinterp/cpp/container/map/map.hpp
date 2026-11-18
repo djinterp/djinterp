@@ -159,22 +159,31 @@ NS_CONTAINER
 
 NS_MAP
 
-// map_entry
+// DMapEntry
 //   type: canonical key-value pair stored in a map overlay.
 template<typename Key,
          typename Value>
-using map_entry = std::pair<const Key, Value>;
+using DMapEntry = std::pair<const Key, Value>;
 
-// map_result
+// old name, until 0.9.0-rc.1
+template<typename Key,
+         typename Value>
+using map_entry = DMapEntry<Key, Value>;
+
+// DMapResult
 //   struct: result of a lookup or insertion operation.
 // Holds an iterator to the element and a boolean indicating whether insertion
 // took place (true) or the key already existed (false).
 template<typename Iterator>
-struct map_result
+struct DMapResult
 {
     Iterator iterator;
     bool      inserted;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Iterator>
+using map_result = DMapResult<Iterator>;
 
 NS_END  // map
 
@@ -635,14 +644,14 @@ inline constexpr DMapOverlayStrategy
 // VII. Combined Classification              (djinterp::container::traits)
 // =============================================================================
 
-// map_overlay_class
+// DMapOverlayClass
 //   struct: complete compile-time classification of a
 // map overlay over a specific backing container with given key and value
 // types.
 template<typename Container,
          typename Key,
          typename Value>
-struct map_overlay_class
+struct DMapOverlayClass
 {
     using C = clean_t<Container>;
 
@@ -690,6 +699,12 @@ struct map_overlay_class
     static constexpr bool is_fundamental =
         is_fundamental_container_v<C>;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Container,
+         typename Key,
+         typename Value>
+using map_overlay_class = DMapOverlayClass<Container, Key, Value>;
 
 
 // =============================================================================
@@ -792,10 +807,10 @@ template<typename Derived,
          typename Value,
          typename Backing,
          typename Compare = std::less<Key>>
-class map_overlay_base
+class DMapOverlayBase
 {
 private:
-    using self_type    = map_overlay_base;
+    using self_type    = DMapOverlayBase;
     using derived_type = Derived;
 
     static constexpr traits::DMapOverlayStrategy
@@ -823,7 +838,7 @@ public:
     using key_type               = Key;
     using mapped_type            = Value;
     using value_type             =
-        map_entry<Key, Value>;
+        DMapEntry<Key, Value>;
     using key_compare            = Compare;
     using backing_container_type = Backing;
     using size_type              = std::size_t;
@@ -835,7 +850,7 @@ public:
         decltype(std::declval<
             const Backing&>().cbegin());
 
-    using insert_result = map_result<iterator>;
+    using insert_result = DMapResult<iterator>;
 
     // --- overlay strategy introspection ---
 
@@ -1035,17 +1050,17 @@ public:
     }
 
 protected:
-    map_overlay_base()  = default;
-    ~map_overlay_base() = default;
+    DMapOverlayBase()  = default;
+    ~DMapOverlayBase() = default;
 
-    map_overlay_base(
-        const map_overlay_base&)            = default;
-    map_overlay_base& operator=(
-        const map_overlay_base&)            = default;
-    map_overlay_base(
-        map_overlay_base&&)                 = default;
-    map_overlay_base& operator=(
-        map_overlay_base&&)                 = default;
+    DMapOverlayBase(
+        const DMapOverlayBase&)            = default;
+    DMapOverlayBase& operator=(
+        const DMapOverlayBase&)            = default;
+    DMapOverlayBase(
+        DMapOverlayBase&&)                 = default;
+    DMapOverlayBase& operator=(
+        DMapOverlayBase&&)                 = default;
 
 private:
 
@@ -1300,6 +1315,14 @@ private:
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Derived,
+         typename Key,
+         typename Value,
+         typename Backing,
+         typename Compare = std::less<Key>>
+using map_overlay_base = DMapOverlayBase<Derived, Key, Value, Backing, Compare>;
+
 
 // =============================================================================
 // XI.  Key-Projected Iterators              (djinterp::container::map)
@@ -1308,7 +1331,7 @@ private:
 // the key (first) on dereference.
 
 template<typename Iterator>
-class key_iterator
+class DKeyIterator
 {
 public:
     using base_traits      =
@@ -1326,10 +1349,10 @@ public:
         typename base_traits::iterator_category;
 
     constexpr
-    key_iterator() = default;
+    DKeyIterator() = default;
 
     constexpr explicit
-    key_iterator(Iterator _it) : m_it(_it)
+    DKeyIterator(Iterator _it) : m_it(_it)
     {}
 
     constexpr
@@ -1345,7 +1368,7 @@ public:
     }
 
     constexpr
-    key_iterator& operator++()
+    DKeyIterator& operator++()
     {
         ++m_it;
 
@@ -1353,7 +1376,7 @@ public:
     }
 
     constexpr
-    key_iterator operator++(
+    DKeyIterator operator++(
         int
     )
     {
@@ -1364,7 +1387,7 @@ public:
     }
 
     constexpr
-    key_iterator& operator--()
+    DKeyIterator& operator--()
     {
         --m_it;
 
@@ -1372,7 +1395,7 @@ public:
     }
 
     constexpr
-    key_iterator operator--(
+    DKeyIterator operator--(
         int
     )
     {
@@ -1390,8 +1413,8 @@ public:
 
     friend constexpr
     bool operator==(
-        key_iterator _a,
-        key_iterator _b
+        DKeyIterator _a,
+        DKeyIterator _b
     )
     {
         return (_a.m_it == _b.m_it);
@@ -1399,8 +1422,8 @@ public:
 
     friend constexpr
     bool operator!=(
-        key_iterator _a,
-        key_iterator _b
+        DKeyIterator _a,
+        DKeyIterator _b
     )
     {
         return (_a.m_it != _b.m_it);
@@ -1410,6 +1433,10 @@ private:
     Iterator m_it;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Iterator>
+using key_iterator = DKeyIterator<Iterator>;
+
 
 // =============================================================================
 // XII. Value-Projected Iterators            (djinterp::container::map)
@@ -1418,7 +1445,7 @@ private:
 // the mapped value (second) on dereference.
 
 template<typename Iterator>
-class value_iterator
+class DValueIterator
 {
 public:
     using base_traits      =
@@ -1434,10 +1461,10 @@ public:
         typename base_traits::iterator_category;
 
     constexpr
-    value_iterator() = default;
+    DValueIterator() = default;
 
     constexpr explicit
-    value_iterator(Iterator _it) : m_it(_it)
+    DValueIterator(Iterator _it) : m_it(_it)
     {}
 
     constexpr
@@ -1453,7 +1480,7 @@ public:
     }
 
     constexpr
-    value_iterator& operator++()
+    DValueIterator& operator++()
     {
         ++m_it;
 
@@ -1461,7 +1488,7 @@ public:
     }
 
     constexpr
-    value_iterator operator++(
+    DValueIterator operator++(
         int
     )
     {
@@ -1472,7 +1499,7 @@ public:
     }
 
     constexpr
-    value_iterator& operator--()
+    DValueIterator& operator--()
     {
         --m_it;
 
@@ -1480,7 +1507,7 @@ public:
     }
 
     constexpr
-    value_iterator operator--(
+    DValueIterator operator--(
         int
     )
     {
@@ -1498,8 +1525,8 @@ public:
 
     friend constexpr
     bool operator==(
-        value_iterator _a,
-        value_iterator _b
+        DValueIterator _a,
+        DValueIterator _b
     )
     {
         return (_a.m_it == _b.m_it);
@@ -1507,8 +1534,8 @@ public:
 
     friend constexpr
     bool operator!=(
-        value_iterator _a,
-        value_iterator _b
+        DValueIterator _a,
+        DValueIterator _b
     )
     {
         return (_a.m_it != _b.m_it);
@@ -1518,6 +1545,10 @@ private:
     Iterator m_it;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Iterator>
+using value_iterator = DValueIterator<Iterator>;
+
 
 // =============================================================================
 // XIII. Factory Functions                   (djinterp::container::map)
@@ -1526,21 +1557,21 @@ private:
 // make_key_iterator
 template<typename Iterator>
 constexpr
-key_iterator<Iterator> make_key_iterator(
+DKeyIterator<Iterator> make_key_iterator(
     Iterator _it
 )
 {
-    return key_iterator<Iterator>(_it);
+    return DKeyIterator<Iterator>(_it);
 }
 
 // make_value_iterator
 template<typename Iterator>
 constexpr
-value_iterator<Iterator> make_value_iterator(
+DValueIterator<Iterator> make_value_iterator(
     Iterator _it
 )
 {
-    return value_iterator<Iterator>(_it);
+    return DValueIterator<Iterator>(_it);
 }
 
 

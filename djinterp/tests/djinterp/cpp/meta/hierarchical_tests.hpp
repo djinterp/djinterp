@@ -10,7 +10,7 @@
 *       hierarchical_spec(), the module -> block -> test description.
 *
 *   WHAT IS UNDER TEST.  hierarchical.hpp defines exactly one type: the empty
-* tag `hierarchical`, the structure-axis marker for a type that nests
+* tag `DHierarchical`, the structure-axis marker for a type that nests
 * (depth >= 2, a node summand present).  Its entire observable surface is three
 * compile-time constants/functions:
 *     static constexpr bool        nests     = true;
@@ -23,9 +23,9 @@
 *   WHY nests IS THE POINT.  The structure traits read a tag through its `nests`
 * bit; for hierarchical that bit is true, asserting hierarchy that structural
 * detection cannot always see (a composite whose recursion the value_type chain
-* does not expose).  So `hierarchical::nests == true` and
-* `hierarchical::min_depth == 2` are the load-bearing facts, pinned here as
-* constants the traits consult.  This tag is the exact complement of `flat`;
+* does not expose).  So `DHierarchical::nests == true` and
+* `DHierarchical::min_depth == 2` are the load-bearing facts, pinned here as
+* constants the traits consult.  This tag is the exact complement of `DFlat`;
 * the two are the poles of the structure axis, and the suite pins the polarity
 * against the literals the model fixes (nests true vs false, depth 2 vs 1).
 *

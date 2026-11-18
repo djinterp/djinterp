@@ -106,7 +106,7 @@ NS_DJINTERP
 // I.   is_keyed_table (detection trait)
 // ===========================================================================
 
-// keyed_table (fwd)
+// DKeyedTable (fwd)
 template<typename    RowType,
          typename    KeyProj,
          typename    KeyCompare,
@@ -114,7 +114,7 @@ template<typename    RowType,
          typename    SizeType,
          typename    DifferenceType,
          typename... Options>
-class keyed_table;
+class DKeyedTable;
 
 // is_keyed_table
 //   trait: true when Type (after stripping cv/ref) is a specialization of
@@ -132,7 +132,7 @@ NS_INTERNAL
              typename    S,
              typename    D,
              typename... O>
-    struct is_keyed_table_impl<keyed_table<R, P, C, U, S, D, O...>>
+    struct is_keyed_table_impl<DKeyedTable<R, P, C, U, S, D, O...>>
         : std::true_type
     {};
 
@@ -152,7 +152,7 @@ inline constexpr bool is_keyed_table_v = is_keyed_table<Type>::value;
 // II.  keyed_table (class)
 // ===========================================================================
 
-// keyed_table
+// DKeyedTable
 //   class: a relational table of RowType records, kept sorted by the key that
 // KeyProj projects and compared by KeyCompare, with unique keys (map) or
 // repeated keys (multimap). Records are stored contiguously and exposed
@@ -164,8 +164,8 @@ template<typename    RowType,
          typename    SizeType       = std::size_t,
          typename    DifferenceType = std::ptrdiff_t,
          typename... Options>
-class keyed_table
-    : public options_container_base<Options...>
+class DKeyedTable
+    : public DOptionsContainerBase<Options...>
 {
 private:
     using storage_type = std::vector<RowType>;
@@ -201,29 +201,29 @@ public:
     static constexpr bool unique_keys      = UniqueKeys;   // mu_1 vs mu_m on E_key
 
     // axis positions.
-    static constexpr container_lifetime      lifetime      =
-        container_lifetime::mutable_storage;
+    static constexpr DContainerLifetime      lifetime      =
+        DContainerLifetime::mutable_storage;
     static constexpr DContainerStorageKind  storage_kind  =
         DContainerStorageKind::dynamic_storage;
     static constexpr DContainerOrdering      ordering      =
         DContainerOrdering::sorted;
     static constexpr DContainerBounds        bounds        =
         DContainerBounds::unbounded;
-    static constexpr container_iterability   iterability   =
-        container_iterability::iterable;
+    static constexpr DContainerIterability   iterability   =
+        DContainerIterability::iterable;
     static constexpr DContainerMultiplicity  multiplicity_grade =
         UniqueKeys ? DContainerMultiplicity::unique
                     : DContainerMultiplicity::multi;
 
     // --- 2. construction ---
 
-    keyed_table()
+    DKeyedTable()
         : m_rows(),
           m_proj(),
           m_cmp()
     {}
 
-    explicit keyed_table(
+    explicit DKeyedTable(
         KeyProj     _proj,
         KeyCompare _cmp = KeyCompare()
     )
@@ -234,7 +234,7 @@ public:
 
     // record list: each record is inserted at its sorted key position, so any
     // input order yields the keyed, sorted invariant.
-    keyed_table(
+    DKeyedTable(
         std::initializer_list<RowType> _records,
         KeyProj                         _proj = KeyProj(),
         KeyCompare                      _cmp  = KeyCompare()
@@ -250,11 +250,11 @@ public:
         }
     }
 
-    keyed_table(const keyed_table&)            = default;
-    keyed_table(keyed_table&&)                 = default;
-    keyed_table& operator=(const keyed_table&) = default;
-    keyed_table& operator=(keyed_table&&)      = default;
-    ~keyed_table()                             = default;
+    DKeyedTable(const DKeyedTable&)            = default;
+    DKeyedTable(DKeyedTable&&)                 = default;
+    DKeyedTable& operator=(const DKeyedTable&) = default;
+    DKeyedTable& operator=(DKeyedTable&&)      = default;
+    ~DKeyedTable()                             = default;
 
     // --- 3. record access (delegated, const) ---
 
@@ -473,6 +473,16 @@ private:
     KeyCompare   m_cmp;    // strict-weak order on keys
 };
 
+// old name, until 0.9.0-rc.1
+template<typename    RowType,
+         typename    KeyProj,
+         typename    KeyCompare     = std::less<>,
+         bool        UniqueKeys     = true,
+         typename    SizeType       = std::size_t,
+         typename    DifferenceType = std::ptrdiff_t,
+         typename... Options>
+using keyed_table = DKeyedTable<RowType, KeyProj, KeyCompare, UniqueKeys, SizeType, DifferenceType, Options...>;
+
 
 // ===========================================================================
 // III. make_keyed_table
@@ -483,24 +493,24 @@ private:
 // the given key projection, deducing the record and projection types.
 template<typename RowType,
          typename KeyProj>
-D_NODISCARD keyed_table<RowType, KeyProj> make_keyed_table(
+D_NODISCARD DKeyedTable<RowType, KeyProj> make_keyed_table(
     std::initializer_list<RowType> _records,
     KeyProj                        _proj
 )
 {
-    return keyed_table<RowType, KeyProj>(_records, _proj);
+    return DKeyedTable<RowType, KeyProj>(_records, _proj);
 }
 
 // make_multikeyed_table
 //   function: the multimap counterpart (keys may repeat).
 template<typename RowType,
          typename KeyProj>
-D_NODISCARD keyed_table<RowType, KeyProj, std::less<>, false> make_multikeyed_table(
+D_NODISCARD DKeyedTable<RowType, KeyProj, std::less<>, false> make_multikeyed_table(
     std::initializer_list<RowType> _records,
     KeyProj                        _proj
 )
 {
-    return keyed_table<RowType, KeyProj, std::less<>, false>(_records, _proj);
+    return DKeyedTable<RowType, KeyProj, std::less<>, false>(_records, _proj);
 }
 
 

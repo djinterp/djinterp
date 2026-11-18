@@ -375,18 +375,17 @@ struct key_bit_width
 // II.  KEY CATEGORY
 // ===========================================================================
 
-// radix_key_category
+// DRadixKeyCategory
 //   enum: which of the two descent alphabets a key uses.
-enum class radix_key_category : unsigned
+enum class DRadixKeyCategory : unsigned
 {
     text   = 0u,   // byte-indexed  (string_view keys)
     binary = 1u,   // bit-indexed   (integral / pointer keys)
     custom = 2u    // user-supplied radix extractor (reserved)
 };
 
-// DRadixKeyCategory
-//   alias: the old PascalCase spelling. Retained; prefer the snake_case name.
-using DRadixKeyCategory = radix_key_category;
+// old name, until 0.9.0-rc.1
+using radix_key_category = DRadixKeyCategory;
 
 NS_INTERNAL
 
@@ -394,8 +393,8 @@ NS_INTERNAL
              typename = void>
     struct radix_key_category_helper
     {
-        static D_CONSTEXPR radix_key_category value =
-            radix_key_category::custom;
+        static D_CONSTEXPR DRadixKeyCategory value =
+            DRadixKeyCategory::custom;
     };
 
 #if D_RADIX_HAVE_TEXT_KEYS
@@ -407,8 +406,8 @@ NS_INTERNAL
         Type,
         typename std::enable_if<is_text_key<Type>::value>::type>
     {
-        static D_CONSTEXPR radix_key_category value =
-            radix_key_category::text;
+        static D_CONSTEXPR DRadixKeyCategory value =
+            DRadixKeyCategory::text;
     };
 
     template<typename Type>
@@ -418,8 +417,8 @@ NS_INTERNAL
             ( is_binary_key<Type>::value &&
              !is_text_key<Type>::value )>::type>
     {
-        static D_CONSTEXPR radix_key_category value =
-            radix_key_category::binary;
+        static D_CONSTEXPR DRadixKeyCategory value =
+            DRadixKeyCategory::binary;
     };
 
 #else
@@ -429,8 +428,8 @@ NS_INTERNAL
         Type,
         typename std::enable_if<is_binary_key<Type>::value>::type>
     {
-        static D_CONSTEXPR radix_key_category value =
-            radix_key_category::binary;
+        static D_CONSTEXPR DRadixKeyCategory value =
+            DRadixKeyCategory::binary;
     };
 
 #endif  // D_RADIX_HAVE_TEXT_KEYS
@@ -442,7 +441,7 @@ NS_END  // internal
 template<typename Type>
 struct radix_key_category_of
 {
-    static D_CONSTEXPR radix_key_category value =
+    static D_CONSTEXPR DRadixKeyCategory value =
         internal::radix_key_category_helper<Type>::value;
 };
 
@@ -589,7 +588,7 @@ struct is_radix_tree_base
     inline constexpr bool is_radix_node_v = is_radix_node<Type>::value;
 
     template<typename Type>
-    inline constexpr radix_key_category radix_key_category_v =
+    inline constexpr DRadixKeyCategory radix_key_category_v =
         radix_key_category_of<Type>::value;
 
     template<typename Type>
@@ -627,8 +626,8 @@ struct is_radix_tree_base
 
 // radix_axis_structure
 //   a radix tree is a tree. Not configurable.
-D_STATIC_CONSTEXPR container_structure radix_axis_structure =
-    container_structure::hierarchical;
+D_STATIC_CONSTEXPR DContainerStructure radix_axis_structure =
+    DContainerStructure::hierarchical;
 
 // radix_axis_multiplicity
 //   THE axis. A key names at most one value; that is what makes the key an
@@ -643,7 +642,7 @@ D_STATIC_CONSTEXPR DContainerMultiplicity radix_axis_multiplicity =
 //  DContainerOption  (bridge -- retained, deprecated)
 // ---------------------------------------------------------------------------
 
-// container_option
+// DContainerOption
 //   enum: the legacy bitmask. Each axis maps ONTO the framework's, exactly:
 //
 //       writable / immutable / compile_time
@@ -655,7 +654,7 @@ D_STATIC_CONSTEXPR DContainerMultiplicity radix_axis_multiplicity =
 //           -> DContainerStorageKind{static_storage, dynamic_storage}
 //
 //   Prefer the framework axes. The conversions below are the migration path.
-enum class container_option : unsigned
+enum class DContainerOption : unsigned
 {
     none         = 0x00u,
 
@@ -673,55 +672,54 @@ enum class container_option : unsigned
     dynamic_size = 0x40u
 };
 
-// DContainerOption
-//   alias: the old PascalCase spelling. Retained so the trees compile.
-using DContainerOption = container_option;
+// old name, until 0.9.0-rc.1
+using container_option = DContainerOption;
 
 
 // --- bitwise operators ---
 
 D_CONSTEXPR_INLINE
-container_option operator|(
-    container_option _lhs,
-    container_option _rhs
+DContainerOption operator|(
+    DContainerOption _lhs,
+    DContainerOption _rhs
 ) D_NOEXCEPT
 {
-    return static_cast<container_option>(
+    return static_cast<DContainerOption>(
         static_cast<unsigned>(_lhs) | static_cast<unsigned>(_rhs));
 }
 
 D_CONSTEXPR_INLINE
-container_option operator&(
-    container_option _lhs,
-    container_option _rhs
+DContainerOption operator&(
+    DContainerOption _lhs,
+    DContainerOption _rhs
 ) D_NOEXCEPT
 {
-    return static_cast<container_option>(
+    return static_cast<DContainerOption>(
         static_cast<unsigned>(_lhs) & static_cast<unsigned>(_rhs));
 }
 
 D_CONSTEXPR_INLINE
-container_option operator^(
-    container_option _lhs,
-    container_option _rhs
+DContainerOption operator^(
+    DContainerOption _lhs,
+    DContainerOption _rhs
 ) D_NOEXCEPT
 {
-    return static_cast<container_option>(
+    return static_cast<DContainerOption>(
         static_cast<unsigned>(_lhs) ^ static_cast<unsigned>(_rhs));
 }
 
 D_CONSTEXPR_INLINE
-container_option operator~(
-    container_option _v
+DContainerOption operator~(
+    DContainerOption _v
 ) D_NOEXCEPT
 {
-    return static_cast<container_option>(~static_cast<unsigned>(_v));
+    return static_cast<DContainerOption>(~static_cast<unsigned>(_v));
 }
 
 inline
-container_option& operator|=(
-    container_option& _lhs,
-    container_option  _rhs
+DContainerOption& operator|=(
+    DContainerOption& _lhs,
+    DContainerOption  _rhs
 ) D_NOEXCEPT
 {
     _lhs = (_lhs | _rhs);
@@ -730,9 +728,9 @@ container_option& operator|=(
 }
 
 inline
-container_option& operator&=(
-    container_option& _lhs,
-    container_option  _rhs
+DContainerOption& operator&=(
+    DContainerOption& _lhs,
+    DContainerOption  _rhs
 ) D_NOEXCEPT
 {
     _lhs = (_lhs & _rhs);
@@ -745,21 +743,21 @@ container_option& operator&=(
 //   These were object-like MACROS (D_CONTAINER_OPTION_*_MASK), which do not
 // respect scope and cannot be qualified. They are constants now.
 
-D_STATIC_CONSTEXPR container_option container_option_mutability_mask =
-    static_cast<container_option>(
-        static_cast<unsigned>(container_option::writable)  |
-        static_cast<unsigned>(container_option::immutable) |
-        static_cast<unsigned>(container_option::compile_time));
+D_STATIC_CONSTEXPR DContainerOption container_option_mutability_mask =
+    static_cast<DContainerOption>(
+        static_cast<unsigned>(DContainerOption::writable)  |
+        static_cast<unsigned>(DContainerOption::immutable) |
+        static_cast<unsigned>(DContainerOption::compile_time));
 
-D_STATIC_CONSTEXPR container_option container_option_ordering_mask =
-    static_cast<container_option>(
-        static_cast<unsigned>(container_option::ordered) |
-        static_cast<unsigned>(container_option::unordered));
+D_STATIC_CONSTEXPR DContainerOption container_option_ordering_mask =
+    static_cast<DContainerOption>(
+        static_cast<unsigned>(DContainerOption::ordered) |
+        static_cast<unsigned>(DContainerOption::unordered));
 
-D_STATIC_CONSTEXPR container_option container_option_storage_mask =
-    static_cast<container_option>(
-        static_cast<unsigned>(container_option::fixed_size) |
-        static_cast<unsigned>(container_option::dynamic_size));
+D_STATIC_CONSTEXPR DContainerOption container_option_storage_mask =
+    static_cast<DContainerOption>(
+        static_cast<unsigned>(DContainerOption::fixed_size) |
+        static_cast<unsigned>(DContainerOption::dynamic_size));
 
 // the old macro spellings, retained.
 #define D_CONTAINER_OPTION_MUTABILITY_MASK \
@@ -773,24 +771,24 @@ D_STATIC_CONSTEXPR container_option container_option_storage_mask =
 // --- axis extraction ---
 
 D_CONSTEXPR_INLINE
-container_option container_option_mutability(
-    container_option _flags
+DContainerOption container_option_mutability(
+    DContainerOption _flags
 ) D_NOEXCEPT
 {
     return (_flags & container_option_mutability_mask);
 }
 
 D_CONSTEXPR_INLINE
-container_option container_option_ordering(
-    container_option _flags
+DContainerOption container_option_ordering(
+    DContainerOption _flags
 ) D_NOEXCEPT
 {
     return (_flags & container_option_ordering_mask);
 }
 
 D_CONSTEXPR_INLINE
-container_option container_option_storage(
-    container_option _flags
+DContainerOption container_option_storage(
+    DContainerOption _flags
 ) D_NOEXCEPT
 {
     return (_flags & container_option_storage_mask);
@@ -798,8 +796,8 @@ container_option container_option_storage(
 
 D_CONSTEXPR_INLINE
 bool container_option_has(
-    container_option _flags,
-    container_option _bit
+    DContainerOption _flags,
+    DContainerOption _bit
 ) D_NOEXCEPT
 {
     return ((_flags & _bit) == _bit);
@@ -837,7 +835,7 @@ NS_END  // internal
 // options_container_base, so there is nothing to validate.
 D_CONSTEXPR_CPP14 D_INLINE
 bool container_option_axis_valid(
-    container_option _flags
+    DContainerOption _flags
 ) D_NOEXCEPT
 {
     return (
@@ -852,23 +850,23 @@ bool container_option_axis_valid(
 // radix_tree_option_resolve
 //   fills unset axes with radix-tree defaults.
 D_CONSTEXPR_INLINE
-container_option radix_tree_option_resolve(
-    container_option _flags,
+DContainerOption radix_tree_option_resolve(
+    DContainerOption _flags,
     std::size_t      _capacity
 ) D_NOEXCEPT
 {
     return (
-        ( ( container_option_mutability(_flags) == container_option::none )
-              ? container_option::writable
+        ( ( container_option_mutability(_flags) == DContainerOption::none )
+              ? DContainerOption::writable
               : container_option_mutability(_flags) )
         |
-        ( ( container_option_ordering(_flags) == container_option::none )
-              ? container_option::unordered
+        ( ( container_option_ordering(_flags) == DContainerOption::none )
+              ? DContainerOption::unordered
               : container_option_ordering(_flags) )
         |
-        ( ( container_option_storage(_flags) == container_option::none )
-              ? ( (_capacity > 0u) ? container_option::fixed_size
-                                   : container_option::dynamic_size )
+        ( ( container_option_storage(_flags) == DContainerOption::none )
+              ? ( (_capacity > 0u) ? DContainerOption::fixed_size
+                                   : DContainerOption::dynamic_size )
               : container_option_storage(_flags) ) );
 }
 
@@ -879,33 +877,33 @@ container_option radix_tree_option_resolve(
 //   map a legacy bitmask onto the framework axis it always meant. Port through
 // these, then drop the bitmask.
 D_CONSTEXPR_INLINE
-container_lifetime radix_lifetime_of(
-    container_option _flags
+DContainerLifetime radix_lifetime_of(
+    DContainerOption _flags
 ) D_NOEXCEPT
 {
-    return ( container_option_has(_flags, container_option::compile_time)
-                 ? container_lifetime::constexpr_storage
-           : container_option_has(_flags, container_option::immutable)
-                 ? container_lifetime::immutable
-                 : container_lifetime::mutable_storage );
+    return ( container_option_has(_flags, DContainerOption::compile_time)
+                 ? DContainerLifetime::constexpr_storage
+           : container_option_has(_flags, DContainerOption::immutable)
+                 ? DContainerLifetime::immutable
+                 : DContainerLifetime::mutable_storage );
 }
 
 D_CONSTEXPR_INLINE
 DContainerOrdering radix_ordering_of(
-    container_option _flags
+    DContainerOption _flags
 ) D_NOEXCEPT
 {
-    return ( container_option_has(_flags, container_option::ordered)
+    return ( container_option_has(_flags, DContainerOption::ordered)
                  ? DContainerOrdering::ordered
                  : DContainerOrdering::unordered );
 }
 
 D_CONSTEXPR_INLINE
 DContainerStorageKind radix_storage_kind_of(
-    container_option _flags
+    DContainerOption _flags
 ) D_NOEXCEPT
 {
-    return ( container_option_has(_flags, container_option::fixed_size)
+    return ( container_option_has(_flags, DContainerOption::fixed_size)
                  ? DContainerStorageKind::static_storage
                  : DContainerStorageKind::dynamic_storage );
 }
@@ -917,7 +915,7 @@ DContainerStorageKind radix_storage_kind_of(
 
 #if D_RADIX_HAVE_TEXT_KEYS
 
-// text_prefix_match_result
+// DTextPrefixMatchResult
 //   struct: WHERE THE MEET FALLS. The longest common prefix of a key and an
 // edge label is their greatest lower bound in the prefix order, and it can sit
 // in exactly four places relative to the two words -- which is why a descent
@@ -936,7 +934,7 @@ DContainerStorageKind radix_storage_kind_of(
 //                                         and BOTH get a child
 //
 //   The split point is the meet. Always. That is the whole of edge splitting.
-struct text_prefix_match_result
+struct DTextPrefixMatchResult
 {
     // |meet| -- how many leading bytes the two words share
     std::size_t common_len;
@@ -950,6 +948,9 @@ struct text_prefix_match_result
     // the meet is both  (key == edge)
     bool exact;
 };
+
+// old name, until 0.9.0-rc.1
+using text_prefix_match_result = DTextPrefixMatchResult;
 
 // common_prefix_length
 //   THE MEET, as a length.  |lcp(a, b)| -- the greatest lower bound of the two
@@ -977,12 +978,12 @@ std::size_t common_prefix_length(
 //   computes the meet of _key and _edge and reports which of the four cases
 // the descent is in.
 D_CONSTEXPR_CPP14 D_INLINE
-text_prefix_match_result text_prefix_compare(
+DTextPrefixMatchResult text_prefix_compare(
     re_std::string_view _key,
     re_std::string_view _edge
 ) D_NOEXCEPT
 {
-    text_prefix_match_result r = {};
+    DTextPrefixMatchResult r = {};
 
     r.common_len    = common_prefix_length(_key, _edge);
     r.key_consumed  = (r.common_len == _key.size());
@@ -1052,7 +1053,7 @@ binary_prefix_length(
 // VIII. NODE TYPES
 // ===========================================================================
 
-// radix_terminal
+// DRadixTerminal
 //   struct: the value stored where a key ENDS. A plain flag rather than
 // std::optional, so the struct stays trivially default-constructible and
 // constexpr-safe.
@@ -1062,7 +1063,7 @@ binary_prefix_length(
 // because something below them exists -- which is the ancestor-closure again,
 // arrived at from the other side.
 template<typename Value>
-struct radix_terminal
+struct DRadixTerminal
 {
     // true when a stored key terminates here
     bool present;
@@ -1070,27 +1071,31 @@ struct radix_terminal
     // the mapped value; indeterminate when present == false
     Value value;
 
-    D_CONSTEXPR radix_terminal() D_NOEXCEPT
+    D_CONSTEXPR DRadixTerminal() D_NOEXCEPT
         : present(false),
           value()
     {}
 
     D_CONSTEXPR explicit
-    radix_terminal(const Value& _v)
+    DRadixTerminal(const Value& _v)
         noexcept(std::is_nothrow_copy_constructible<Value>::value)
         : present(true),
           value(_v)
     {}
 
     D_CONSTEXPR explicit
-    radix_terminal(Value&& _v)
+    DRadixTerminal(Value&& _v)
         noexcept(std::is_nothrow_move_constructible<Value>::value)
         : present(true),
           value(static_cast<Value&&>(_v))
     {}
 };
 
-// radix_node_base
+// old name, until 0.9.0-rc.1
+template<typename Value>
+using radix_terminal = DRadixTerminal<Value>;
+
+// DRadixNodeBase
 //   struct: CRTP base carrying what both node kinds share. Derived is the
 // concrete node, which gives a typed parent pointer without a vtable.
 //
@@ -1100,7 +1105,7 @@ struct radix_terminal
 // and find("") is the root. That is the base of the induction, not a special
 // case.
 template<typename Derived>
-struct radix_node_base
+struct DRadixNodeBase
 {
     // nullptr at the root
     Derived* parent;
@@ -1108,32 +1113,40 @@ struct radix_node_base
     // true when a complete key terminates at this node
     bool is_terminal;
 
-    D_CONSTEXPR radix_node_base() D_NOEXCEPT
+    D_CONSTEXPR DRadixNodeBase() D_NOEXCEPT
         : parent(nullptr),
           is_terminal(false)
     {}
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Derived>
+using radix_node_base = DRadixNodeBase<Derived>;
 
 
 // ===========================================================================
 // IX.  TRAVERSAL FRAME
 // ===========================================================================
 
-// radix_traversal_frame
+// DRadixTraversalFrame
 //   struct: one frame of an explicit descent stack. Iterative, so a deep trie
 // cannot overflow the machine stack -- and a trie over long keys IS deep.
 template<typename NodePtr>
-struct radix_traversal_frame
+struct DRadixTraversalFrame
 {
     NodePtr     node;
     std::size_t child_index;
 
     D_CONSTEXPR explicit
-    radix_traversal_frame(NodePtr _n) D_NOEXCEPT
+    DRadixTraversalFrame(NodePtr _n) D_NOEXCEPT
         : node(_n),
           child_index(0u)
     {}
 };
+
+// old name, until 0.9.0-rc.1
+template<typename NodePtr>
+using radix_traversal_frame = DRadixTraversalFrame<NodePtr>;
 
 
 // ===========================================================================

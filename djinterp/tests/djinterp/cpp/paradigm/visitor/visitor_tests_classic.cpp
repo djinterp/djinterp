@@ -61,12 +61,12 @@ tests_visitor_base_return_type_typedef
 */
 bool tests_visitor_base_return_type_typedef()
 {
-    static_assert(std::is_same<visitor_base<std::string>::return_type,
+    static_assert(std::is_same<DVisitorBase<std::string>::return_type,
                                std::string>::value,
                   "return_type is R");
-    static_assert(std::is_same<visitor_base<void>::return_type, void>::value,
+    static_assert(std::is_same<DVisitorBase<void>::return_type, void>::value,
                   "including void");
-    static_assert(std::is_same<visitor_base<int>::return_type, int>::value,
+    static_assert(std::is_same<DVisitorBase<int>::return_type, int>::value,
                   "and a value type");
 
     return true;
@@ -85,11 +85,11 @@ tests_visitor_base_is_polymorphic
 */
 bool tests_visitor_base_is_polymorphic()
 {
-    static_assert(std::is_polymorphic<visitor_base<void> >::value,
+    static_assert(std::is_polymorphic<DVisitorBase<void> >::value,
                   "the visitor root must be polymorphic for the cross-cast");
-    static_assert(std::is_polymorphic<visitor_base<std::string> >::value,
+    static_assert(std::is_polymorphic<DVisitorBase<std::string> >::value,
                   "for every return type");
-    static_assert(std::has_virtual_destructor<visitor_base<void> >::value,
+    static_assert(std::has_virtual_destructor<DVisitorBase<void> >::value,
                   "and destruction through it must be well-defined");
 
     return true;
@@ -105,13 +105,13 @@ tests_visitable_base_return_type_typedef
 */
 bool tests_visitable_base_return_type_typedef()
 {
-    static_assert(std::is_same<visitable_base<std::string>::return_type,
+    static_assert(std::is_same<DVisitableBase<std::string>::return_type,
                                std::string>::value,
                   "return_type is R");
-    static_assert(std::is_same<visitable_base<void>::return_type, void>::value,
+    static_assert(std::is_same<DVisitableBase<void>::return_type, void>::value,
                   "including void");
-    static_assert(std::is_same<visitable_base<std::string>::return_type,
-                               visitor_base<std::string>::return_type>::value,
+    static_assert(std::is_same<DVisitableBase<std::string>::return_type,
+                               DVisitorBase<std::string>::return_type>::value,
                   "element and visitor agree on R");
 
     return true;
@@ -128,14 +128,14 @@ tests_visitable_base_is_abstract
 */
 bool tests_visitable_base_is_abstract()
 {
-    static_assert(std::is_abstract<visitable_base<std::string> >::value,
+    static_assert(std::is_abstract<DVisitableBase<std::string> >::value,
                   "accept() is pure virtual");
     static_assert(std::is_abstract<classic_shape>::value,
                   "and an element root that does not implement it stays abstract");
 
     static_assert(!std::is_abstract<classic_circle>::value,
                   "D_VISITABLE satisfies the pure virtual, it does not sit beside it");
-    static_assert(std::is_base_of<visitable_base<std::string>,
+    static_assert(std::is_base_of<DVisitableBase<std::string>,
                                   classic_circle>::value,
                   "and the element really is a visitable_base");
 
@@ -235,7 +235,7 @@ tests_concrete_visitor_is_a_visitor_base
 */
 bool tests_concrete_visitor_is_a_visitor_base()
 {
-    static_assert(std::is_base_of<visitor_base<std::string>,
+    static_assert(std::is_base_of<DVisitorBase<std::string>,
                                   shape_namer>::value,
                   "a concrete visitor IS a visitor_base");
 
@@ -243,10 +243,10 @@ bool tests_concrete_visitor_is_a_visitor_base()
 
     // the conversion is unambiguous: exactly one visitor_base<R> subobject
     static_assert(std::is_convertible<shape_namer*,
-                                      visitor_base<std::string>*>::value,
+                                      DVisitorBase<std::string>*>::value,
                   "and the base subobject is unique");
 
-    visitor_base<std::string>& base = v;
+    DVisitorBase<std::string>& base = v;
 
     classic_circle c;
 
@@ -389,7 +389,7 @@ bool tests_concrete_visitor_return_type_typedef()
     static_assert(std::is_same<visitor_t::return_type, std::string>::value,
                   "return_type is R");
     static_assert(std::is_same<visitor_t::return_type,
-                               visitor_base<std::string>::return_type>::value,
+                               DVisitorBase<std::string>::return_type>::value,
                   "and agrees with the visitor root");
     static_assert(std::is_same<concrete_visitor<void, dot>::return_type,
                                void>::value,
@@ -482,7 +482,7 @@ bool tests_d_visitable_dispatch_through_visitor_base()
 {
     shape_namer v;
 
-    visitor_base<std::string>& erased = v;
+    DVisitorBase<std::string>& erased = v;
 
     classic_circle c;
     classic_rect   r;
@@ -559,7 +559,7 @@ bool tests_d_visitable_void_return()
     ok = ok && (d.hits  == 3);    // the visitor got the element BY REFERENCE
 
     // and through the erased visitor base
-    visitor_base<void>& erased = v;
+    DVisitorBase<void>& erased = v;
 
     d.accept(erased);
 
@@ -615,7 +615,7 @@ bool tests_d_visitable_unhandled_element_throws()
     ok = ok && threw;
 
     // and likewise with the visitor erased -- the path D_VISITABLE actually takes
-    visitor_base<std::string>& erased = v;
+    DVisitorBase<std::string>& erased = v;
 
     bool threw_erased = false;
 

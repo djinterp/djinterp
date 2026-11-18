@@ -78,7 +78,7 @@ namespace
     // type is referred to via the public adaptee_type alias.
     class rect_adapter;
 
-    using rect_adapter_base = class_adapter<shape_iface, legacy_rect, rect_adapter>;
+    using rect_adapter_base = DClassAdapter<shape_iface, legacy_rect, rect_adapter>;
 
     class rect_adapter : public rect_adapter_base
     {
@@ -110,10 +110,10 @@ namespace
     // stack_deque
     //   type: a deque-ish face over std::stack<int>, held by_value (the default
     // ownership).  All accessors are non-const, matching what by_value permits.
-    class stack_deque : public interface_adapter<stack_deque, std::stack<int>>
+    class stack_deque : public DInterfaceAdapter<stack_deque, std::stack<int>>
     {
     public:
-        using base = interface_adapter<stack_deque, std::stack<int>>;
+        using base = DInterfaceAdapter<stack_deque, std::stack<int>>;
         using base::base;
 
         void push_back(
@@ -157,10 +157,10 @@ namespace
     // boxed_counter
     //   type: CRTP adapter over counter_box held by_pointer, so const adaptee()
     // is well-formed and can back a const accessor.
-    class boxed_counter : public interface_adapter<boxed_counter, counter_box, by_pointer>
+    class boxed_counter : public DInterfaceAdapter<boxed_counter, counter_box, DByPointer>
     {
     public:
-        using base = interface_adapter<boxed_counter, counter_box, by_pointer>;
+        using base = DInterfaceAdapter<boxed_counter, counter_box, DByPointer>;
         using base::base;
 
         void bump()
@@ -349,7 +349,7 @@ bool tests_interface_adapter_by_value()
     static_assert(std::is_same<stack_deque::adaptee_type,
                                std::stack<int>>::value,
                   "adaptee_type");
-    static_assert(std::is_same<stack_deque::ownership_policy, by_value>::value,
+    static_assert(std::is_same<stack_deque::ownership_policy, DByValue>::value,
                   "default ownership is by_value");
 
     return ok;
@@ -412,11 +412,11 @@ bool tests_forward_as_is()
 
     bool ok = true;
 
-    const int r1 = forward_as_is::invoke(acc, &accumulator::add, 5);
+    const int r1 = DForwardAsIs::invoke(acc, &accumulator::add, 5);
     ok = ok && (r1 == 5);
     ok = ok && (acc.total == 5);
 
-    const int r2 = forward_as_is::invoke(acc, &accumulator::add, 3);
+    const int r2 = DForwardAsIs::invoke(acc, &accumulator::add, 3);
     ok = ok && (r2 == 8);
 
     return ok;
@@ -436,7 +436,7 @@ bool tests_forward_with_transform()
     bool ok = true;
 
     // add(double(5)) == add(10)
-    const int r = forward_with_transform<doubler>::invoke(acc,
+    const int r = DForwardWithTransform<doubler>::invoke(acc,
                                                           &accumulator::add,
                                                           d,
                                                           5);

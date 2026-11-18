@@ -58,7 +58,7 @@ namespace
         return;
     }
 
-    using fn_ptr_bus = bus<std::string, int, void(*)(const std::string&, const int&)>;
+    using fn_ptr_bus = DBus<std::string, int, void(*)(const std::string&, const int&)>;
 
 
     // ---- custom functor handler ----------------------------------------
@@ -82,7 +82,7 @@ namespace
         }
     };
 
-    using functor_bus = bus<std::string, int, accumulate>;
+    using functor_bus = DBus<std::string, int, accumulate>;
 
 
     // ---- non-string topic ----------------------------------------------
@@ -105,7 +105,7 @@ namespace
         }
     };
 
-    using int_topic_bus = bus<int, int, int_accumulate>;
+    using int_topic_bus = DBus<int, int, int_accumulate>;
 
 
     // ---- derived broker: should_publish veto ----------------------------
@@ -113,7 +113,7 @@ namespace
     // be closed wholesale via its `open` flag - covering both a payload-driven
     // and a state-driven veto.
     struct veto_broker
-        : broker<veto_broker, std::string, int>
+        : DBroker<veto_broker, std::string, int>
     {
         bool open;
 
@@ -135,7 +135,7 @@ namespace
     // doubling_broker: reshapes per-handler delivery, handing each subscriber
     // twice the published payload. Routing is otherwise the inherited default.
     struct doubling_broker
-        : broker<doubling_broker, std::string, int>
+        : DBroker<doubling_broker, std::string, int>
     {
         void do_deliver(
             handler_type&      _handler,
@@ -155,7 +155,7 @@ namespace
     // and returns a status of its own choosing, never consulting the registry,
     // so no subscriber is ever invoked.
     struct counting_broker
-        : broker<counting_broker, std::string, int>
+        : DBroker<counting_broker, std::string, int>
     {
         int published;
 
@@ -189,7 +189,7 @@ bool tests_bus_default_hooks()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription s = b.subscribe("t", recorder(&log));
+    DSubscription s = b.subscribe("t", recorder(&log));
 
     pubsub_status st = b.publish("t", 11);
 
@@ -221,18 +221,18 @@ bool tests_bus_typedefs()
     static_assert(std::is_same<string_bus::handler_type,
                                std::function<void(const std::string&, const int&)> >::value,
                   "handler defaults to std::function");
-    static_assert(std::is_same<string_bus::token_type, subscription_token>::value,
+    static_assert(std::is_same<string_bus::token_type, DSubscriptionToken>::value,
                   "token_type");
-    static_assert(std::is_same<string_bus::subscription_type, subscription>::value,
+    static_assert(std::is_same<string_bus::subscription_type, DSubscription>::value,
                   "subscription_type");
     static_assert(std::is_same<string_bus::message_type,
-                               pubsub_message<std::string, int> >::value,
+                               DPubsubMessage<std::string, int> >::value,
                   "message_type");
     static_assert(std::is_same<string_bus::status_type, pubsub_status>::value,
                   "status_type");
 
     return ( std::is_same<string_bus::topic_type, std::string>::value &&
-             std::is_same<string_bus::token_type, subscription_token>::value );
+             std::is_same<string_bus::token_type, DSubscriptionToken>::value );
 }
 
 /*
@@ -246,8 +246,8 @@ bool tests_bus_fn_ptr_handler()
 {
     fn_ptr_bus b;
 
-    subscription s1 = b.subscribe("t", &fn_handler);
-    subscription s2 = b.subscribe("t", &fn_handler);
+    DSubscription s1 = b.subscribe("t", &fn_handler);
+    DSubscription s2 = b.subscribe("t", &fn_handler);
 
     g_fn_total = 0;
 
@@ -275,7 +275,7 @@ bool tests_bus_functor_handler()
 
     int total = 0;
 
-    subscription s = b.subscribe("t", accumulate(&total));
+    DSubscription s = b.subscribe("t", accumulate(&total));
 
     b.publish("t", 7);
 
@@ -302,7 +302,7 @@ bool tests_bus_nonstring_topic()
 
     int total = 0;
 
-    subscription s = b.subscribe(7, int_accumulate(&total));
+    DSubscription s = b.subscribe(7, int_accumulate(&total));
 
     pubsub_status hit  = b.publish(7, 5);
     pubsub_status miss = b.publish(8, 5);   // a different topic value
@@ -329,7 +329,7 @@ bool tests_hook_should_publish_veto()
     veto_broker           vb;
     std::vector<delivery> log;
 
-    subscription s = vb.subscribe("t", recorder(&log));
+    DSubscription s = vb.subscribe("t", recorder(&log));
 
     pubsub_status allowed = vb.publish("t", 5);
     pubsub_status vetoed  = vb.publish("t", -1);   // non-positive -> vetoed
@@ -356,7 +356,7 @@ bool tests_hook_should_publish_state()
     veto_broker           vb;
     std::vector<delivery> log;
 
-    subscription s = vb.subscribe("t", recorder(&log));
+    DSubscription s = vb.subscribe("t", recorder(&log));
 
     vb.open = false;
     pubsub_status closed = vb.publish("t", 5);
@@ -392,8 +392,8 @@ bool tests_hook_do_deliver_override()
     std::vector<delivery> first;
     std::vector<delivery> second;
 
-    subscription s1 = db.subscribe("t", recorder(&first));
-    subscription s2 = db.subscribe("t", recorder(&second));
+    DSubscription s1 = db.subscribe("t", recorder(&first));
+    DSubscription s2 = db.subscribe("t", recorder(&second));
 
     pubsub_status st = db.publish("t", 5);
 
@@ -422,7 +422,7 @@ bool tests_hook_do_publish_override()
     counting_broker       cb;
     std::vector<delivery> log;
 
-    subscription s = cb.subscribe("t", recorder(&log));
+    DSubscription s = cb.subscribe("t", recorder(&log));
 
     pubsub_status st = cb.publish("t", 5);
 
@@ -433,7 +433,7 @@ bool tests_hook_do_publish_override()
     ok = ok && (log.empty());                        // delivery bypassed entirely
 
     // the other publication faces funnel through do_publish too
-    cb.publish(pubsub_message<std::string, int>("t", 1));
+    cb.publish(DPubsubMessage<std::string, int>("t", 1));
     cb("t", 1);
 
     ok = ok && (cb.published == 3);

@@ -206,13 +206,13 @@ bool test_brace_typedefs()
     static_assert(std::is_same<brace_t::input_type, char>::value,
         "input_type is the element type");
     static_assert(std::is_same<brace_t::item_type,
-                               ::djinterp::piece<char>>::value,
+                               ::djinterp::DPiece<char>>::value,
         "item_type is a piece");
     static_assert(std::is_same<brace_t::result_type,
-                               ::djinterp::piece<char>>::value,
+                               ::djinterp::DPiece<char>>::value,
         "result_type is a piece");
     static_assert(std::is_same<brace_t::piece_type,
-                               ::djinterp::piece<char>>::value,
+                               ::djinterp::DPiece<char>>::value,
         "piece_type is a piece");
 
     return true;
@@ -226,7 +226,7 @@ bool test_brace_constexpr()
     constexpr auto _scan = []() -> bool
     {
         brace_t                 _s("a{k}");
-        ::djinterp::piece<char> _p;
+        ::djinterp::DPiece<char> _p;
 
         bool _ok = _s.next(_p) && !_p.is_key() && (_p.m_span == "a");
         _ok = _ok && _s.next(_p) && _p.is_key() && (_p.m_key == "k") &&

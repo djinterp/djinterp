@@ -153,16 +153,16 @@ bool tests_is_runtime_container_needs_runtime_only()
     D_RT_CHECK(has_size_accessor_signal<DRtConstexprSize>::value == true);
 
     // ... but the lifetime is not runtime-only, so the umbrella is false
-    D_RT_CHECK(container_lifetime_of<rt_array>::value == lifetime::both);
+    D_RT_CHECK(container_lifetime_of<rt_array>::value == DLifetime::both);
     D_RT_CHECK(is_runtime_container<rt_array>::value == false);
     D_RT_CHECK(container_lifetime_of<DRtConstexprSize>::value
-                   == lifetime::both);
+                   == DLifetime::both);
     D_RT_CHECK(is_runtime_container<DRtConstexprSize>::value == false);
 
     // a literal type with a plain size() is STILL runtime-only
     D_RT_STATIC_CHECK(std::is_trivially_destructible<DRtLiteralPlain>::value);
     D_RT_CHECK(container_lifetime_of<DRtLiteralPlain>::value
-                   == lifetime::runtime);
+                   == DLifetime::runtime);
     D_RT_CHECK(is_runtime_container<DRtLiteralPlain>::value == true);
 
     // ... and adding a constexpr size() to it is what changes the verdict
@@ -219,19 +219,19 @@ bool tests_runtime_only_is_exact_equality()
         {
             ++runtime_only_count;
 
-            D_RT_CHECK(rt_lifetime_at(i) == lifetime::runtime);
+            D_RT_CHECK(rt_lifetime_at(i) == DLifetime::runtime);
         }
     }
 
     D_RT_CHECK(runtime_only_count == 1);
 
     // a container-shaped carrier for each verdict
-    D_RT_CHECK(container_lifetime_of<DRtCategoryNone>::value == lifetime::none);
+    D_RT_CHECK(container_lifetime_of<DRtCategoryNone>::value == DLifetime::none);
     D_RT_CHECK(container_lifetime_of<DRtCategoryCompileTimeSized>::value
-                   == lifetime::compile_time);
-    D_RT_CHECK(container_lifetime_of<DRtShaped>::value == lifetime::runtime);
+                   == DLifetime::compile_time);
+    D_RT_CHECK(container_lifetime_of<DRtShaped>::value == DLifetime::runtime);
     D_RT_CHECK(container_lifetime_of<DRtConstexprSize>::value
-                   == lifetime::both);
+                   == DLifetime::both);
 
     // ... each shaped, so only the lifetime differs
     D_RT_CHECK(has_size_accessor_signal<DRtCategoryNone>::value == true);
@@ -247,7 +247,7 @@ bool tests_runtime_only_is_exact_equality()
 
     // the meet of compile_time and runtime is the bottom
     D_RT_CHECK(container_lifetime_of<DRtCategoryCompileTime>::value
-                   == lifetime::none);
+                   == DLifetime::none);
     D_RT_CHECK(is_runtime_container<DRtCategoryCompileTime>::value
                    == false);
 
@@ -261,8 +261,8 @@ bool tests_runtime_only_is_exact_equality()
                         == false ));
 
     // a bit test would disagree on `both`
-    D_RT_CHECK(   ( is_runtime(lifetime::both)      == true )
-               && ( is_runtime_only(lifetime::both) == false ));
+    D_RT_CHECK(   ( is_runtime(DLifetime::both)      == true )
+               && ( is_runtime_only(DLifetime::both) == false ));
     D_RT_CHECK(rt_life_is(container_lifetime_of<rt_array>::value, "both"));
 
     return ok;

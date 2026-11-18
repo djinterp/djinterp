@@ -33,7 +33,7 @@ bool tests_override_keep_base()
 {
     bool ok = true;
 
-    using h = ov_hooks<keep_base, ov_base, ov_delta>;
+    using h = ov_hooks<DKeepBase, ov_base, ov_delta>;
 
     D_OV_CHECK(ok, std::is_same_v<h::base_only,  ov_base>);
     D_OV_CHECK(ok, std::is_same_v<h::delta_only, dropped>);
@@ -41,7 +41,7 @@ bool tests_override_keep_base()
 
     // positional, not type-matched: swap the operands and on_both must
     // follow the BASE position, not the type it saw last time
-    using s = ov_hooks<keep_base, ov_delta, ov_base>;
+    using s = ov_hooks<DKeepBase, ov_delta, ov_base>;
 
     D_OV_CHECK(ok, std::is_same_v<s::base_only, ov_delta>);
     D_OV_CHECK(ok, std::is_same_v<s::both,      ov_delta>);
@@ -49,10 +49,10 @@ bool tests_override_keep_base()
 
     // the identity case
     D_OV_CHECK(ok, std::is_same_v<
-                       keep_base::on_both<ov_third, ov_third>, ov_third>);
+                       DKeepBase::on_both<ov_third, ov_third>, ov_third>);
 
     // element-agnostic across the zoo
-    using bind = ov_hook_binder<keep_base>;
+    using bind = ov_hook_binder<DKeepBase>;
 
     D_OV_CHECK(ok, ::djinterp::test::holds_for_all<
                        bind::base_only_is_identity,
@@ -116,12 +116,12 @@ bool tests_override_keep_delta()
 
     // and it differs from keep_base exactly where documented
     D_OV_CHECK(ok, std::is_same_v<DKeepDelta::on_base_only<ov_base>,
-                                  keep_base::on_base_only<ov_base>>);
+                                  DKeepBase::on_base_only<ov_base>>);
     D_OV_CHECK(ok, !std::is_same_v<
                        DKeepDelta::on_both<ov_base, ov_delta>,
-                       keep_base::on_both<ov_base, ov_delta>>);
+                       DKeepBase::on_both<ov_base, ov_delta>>);
     D_OV_CHECK(ok, !std::is_same_v<DKeepDelta::on_delta_only<ov_delta>,
-                                   keep_base::on_delta_only<ov_delta>>);
+                                   DKeepBase::on_delta_only<ov_delta>>);
 
     return ok;
 }
@@ -162,7 +162,7 @@ bool tests_override_drop_extras()
                        DKeepDelta::on_base_only<ov_base>>);
     D_OV_CHECK(ok, std::is_same_v<
                        DDropExtras::on_delta_only<ov_delta>,
-                       keep_base::on_delta_only<ov_delta>>);
+                       DKeepBase::on_delta_only<ov_delta>>);
 
     // element-agnostic
     using bind = ov_hook_binder<DDropExtras>;
@@ -292,7 +292,7 @@ bool tests_override_drop_unmatched_base()
     // ... and the only one that discards an unmatched base element
     D_OV_CHECK(ok, !std::is_same_v<
                        DDropUnmatchedBase::on_base_only<ov_base>,
-                       keep_base::on_base_only<ov_base>>);
+                       DKeepBase::on_base_only<ov_base>>);
     D_OV_CHECK(ok, !std::is_same_v<
                        DDropUnmatchedBase::on_base_only<ov_base>,
                        DKeepDelta::on_base_only<ov_base>>);
@@ -332,28 +332,28 @@ bool tests_override_primitive_shapes()
     bool ok = true;
 
     // stateless tags
-    D_OV_CHECK(ok, std::is_empty_v<keep_base>);
+    D_OV_CHECK(ok, std::is_empty_v<DKeepBase>);
     D_OV_CHECK(ok, std::is_empty_v<DKeepDelta>);
     D_OV_CHECK(ok, std::is_empty_v<DDropExtras>);
     D_OV_CHECK(ok, std::is_empty_v<DStrictSubset>);
     D_OV_CHECK(ok, std::is_empty_v<DDropUnmatchedBase>);
 
-    D_OV_CHECK(ok, std::is_trivially_default_constructible_v<keep_base>);
+    D_OV_CHECK(ok, std::is_trivially_default_constructible_v<DKeepBase>);
     D_OV_CHECK(ok, std::is_trivially_copyable_v<DKeepDelta>);
     D_OV_CHECK(ok, std::is_trivially_destructible_v<DDropExtras>);
     D_OV_CHECK(ok, std::is_aggregate_v<DDropUnmatchedBase>);
-    D_OV_CHECK(ok, sizeof(keep_base) == 1);
+    D_OV_CHECK(ok, sizeof(DKeepBase) == 1);
 
     // pairwise distinct
-    D_OV_CHECK(ok, !std::is_same_v<keep_base, DKeepDelta>);
-    D_OV_CHECK(ok, !std::is_same_v<keep_base, DDropExtras>);
+    D_OV_CHECK(ok, !std::is_same_v<DKeepBase, DKeepDelta>);
+    D_OV_CHECK(ok, !std::is_same_v<DKeepBase, DDropExtras>);
     D_OV_CHECK(ok, !std::is_same_v<DKeepDelta, DDropExtras>);
     D_OV_CHECK(ok, !std::is_same_v<DDropExtras, DStrictSubset>);
     D_OV_CHECK(ok, !std::is_same_v<DKeepDelta, DDropUnmatchedBase>);
     D_OV_CHECK(ok, !std::is_same_v<DStrictSubset, DDropUnmatchedBase>);
 
     // the on_base_only column: only DDropUnmatchedBase discards
-    D_OV_CHECK(ok, std::is_same_v<keep_base::on_base_only<ov_base>,
+    D_OV_CHECK(ok, std::is_same_v<DKeepBase::on_base_only<ov_base>,
                                   ov_base>);
     D_OV_CHECK(ok, std::is_same_v<DKeepDelta::on_base_only<ov_base>,
                                   ov_base>);
@@ -366,7 +366,7 @@ bool tests_override_primitive_shapes()
 
     // the on_both column: only keep_base returns the base operand
     D_OV_CHECK(ok, std::is_same_v<
-                       keep_base::on_both<ov_base, ov_delta>, ov_base>);
+                       DKeepBase::on_both<ov_base, ov_delta>, ov_base>);
     D_OV_CHECK(ok, std::is_same_v<
                        DKeepDelta::on_both<ov_base, ov_delta>, ov_delta>);
     D_OV_CHECK(ok, std::is_same_v<
@@ -378,7 +378,7 @@ bool tests_override_primitive_shapes()
                        ov_delta>);
 
     // the on_delta_only column (DStrictSubset omitted - see its own test)
-    D_OV_CHECK(ok, is_dropped_v<keep_base::on_delta_only<ov_delta>>);
+    D_OV_CHECK(ok, is_dropped_v<DKeepBase::on_delta_only<ov_delta>>);
     D_OV_CHECK(ok, is_dropped_v<DDropExtras::on_delta_only<ov_delta>>);
     D_OV_CHECK(ok, !is_dropped_v<DKeepDelta::on_delta_only<ov_delta>>);
     D_OV_CHECK(ok, !is_dropped_v<
@@ -387,10 +387,10 @@ bool tests_override_primitive_shapes()
     // keep_base and DDropExtras share two hooks but differ on the third,
     // which is the closest pair in the matrix
     D_OV_CHECK(ok, std::is_same_v<
-                       keep_base::on_delta_only<ov_delta>,
+                       DKeepBase::on_delta_only<ov_delta>,
                        DDropExtras::on_delta_only<ov_delta>>);
     D_OV_CHECK(ok, !std::is_same_v<
-                       keep_base::on_both<ov_base, ov_delta>,
+                       DKeepBase::on_both<ov_base, ov_delta>,
                        DDropExtras::on_both<ov_base, ov_delta>>);
 
     return ok;

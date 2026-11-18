@@ -326,7 +326,7 @@ bool tests_has_write_surface()
                && ( internal::has_write_surface<DRwReadNonconstOnly>::value
                         == true )
                && ( access_capability_of<DRwReadNonconstOnly>::value
-                        == access_capability::write_only ));
+                        == DAccessCapability::write_only ));
 
     return ok;
 }
@@ -366,13 +366,13 @@ bool tests_write_surface_value_type_asymmetry()
     D_RW_CHECK(internal::has_write_surface<rw_clear_no_value_type>::value
                    == true);
     D_RW_CHECK(access_capability_of<rw_clear_no_value_type>::value
-                   == access_capability::write_only);
+                   == DAccessCapability::write_only);
 
     // push_back() alone, no value_type: not writable
     D_RW_CHECK(internal::has_write_surface<
                    rw_push_back_no_value_type>::value == false);
     D_RW_CHECK(access_capability_of<rw_push_back_no_value_type>::value
-                   == access_capability::none);
+                   == DAccessCapability::none);
 
     // every value_type-dependent probe misses it
     D_RW_CHECK(internal::has_push_back_helper<

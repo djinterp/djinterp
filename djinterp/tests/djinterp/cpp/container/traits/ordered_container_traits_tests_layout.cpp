@@ -69,9 +69,9 @@ bool tests_has_c_str_helper()
 
     // ... and those types fall through to their iterator category
     D_OR_CHECK(sequential_layout_of<DOrdTextNonconst>::value
-                   == sequential_layout::array_like);
+                   == DSequentialLayout::array_like);
     D_OR_CHECK(sequential_layout_of<DOrdTextPrivate>::value
-                   == sequential_layout::array_like);
+                   == DSequentialLayout::array_like);
 
     return ok;
 }
@@ -93,20 +93,20 @@ bool tests_sequential_layout_enum()
     bool ok = true;
 
     // scoped
-    D_OR_STATIC_CHECK(std::is_enum<sequential_layout>::value == true);
+    D_OR_STATIC_CHECK(std::is_enum<DSequentialLayout>::value == true);
     D_OR_STATIC_CHECK(
-        std::is_convertible<sequential_layout, int>::value == false);
+        std::is_convertible<DSequentialLayout, int>::value == false);
 
     // the implicit ordinals
-    D_OR_CHECK(static_cast<int>(sequential_layout::none)              == 0);
-    D_OR_CHECK(static_cast<int>(sequential_layout::array_like)        == 1);
-    D_OR_CHECK(static_cast<int>(sequential_layout::deque_like)        == 2);
-    D_OR_CHECK(static_cast<int>(sequential_layout::list_like)         == 3);
-    D_OR_CHECK(static_cast<int>(sequential_layout::forward_list_like) == 4);
-    D_OR_CHECK(static_cast<int>(sequential_layout::string_like)       == 5);
+    D_OR_CHECK(static_cast<int>(DSequentialLayout::none)              == 0);
+    D_OR_CHECK(static_cast<int>(DSequentialLayout::array_like)        == 1);
+    D_OR_CHECK(static_cast<int>(DSequentialLayout::deque_like)        == 2);
+    D_OR_CHECK(static_cast<int>(DSequentialLayout::list_like)         == 3);
+    D_OR_CHECK(static_cast<int>(DSequentialLayout::forward_list_like) == 4);
+    D_OR_CHECK(static_cast<int>(DSequentialLayout::string_like)       == 5);
 
     // a value-initialised layout claims nothing
-    D_OR_CHECK(sequential_layout{} == sequential_layout::none);
+    D_OR_CHECK(DSequentialLayout{} == DSequentialLayout::none);
 
     // pairwise distinct, over the whole enum
     for (int i = 0; i < ord_layout_count; ++i)
@@ -121,9 +121,9 @@ bool tests_sequential_layout_enum()
 
     // usable as a non-type template argument
     D_OR_STATIC_CHECK(
-        std::integral_constant<sequential_layout,
-                               sequential_layout::list_like>::value
-            == sequential_layout::list_like);
+        std::integral_constant<DSequentialLayout,
+                               DSequentialLayout::list_like>::value
+            == DSequentialLayout::list_like);
 
     return ok;
 }
@@ -141,15 +141,15 @@ bool tests_sequential_layout_name()
     bool ok = true;
 
     // each layout's spelling
-    D_OR_CHECK(ord_layout_name_is(sequential_layout::none, "none"));
-    D_OR_CHECK(ord_layout_name_is(sequential_layout::array_like,
+    D_OR_CHECK(ord_layout_name_is(DSequentialLayout::none, "none"));
+    D_OR_CHECK(ord_layout_name_is(DSequentialLayout::array_like,
                                   "array_like"));
-    D_OR_CHECK(ord_layout_name_is(sequential_layout::deque_like,
+    D_OR_CHECK(ord_layout_name_is(DSequentialLayout::deque_like,
                                   "deque_like"));
-    D_OR_CHECK(ord_layout_name_is(sequential_layout::list_like, "list_like"));
-    D_OR_CHECK(ord_layout_name_is(sequential_layout::forward_list_like,
+    D_OR_CHECK(ord_layout_name_is(DSequentialLayout::list_like, "list_like"));
+    D_OR_CHECK(ord_layout_name_is(DSequentialLayout::forward_list_like,
                                   "forward_list_like"));
-    D_OR_CHECK(ord_layout_name_is(sequential_layout::string_like,
+    D_OR_CHECK(ord_layout_name_is(DSequentialLayout::string_like,
                                   "string_like"));
 
     // pairwise distinct spellings
@@ -168,7 +168,7 @@ bool tests_sequential_layout_name()
 
     // constexpr
     D_OR_STATIC_CHECK(
-        sequential_layout_name(sequential_layout::none)[0] == 'n');
+        sequential_layout_name(DSequentialLayout::none)[0] == 'n');
 
     return ok;
 }
@@ -198,21 +198,21 @@ bool tests_sequential_layout_of_std_types()
 
     // the intended carriers
     D_OR_CHECK(sequential_layout_of<DOrdVector>::value
-                   == sequential_layout::array_like);
+                   == DSequentialLayout::array_like);
     D_OR_CHECK(sequential_layout_of<DOrdArray>::value
-                   == sequential_layout::array_like);
+                   == DSequentialLayout::array_like);
     D_OR_CHECK(sequential_layout_of<DOrdDeque>::value
-                   == sequential_layout::deque_like);
+                   == DSequentialLayout::deque_like);
     D_OR_CHECK(sequential_layout_of<DOrdList>::value
-                   == sequential_layout::list_like);
+                   == DSequentialLayout::list_like);
     D_OR_CHECK(sequential_layout_of<DOrdFlist>::value
-                   == sequential_layout::forward_list_like);
+                   == DSequentialLayout::forward_list_like);
     D_OR_CHECK(sequential_layout_of<DOrdString>::value
-                   == sequential_layout::string_like);
+                   == DSequentialLayout::string_like);
 
     // the bit-packed vector reads as a deque
     D_OR_CHECK(sequential_layout_of<DOrdBoolVector>::value
-                   == sequential_layout::deque_like);
+                   == DSequentialLayout::deque_like);
     D_OR_CHECK(sequential_layout_of<DOrdBoolVector>::value
                    != sequential_layout_of<DOrdVector>::value);
 
@@ -226,11 +226,11 @@ bool tests_sequential_layout_of_std_types()
                && ( is_contiguous_iterable<DOrdRandomNoData>::value
                         == false )
                && ( sequential_layout_of<DOrdRandomNoData>::value
-                        == sequential_layout::deque_like ));
+                        == DSequentialLayout::deque_like ));
 
     // a nested container is classified by its own storage
     D_OR_CHECK(sequential_layout_of<DOrdNested>::value
-                   == sequential_layout::array_like);
+                   == DSequentialLayout::array_like);
 
     return ok;
 }
@@ -258,37 +258,37 @@ bool tests_sequential_layout_of_precedence()
     D_OR_CHECK(   ( is_contiguous_iterable<DOrdTextContiguous>::value
                         == true )
                && ( sequential_layout_of<DOrdTextContiguous>::value
-                        == sequential_layout::string_like ));
+                        == DSequentialLayout::string_like ));
     D_OR_CHECK(   ( is_random_access_iterable<DOrdTextForward>::value
                         == true )
                && ( sequential_layout_of<DOrdTextForward>::value
-                        == sequential_layout::string_like ));
+                        == DSequentialLayout::string_like ));
 
     // contiguity before bare random access
     D_OR_CHECK(   ( is_contiguous_iterable<DOrdVector>::value    == true )
                && ( is_random_access_iterable<DOrdVector>::value == true )
                && ( sequential_layout_of<DOrdVector>::value
-                        == sequential_layout::array_like ));
+                        == DSequentialLayout::array_like ));
 
     // random access before bidirectionality
     D_OR_CHECK(   ( is_contiguous_iterable<DOrdDeque>::value      == false )
                && ( is_random_access_iterable<DOrdDeque>::value   == true )
                && ( is_bidirectional_iterable<DOrdDeque>::value   == true )
                && ( sequential_layout_of<DOrdDeque>::value
-                        == sequential_layout::deque_like ));
+                        == DSequentialLayout::deque_like ));
 
     // bidirectionality before forward
     D_OR_CHECK(   ( is_random_access_iterable<DOrdList>::value  == false )
                && ( is_bidirectional_iterable<DOrdList>::value  == true )
                && ( is_forward_iterable<DOrdList>::value        == true )
                && ( sequential_layout_of<DOrdList>::value
-                        == sequential_layout::list_like ));
+                        == DSequentialLayout::list_like ));
 
     // and forward last
     D_OR_CHECK(   ( is_bidirectional_iterable<DOrdFlist>::value == false )
                && ( is_forward_iterable<DOrdFlist>::value       == true )
                && ( sequential_layout_of<DOrdFlist>::value
-                        == sequential_layout::forward_list_like ));
+                        == DSequentialLayout::forward_list_like ));
 
     // the categories nest, which is why the ordering carries the meaning
     D_OR_CHECK(   ( is_contiguous_iterable<DOrdVector>::value    == true )
@@ -316,43 +316,43 @@ bool tests_sequential_layout_of_gate()
 
     // the associative containers have no layout
     D_OR_CHECK(sequential_layout_of<DOrdSet>::value
-                   == sequential_layout::none);
+                   == DSequentialLayout::none);
     D_OR_CHECK(sequential_layout_of<DOrdMultiset>::value
-                   == sequential_layout::none);
+                   == DSequentialLayout::none);
     D_OR_CHECK(sequential_layout_of<DOrdMap>::value
-                   == sequential_layout::none);
+                   == DSequentialLayout::none);
     D_OR_CHECK(sequential_layout_of<DOrdUset>::value
-                   == sequential_layout::none);
+                   == DSequentialLayout::none);
     D_OR_CHECK(sequential_layout_of<DOrdUmap>::value
-                   == sequential_layout::none);
+                   == DSequentialLayout::none);
 
     // nor do non-containers
     D_OR_CHECK(sequential_layout_of<DOrdBare>::value
-                   == sequential_layout::none);
+                   == DSequentialLayout::none);
     D_OR_CHECK(sequential_layout_of<DOrdPair>::value
-                   == sequential_layout::none);
+                   == DSequentialLayout::none);
     D_OR_CHECK(sequential_layout_of<DOrdBeginOnly>::value
-                   == sequential_layout::none);
+                   == DSequentialLayout::none);
     D_OR_CHECK(sequential_layout_of<int>::value
-                   == sequential_layout::none);
+                   == DSequentialLayout::none);
     D_OR_CHECK(sequential_layout_of<void>::value
-                   == sequential_layout::none);
+                   == DSequentialLayout::none);
 
     // the gate precedes the c_str() test
     D_OR_CHECK(   ( internal::has_c_str_helper<DOrdTextKeyed>::value == true )
                && ( is_ordered_container<DOrdTextKeyed>::value       == false )
                && ( sequential_layout_of<DOrdTextKeyed>::value
-                        == sequential_layout::none ));
+                        == DSequentialLayout::none ));
 
     // the gate is exactly is_ordered_container
     D_OR_CHECK(( sequential_layout_of<DOrdVector>::value
-                     != sequential_layout::none )
+                     != DSequentialLayout::none )
                    == is_ordered_container<DOrdVector>::value);
     D_OR_CHECK(( sequential_layout_of<DOrdMap>::value
-                     != sequential_layout::none )
+                     != DSequentialLayout::none )
                    == is_ordered_container<DOrdMap>::value);
     D_OR_CHECK(( sequential_layout_of<DOrdBare>::value
-                     != sequential_layout::none )
+                     != DSequentialLayout::none )
                    == is_ordered_container<DOrdBare>::value);
 
     return ok;
@@ -384,12 +384,12 @@ bool tests_sequential_layout_of_fallthrough()
 
     // the last branch
     D_OR_CHECK(sequential_layout_of<DOrdInputOnly>::value
-                   == sequential_layout::none);
+                   == DSequentialLayout::none);
 
     // and it is NOT the gate firing
     D_OR_CHECK(is_ordered_container<DOrdInputOnly>::value == true);
     D_OR_CHECK(ordering_kind_of<DOrdInputOnly>::value
-                   == ordering_kind::ordered);
+                   == DOrderingKind::ordered);
 
     // no signal is satisfied
     D_OR_CHECK(internal::has_c_str_helper<DOrdInputOnly>::value      == false);
@@ -431,19 +431,19 @@ bool tests_sequential_layout_out_of_range()
 {
     bool ok = true;
 
-    const sequential_layout six   = static_cast<sequential_layout>(6);
-    const sequential_layout seven = static_cast<sequential_layout>(7);
+    const DSequentialLayout six   = static_cast<DSequentialLayout>(6);
+    const DSequentialLayout seven = static_cast<DSequentialLayout>(7);
 
     // the fall-through answers the most specific layout
     D_OR_CHECK(ord_layout_name_is(six,   "string_like"));
     D_OR_CHECK(ord_layout_name_is(seven, "string_like"));
     D_OR_CHECK(std::strcmp(
                    sequential_layout_name(six),
-                   sequential_layout_name(sequential_layout::string_like))
+                   sequential_layout_name(DSequentialLayout::string_like))
                    == 0);
 
     // though the values themselves differ
-    D_OR_CHECK(six != sequential_layout::string_like);
+    D_OR_CHECK(six != DSequentialLayout::string_like);
     D_OR_CHECK(six != seven);
     D_OR_CHECK(static_cast<int>(six) == 6);
 
@@ -462,8 +462,8 @@ bool tests_sequential_layout_out_of_range()
     }
 
     // the default remains none
-    D_OR_CHECK(sequential_layout{} == sequential_layout::none);
-    D_OR_CHECK(ord_layout_name_is(sequential_layout{}, "none"));
+    D_OR_CHECK(DSequentialLayout{} == DSequentialLayout::none);
+    D_OR_CHECK(ord_layout_name_is(DSequentialLayout{}, "none"));
 
     return ok;
 }
@@ -481,28 +481,28 @@ bool tests_sequential_layout_cv_ref()
     bool ok = true;
 
     D_OR_CV_REF_AGREE(sequential_layout_of, DOrdVector,
-                      sequential_layout::array_like);
+                      DSequentialLayout::array_like);
     D_OR_CV_REF_AGREE(sequential_layout_of, DOrdDeque,
-                      sequential_layout::deque_like);
+                      DSequentialLayout::deque_like);
     D_OR_CV_REF_AGREE(sequential_layout_of, DOrdList,
-                      sequential_layout::list_like);
+                      DSequentialLayout::list_like);
     D_OR_CV_REF_AGREE(sequential_layout_of, DOrdFlist,
-                      sequential_layout::forward_list_like);
+                      DSequentialLayout::forward_list_like);
     D_OR_CV_REF_AGREE(sequential_layout_of, DOrdString,
-                      sequential_layout::string_like);
+                      DSequentialLayout::string_like);
     D_OR_CV_REF_AGREE(sequential_layout_of, DOrdMap,
-                      sequential_layout::none);
+                      DSequentialLayout::none);
     D_OR_CV_REF_AGREE(sequential_layout_of, DOrdBare,
-                      sequential_layout::none);
+                      DSequentialLayout::none);
 
     D_OR_CV_REF_AGREE(internal::has_c_str_helper, DOrdString, true);
     D_OR_CV_REF_AGREE(internal::has_c_str_helper, DOrdVector, false);
 
     // spelled out on one carrier
     D_OR_CHECK(sequential_layout_of<volatile DOrdString>::value
-                   == sequential_layout::string_like);
+                   == DSequentialLayout::string_like);
     D_OR_CHECK(sequential_layout_of<const volatile DOrdList&>::value
-                   == sequential_layout::list_like);
+                   == DSequentialLayout::list_like);
 
     return ok;
 }
@@ -524,18 +524,18 @@ bool tests_sequential_layout_companions()
     D_OR_STATIC_CHECK(
         std::is_same<sequential_layout_of_t<DOrdVector>,
                      std::integral_constant<
-                         sequential_layout,
-                         sequential_layout::array_like> >::value);
+                         DSequentialLayout,
+                         DSequentialLayout::array_like> >::value);
     D_OR_STATIC_CHECK(
         std::is_same<sequential_layout_of_t<DOrdString>,
                      std::integral_constant<
-                         sequential_layout,
-                         sequential_layout::string_like> >::value);
+                         DSequentialLayout,
+                         DSequentialLayout::string_like> >::value);
     D_OR_STATIC_CHECK(
         std::is_same<sequential_layout_of_t<DOrdMap>,
                      std::integral_constant<
-                         sequential_layout,
-                         sequential_layout::none> >::value);
+                         DSequentialLayout,
+                         DSequentialLayout::none> >::value);
 
     // ... and carries the value the trait reports
     D_OR_CHECK(sequential_layout_of_t<DOrdList>::value
@@ -545,12 +545,12 @@ bool tests_sequential_layout_companions()
 
     // usable in a constant expression
     D_OR_STATIC_CHECK(sequential_layout_of<DOrdFlist>::value
-                          == sequential_layout::forward_list_like);
+                          == DSequentialLayout::forward_list_like);
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
     D_OR_STATIC_CHECK(sequential_layout_of_v<DOrdString>
-                          == sequential_layout::string_like);
+                          == DSequentialLayout::string_like);
 
     D_OR_CHECK(sequential_layout_of_v<DOrdVector>
                    == sequential_layout_of<DOrdVector>::value);

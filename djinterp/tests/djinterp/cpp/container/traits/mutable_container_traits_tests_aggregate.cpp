@@ -166,15 +166,15 @@ bool tests_mutable_container_class_grade()
 
     // the four corners
     D_MC_CHECK(DMutableContainerClass<DMcVectorInt>::grade
-                   == mutability::fully_mutable);
+                   == DMutability::fully_mutable);
     D_MC_CHECK(DMutableContainerClass<DMcSetInt>::grade
-                   == mutability::structural_mutable);
+                   == DMutability::structural_mutable);
     D_MC_CHECK(DMutableContainerClass<DMcListInt>::grade
-                   == mutability::structural_mutable);
+                   == DMutability::structural_mutable);
     D_MC_CHECK(DMutableContainerClass<DMcArray4>::grade
-                   == mutability::element_mutable);
+                   == DMutability::element_mutable);
     D_MC_CHECK(DMutableContainerClass<DMcSizedOnly>::grade
-                   == mutability::immutable);
+                   == DMutability::immutable);
 
     // grade_name spells that grade
     D_MC_CHECK(std::strcmp(DMutableContainerClass<DMcVectorInt>::grade_name,
@@ -226,11 +226,11 @@ bool tests_mutable_container_class_access()
 
     // the three restrictions
     D_MC_CHECK(DMutableContainerClass<DMcVectorInt>::access
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
     D_MC_CHECK(DMutableContainerClass<DMcSetInt>::access
-                   == access_restriction::element_const);
+                   == DAccessRestriction::element_const);
     D_MC_CHECK(DMutableContainerClass<DMcMapIi>::access
-                   == access_restriction::key_const);
+                   == DAccessRestriction::key_const);
 
     // access_name spells that restriction
     D_MC_CHECK(std::strcmp(DMutableContainerClass<DMcVectorInt>::access_name,
@@ -437,9 +437,9 @@ bool tests_mutable_container_class_edge_types()
     bool ok = true;
 
     // void: the whole aggregate must instantiate
-    D_MC_CHECK(DMutableContainerClass<void>::grade  == mutability::immutable);
+    D_MC_CHECK(DMutableContainerClass<void>::grade  == DMutability::immutable);
     D_MC_CHECK(DMutableContainerClass<void>::access
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
     D_MC_CHECK(DMutableContainerClass<void>::is_mutable   == false);
     D_MC_CHECK(DMutableContainerClass<void>::is_immutable == false);
     D_MC_CHECK(std::strcmp(DMutableContainerClass<void>::grade_name,
@@ -448,21 +448,21 @@ bool tests_mutable_container_class_edge_types()
                            "none") == 0);
 
     // scalars, pointers, raw arrays
-    D_MC_CHECK(DMutableContainerClass<int>::grade == mutability::immutable);
+    D_MC_CHECK(DMutableContainerClass<int>::grade == DMutability::immutable);
     D_MC_CHECK(DMutableContainerClass<DMcIntPtr>::grade
-                   == mutability::immutable);
+                   == DMutability::immutable);
     D_MC_CHECK(DMutableContainerClass<DMcIntArray>::grade
-                   == mutability::immutable);
+                   == DMutability::immutable);
     D_MC_CHECK(DMutableContainerClass<DMcIntArray>::is_immutable == false);
 
     // pair and tuple carry no size(), so no container-hood
     D_MC_CHECK(DMutableContainerClass<DMcPairIi>::grade
-                   == mutability::immutable);
+                   == DMutability::immutable);
     D_MC_CHECK(DMutableContainerClass<DMcPairIi>::is_immutable == false);
     D_MC_CHECK(DMutableContainerClass<DMcPairIi>::access
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
     D_MC_CHECK(DMutableContainerClass<DMcTupleI>::grade
-                   == mutability::immutable);
+                   == DMutability::immutable);
     D_MC_CHECK(DMutableContainerClass<DMcTupleI>::is_immutable == false);
 
     // a zero-extent array behaves as a positive-extent one
@@ -488,7 +488,7 @@ bool tests_mutable_container_class_edge_types()
     D_MC_CHECK(DMutableContainerClass<DMcImmutableSized>::is_immutable
                    == true);
     D_MC_CHECK(DMutableContainerClass<DMcImmutableSized>::grade
-                   == mutability::immutable);
+                   == DMutability::immutable);
 
     return ok;
 }

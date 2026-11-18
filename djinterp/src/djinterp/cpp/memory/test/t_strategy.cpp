@@ -251,7 +251,7 @@ int main()
                 "(heapless: all storage from a static array)\n");
 
     {
-        arena a(bytes.source());
+        DArena a(bytes.source());
         DArenaMemoryStrategy<double> s(a);
         exercise("arena_memory_strategy", s);
         /* the arena kept everything: individual release is a no-op */
@@ -259,8 +259,8 @@ int main()
     }
 
     {
-        pool<double> p(bytes.source());
-        DPoolMemoryStrategy<pool<double> > s(p);
+        DPool<double> p(bytes.source());
+        DPoolMemoryStrategy<DPool<double> > s(p);
         exercise("pool_memory_strategy", s);
         /* the pool genuinely took every slot back */
         CHECK(p.size() == 0);
@@ -268,8 +268,8 @@ int main()
     }
 
     {
-        pool<double, D_POOL_POLICY_MONOTONIC> p(bytes.source());
-        DPoolMemoryStrategy<pool<double, D_POOL_POLICY_MONOTONIC> > s(p);
+        DPool<double, D_POOL_POLICY_MONOTONIC> p(bytes.source());
+        DPoolMemoryStrategy<DPool<double, D_POOL_POLICY_MONOTONIC> > s(p);
         exercise("pool_memory_strategy(mono)", s);
         /* a monotonic pool declares no individual release, so the container
            never tried -- and the slots are still held */
@@ -313,10 +313,10 @@ int main()
     /* a generational pool projects its sweep capability */
 #if (D_INTERNAL_POOL_GENERATIONAL == 1)
     {
-        using gp = pool<double, D_POOL_POLICY_GENERATIONAL>;
+        using gp = DPool<double, D_POOL_POLICY_GENERATIONAL>;
         CHECK((is_sweeping_strategy<DPoolMemoryStrategy<gp> >::value));
         CHECK((!is_sweeping_strategy<
-                   DPoolMemoryStrategy<pool<double> > >::value));
+                   DPoolMemoryStrategy<DPool<double> > >::value));
     }
 #endif
 

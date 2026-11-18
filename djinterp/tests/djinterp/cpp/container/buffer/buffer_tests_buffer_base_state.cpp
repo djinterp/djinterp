@@ -47,103 +47,103 @@ bool tests_buffer_base_aliases()
 
     // --- fixed + write_only ---
     {
-        using buf = mock_buffer<fixed_growth_policy,
-                                write_only_cursor_policy>;
+        using buf = mock_buffer<DFixedGrowthPolicy,
+                                DWriteOnlyCursorPolicy>;
 
         static_assert(
             std::is_same<typename buf::growth_policy,
-                         fixed_growth_policy>::value,
+                         DFixedGrowthPolicy>::value,
             "growth_policy alias mismatch (fixed + write_only).");
         static_assert(
             std::is_same<typename buf::cursor_policy,
-                         write_only_cursor_policy>::value,
+                         DWriteOnlyCursorPolicy>::value,
             "cursor_policy alias mismatch (fixed + write_only).");
         static_assert(
             std::is_same<
                 typename buf::cursor_state,
-                write_only_cursor_policy::cursor_state>::value,
+                DWriteOnlyCursorPolicy::cursor_state>::value,
             "cursor_state alias mismatch (fixed + write_only).");
 
         record_assertion(ok,
             ( std::is_same<typename buf::growth_policy,
-                           fixed_growth_policy>::value &&
+                           DFixedGrowthPolicy>::value &&
               std::is_same<typename buf::cursor_policy,
-                           write_only_cursor_policy>::value ),
+                           DWriteOnlyCursorPolicy>::value ),
             "aliases: fixed + write_only");
     }
 
     // --- fixed + dual ---
     {
-        using buf = mock_buffer<fixed_growth_policy,
-                                dual_cursor_policy>;
+        using buf = mock_buffer<DFixedGrowthPolicy,
+                                DDualCursorPolicy>;
 
         static_assert(
             std::is_same<typename buf::growth_policy,
-                         fixed_growth_policy>::value,
+                         DFixedGrowthPolicy>::value,
             "growth_policy alias mismatch (fixed + dual).");
         static_assert(
             std::is_same<typename buf::cursor_policy,
-                         dual_cursor_policy>::value,
+                         DDualCursorPolicy>::value,
             "cursor_policy alias mismatch (fixed + dual).");
         static_assert(
             std::is_same<typename buf::cursor_state,
-                         dual_cursor_policy::cursor_state>::value,
+                         DDualCursorPolicy::cursor_state>::value,
             "cursor_state alias mismatch (fixed + dual).");
 
         record_assertion(ok,
             ( std::is_same<typename buf::growth_policy,
-                           fixed_growth_policy>::value &&
+                           DFixedGrowthPolicy>::value &&
               std::is_same<typename buf::cursor_policy,
-                           dual_cursor_policy>::value ),
+                           DDualCursorPolicy>::value ),
             "aliases: fixed + dual");
     }
 
     // --- exponential + write_only ---
     {
-        using buf = mock_buffer<exponential_growth_policy,
-                                write_only_cursor_policy>;
+        using buf = mock_buffer<DExponentialGrowthPolicy,
+                                DWriteOnlyCursorPolicy>;
 
         static_assert(
             std::is_same<typename buf::growth_policy,
-                         exponential_growth_policy>::value,
+                         DExponentialGrowthPolicy>::value,
             "growth_policy alias mismatch (exp + write_only).");
         static_assert(
             std::is_same<typename buf::cursor_policy,
-                         write_only_cursor_policy>::value,
+                         DWriteOnlyCursorPolicy>::value,
             "cursor_policy alias mismatch (exp + write_only).");
 
         record_assertion(ok,
             std::is_same<typename buf::growth_policy,
-                         exponential_growth_policy>::value,
+                         DExponentialGrowthPolicy>::value,
             "aliases: exponential growth policy");
     }
 
     // --- exponential + dual ---
     {
-        using buf = mock_buffer<exponential_growth_policy,
-                                dual_cursor_policy>;
+        using buf = mock_buffer<DExponentialGrowthPolicy,
+                                DDualCursorPolicy>;
 
         static_assert(
             std::is_same<typename buf::cursor_policy,
-                         dual_cursor_policy>::value,
+                         DDualCursorPolicy>::value,
             "cursor_policy alias mismatch (exp + dual).");
         static_assert(
             std::is_same<typename buf::cursor_state,
-                         dual_cursor_policy::cursor_state>::value,
+                         DDualCursorPolicy::cursor_state>::value,
             "cursor_state alias mismatch (exp + dual).");
 
         record_assertion(ok,
             std::is_same<typename buf::cursor_policy,
-                         dual_cursor_policy>::value,
+                         DDualCursorPolicy>::value,
             "aliases: dual cursor policy");
     }
 
     // --- linear and page policies wire through unchanged ---
     {
         using buf_l = mock_buffer<DLinearGrowthPolicy<>,
-                                  dual_cursor_policy>;
+                                  DDualCursorPolicy>;
         using buf_p = mock_buffer<DPageGrowthPolicy<>,
-                                  write_only_cursor_policy>;
+                                  DWriteOnlyCursorPolicy>;
 
         static_assert(
             std::is_same<typename buf_l::growth_policy,
@@ -188,14 +188,14 @@ bool tests_buffer_base_constants()
 
     // --- fixed + write_only: can_grow = false, has_read_cursor = false ---
     {
-        using buf = mock_buffer<fixed_growth_policy,
-                                write_only_cursor_policy>;
+        using buf = mock_buffer<DFixedGrowthPolicy,
+                                DWriteOnlyCursorPolicy>;
 
         static_assert(
-            buf::growth_strategy == buffer_growth_strategy::none,
+            buf::growth_strategy == DBufferGrowthStrategy::none,
             "fixed: growth_strategy must be ::none.");
         static_assert(
-            buf::cursor_model == buffer_cursor_model::write_only,
+            buf::cursor_model == DBufferCursorModel::write_only,
             "write_only: cursor_model must be ::write_only.");
         static_assert(
             buf::can_grow == false,
@@ -205,11 +205,11 @@ bool tests_buffer_base_constants()
             "write_only: has_read_cursor must be false.");
 
         record_assertion(ok,
-            buf::growth_strategy == buffer_growth_strategy::none,
+            buf::growth_strategy == DBufferGrowthStrategy::none,
             "constants: fixed::growth_strategy == none");
 
         record_assertion(ok,
-            buf::cursor_model == buffer_cursor_model::write_only,
+            buf::cursor_model == DBufferCursorModel::write_only,
             "constants: write_only::cursor_model == write_only");
 
         record_assertion(ok,
@@ -223,14 +223,14 @@ bool tests_buffer_base_constants()
 
     // --- exponential + dual: can_grow = true, has_read_cursor = true ---
     {
-        using buf = mock_buffer<exponential_growth_policy,
-                                dual_cursor_policy>;
+        using buf = mock_buffer<DExponentialGrowthPolicy,
+                                DDualCursorPolicy>;
 
         static_assert(
-            buf::growth_strategy == buffer_growth_strategy::exponential,
+            buf::growth_strategy == DBufferGrowthStrategy::exponential,
             "exponential: growth_strategy must be ::exponential.");
         static_assert(
-            buf::cursor_model == buffer_cursor_model::dual,
+            buf::cursor_model == DBufferCursorModel::dual,
             "dual: cursor_model must be ::dual.");
         static_assert(
             buf::can_grow == true,
@@ -240,11 +240,11 @@ bool tests_buffer_base_constants()
             "dual: has_read_cursor must be true.");
 
         record_assertion(ok,
-            buf::growth_strategy == buffer_growth_strategy::exponential,
+            buf::growth_strategy == DBufferGrowthStrategy::exponential,
             "constants: exp::growth_strategy == exponential");
 
         record_assertion(ok,
-            buf::cursor_model == buffer_cursor_model::dual,
+            buf::cursor_model == DBufferCursorModel::dual,
             "constants: dual::cursor_model == dual");
 
         record_assertion(ok,
@@ -259,16 +259,16 @@ bool tests_buffer_base_constants()
     // --- linear and page growth strategies surface correctly ---
     {
         using buf_l = mock_buffer<DLinearGrowthPolicy<>,
-                                  write_only_cursor_policy>;
+                                  DWriteOnlyCursorPolicy>;
         using buf_p = mock_buffer<DPageGrowthPolicy<>,
-                                  dual_cursor_policy>;
+                                  DDualCursorPolicy>;
 
         record_assertion(ok,
-            buf_l::growth_strategy == buffer_growth_strategy::linear,
+            buf_l::growth_strategy == DBufferGrowthStrategy::linear,
             "constants: linear::growth_strategy == linear");
 
         record_assertion(ok,
-            buf_p::growth_strategy == buffer_growth_strategy::page_aligned,
+            buf_p::growth_strategy == DBufferGrowthStrategy::page_aligned,
             "constants: page::growth_strategy == page_aligned");
     }
 
@@ -298,8 +298,8 @@ bool tests_buffer_base_empty()
 
     // --- write_only mode ---
     {
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(64);
 
         record_assertion(ok,
             b.empty(),
@@ -317,8 +317,8 @@ bool tests_buffer_base_empty()
 
     // --- dual mode ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         record_assertion(ok,
             b.empty(),
@@ -368,8 +368,8 @@ bool tests_buffer_base_full()
 
     // --- growable buffer is never reported as full ---
     {
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> b(8);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(8);
 
         record_assertion(ok,
             !b.full(),
@@ -390,8 +390,8 @@ bool tests_buffer_base_full()
 
     // --- fixed buffer becomes full when writable == 0 ---
     {
-        mock_buffer<fixed_growth_policy,
-                    write_only_cursor_policy> b(8);
+        mock_buffer<DFixedGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(8);
 
         record_assertion(ok,
             !b.full(),
@@ -426,8 +426,8 @@ bool tests_buffer_base_full()
 
     // --- fixed dual buffer: read cursor doesn't affect full() ---
     {
-        mock_buffer<fixed_growth_policy,
-                    dual_cursor_policy> b(8);
+        mock_buffer<DFixedGrowthPolicy,
+                    DDualCursorPolicy> b(8);
 
         b.write_fill('z', 8);
 
@@ -468,8 +468,8 @@ bool tests_buffer_base_size()
 
     // --- write_only: size == written ---
     {
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(64);
 
         record_assertion(ok,
             b.size() == 0,
@@ -490,8 +490,8 @@ bool tests_buffer_base_size()
 
     // --- dual: size == readable ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         record_assertion(ok,
             b.size() == 0,
@@ -539,8 +539,8 @@ bool tests_buffer_base_writable_and_position()
 
     // --- write_only ---
     {
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(64);
 
         record_assertion(ok,
             b.writable() == 64,
@@ -569,8 +569,8 @@ bool tests_buffer_base_writable_and_position()
 
     // --- dual: same predicates apply ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(32);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(32);
 
         b.write_fill('a', 16);
 
@@ -596,8 +596,8 @@ bool tests_buffer_base_writable_and_position()
 
     // --- grow path: writable expands ---
     {
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> b(8);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(8);
 
         b.write_fill('q', 8);
 

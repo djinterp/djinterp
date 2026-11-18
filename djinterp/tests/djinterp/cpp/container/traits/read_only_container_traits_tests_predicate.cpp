@@ -53,10 +53,10 @@ bool tests_is_read_only_container()
 
     // `none` is not a weaker read_only
     D_RO_CHECK(   ( access_capability_of<DRoInert>::value
-                        == access_capability::none )
+                        == DAccessCapability::none )
                && ( is_read_only_container<DRoInert>::value == false ));
     D_RO_CHECK(   ( access_capability_of<DRoMetadataOnly>::value
-                        == access_capability::none )
+                        == DAccessCapability::none )
                && ( is_read_only_container<DRoMetadataOnly>::value
                         == false ));
 
@@ -143,16 +143,16 @@ bool tests_is_read_only_tagged()
     D_RO_CHECK(access_capability_from_bits(
                    internal::has_read_surface<DRoTaggedOverride>::value,
                    internal::has_write_surface<DRoTaggedOverride>::value)
-                   == access_capability::read_write);
+                   == DAccessCapability::read_write);
 
     // the mirror: a tag takes a read_only-looking type off the corner
     D_RO_CHECK(is_read_only_container<DRoTaggedElsewhere>::value == false);
     D_RO_CHECK(access_capability_of<DRoTaggedElsewhere>::value
-                   == access_capability::write_only);
+                   == DAccessCapability::write_only);
     D_RO_CHECK(access_capability_from_bits(
                    internal::has_read_surface<DRoTaggedElsewhere>::value,
                    internal::has_write_surface<DRoTaggedElsewhere>::value)
-                   == access_capability::read_only);
+                   == DAccessCapability::read_only);
 
     // the routes agree in the verdict and differ only in the flag
     D_RO_CHECK(   ( is_read_only_container<DRoTagged>::value
@@ -196,13 +196,13 @@ bool tests_is_read_only_std_types()
 
     // ... because they are all read_write
     D_RO_CHECK(access_capability_of<DRoVector>::value
-                   == access_capability::read_write);
+                   == DAccessCapability::read_write);
     D_RO_CHECK(access_capability_of<DRoSet>::value
-                   == access_capability::read_write);
+                   == DAccessCapability::read_write);
 
     // a pair is `none`, not read_only
     D_RO_CHECK(   ( access_capability_of<DRoPair>::value
-                        == access_capability::none )
+                        == DAccessCapability::none )
                && ( is_read_only_container<DRoPair>::value == false ));
 
     // but a restricting handle over one of them is read_only

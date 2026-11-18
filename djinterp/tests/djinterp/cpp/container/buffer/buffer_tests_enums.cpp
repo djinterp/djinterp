@@ -35,7 +35,7 @@ bool tests_buffer_growth_strategy()
 {
     bool ok = true;
 
-    using strategy = buffer_growth_strategy;
+    using strategy = DBufferGrowthStrategy;
 
     // --- distinctness ---
 
@@ -132,7 +132,7 @@ bool tests_buffer_cursor_model()
 {
     bool ok = true;
 
-    using model = buffer_cursor_model;
+    using model = DBufferCursorModel;
 
     // --- distinctness ---
 

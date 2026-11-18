@@ -27,11 +27,11 @@
 
 NS_DJINTERP
 
-// path_span
+// DPathSpan
 //   class: a path read from text it does not own, by a grammar
 // (dj_path_grammar) -- a file path, an n-ary tree's path or a URL's path
 // alike. The text and the grammar must outlive it.
-class path_span
+class DPathSpan
 {
 public:
     // const_iterator
@@ -134,11 +134,11 @@ public:
         dj_path_label       m_label;
     };
 
-    path_span()
+    DPathSpan()
         : m_span(no_span())
     {}
 
-    path_span(
+    DPathSpan(
         const char*           _text,
         const dj_path_grammar& _grammar
     )
@@ -147,7 +147,7 @@ public:
                                 &_grammar))
     {}
 
-    path_span(
+    DPathSpan(
         const char*           _text,
         std::size_t           _length,
         const dj_path_grammar& _grammar
@@ -157,7 +157,7 @@ public:
                                 &_grammar))
     {}
 
-    explicit path_span(
+    explicit DPathSpan(
         const dj_path_span& _span
     )
         : m_span(_span)
@@ -180,13 +180,13 @@ public:
     dj_path_label last() const     { return d_path_span_last(&m_span); }
     dj_path_label rest() const     { return d_path_span_rest(&m_span); }
 
-    path_span parent() const
+    DPathSpan parent() const
     {
-        return path_span(d_path_span_parent(&m_span));
+        return DPathSpan(d_path_span_parent(&m_span));
     }
 
     std::size_t meet(
-        const path_span& _other
+        const DPathSpan& _other
     ) const
     {
         return d_path_span_meet(&m_span,
@@ -194,7 +194,7 @@ public:
     }
 
     bool starts_with(
-        const path_span& _prefix
+        const DPathSpan& _prefix
     ) const
     {
         return d_path_span_starts_with(&m_span,
@@ -229,7 +229,7 @@ public:
 
     // _more taken from this path, rendered (d_path_span_render_join)
     std::string join(
-        const path_span& _more
+        const DPathSpan& _more
     ) const
     {
         const std::size_t need = d_path_span_render_join(&m_span,
@@ -263,6 +263,9 @@ private:
 
     dj_path_span m_span;
 };
+
+// old name, until 0.9.0-rc.1
+typedef DPathSpan path_span;
 
 NS_END  // djinterp
 

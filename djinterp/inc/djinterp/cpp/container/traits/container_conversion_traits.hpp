@@ -283,9 +283,9 @@ template<typename From,
 struct conversion_forgets_content
     : std::integral_constant<bool,
             ( native_content_level_of<clean_t<From>>::value
-                  != content_level::none )
+                  != DContentLevel::none )
          && ( native_content_level_of<clean_t<To>>::value
-                  != content_level::none )
+                  != DContentLevel::none )
          && ( content_level_rank(
                   native_content_level_of<clean_t<To>>::value )
             < content_level_rank(
@@ -339,9 +339,9 @@ NS_INTERNAL
         : std::integral_constant<bool,
                 ( std::is_same<clean_t<From>, clean_t<To>>::value
                || ( native_content_level_of<clean_t<From>>::value
-                        != content_level::none
+                        != DContentLevel::none
                  && native_content_level_of<clean_t<To>>::value
-                        != content_level::none ) )
+                        != DContentLevel::none ) )
              && elements_same_type<From, To>::value
              && static_extents_agree<From, To>::value
              && ( native_content_level_of<clean_t<From>>::value
@@ -350,15 +350,15 @@ NS_INTERNAL
              && ( sequential_layout_of<clean_t<From>>::value
                == sequential_layout_of<clean_t<To>>::value )
              && ( lifetime_relation<From, To>::value
-                      == order_relation::equivalent )
+                      == DOrderRelation::equivalent )
              && ( storage_relation<From, To>::value
-                      == order_relation::equivalent )
+                      == DOrderRelation::equivalent )
              && ( DIterabilityRelation<From, To>::value
-                      == order_relation::equivalent )
+                      == DOrderRelation::equivalent )
              && (    discipline_relation<From, To>::value
-                         == order_relation::equivalent
+                         == DOrderRelation::equivalent
                   || discipline_relation<From, To>::value
-                         == order_relation::greater )>
+                         == DOrderRelation::greater )>
     {};
 
 NS_END  // internal
@@ -512,7 +512,7 @@ public:
         has_constructive_path<from_type, to_type>::value;
     static constexpr bool lossless =
         is_lossless_conversion<from_type, to_type>::value;
-    static constexpr content_level shared_content_level =
+    static constexpr DContentLevel shared_content_level =
         content_level_coarser(
             native_content_level_of<from_type>::value,
             native_content_level_of<to_type>::value );

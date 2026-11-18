@@ -154,14 +154,14 @@ bool fixed_string_check(
 // fs_abc
 //   value: the ordinary case - three characters plus the terminating
 // null, so _N is 4 and size() is 3.
-inline constexpr fixed_string fs_abc{"abc"};
+inline constexpr DFixedString fs_abc{"abc"};
 
 // fs_empty
 //   value: the shortest payload a string literal can produce.  _N is 1 -
 // the terminating null and nothing else - so size() is 0 and view() is
 // empty.  This is the boundary the _N - 1 arithmetic in size() and view()
 // has to get right, and the smallest _N the deduction guide can reach.
-inline constexpr fixed_string fs_empty{""};
+inline constexpr DFixedString fs_empty{""};
 
 // fs_embedded
 //   value: a literal carrying an INTERIOR null.  _N is 4 - 'a', '\0',
@@ -169,13 +169,13 @@ inline constexpr fixed_string fs_empty{""};
 // divergence is what separates this type's byte-count contract from a
 // C-string contract, and it is the only fixture that can tell a correct
 // size() apart from one that searched for a null.
-inline constexpr fixed_string fs_embedded{"a\0b"};
+inline constexpr DFixedString fs_embedded{"a\0b"};
 
 // fs_long
 //   value: a payload long enough that the constructor's copy loop runs
 // many iterations, so a bug that only appears past the first few bytes
 // has somewhere to hide.
-inline constexpr fixed_string fs_long{"the quick brown fox jumped over"};
+inline constexpr DFixedString fs_long{"the quick brown fox jumped over"};
 
 
 // ===========================================================================
@@ -194,7 +194,7 @@ inline constexpr fixed_string fs_long{"the quick brown fox jumped over"};
 template<std::size_t _N>
 constexpr
 bool fs_bytes_equal(
-    const fixed_string<_N>& _value,
+    const DFixedString<_N>& _value,
     const char (&_literal)[_N]
 )
 {
@@ -218,7 +218,7 @@ bool fs_bytes_equal(
 template<std::size_t _N>
 constexpr
 std::size_t fs_extent(
-    const fixed_string<_N>&
+    const DFixedString<_N>&
 )
 {
     return _N;
@@ -232,7 +232,7 @@ std::size_t fs_extent(
 template<std::size_t _N>
 constexpr
 bool fs_null_terminated(
-    const fixed_string<_N>& _value
+    const DFixedString<_N>& _value
 )
 {
     return _value.data[_N - 1] == '\0';
@@ -266,7 +266,7 @@ struct fs_is_equality_comparable
 // argument back out so a test can compare what emerged against what went
 // in.  The parameter is a placeholder for a deduced class type, so both
 // fs_holder<fixed_string{"abc"}> and fs_holder<"abc"> name it.
-template<fixed_string _Text>
+template<DFixedString _Text>
 struct fs_holder
 {
     static constexpr auto value = _Text;
@@ -275,21 +275,21 @@ struct fs_holder
 // fs_size_of
 //   value: a variable template parameterised on a fixed_string, so the
 // argument is consumed outside a class scope too.
-template<fixed_string _Text>
+template<DFixedString _Text>
 inline constexpr std::size_t fs_size_of = _Text.size();
 
 // fs_nonempty
 //   concept: a constraint evaluated on a fixed_string NTTP, which
 // requires the argument to be usable in a constant expression during
 // constraint checking rather than only inside a template body.
-template<fixed_string _Text>
+template<DFixedString _Text>
 concept fs_nonempty = (_Text.size() > 0);
 
 // fs_guarded
 //   function: a function template constrained on a fixed_string NTTP.
 // Distinct from fs_size_of because the argument is used in a
 // requires-clause, which is checked before the body is ever instantiated.
-template<fixed_string _Text>
+template<DFixedString _Text>
     requires fs_nonempty<_Text>
 constexpr std::size_t
 fs_guarded()
@@ -301,7 +301,7 @@ fs_guarded()
 //   trait: true when _Op has the signature "template parameterised on one
 // fixed_string".  Binding a template as a template template argument
 // checks its signature without instantiating it.
-template<template<fixed_string> class _Op>
+template<template<DFixedString> class _Op>
 struct fs_binds_nttp : std::true_type
 {};
 #endif  // !DTEST_SPEC_MODE  (fixtures)

@@ -40,9 +40,9 @@
 NS_DJINTERP
 
 
-// write_only
+// DWriteOnly
 //   tag: the access capability granting modification only (an append-only sink).
-struct write_only
+struct DWriteOnly
 {
     static D_CONSTEXPR_VAR bool can_read  = false;
     static D_CONSTEXPR_VAR bool can_write = true;
@@ -51,6 +51,9 @@ struct write_only
     //   function: the capability's stable spelling.
     static D_CONSTEXPR const char* name() D_NOEXCEPT { return "write_only"; }
 };
+
+// old name, until 0.9.0-rc.1
+typedef DWriteOnly write_only;
 
 
 NS_END  // djinterp

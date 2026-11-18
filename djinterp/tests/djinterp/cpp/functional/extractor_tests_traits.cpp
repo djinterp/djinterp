@@ -80,15 +80,15 @@ static_assert(
     "mapped(age, times_two) yields int");
 static_assert(
     std::is_same<extractor_result_t<filtered_t, DPerson>,
-                 maybe<int> >::value,
+                 DMaybe<int> >::value,
     "filtered(age, is_adult) yields maybe<int>");
 
 // is_maybe: recognises a maybe specialization.
 static_assert(
-    is_maybe<maybe<int> >::value,
+    is_maybe<DMaybe<int> >::value,
     "maybe<int> is a maybe");
 static_assert(
-    is_maybe<maybe<DPerson> >::value,
+    is_maybe<DMaybe<DPerson> >::value,
     "maybe<person> is a maybe");
 static_assert(
     !is_maybe<int>::value,
@@ -124,7 +124,7 @@ static_assert(
     !is_extractor_v<DNotExt, DPerson>,
     "is_extractor_v rejects a non-callable");
 static_assert(
-    is_maybe_v<maybe<int> >,
+    is_maybe_v<DMaybe<int> >,
     "is_maybe_v agrees with ::value");
 static_assert(
     is_maybe_extractor_v<filtered_t, DPerson>,
@@ -199,7 +199,7 @@ bool test_traits_result_type()
         (std::is_same<extractor_result_t<mapped_t, DPerson>, int>::value));
     D_INTERNAL_EXT_CHECK(
         (std::is_same<extractor_result_t<filtered_t, DPerson>,
-                      maybe<int> >::value));
+                      DMaybe<int> >::value));
 
     return true;
 }
@@ -214,8 +214,8 @@ test_traits_is_maybe
 */
 bool test_traits_is_maybe()
 {
-    D_INTERNAL_EXT_CHECK((is_maybe<maybe<int> >::value));
-    D_INTERNAL_EXT_CHECK((is_maybe<maybe<DPerson> >::value));
+    D_INTERNAL_EXT_CHECK((is_maybe<DMaybe<int> >::value));
+    D_INTERNAL_EXT_CHECK((is_maybe<DMaybe<DPerson> >::value));
     D_INTERNAL_EXT_CHECK((!is_maybe<int>::value));
     D_INTERNAL_EXT_CHECK((!is_maybe<DPerson>::value));
 
@@ -254,7 +254,7 @@ bool test_traits_value_aliases()
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     D_INTERNAL_EXT_CHECK((is_extractor_v<age_ext_t, DPerson>));
     D_INTERNAL_EXT_CHECK((!is_extractor_v<DNotExt, DPerson>));
-    D_INTERNAL_EXT_CHECK((is_maybe_v<maybe<int> >));
+    D_INTERNAL_EXT_CHECK((is_maybe_v<DMaybe<int> >));
     D_INTERNAL_EXT_CHECK((!is_maybe_v<int>));
     D_INTERNAL_EXT_CHECK((is_maybe_extractor_v<filtered_t, DPerson>));
     D_INTERNAL_EXT_CHECK((!is_maybe_extractor_v<age_ext_t, DPerson>));

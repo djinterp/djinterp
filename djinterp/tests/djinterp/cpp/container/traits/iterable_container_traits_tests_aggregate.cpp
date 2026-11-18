@@ -42,7 +42,7 @@ bool tests_iterable_container_class()
         D_IC_CHECK( (C::has_iter_alias && C::has_const_iter_alias) );
         D_IC_CHECK( (C::is_iterable && !C::is_non_iterable) );
         D_IC_CHECK( (C::provides_const && C::provides_mutable) );
-        D_IC_CHECK( (C::mode == iteration_mode::non_const) );
+        D_IC_CHECK( (C::mode == DIterationMode::non_const) );
         D_IC_CHECK( (ic_cstr_eq(C::mode_name, "non_const")) );
     }
 
@@ -52,7 +52,7 @@ bool tests_iterable_container_class()
         D_IC_CHECK( (C::has_begin && C::has_end) );
         D_IC_CHECK( (C::is_iterable && !C::is_non_iterable) );
         D_IC_CHECK( (C::provides_const && !C::provides_mutable) );
-        D_IC_CHECK( (C::mode == iteration_mode::const_only) );
+        D_IC_CHECK( (C::mode == DIterationMode::const_only) );
         D_IC_CHECK( (ic_cstr_eq(C::mode_name, "const_only")) );
     }
 
@@ -60,7 +60,7 @@ bool tests_iterable_container_class()
     {
         using C = DIterableContainerClass<std::map<int, int>>;
         D_IC_CHECK( (C::is_iterable && C::provides_const && !C::provides_mutable) );
-        D_IC_CHECK( (C::mode == iteration_mode::const_only) );
+        D_IC_CHECK( (C::mode == DIterationMode::const_only) );
     }
 
     // -- DMutableOnlyIter: settable, but nothing callable on a const lvalue --
@@ -71,7 +71,7 @@ bool tests_iterable_container_class()
         D_IC_CHECK( (C::is_iterable && !C::is_non_iterable) );
         D_IC_CHECK( (!C::provides_const) );                              // no const overload ...
         D_IC_CHECK( (C::provides_mutable) );                             // ... yet settable
-        D_IC_CHECK( (C::mode == iteration_mode::non_const) );
+        D_IC_CHECK( (C::mode == DIterationMode::non_const) );
     }
 
     // -- DConstOnlyIter: a const-only traversal --
@@ -79,7 +79,7 @@ bool tests_iterable_container_class()
         using C = DIterableContainerClass<DConstOnlyIter>;
         D_IC_CHECK( (C::has_begin && C::has_end && C::is_iterable) );
         D_IC_CHECK( (C::provides_const && !C::provides_mutable) );
-        D_IC_CHECK( (C::mode == iteration_mode::const_only) );
+        D_IC_CHECK( (C::mode == DIterationMode::const_only) );
     }
 
     // -- DNoValueTypeIter: iterable, but not container-shaped --
@@ -88,7 +88,7 @@ bool tests_iterable_container_class()
         D_IC_CHECK( (C::is_iterable) );
         D_IC_CHECK( (!C::is_non_iterable) );        // no value_type, so neither classification
         D_IC_CHECK( (!C::provides_mutable) );       // the probe names value_type
-        D_IC_CHECK( (C::mode == iteration_mode::const_only) );
+        D_IC_CHECK( (C::mode == DIterationMode::const_only) );
     }
 
     // -- positional_only: the canonical NON-iterable container --
@@ -97,7 +97,7 @@ bool tests_iterable_container_class()
         D_IC_CHECK( (!C::has_begin && !C::has_end) );
         D_IC_CHECK( (!C::is_iterable && C::is_non_iterable) );
         D_IC_CHECK( (!C::provides_const && !C::provides_mutable) );
-        D_IC_CHECK( (C::mode == iteration_mode::none) );
+        D_IC_CHECK( (C::mode == DIterationMode::none) );
         D_IC_CHECK( (ic_cstr_eq(C::mode_name, "none")) );
     }
 
@@ -108,7 +108,7 @@ bool tests_iterable_container_class()
         D_IC_CHECK( (!C::is_iterable) );                  // ... so not iterable ...
         D_IC_CHECK( (C::is_non_iterable) );               // ... and it has a value_type
         D_IC_CHECK( (C::provides_mutable) );              // the raw probe fires (begin() only) ...
-        D_IC_CHECK( (C::mode == iteration_mode::none) );  // ... but the mode gates on iterability
+        D_IC_CHECK( (C::mode == DIterationMode::none) );  // ... but the mode gates on iterability
     }
 
     // -- DAliasOnly: aliases with no traversal and no value_type --
@@ -117,7 +117,7 @@ bool tests_iterable_container_class()
         D_IC_CHECK( (C::has_iter_alias && C::has_const_iter_alias) );
         D_IC_CHECK( (!C::has_begin && !C::has_end) );
         D_IC_CHECK( (!C::is_iterable && !C::is_non_iterable) );
-        D_IC_CHECK( (C::mode == iteration_mode::none) );
+        D_IC_CHECK( (C::mode == DIterationMode::none) );
     }
 
     // -- int: nothing at all --
@@ -127,7 +127,7 @@ bool tests_iterable_container_class()
         D_IC_CHECK( (!C::has_iter_alias && !C::has_const_iter_alias) );
         D_IC_CHECK( (!C::is_iterable && !C::is_non_iterable) );
         D_IC_CHECK( (!C::provides_const && !C::provides_mutable) );
-        D_IC_CHECK( (C::mode == iteration_mode::none) );
+        D_IC_CHECK( (C::mode == DIterationMode::none) );
         D_IC_CHECK( (ic_cstr_eq(C::mode_name, "none")) );
     }
 
@@ -135,7 +135,7 @@ bool tests_iterable_container_class()
     {
         using C = DIterableContainerClass<const std::vector<int>&>;
         D_IC_CHECK( (C::is_iterable && C::provides_mutable) );
-        D_IC_CHECK( (C::mode == iteration_mode::non_const) );
+        D_IC_CHECK( (C::mode == DIterationMode::non_const) );
     }
 
     return _ic_ok;
@@ -180,8 +180,8 @@ bool tests_variable_templates()
 
     D_IC_CHECK( (iteration_mode_of_v<std::vector<int>>
                      == iteration_mode_of<std::vector<int>>::value) );
-    D_IC_CHECK( (iteration_mode_of_v<std::set<int>> == iteration_mode::const_only) );
-    D_IC_CHECK( (iteration_mode_of_v<int>          == iteration_mode::none) );
+    D_IC_CHECK( (iteration_mode_of_v<std::set<int>> == DIterationMode::const_only) );
+    D_IC_CHECK( (iteration_mode_of_v<int>          == DIterationMode::none) );
 
     D_IC_CHECK( (is_const_iterable_container_v<std::vector<int>>) );   // observation, not const-only
     D_IC_CHECK( (is_mutable_iterable_container_v<std::vector<int>>) );

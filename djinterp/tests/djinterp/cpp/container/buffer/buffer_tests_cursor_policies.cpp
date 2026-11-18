@@ -43,20 +43,20 @@ bool tests_write_only_cursor_policy()
 {
     bool ok = true;
 
-    using policy = write_only_cursor_policy;
+    using policy = DWriteOnlyCursorPolicy;
     using state  = policy::cursor_state;
 
     // --- constants ---
 
     static_assert(
-        policy::model == buffer_cursor_model::write_only,
+        policy::model == DBufferCursorModel::write_only,
         "write_only::model must be ::write_only.");
     static_assert(
         policy::has_read_cursor == false,
         "write_only::has_read_cursor must be false.");
 
     record_assertion(ok,
-        policy::model == buffer_cursor_model::write_only,
+        policy::model == DBufferCursorModel::write_only,
         "write_only: model == ::write_only");
 
     record_assertion(ok,
@@ -163,20 +163,20 @@ bool tests_dual_cursor_policy()
 {
     bool ok = true;
 
-    using policy = dual_cursor_policy;
+    using policy = DDualCursorPolicy;
     using state  = policy::cursor_state;
 
     // --- constants ---
 
     static_assert(
-        policy::model == buffer_cursor_model::dual,
+        policy::model == DBufferCursorModel::dual,
         "dual::model must be ::dual.");
     static_assert(
         policy::has_read_cursor == true,
         "dual::has_read_cursor must be true.");
 
     record_assertion(ok,
-        policy::model == buffer_cursor_model::dual,
+        policy::model == DBufferCursorModel::dual,
         "dual: model == ::dual");
 
     record_assertion(ok,

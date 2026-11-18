@@ -31,8 +31,8 @@ tests_memory_discipline_classify_unknown_none
 */
 bool tests_memory_discipline_classify_unknown_none()
 {
-    D_MD_CHECK(discipline_of<md_unknown>::value == memory_discipline::unknown);
-    D_MD_CHECK(discipline_of<DMdNone>::value == memory_discipline::none);
+    D_MD_CHECK(discipline_of<md_unknown>::value == DMemoryDiscipline::unknown);
+    D_MD_CHECK(discipline_of<DMdNone>::value == DMemoryDiscipline::none);
 
     return true;
 }
@@ -49,10 +49,10 @@ tests_memory_discipline_classify_arena
 */
 bool tests_memory_discipline_classify_arena()
 {
-    D_MD_CHECK(discipline_of<md_arena_absent>::value == memory_discipline::arena);
-    D_MD_CHECK(discipline_of<md_arena_false>::value == memory_discipline::arena);
-    D_MD_CHECK(discipline_of<md_function_constants>::value == memory_discipline::arena);
-    D_MD_CHECK(discipline_of<md_member_constants>::value == memory_discipline::arena);
+    D_MD_CHECK(discipline_of<md_arena_absent>::value == DMemoryDiscipline::arena);
+    D_MD_CHECK(discipline_of<md_arena_false>::value == DMemoryDiscipline::arena);
+    D_MD_CHECK(discipline_of<md_function_constants>::value == DMemoryDiscipline::arena);
+    D_MD_CHECK(discipline_of<md_member_constants>::value == DMemoryDiscipline::arena);
 
     return true;
 }
@@ -68,9 +68,9 @@ tests_memory_discipline_classify_pooled_individual
 */
 bool tests_memory_discipline_classify_pooled_individual()
 {
-    D_MD_CHECK(discipline_of<md_pooled>::value == memory_discipline::pooled);
-    D_MD_CHECK(discipline_of<md_individual_absent>::value == memory_discipline::individual);
-    D_MD_CHECK(discipline_of<md_individual_false>::value == memory_discipline::individual);
+    D_MD_CHECK(discipline_of<md_pooled>::value == DMemoryDiscipline::pooled);
+    D_MD_CHECK(discipline_of<md_individual_absent>::value == DMemoryDiscipline::individual);
+    D_MD_CHECK(discipline_of<md_individual_false>::value == DMemoryDiscipline::individual);
 
     return true;
 }
@@ -87,14 +87,14 @@ tests_memory_discipline_classify_allocate_isolation
 bool tests_memory_discipline_classify_allocate_isolation()
 {
     // byte-allocate alone -> allocates -> (no release) arena
-    D_MD_CHECK(discipline_of<md_byte_alloc>::value == memory_discipline::arena);
-    D_MD_CHECK(discipline_of<md_byte_alloc>::value != memory_discipline::none);
+    D_MD_CHECK(discipline_of<md_byte_alloc>::value == DMemoryDiscipline::arena);
+    D_MD_CHECK(discipline_of<md_byte_alloc>::value != DMemoryDiscipline::none);
 
     // element-allocate alone -> allocates -> (no release) arena
-    D_MD_CHECK(discipline_of<md_arena_absent>::value == memory_discipline::arena);
+    D_MD_CHECK(discipline_of<md_arena_absent>::value == DMemoryDiscipline::arena);
 
     // neither allocate shape -> none
-    D_MD_CHECK(discipline_of<DMdNone>::value == memory_discipline::none);
+    D_MD_CHECK(discipline_of<DMdNone>::value == DMemoryDiscipline::none);
 
     return true;
 }
@@ -116,19 +116,19 @@ bool tests_memory_discipline_classify_aliases_and_v()
     D_MD_CHECK((std::is_same<discipline_of_t<md_arena_absent>, arena_discipline>::value));
 
     // cv/ref stripping in the classifier
-    D_MD_CHECK(discipline_of<const md_pooled&>::value == memory_discipline::pooled);
-    D_MD_CHECK(discipline_of<md_individual_absent&>::value == memory_discipline::individual);
+    D_MD_CHECK(discipline_of<const md_pooled&>::value == DMemoryDiscipline::pooled);
+    D_MD_CHECK(discipline_of<md_individual_absent&>::value == DMemoryDiscipline::individual);
 
     // _t carrier value agrees with ::value
     D_MD_CHECK(discipline_of_t<md_pooled>::value == discipline_of<md_pooled>::value);
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES || D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // the _v companion, where the language provides variable templates
-    D_MD_CHECK(discipline_of_v<md_unknown> == memory_discipline::unknown);
-    D_MD_CHECK(discipline_of_v<DMdNone> == memory_discipline::none);
-    D_MD_CHECK(discipline_of_v<md_arena_absent> == memory_discipline::arena);
-    D_MD_CHECK(discipline_of_v<md_pooled> == memory_discipline::pooled);
-    D_MD_CHECK(discipline_of_v<md_individual_absent> == memory_discipline::individual);
+    D_MD_CHECK(discipline_of_v<md_unknown> == DMemoryDiscipline::unknown);
+    D_MD_CHECK(discipline_of_v<DMdNone> == DMemoryDiscipline::none);
+    D_MD_CHECK(discipline_of_v<md_arena_absent> == DMemoryDiscipline::arena);
+    D_MD_CHECK(discipline_of_v<md_pooled> == DMemoryDiscipline::pooled);
+    D_MD_CHECK(discipline_of_v<md_individual_absent> == DMemoryDiscipline::individual);
 #endif
 
     return true;

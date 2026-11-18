@@ -359,7 +359,7 @@ static D_CONSTEXPR bool is_match_guard_v =
 //  a. match_clause
 // =================================================================
 
-// match_clause
+// DMatchClause
 //   class: a static (pattern, handler) pairing -- one arm of a match,
 // with no type erasure.  Exposes the applicability test and the arm
 // action separately, and a try_apply() that fuses them.  The pattern's
@@ -368,7 +368,7 @@ static D_CONSTEXPR bool is_match_guard_v =
 // redeclaring them.
 template<typename Pattern,
          typename Handler>
-class match_clause
+class DMatchClause
 {
 public:
     using pattern_type     = Pattern;
@@ -388,7 +388,7 @@ public:
         "match_clause: Handler must be callable as "
         "(const input_type&, const captures&) or (const input_type&).");
 
-    match_clause(
+    DMatchClause(
         Pattern _pattern,
         Handler _handler
     )
@@ -424,7 +424,7 @@ public:
     //   method: matches ? just(run(in)) : nothing.  The clause as a
     // partial function.
     D_NODISCARD
-    maybe<result_type> try_apply(
+    DMaybe<result_type> try_apply(
         const input_type& _in
     ) const
     {
@@ -445,6 +445,11 @@ private:
     Handler m_handler;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Pattern,
+         typename Handler>
+using match_clause = DMatchClause<Pattern, Handler>;
+
 
 // =================================================================
 //  b. when
@@ -456,7 +461,7 @@ private:
 template<typename Pattern,
          typename Handler>
 D_NODISCARD
-match_clause<typename std::decay<Pattern>::type,
+DMatchClause<typename std::decay<Pattern>::type,
              typename std::decay<Handler>::type>
 when
 (
@@ -464,7 +469,7 @@ when
     Handler&& _handler
 )
 {
-    return match_clause<
+    return DMatchClause<
         typename std::decay<Pattern>::type,
         typename std::decay<Handler>::type>(
             std::forward<Pattern>(_pattern),
@@ -476,7 +481,7 @@ when
 ///                IV.  MATCHER (runtime, type-erased)                     ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// matcher
+// DMatcher
 //   class: an ordered dispatch table -- a growable list of clauses over a
 // shared input_type, each yielding a shared output_type.  Clauses are
 // erased to (test, run) function pairs (mirroring filter's std::function
@@ -484,14 +489,14 @@ when
 // coexist in one container.  apply() evaluates first-match-wins.
 template<typename Input,
          typename Output>
-class matcher
+class DMatcher
 {
 public:
     using input_type  = Input;
     using output_type = Output;
     using status_type = match_status;
 
-    matcher()
+    DMatcher()
         : m_clauses  (),
           m_otherwise()
     {}
@@ -506,7 +511,7 @@ public:
     // precedence.  Returns *this for chaining.
     template<typename Pattern,
              typename Handler>
-    matcher& when(
+    DMatcher& when(
         Pattern _pattern,
         Handler _handler
     )
@@ -550,7 +555,7 @@ public:
     template<typename Pattern,
              typename Guard,
              typename Handler>
-    matcher& when(
+    DMatcher& when(
         Pattern _pattern,
         Guard   _guard,
         Handler _handler
@@ -600,7 +605,7 @@ public:
              typename std::enable_if<
                  is_input_handler<Handler, input_type>::value,
                  int>::type = 0>
-    matcher&
+    DMatcher&
     otherwise
     (
         Handler _handler
@@ -617,7 +622,7 @@ public:
     // otherwise_value
     //   method: sets a constant fallback value, returned when no clause
     // matched.  Returns *this.
-    matcher& otherwise_value(
+    DMatcher& otherwise_value(
         const output_type& _value
     )
     {
@@ -638,7 +643,7 @@ public:
     // first matching clause; if none match, just(otherwise(input)) when a
     // fallback is set, else nothing.
     D_NODISCARD
-    maybe<output_type> apply(
+    DMaybe<output_type> apply(
         const input_type& _in
     ) const
     {
@@ -662,7 +667,7 @@ public:
     //   method: as apply(), but reports the unmatched case as a typed
     // error -- err(DMatchStatusNoMatch) -- rather than nothing.
     D_NODISCARD
-    result<output_type, status_type> apply_result(
+    DResult<output_type, status_type> apply_result(
         const input_type& _in
     ) const
     {
@@ -785,6 +790,11 @@ private:
     std::function<output_type(const input_type&)> m_otherwise;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Input,
+         typename Output>
+using matcher = DMatcher<Input, Output>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                V.   FREE-FUNCTION HELPERS                              ///
@@ -800,9 +810,9 @@ private:
 template<typename Input,
          typename Output>
 D_NODISCARD
-matcher<Input, Output> make_matcher()
+DMatcher<Input, Output> make_matcher()
 {
-    return matcher<Input, Output>();
+    return DMatcher<Input, Output>();
 }
 
 
@@ -830,7 +840,7 @@ std::vector<typename Matcher::output_type> apply_range(
     // fold the matcher across the range, keeping the hits
     for (Iterator _it = _first; _it != _last; ++_it)
     {
-        maybe<typename Matcher::output_type> r = _matcher.apply(*_it);
+        DMaybe<typename Matcher::output_type> r = _matcher.apply(*_it);
 
         if (r.has_value())
         {

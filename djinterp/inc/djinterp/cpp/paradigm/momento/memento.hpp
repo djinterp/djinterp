@@ -382,10 +382,10 @@ struct is_diff_memento_capable
 
 #endif
 
-// memento_capability
+// DMementoCapability
 //   struct: aggregate classification of a type's memento support.
 template<typename Type>
-struct memento_capability
+struct DMementoCapability
 {
     static constexpr bool has_save_restore =
         is_memento_capable<Type>::value;
@@ -413,6 +413,10 @@ struct memento_capability
           has_serialization );
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using memento_capability = DMementoCapability<Type>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///          III.  SNAPSHOT STRATEGIES (POLICIES)                           ///
@@ -429,10 +433,10 @@ struct memento_capability
 // deep_copy_snapshot
 // =========================================================================
 
-// deep_copy_snapshot
+// DDeepCopySnapshot
 //   policy: captures state by copy construction and restores by copy
 // assignment. The simplest strategy; requires State to be copyable.
-struct deep_copy_snapshot
+struct DDeepCopySnapshot
 {
     // snapshot_type_for
     //   type: for a given state type, the snapshot is a plain copy.
@@ -461,16 +465,19 @@ struct deep_copy_snapshot
     }
 };
 
+// old name, until 0.9.0-rc.1
+using deep_copy_snapshot = DDeepCopySnapshot;
+
 
 // =========================================================================
 // clone_snapshot
 // =========================================================================
 
-// clone_snapshot
+// DCloneSnapshot
 //   policy: captures state via State::clone() and restores by copy
 // assignment. For types where copy construction is disabled but a
 // virtual or explicit clone is provided.
-struct clone_snapshot
+struct DCloneSnapshot
 {
     template<typename State>
     using snapshot_type_for = decltype(std::declval<const State>().clone());
@@ -497,17 +504,20 @@ struct clone_snapshot
     }
 };
 
+// old name, until 0.9.0-rc.1
+using clone_snapshot = DCloneSnapshot;
+
 
 // =========================================================================
 // serialized_snapshot
 // =========================================================================
 
-// serialized_snapshot
+// DSerializedSnapshot
 //   policy: captures state via State::serialize() and restores via
 // State::deserialize(). Snapshots are stored in the serialized form
 // (typically std::vector<char> or std::string), enabling compact
 // storage and potential persistence.
-struct serialized_snapshot
+struct DSerializedSnapshot
 {
     template<typename State>
     using snapshot_type_for =
@@ -534,6 +544,9 @@ struct serialized_snapshot
         return;
     }
 };
+
+// old name, until 0.9.0-rc.1
+using serialized_snapshot = DSerializedSnapshot;
 
 
 // =========================================================================
@@ -567,7 +580,7 @@ NS_INTERNAL
 
 NS_END  // internal
 
-// delta_snapshot
+// DDeltaSnapshot
 //   policy: captures state as a diff from the previous state. The first
 // capture is always a full baseline. Subsequent captures store only the
 // delta (via State::diff()). Restoration walks deltas back to the
@@ -576,7 +589,7 @@ NS_END  // internal
 // Note: this policy is stateful at the strategy level - the caretaker
 // must store the previous state for computing diffs. The policy itself
 // provides the diff/apply_diff wrappers.
-struct delta_snapshot
+struct DDeltaSnapshot
 {
     template<typename State>
     using diff_type = decltype(
@@ -644,19 +657,22 @@ struct delta_snapshot
     }
 };
 
+// old name, until 0.9.0-rc.1
+using delta_snapshot = DDeltaSnapshot;
+
 
 // =========================================================================
 // external_snapshot
 // =========================================================================
 
-// external_snapshot
+// DExternalSnapshot
 //   policy: delegates capture and restore to user-supplied callables.
 // Useful when the snapshot mechanism lives outside the state object
 // (e.g., a database transaction, a file checkpoint, or a third-party
 // serialization library).
 template<typename CaptureCallable,
          typename RestoreCallable>
-struct external_snapshot
+struct DExternalSnapshot
 {
     CaptureCallable capture_fn;
     RestoreCallable restore_fn;
@@ -687,6 +703,11 @@ struct external_snapshot
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename CaptureCallable,
+         typename RestoreCallable>
+using external_snapshot = DExternalSnapshot<CaptureCallable, RestoreCallable>;
+
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
 
     // make_external_snapshot
@@ -697,7 +718,7 @@ struct external_snapshot
     auto make_external_snapshot(
         CaptureFn&& _capture,
         RestoreFn&& _restore
-    ) -> external_snapshot<typename std::decay<CaptureFn>::type, typename std::decay<RestoreFn>::type>
+    ) -> DExternalSnapshot<typename std::decay<CaptureFn>::type, typename std::decay<RestoreFn>::type>
     {
         return { std::forward<CaptureFn>(_capture),
                  std::forward<RestoreFn>(_restore) };
@@ -715,9 +736,9 @@ struct external_snapshot
 //   static bool should_push(const container& history, const snapshot& s);
 //   static void after_push(container& history);
 
-// unlimited_history
+// DUnlimitedHistory
 //   policy: retains all snapshots with no eviction.
-struct unlimited_history
+struct DUnlimitedHistory
 {
     template<typename Container,
              typename Snapshot>
@@ -740,11 +761,14 @@ struct unlimited_history
     }
 };
 
-// bounded_history
+// old name, until 0.9.0-rc.1
+using unlimited_history = DUnlimitedHistory;
+
+// DBoundedHistory
 //   policy: retains at most MaxSize snapshots, evicting the oldest
 // when the limit is reached.
 template<std::size_t MaxSize = D_MEMENTO_DEFAULT_HISTORY_CAPACITY>
-struct bounded_history
+struct DBoundedHistory
 {
     static constexpr std::size_t max_size = MaxSize;
 
@@ -774,11 +798,15 @@ struct bounded_history
     }
 };
 
-// coalescing_history
+// old name, until 0.9.0-rc.1
+template<std::size_t MaxSize = D_MEMENTO_DEFAULT_HISTORY_CAPACITY>
+using bounded_history = DBoundedHistory<MaxSize>;
+
+// DCoalescingHistory
 //   policy: suppresses duplicate consecutive snapshots. A new snapshot
 // is only pushed if it differs from the most recent one (requires
 // operator== on the snapshot type).
-struct coalescing_history
+struct DCoalescingHistory
 {
     template<typename Container,
              typename Snapshot>
@@ -806,6 +834,9 @@ struct coalescing_history
     }
 };
 
+// old name, until 0.9.0-rc.1
+using coalescing_history = DCoalescingHistory;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///               V.    MEMENTO CORE                                        ///
@@ -815,10 +846,10 @@ struct coalescing_history
 // memento_metadata
 // =========================================================================
 
-// memento_metadata
+// DMementoMetadata
 //   struct: optional metadata attached to each snapshot. Stores a
 // monotonic sequence number and a user-provided description tag.
-struct memento_metadata
+struct DMementoMetadata
 {
     std::size_t sequence;
 
@@ -826,14 +857,14 @@ struct memento_metadata
     std::string_view tag;
 #endif
 
-    memento_metadata()
+    DMementoMetadata()
         : sequence(0)
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
         , tag()
 #endif
     {}
 
-    explicit memento_metadata(
+    explicit DMementoMetadata(
             std::size_t _seq
         )
             : sequence(_seq)
@@ -843,7 +874,7 @@ struct memento_metadata
         {}
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
-    memento_metadata(
+    DMementoMetadata(
             std::size_t      _seq,
             std::string_view _tag
         )
@@ -853,41 +884,48 @@ struct memento_metadata
 #endif
 };
 
+// old name, until 0.9.0-rc.1
+using memento_metadata = DMementoMetadata;
+
 
 // =========================================================================
 // memento
 // =========================================================================
 
-// memento
+// DMemento
 //   struct: a single snapshot entry pairing captured state with metadata.
 template<typename Snapshot>
-struct memento
+struct DMemento
 {
     using snapshot_type = Snapshot;
 
     Snapshot         state;
-    memento_metadata meta;
+    DMementoMetadata meta;
 
-    memento()
+    DMemento()
         : state(),
           meta()
     {}
 
-    explicit memento(
+    explicit DMemento(
         Snapshot         _s,
-        memento_metadata _m = memento_metadata()
+        DMementoMetadata _m = DMementoMetadata()
     )
         : state(std::move(_s)),
           meta(_m)
     {}
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Snapshot>
+using memento = DMemento<Snapshot>;
+
 
 // =========================================================================
 // memento_originator (CRTP)
 // =========================================================================
 
-// memento_originator
+// DMementoOriginator
 //   class: CRTP base that injects save/restore protocol into a state-
 // owning class. Derived is the concrete type; SnapshotPolicy is the
 // strategy used to capture and restore snapshots.
@@ -910,14 +948,14 @@ struct memento
 //   // ... mutate state ...
 //   state.restore_memento(snap);
 template<typename Derived,
-         typename SnapshotPolicy = deep_copy_snapshot>
-class memento_originator
+         typename SnapshotPolicy = DDeepCopySnapshot>
+class DMementoOriginator
 {
 public:
     using snapshot_policy = SnapshotPolicy;
     using snapshot_type   = typename SnapshotPolicy::template
                                 snapshot_type_for<Derived>;
-    using memento_type    = memento<snapshot_type>;
+    using memento_type    = DMemento<snapshot_type>;
 
     // create_memento
     //   function: captures the current state as a memento.
@@ -928,7 +966,7 @@ public:
         snapshot_type snap    = SnapshotPolicy::capture(self);
 
         memento_type m(std::move(snap),
-                       memento_metadata(m_sequence++));
+                       DMementoMetadata(m_sequence++));
 
         return m;
     }
@@ -945,7 +983,7 @@ public:
         snapshot_type snap    = SnapshotPolicy::capture(self);
 
         memento_type m(std::move(snap),
-                       memento_metadata(m_sequence++, _tag));
+                       DMementoMetadata(m_sequence++, _tag));
 
         return m;
     }
@@ -985,21 +1023,26 @@ private:
     mutable std::size_t m_sequence = 0;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Derived,
+         typename SnapshotPolicy = DDeepCopySnapshot>
+using memento_originator = DMementoOriginator<Derived, SnapshotPolicy>;
+
 
 // =========================================================================
 // memento_caretaker
 // =========================================================================
 
-// memento_caretaker
+// DMementoCaretaker
 //   class: manages a history of mementos for a single originator.
 // Parameterized on the snapshot type and the history eviction policy.
 template<typename Snapshot,
-         typename HistoryPolicy = unlimited_history>
-class memento_caretaker
+         typename HistoryPolicy = DUnlimitedHistory>
+class DMementoCaretaker
 {
 public:
     using snapshot_type  = Snapshot;
-    using memento_type   = memento<Snapshot>;
+    using memento_type   = DMemento<Snapshot>;
     using history_policy = HistoryPolicy;
     using container_type = std::vector<memento_type>;
     using size_type      = std::size_t;
@@ -1133,12 +1176,17 @@ private:
     container_type m_history;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Snapshot,
+         typename HistoryPolicy = DUnlimitedHistory>
+using memento_caretaker = DMementoCaretaker<Snapshot, HistoryPolicy>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///            VI.   UNDO / REDO STACK                                      ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// undo_redo_stack
+// DUndoRedoStack
 //   class: manages a dual-stack undo/redo history for an originator.
 // Capturing a new checkpoint pushes to the undo stack and clears the
 // redo stack (branching invalidates the forward history). Undo pops
@@ -1151,14 +1199,14 @@ private:
 //   history.undo(state);          // restore previous, push current to redo
 //   history.redo(state);          // restore forward, push current to undo
 template<typename State,
-         typename SnapshotPolicy = deep_copy_snapshot,
-         typename HistoryPolicy   = unlimited_history>
-class undo_redo_stack
+         typename SnapshotPolicy = DDeepCopySnapshot,
+         typename HistoryPolicy   = DUnlimitedHistory>
+class DUndoRedoStack
 {
 public:
     using snapshot_type = typename SnapshotPolicy::template
                               snapshot_type_for<State>;
-    using memento_type  = memento<snapshot_type>;
+    using memento_type  = DMemento<snapshot_type>;
 
     // checkpoint
     //   function: captures the current state as an undo point. Clears
@@ -1170,7 +1218,7 @@ public:
     {
         memento_type m(
             SnapshotPolicy::capture(_state),
-            memento_metadata(m_sequence++));
+            DMementoMetadata(m_sequence++));
 
         m_undo.push(std::move(m));
         m_redo.clear();
@@ -1189,7 +1237,7 @@ public:
     {
         memento_type m(
             SnapshotPolicy::capture(_state),
-            memento_metadata(m_sequence++, _tag));
+            DMementoMetadata(m_sequence++, _tag));
 
         m_undo.push(std::move(m));
         m_redo.clear();
@@ -1215,7 +1263,7 @@ public:
         // save current state to redo before restoring
         memento_type redo_point(
             SnapshotPolicy::capture(_state),
-            memento_metadata(m_sequence++));
+            DMementoMetadata(m_sequence++));
         m_redo.push(std::move(redo_point));
 
         // restore from undo
@@ -1243,7 +1291,7 @@ public:
         // save current state to undo before restoring
         memento_type undo_point(
             SnapshotPolicy::capture(_state),
-            memento_metadata(m_sequence++));
+            DMementoMetadata(m_sequence++));
         m_undo.push(std::move(undo_point));
 
         // restore from redo
@@ -1341,10 +1389,16 @@ public:
 #endif  // D_MEMENTO_HAS_OPTIONAL
 
 private:
-    memento_caretaker<snapshot_type, HistoryPolicy> m_undo;
-    memento_caretaker<snapshot_type, HistoryPolicy> m_redo;
+    DMementoCaretaker<snapshot_type, HistoryPolicy> m_undo;
+    DMementoCaretaker<snapshot_type, HistoryPolicy> m_redo;
     std::size_t m_sequence = 0;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename State,
+         typename SnapshotPolicy = DDeepCopySnapshot,
+         typename HistoryPolicy   = DUnlimitedHistory>
+using undo_redo_stack = DUndoRedoStack<State, SnapshotPolicy, HistoryPolicy>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1353,7 +1407,7 @@ private:
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-// any_memento
+// DAnyMemento
 //   class: type-erased memento that can store any snapshot type via
 // re_std::any. Useful when a caretaker must manage heterogeneous
 // state objects (e.g., a multi-document editor where each document
@@ -1366,7 +1420,7 @@ private:
 // The any_type / any_id_type aliases isolate the any namespace; if
 // the any header moves to a different namespace, update these two
 // aliases and everything flows.
-class any_memento
+class DAnyMemento
 {
 private:
     // ---- namespace isolation aliases ----
@@ -1375,12 +1429,12 @@ private:
     using any_id_type = re_std::any_type_id;
 
 public:
-    any_memento() = default;
+    DAnyMemento() = default;
 
     template<typename Snapshot>
-    explicit any_memento(
+    explicit DAnyMemento(
             Snapshot         _snap,
-            memento_metadata _meta = memento_metadata()
+            DMementoMetadata _meta = DMementoMetadata()
         )
             : m_state(std::move(_snap)),
               m_meta(_meta)
@@ -1539,7 +1593,7 @@ public:
 
     // metadata
     //   function: returns the associated metadata.
-    const memento_metadata& metadata() const noexcept
+    const DMementoMetadata& metadata() const noexcept
     {
         return m_meta;
     }
@@ -1564,23 +1618,26 @@ public:
 
 private:
     any_type         m_state;
-    memento_metadata m_meta;
+    DMementoMetadata m_meta;
 };
 
-// any_memento_caretaker
+// old name, until 0.9.0-rc.1
+using any_memento = DAnyMemento;
+
+// DAnyMementoCaretaker
 //   class: caretaker managing a history of type-erased mementos.
 // Accepts any_memento directly; the caller is responsible for
 // type consistency at restore time. Available from C++11.
-template<typename HistoryPolicy = unlimited_history>
-class any_memento_caretaker
+template<typename HistoryPolicy = DUnlimitedHistory>
+class DAnyMementoCaretaker
 {
 public:
-    using memento_type = any_memento;
+    using memento_type = DAnyMemento;
     using size_type    = std::size_t;
 
     void
     push(
-        any_memento _m
+        DAnyMemento _m
     )
     {
         m_history.push_back(std::move(_m));
@@ -1592,10 +1649,10 @@ public:
     // pop
     //   function: removes and returns the most recent memento.
     // Undefined behaviour if empty.
-    any_memento
+    DAnyMemento
     pop()
     {
-        any_memento m = std::move(m_history.back());
+        DAnyMemento m = std::move(m_history.back());
         m_history.pop_back();
 
         return m;
@@ -1606,7 +1663,7 @@ public:
     // try_pop
     //   function: removes and returns the most recent memento, or
     // std::nullopt if the history is empty.
-    std::optional<any_memento>
+    std::optional<DAnyMemento>
     try_pop()
     {
         if (m_history.empty())
@@ -1619,7 +1676,7 @@ public:
 
 #endif  // D_MEMENTO_HAS_OPTIONAL
 
-    const any_memento&
+    const DAnyMemento&
     peek() const
     {
         return m_history.back();
@@ -1662,8 +1719,12 @@ public:
     }
 
 private:
-    std::vector<any_memento> m_history;
+    std::vector<DAnyMemento> m_history;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename HistoryPolicy = DUnlimitedHistory>
+using any_memento_caretaker = DAnyMementoCaretaker<HistoryPolicy>;
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
@@ -1677,29 +1738,29 @@ private:
 // make_memento
 //   function: captures the current state of an object using the given
 // snapshot policy and wraps it in a memento.
-template<typename SnapshotPolicy = deep_copy_snapshot,
+template<typename SnapshotPolicy = DDeepCopySnapshot,
          typename State>
 inline auto
 make_memento(
     const State& _state
 )
-    -> memento<typename SnapshotPolicy::template snapshot_type_for<State>>
+    -> DMemento<typename SnapshotPolicy::template snapshot_type_for<State>>
 {
     using snap_t = typename SnapshotPolicy::template snapshot_type_for<State>;
 
-    return memento<snap_t>(
+    return DMemento<snap_t>(
         SnapshotPolicy::capture(_state));
 }
 
 // restore_memento
 //   function: restores state from a memento using the given policy.
-template<typename SnapshotPolicy = deep_copy_snapshot,
+template<typename SnapshotPolicy = DDeepCopySnapshot,
          typename State,
          typename Snapshot>
 inline void
 restore_memento(
     State&                   _state,
-    const memento<Snapshot>& _m
+    const DMemento<Snapshot>& _m
 )
 {
     SnapshotPolicy::restore(_state,
@@ -1712,23 +1773,23 @@ restore_memento(
 //   function: factory returning a caretaker with the specified
 // snapshot and history policy types.
 template<typename Snapshot,
-         typename HistoryPolicy = unlimited_history>
-inline memento_caretaker<Snapshot, HistoryPolicy>
+         typename HistoryPolicy = DUnlimitedHistory>
+inline DMementoCaretaker<Snapshot, HistoryPolicy>
 make_caretaker()
 {
-    return memento_caretaker<Snapshot, HistoryPolicy>{};
+    return DMementoCaretaker<Snapshot, HistoryPolicy>{};
 }
 
 // make_undo_redo
 //   function: factory returning an undo_redo_stack for a given state
 // type and policies.
 template<typename State,
-         typename SnapshotPolicy = deep_copy_snapshot,
-         typename HistoryPolicy   = unlimited_history>
-inline undo_redo_stack<State, SnapshotPolicy, HistoryPolicy>
+         typename SnapshotPolicy = DDeepCopySnapshot,
+         typename HistoryPolicy   = DUnlimitedHistory>
+inline DUndoRedoStack<State, SnapshotPolicy, HistoryPolicy>
 make_undo_redo()
 {
-    return undo_redo_stack<State, SnapshotPolicy, HistoryPolicy>{};
+    return DUndoRedoStack<State, SnapshotPolicy, HistoryPolicy>{};
 }
 
 #endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
@@ -1791,7 +1852,7 @@ concept history_policy = requires(
 
 // constrained_checkpoint
 //   function: concept-constrained checkpoint creation.
-template<typename       Policy = deep_copy_snapshot,
+template<typename       Policy = DDeepCopySnapshot,
          memento_source State>
 requires snapshot_strategy<Policy, State>
 inline auto

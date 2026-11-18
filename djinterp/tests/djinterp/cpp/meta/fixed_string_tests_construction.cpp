@@ -65,7 +65,7 @@ bool tests_fixed_string_construction()
     char source[4] = {'a', 'b', 'c', '\0'};
     source[1] = 'B';
 
-    const fixed_string<4> runtime{source};
+    const DFixedString<4> runtime{source};
 
     D_FS_CHECK(ok, runtime.data[0] == 'a');
     D_FS_CHECK(ok, runtime.data[1] == 'B');
@@ -73,11 +73,11 @@ bool tests_fixed_string_construction()
     D_FS_CHECK(ok, fs_bytes_equal(runtime, "aBc"));
 
     // copies preserve every byte, both ways round
-    const fixed_string<4> copied{fs_abc};
+    const DFixedString<4> copied{fs_abc};
 
     D_FS_CHECK(ok, fs_bytes_equal(copied, "abc"));
 
-    fixed_string<4> assigned{"..."};
+    DFixedString<4> assigned{"..."};
     assigned = fs_abc;
 
     D_FS_CHECK(ok, fs_bytes_equal(assigned, "abc"));
@@ -105,30 +105,30 @@ bool tests_fixed_string_deduction_guide()
     bool ok = true;
 
     // _N counts the terminating null
-    D_FS_CHECK(ok, std::is_same_v<decltype(fixed_string{"abc"}),
-                                  fixed_string<4>>);
-    D_FS_CHECK(ok, std::is_same_v<decltype(fixed_string{"a"}),
-                                  fixed_string<2>>);
-    D_FS_CHECK(ok, std::is_same_v<decltype(fixed_string{"hello"}),
-                                  fixed_string<6>>);
+    D_FS_CHECK(ok, std::is_same_v<decltype(DFixedString{"abc"}),
+                                  DFixedString<4>>);
+    D_FS_CHECK(ok, std::is_same_v<decltype(DFixedString{"a"}),
+                                  DFixedString<2>>);
+    D_FS_CHECK(ok, std::is_same_v<decltype(DFixedString{"hello"}),
+                                  DFixedString<6>>);
 
     // ... including for the empty literal, which is fixed_string<1>
-    D_FS_CHECK(ok, std::is_same_v<decltype(fixed_string{""}),
-                                  fixed_string<1>>);
-    D_FS_CHECK(ok, !std::is_same_v<decltype(fixed_string{""}),
-                                   fixed_string<2>>);
+    D_FS_CHECK(ok, std::is_same_v<decltype(DFixedString{""}),
+                                  DFixedString<1>>);
+    D_FS_CHECK(ok, !std::is_same_v<decltype(DFixedString{""}),
+                                   DFixedString<2>>);
 
     // CTAD and the explicit spelling agree
-    D_FS_CHECK(ok, std::is_same_v<decltype(fixed_string{"abc"}),
-                                  decltype(fixed_string<4>{"abc"})>);
+    D_FS_CHECK(ok, std::is_same_v<decltype(DFixedString{"abc"}),
+                                  decltype(DFixedString<4>{"abc"})>);
     D_FS_CHECK(ok, std::is_same_v<
                        std::remove_const_t<decltype(fs_abc)>,
-                       decltype(fixed_string{"abc"})>);
+                       decltype(DFixedString{"abc"})>);
 
     // the deduced length is recoverable from the value
-    D_FS_CHECK(ok, fs_extent(fixed_string{"abc"}) == 4);
-    D_FS_CHECK(ok, fs_extent(fixed_string{""}) == 1);
-    D_FS_CHECK(ok, fs_extent(fixed_string{"hello"}) == 6);
+    D_FS_CHECK(ok, fs_extent(DFixedString{"abc"}) == 4);
+    D_FS_CHECK(ok, fs_extent(DFixedString{""}) == 1);
+    D_FS_CHECK(ok, fs_extent(DFixedString{"hello"}) == 6);
     D_FS_CHECK(ok, fs_extent(fs_long) == 32);
 
     // and it is always one more than the reported size

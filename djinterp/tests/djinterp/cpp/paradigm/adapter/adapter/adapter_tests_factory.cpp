@@ -95,7 +95,7 @@ bool tests_make_object_adapter()
     auto a = make_object_adapter<legacy_policy>(s);
 
     static_assert(std::is_same<decltype(a)::ownership_policy,
-                               by_reference>::value,
+                               DByReference>::value,
                   "deduced by_reference");
 
     bool ok = true;
@@ -124,7 +124,7 @@ bool tests_make_owning_adapter()
 
     auto a = make_owning_adapter<legacy_policy>(s);   // owning copy
 
-    static_assert(std::is_same<decltype(a)::ownership_policy, by_value>::value,
+    static_assert(std::is_same<decltype(a)::ownership_policy, DByValue>::value,
                   "deduced by_value");
     static_assert(std::is_same<decltype(a)::adaptee_type, legacy_seq>::value,
                   "adaptee_type");

@@ -107,12 +107,12 @@ NS_DJINTERP
 // data-member satisfy this natively (std::invoke(&pair::m_value, rec)); the
 // small functors below cover the tuple and whole-record cases.
 
-// tuple_at
+// DTupleAt
 //   projection: reads element I of a tuple-like record via std::get, keeping
 // the argument's const-ness and value category (a forwarding call operator).
 // Serves as a key projection (key at any index) or a value projection.
 template<std::size_t I>
-struct tuple_at
+struct DTupleAt
 {
     template<typename Tuple>
     D_CONSTEXPR
@@ -124,13 +124,17 @@ struct tuple_at
     }
 };
 
-// whole_record
+// old name, until 0.9.0-rc.1
+template<std::size_t I>
+using tuple_at = DTupleAt<I>;
+
+// DWholeRecord
 //   projection: the identity value projection -- the value region IS the
 // entire record. This is trichotomy option (C); paired with a key projection
 // whose
 // coordinate lies inside the record, it is the flavour in which a value edit
 // can move the key, so it must be used with KeyDisjoint == false.
-struct whole_record
+struct DWholeRecord
 {
     template<typename Record>
     D_CONSTEXPR
@@ -150,6 +154,9 @@ struct whole_record
         return _r;
     }
 };
+
+// old name, until 0.9.0-rc.1
+using whole_record = DWholeRecord;
 
 
 // ===========================================================================
@@ -350,29 +357,35 @@ NS_END  // internal
 // IV.  rekey vocabulary
 // ===========================================================================
 
-// update_status
+// DUpdateStatus
 //   enum: how an update_at resolved.
 //     committed -- the value was written (key unchanged, or provably
 // immovable).
 //     rejected -- a key change was refused (reject_rekey); store untouched.
 //     moved -- a key change was honoured (reposition_rekey); entry relocated.
-enum class update_status
+enum class DUpdateStatus
 {
     committed,
     rejected,
     moved
 };
 
-// update_result
+// old name, until 0.9.0-rc.1
+using update_status = DUpdateStatus;
+
+// DUpdateResult
 //   struct: the outcome of update_at -- the status and the entry's index
 // afterwards (its unchanged position on commit/reject, its new position on a
 // move; lookup_absent-style sentinels are the registry's concern, not this
 // kernel's).
-struct update_result
+struct DUpdateResult
 {
-    update_status status;
+    DUpdateStatus status;
     std::size_t   index;
 };
+
+// old name, until 0.9.0-rc.1
+using update_result = DUpdateResult;
 
 // reject_rekey
 //   strategy (guarded): a value edit that would move the key is refused. The
@@ -399,7 +412,7 @@ NS_INTERNAL
              typename Rec,
              typename KeyProj,
              typename Cmp>
-    update_result
+    DUpdateResult
     apply_rekey(
         reject_rekey    /*strategy*/,
         Vec&           /*_v*/,
@@ -410,7 +423,7 @@ NS_INTERNAL
         bool            /*_unique*/
     )
     {
-        return update_result{ update_status::rejected, _pos };
+        return DUpdateResult{ DUpdateStatus::rejected, _pos };
     }
 
     // apply_rekey (reposition)
@@ -419,7 +432,7 @@ NS_INTERNAL
              typename Rec,
              typename KeyProj,
              typename Cmp>
-    update_result
+    DUpdateResult
     apply_rekey(
         reposition_rekey /*strategy*/,
         Vec&            _v,
@@ -435,7 +448,7 @@ NS_INTERNAL
         const std::size_t np =
             reg_insert(_v, static_cast<Rec&&>(_rec), _proj, _cmp, _unique);
 
-        return update_result{ update_status::moved, np };
+        return DUpdateResult{ DUpdateStatus::moved, np };
     }
 
 NS_END  // internal
@@ -470,7 +483,7 @@ template<typename Strategy,
          typename KeyProj,
          typename Cmp,
          typename Mutate>
-update_result update_at(
+DUpdateResult update_at(
     Vec&             _v,
     std::size_t      _pos,
     const ValueProj& _vproj,
@@ -485,7 +498,7 @@ update_result update_at(
         // value region disjoint from the key: mutate in place, key cannot move
         _mutate(std::invoke(_vproj, _v[_pos]));
 
-        return update_result{ update_status::committed, _pos };
+        return DUpdateResult{ DUpdateStatus::committed, _pos };
     }
     else
     {
@@ -503,7 +516,7 @@ update_result update_at(
         {
             _v[_pos] = static_cast<record_type&&>(tmp);
 
-            return update_result{ update_status::committed, _pos };
+            return DUpdateResult{ DUpdateStatus::committed, _pos };
         }
 
         // key moved -> the strategy decides (reject / reposition)

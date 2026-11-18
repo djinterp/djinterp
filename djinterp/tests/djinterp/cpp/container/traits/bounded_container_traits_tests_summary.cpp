@@ -38,18 +38,18 @@ bool tests_capacity_bound_enumerators()
 {
     bool ok = true;
 
-    using underlying = std::underlying_type<capacity_bound>::type;
+    using underlying = std::underlying_type<DCapacityBound>::type;
 
-    D_BCT_CHECK(std::is_enum<capacity_bound>::value);
-    D_BCT_CHECK(!std::is_convertible<capacity_bound, underlying>::value);
+    D_BCT_CHECK(std::is_enum<DCapacityBound>::value);
+    D_BCT_CHECK(!std::is_convertible<DCapacityBound, underlying>::value);
 
-    D_BCT_CHECK(capacity_bound::unknown != capacity_bound::bounded);
-    D_BCT_CHECK(capacity_bound::bounded != capacity_bound::unbounded);
-    D_BCT_CHECK(capacity_bound::unknown != capacity_bound::unbounded);
+    D_BCT_CHECK(DCapacityBound::unknown != DCapacityBound::bounded);
+    D_BCT_CHECK(DCapacityBound::bounded != DCapacityBound::unbounded);
+    D_BCT_CHECK(DCapacityBound::unknown != DCapacityBound::unbounded);
 
-    D_BCT_CHECK(static_cast<int>(capacity_bound::unknown) == 0);
-    D_BCT_CHECK(static_cast<int>(capacity_bound::bounded) == 1);
-    D_BCT_CHECK(static_cast<int>(capacity_bound::unbounded) == 2);
+    D_BCT_CHECK(static_cast<int>(DCapacityBound::unknown) == 0);
+    D_BCT_CHECK(static_cast<int>(DCapacityBound::bounded) == 1);
+    D_BCT_CHECK(static_cast<int>(DCapacityBound::unbounded) == 2);
 
     return ok;
 }
@@ -68,27 +68,27 @@ bool tests_capacity_bound_name()
 {
     bool ok = true;
 
-    D_BCT_CHECK(std::strcmp(capacity_bound_name(capacity_bound::unknown),
+    D_BCT_CHECK(std::strcmp(capacity_bound_name(DCapacityBound::unknown),
                             "unknown") == 0);
-    D_BCT_CHECK(std::strcmp(capacity_bound_name(capacity_bound::bounded),
+    D_BCT_CHECK(std::strcmp(capacity_bound_name(DCapacityBound::bounded),
                             "bounded") == 0);
-    D_BCT_CHECK(std::strcmp(capacity_bound_name(capacity_bound::unbounded),
+    D_BCT_CHECK(std::strcmp(capacity_bound_name(DCapacityBound::unbounded),
                             "unbounded") == 0);
 
-    D_BCT_CHECK(capacity_bound_name(capacity_bound::unknown) != nullptr);
-    D_BCT_CHECK(capacity_bound_name(capacity_bound::bounded) != nullptr);
-    D_BCT_CHECK(capacity_bound_name(capacity_bound::unbounded) != nullptr);
+    D_BCT_CHECK(capacity_bound_name(DCapacityBound::unknown) != nullptr);
+    D_BCT_CHECK(capacity_bound_name(DCapacityBound::bounded) != nullptr);
+    D_BCT_CHECK(capacity_bound_name(DCapacityBound::unbounded) != nullptr);
 
     // constexpr: the call survives constant evaluation.  A constexpr local is
     // the check - if capacity_bound_name ever stops being constexpr, this stops
     // compiling, which is the point
     D_CONSTEXPR const char* bounded_name =
-        capacity_bound_name(capacity_bound::bounded);
+        capacity_bound_name(DCapacityBound::bounded);
 
     D_BCT_CHECK(std::strcmp(bounded_name, "bounded") == 0);
 
     // noexcept
-    D_BCT_CHECK(noexcept(capacity_bound_name(capacity_bound::bounded)));
+    D_BCT_CHECK(noexcept(capacity_bound_name(DCapacityBound::bounded)));
 
     return ok;
 }
@@ -111,7 +111,7 @@ bool tests_capacity_bound_name_out_of_range()
 {
     bool ok = true;
 
-    const capacity_bound out_of_range = static_cast<capacity_bound>(42);
+    const DCapacityBound out_of_range = static_cast<DCapacityBound>(42);
 
     D_BCT_CHECK(capacity_bound_name(out_of_range) != nullptr);
     D_BCT_CHECK(std::strcmp(capacity_bound_name(out_of_range),
@@ -140,39 +140,39 @@ bool tests_capacity_bound_of()
 
     // bounded
     D_BCT_CHECK(capacity_bound_of<std::array<int, 3>>::value ==
-                capacity_bound::bounded);
+                DCapacityBound::bounded);
     D_BCT_CHECK(capacity_bound_of<DIntervalContainer>::value ==
-                capacity_bound::bounded);
+                DCapacityBound::bounded);
     D_BCT_CHECK(capacity_bound_of<DFixedCapacity>::value ==
-                capacity_bound::bounded);
+                DCapacityBound::bounded);
     D_BCT_CHECK(capacity_bound_of<extent_static_member>::value ==
-                capacity_bound::bounded);
+                DCapacityBound::bounded);
     D_BCT_CHECK(capacity_bound_of<std::tuple<int, char>>::value ==
-                capacity_bound::bounded);
+                DCapacityBound::bounded);
     D_BCT_CHECK(capacity_bound_of<DEverySignal>::value ==
-                capacity_bound::bounded);
+                DCapacityBound::bounded);
 
     // unbounded
     D_BCT_CHECK(capacity_bound_of<std::vector<int>>::value ==
-                capacity_bound::unbounded);
+                DCapacityBound::unbounded);
     D_BCT_CHECK(capacity_bound_of<std::list<int>>::value ==
-                capacity_bound::unbounded);
+                DCapacityBound::unbounded);
     D_BCT_CHECK(capacity_bound_of<DSizeConst>::value ==
-                capacity_bound::unbounded);
+                DCapacityBound::unbounded);
     D_BCT_CHECK(capacity_bound_of<DGrowable>::value ==
-                capacity_bound::unbounded);
+                DCapacityBound::unbounded);
 
     // unknown
     D_BCT_CHECK(capacity_bound_of<no_signal>::value ==
-                capacity_bound::unknown);
+                DCapacityBound::unknown);
     D_BCT_CHECK(capacity_bound_of<DMaxSizeOnly>::value ==
-                capacity_bound::unknown);
+                DCapacityBound::unknown);
     D_BCT_CHECK(capacity_bound_of<DSizeNonconst>::value ==
-                capacity_bound::unknown);
+                DCapacityBound::unknown);
     D_BCT_CHECK(capacity_bound_of<int>::value ==
-                capacity_bound::unknown);
+                DCapacityBound::unknown);
     D_BCT_CHECK(capacity_bound_of<void>::value ==
-                capacity_bound::unknown);
+                DCapacityBound::unknown);
 
     return ok;
 }
@@ -199,14 +199,14 @@ bool tests_capacity_bound_of_type()
     using none_type   = capacity_bound_of<no_signal>::type;
 
     D_BCT_CHECK((std::is_same<array_type,
-                              std::integral_constant<capacity_bound,
-                                  capacity_bound::bounded>>::value));
+                              std::integral_constant<DCapacityBound,
+                                  DCapacityBound::bounded>>::value));
     D_BCT_CHECK((std::is_same<vector_type,
-                              std::integral_constant<capacity_bound,
-                                  capacity_bound::unbounded>>::value));
+                              std::integral_constant<DCapacityBound,
+                                  DCapacityBound::unbounded>>::value));
     D_BCT_CHECK((std::is_same<none_type,
-                              std::integral_constant<capacity_bound,
-                                  capacity_bound::unknown>>::value));
+                              std::integral_constant<DCapacityBound,
+                                  DCapacityBound::unknown>>::value));
 
     // the _t alias names the same type
     D_BCT_CHECK((std::is_same<capacity_bound_of_t<std::array<int, 3>>,
@@ -244,13 +244,13 @@ bool tests_capacity_bound_of_agrees()
 
     #define D_BCT_AGREES(...)                                                 \
         D_BCT_CHECK((capacity_bound_of<__VA_ARGS__>::value ==                        \
-                     capacity_bound::bounded) ==                              \
+                     DCapacityBound::bounded) ==                              \
                     is_bounded_container<__VA_ARGS__>::value);                       \
         D_BCT_CHECK((capacity_bound_of<__VA_ARGS__>::value ==                        \
-                     capacity_bound::unbounded) ==                            \
+                     DCapacityBound::unbounded) ==                            \
                     is_unbounded_container<__VA_ARGS__>::value);                     \
         D_BCT_CHECK((capacity_bound_of<__VA_ARGS__>::value ==                        \
-                     capacity_bound::unknown) ==                              \
+                     DCapacityBound::unknown) ==                              \
                     (!is_bounded_container<__VA_ARGS__>::value &&                    \
                      !is_unbounded_container<__VA_ARGS__>::value))
 
@@ -301,13 +301,13 @@ bool tests_capacity_bound_of_value_companion()
                 capacity_bound_of<no_signal>::value);
 
     D_BCT_CHECK(capacity_bound_of_v<std::array<int, 3>> ==
-                capacity_bound::bounded);
+                DCapacityBound::bounded);
     D_BCT_CHECK(capacity_bound_of_v<std::vector<int>> ==
-                capacity_bound::unbounded);
-    D_BCT_CHECK(capacity_bound_of_v<no_signal> == capacity_bound::unknown);
+                DCapacityBound::unbounded);
+    D_BCT_CHECK(capacity_bound_of_v<no_signal> == DCapacityBound::unknown);
 
     D_BCT_CHECK((std::is_same<decltype(capacity_bound_of_v<std::vector<int>>),
-                              const capacity_bound>::value));
+                              const DCapacityBound>::value));
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 

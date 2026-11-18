@@ -38,14 +38,14 @@ bool tests_is_monoid_positive()
     ok = ok && (is_monoid<std::string>::value);
     ok = ok && (is_monoid<std::vector<int> >::value);
     ok = ok && (is_monoid<std::vector<std::string> >::value);
-    ok = ok && (is_monoid<sum<int> >::value);
-    ok = ok && (is_monoid<sum<double> >::value);
-    ok = ok && (is_monoid<product<int> >::value);
-    ok = ok && (is_monoid<product<double> >::value);
-    ok = ok && (is_monoid<all>::value);
-    ok = ok && (is_monoid<any>::value);
-    ok = ok && (is_monoid<min<int> >::value);
-    ok = ok && (is_monoid<max<int> >::value);
+    ok = ok && (is_monoid<DSum<int> >::value);
+    ok = ok && (is_monoid<DSum<double> >::value);
+    ok = ok && (is_monoid<DProduct<int> >::value);
+    ok = ok && (is_monoid<DProduct<double> >::value);
+    ok = ok && (is_monoid<DAll>::value);
+    ok = ok && (is_monoid<DAny>::value);
+    ok = ok && (is_monoid<DMin<int> >::value);
+    ok = ok && (is_monoid<DMax<int> >::value);
 
     return ok;
 }
@@ -73,7 +73,7 @@ bool tests_is_monoid_negative()
     ok = ok && (!is_monoid<void*>::value);
 
     // a pointer to a monoid type is itself not a monoid.
-    ok = ok && (!is_monoid<sum<int>*>::value);
+    ok = ok && (!is_monoid<DSum<int>*>::value);
 
     return ok;
 }
@@ -90,11 +90,11 @@ bool tests_is_monoid_decay()
 {
     bool ok = true;
 
-    ok = ok && (is_monoid<sum<int> >::value);
-    ok = ok && (is_monoid<const sum<int> >::value);
-    ok = ok && (is_monoid<sum<int>&>::value);
-    ok = ok && (is_monoid<const sum<int>&>::value);
-    ok = ok && (is_monoid<volatile sum<int> >::value);
+    ok = ok && (is_monoid<DSum<int> >::value);
+    ok = ok && (is_monoid<const DSum<int> >::value);
+    ok = ok && (is_monoid<DSum<int>&>::value);
+    ok = ok && (is_monoid<const DSum<int>&>::value);
+    ok = ok && (is_monoid<volatile DSum<int> >::value);
 
     // decay of a non-monoid stays non-monoid.
     ok = ok && (!is_monoid<const int&>::value);
@@ -117,13 +117,13 @@ bool tests_is_monoid_v()
     bool ok = true;
 
     // agreement with the trait.
-    ok = ok && (is_monoid_v<sum<int> >    == is_monoid<sum<int> >::value);
+    ok = ok && (is_monoid_v<DSum<int> >    == is_monoid<DSum<int> >::value);
     ok = ok && (is_monoid_v<std::string>  == is_monoid<std::string>::value);
     ok = ok && (is_monoid_v<int>          == is_monoid<int>::value);
     ok = ok && (is_monoid_v<DNotAMonoid> == is_monoid<DNotAMonoid>::value);
 
     // concrete values.
-    ok = ok && (is_monoid_v<sum<int> > == true);
+    ok = ok && (is_monoid_v<DSum<int> > == true);
     ok = ok && (is_monoid_v<int>       == false);
 
     return ok;
@@ -145,11 +145,11 @@ tests_monoid_concept
 bool tests_monoid_concept()
 {
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-    static_assert(Monoid<sum<int> >,         "sum models Monoid");
+    static_assert(Monoid<DSum<int> >,         "sum models Monoid");
     static_assert(Monoid<std::string>,       "string models Monoid");
     static_assert(Monoid<std::vector<int> >, "vector models Monoid");
-    static_assert(Monoid<all>,               "all models Monoid");
-    static_assert(Monoid<min<int> >,         "min models Monoid");
+    static_assert(Monoid<DAll>,               "all models Monoid");
+    static_assert(Monoid<DMin<int> >,         "min models Monoid");
 
     static_assert(!Monoid<int>,              "int does not model Monoid");
     static_assert(!Monoid<DNotAMonoid>,     "plain struct is not a Monoid");
@@ -174,18 +174,18 @@ bool tests_monoid_implies_semigroup()
                  is_semigroup<std::string>::value );
     ok = ok && ( is_monoid<std::vector<int> >::value &&
                  is_semigroup<std::vector<int> >::value );
-    ok = ok && ( is_monoid<sum<int> >::value &&
-                 is_semigroup<sum<int> >::value );
-    ok = ok && ( is_monoid<product<int> >::value &&
-                 is_semigroup<product<int> >::value );
-    ok = ok && ( is_monoid<all>::value &&
-                 is_semigroup<all>::value );
-    ok = ok && ( is_monoid<any>::value &&
-                 is_semigroup<any>::value );
-    ok = ok && ( is_monoid<min<int> >::value &&
-                 is_semigroup<min<int> >::value );
-    ok = ok && ( is_monoid<max<int> >::value &&
-                 is_semigroup<max<int> >::value );
+    ok = ok && ( is_monoid<DSum<int> >::value &&
+                 is_semigroup<DSum<int> >::value );
+    ok = ok && ( is_monoid<DProduct<int> >::value &&
+                 is_semigroup<DProduct<int> >::value );
+    ok = ok && ( is_monoid<DAll>::value &&
+                 is_semigroup<DAll>::value );
+    ok = ok && ( is_monoid<DAny>::value &&
+                 is_semigroup<DAny>::value );
+    ok = ok && ( is_monoid<DMin<int> >::value &&
+                 is_semigroup<DMin<int> >::value );
+    ok = ok && ( is_monoid<DMax<int> >::value &&
+                 is_semigroup<DMax<int> >::value );
 
     return ok;
 }

@@ -365,7 +365,7 @@ decode_leaf(DByteReader& _reader)
 template<DSerialEndian E,
          typename       Type>
 DDecodeResult<clean_t<Type>> decode_leaf(
-    const byte_string& _bytes
+    const DByteString& _bytes
 )
 {
     DByteReader _reader(_bytes);

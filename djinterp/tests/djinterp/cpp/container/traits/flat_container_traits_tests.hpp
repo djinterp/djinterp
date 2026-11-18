@@ -152,7 +152,7 @@ struct nested_box
 struct tagged_flat_str
 {
     using value_type         = strlike;
-    using structure_category = flat;
+    using structure_category = DFlat;
     std::size_t size() const;
 };
 
@@ -171,7 +171,7 @@ struct node_box_flat_tagged
 {
     using value_type         = int;
     using node_type          = flat_leaf;
-    using structure_category = flat;
+    using structure_category = DFlat;
     std::size_t size() const;
 };
 
@@ -179,7 +179,7 @@ struct node_box_flat_tagged
 struct hier_tagged
 {
     using value_type         = int;
-    using structure_category = hierarchical;
+    using structure_category = DHierarchical;
     std::size_t size() const;
 };
 #endif  // !DTEST_SPEC_MODE  (fixtures)

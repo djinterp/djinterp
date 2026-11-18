@@ -33,38 +33,38 @@ bool tests_overlay_container_class()
     // -- vector<int>: unrestricted sequence, canonical none --
     {
         using C = DOverlayContainerClass<std::vector<int>>;
-        D_OVL_CHECK( (C::mult == multiplicity_kind::sequence) );
+        D_OVL_CHECK( (C::mult == DMultiplicityKind::sequence) );
         D_OVL_CHECK( (!C::keyed && !C::sorted && !C::capacity_bounded && !C::domain_bounded) );
         D_OVL_CHECK( (C::order_blind) );
-        D_OVL_CHECK( (C::canonical == canonical_overlay::none) );
+        D_OVL_CHECK( (C::canonical == DCanonicalOverlay::none) );
         D_OVL_CHECK( (ovl_cstr_eq(C::canonical_name, "none")) );
     }
 
     // -- set<int>: canonical set --
     {
         using C = DOverlayContainerClass<std::set<int>>;
-        D_OVL_CHECK( (C::mult == multiplicity_kind::unique) );
+        D_OVL_CHECK( (C::mult == DMultiplicityKind::unique) );
         D_OVL_CHECK( (!C::keyed) );
         D_OVL_CHECK( (C::order_blind) );
-        D_OVL_CHECK( (C::canonical == canonical_overlay::set) );
+        D_OVL_CHECK( (C::canonical == DCanonicalOverlay::set) );
         D_OVL_CHECK( (ovl_cstr_eq(C::canonical_name, "set")) );
     }
 
     // -- map<int,int>: canonical map (keyed) --
     {
         using C = DOverlayContainerClass<std::map<int, int>>;
-        D_OVL_CHECK( (C::mult == multiplicity_kind::unique) );
+        D_OVL_CHECK( (C::mult == DMultiplicityKind::unique) );
         D_OVL_CHECK( (C::keyed) );
-        D_OVL_CHECK( (C::canonical == canonical_overlay::map) );
+        D_OVL_CHECK( (C::canonical == DCanonicalOverlay::map) );
         D_OVL_CHECK( (ovl_cstr_eq(C::canonical_name, "map")) );
     }
 
     // -- multiset<int>: canonical multiset --
     {
         using C = DOverlayContainerClass<std::multiset<int>>;
-        D_OVL_CHECK( (C::mult == multiplicity_kind::unbounded_multiset) );
+        D_OVL_CHECK( (C::mult == DMultiplicityKind::unbounded_multiset) );
         D_OVL_CHECK( (!C::keyed) );
-        D_OVL_CHECK( (C::canonical == canonical_overlay::multiset) );
+        D_OVL_CHECK( (C::canonical == DCanonicalOverlay::multiset) );
         D_OVL_CHECK( (ovl_cstr_eq(C::canonical_name, "multiset")) );
     }
 
@@ -72,7 +72,7 @@ bool tests_overlay_container_class()
     {
         using C = DOverlayContainerClass<std::multimap<int, int>>;
         D_OVL_CHECK( (C::keyed) );
-        D_OVL_CHECK( (C::canonical == canonical_overlay::multimap) );
+        D_OVL_CHECK( (C::canonical == DCanonicalOverlay::multimap) );
         D_OVL_CHECK( (ovl_cstr_eq(C::canonical_name, "multimap")) );
     }
 
@@ -82,7 +82,7 @@ bool tests_overlay_container_class()
         D_OVL_CHECK( (C::capacity_bounded) );
         D_OVL_CHECK( (!C::domain_bounded) );
         D_OVL_CHECK( (C::order_blind) );
-        D_OVL_CHECK( (C::canonical == canonical_overlay::none) );
+        D_OVL_CHECK( (C::canonical == DCanonicalOverlay::none) );
     }
 
     // -- DSortedSeq: the NOT-order-blind case --
@@ -90,32 +90,32 @@ bool tests_overlay_container_class()
         using C = DOverlayContainerClass<DSortedSeq>;
         D_OVL_CHECK( (C::sorted) );
         D_OVL_CHECK( (!C::order_blind) );
-        D_OVL_CHECK( (C::canonical == canonical_overlay::none) );
+        D_OVL_CHECK( (C::canonical == DCanonicalOverlay::none) );
     }
 
     // -- DDomainBoundedSeq: bounded + domain-bounded set --
     {
         using C = DOverlayContainerClass<DDomainBoundedSeq>;
-        D_OVL_CHECK( (C::mult == multiplicity_kind::unique) );
+        D_OVL_CHECK( (C::mult == DMultiplicityKind::unique) );
         D_OVL_CHECK( (C::capacity_bounded) );
         D_OVL_CHECK( (C::domain_bounded) );
-        D_OVL_CHECK( (C::canonical == canonical_overlay::set) );
+        D_OVL_CHECK( (C::canonical == DCanonicalOverlay::set) );
     }
 
     // -- DBoundedMultisetSeq: the bounded_multiset kind, canonical multiset --
     {
         using C = DOverlayContainerClass<DBoundedMultisetSeq>;
-        D_OVL_CHECK( (C::mult == multiplicity_kind::bounded_multiset) );
-        D_OVL_CHECK( (C::canonical == canonical_overlay::multiset) );
+        D_OVL_CHECK( (C::mult == DMultiplicityKind::bounded_multiset) );
+        D_OVL_CHECK( (C::canonical == DCanonicalOverlay::multiset) );
     }
 
     // -- int: a non-container --
     {
         using C = DOverlayContainerClass<int>;
-        D_OVL_CHECK( (C::mult == multiplicity_kind::unknown) );
+        D_OVL_CHECK( (C::mult == DMultiplicityKind::unknown) );
         D_OVL_CHECK( (!C::keyed && !C::sorted && !C::capacity_bounded && !C::domain_bounded) );
         D_OVL_CHECK( (C::order_blind) );
-        D_OVL_CHECK( (C::canonical == canonical_overlay::none) );
+        D_OVL_CHECK( (C::canonical == DCanonicalOverlay::none) );
         D_OVL_CHECK( (ovl_cstr_eq(C::canonical_name, "none")) );
     }
 
@@ -147,10 +147,10 @@ bool tests_overlay_variable_templates()
     // canonical_overlay_of_v
     D_OVL_CHECK( (canonical_overlay_of_v<std::set<int>>
                      == canonical_overlay_of<std::set<int>>::value) );
-    D_OVL_CHECK( (canonical_overlay_of_v<std::map<int, int>>   == canonical_overlay::map) );
-    D_OVL_CHECK( (canonical_overlay_of_v<std::multiset<int>>   == canonical_overlay::multiset) );
-    D_OVL_CHECK( (canonical_overlay_of_v<DBoundedMultimapSeq> == canonical_overlay::multimap) );
-    D_OVL_CHECK( (canonical_overlay_of_v<std::vector<int>>     == canonical_overlay::none) );
+    D_OVL_CHECK( (canonical_overlay_of_v<std::map<int, int>>   == DCanonicalOverlay::map) );
+    D_OVL_CHECK( (canonical_overlay_of_v<std::multiset<int>>   == DCanonicalOverlay::multiset) );
+    D_OVL_CHECK( (canonical_overlay_of_v<DBoundedMultimapSeq> == DCanonicalOverlay::multimap) );
+    D_OVL_CHECK( (canonical_overlay_of_v<std::vector<int>>     == DCanonicalOverlay::none) );
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 

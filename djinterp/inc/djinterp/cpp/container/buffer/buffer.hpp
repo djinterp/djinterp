@@ -95,10 +95,10 @@ NS_DJINTERP
 // I.   Growth Strategy Enum
 // =============================================================================
 
-// buffer_growth_strategy
+// DBufferGrowthStrategy
 //   enum: classifies the growth strategy a buffer uses when the write cursor
 // reaches capacity.
-enum class buffer_growth_strategy
+enum class DBufferGrowthStrategy
 {
     // no growth - capacity is fixed at construction or compile time; writes
     // beyond capacity fail
@@ -115,14 +115,17 @@ enum class buffer_growth_strategy
     page_aligned
 };
 
+// old name, until 0.9.0-rc.1
+using buffer_growth_strategy = DBufferGrowthStrategy;
+
 
 // =============================================================================
 // II.  Cursor Model Enum
 // =============================================================================
 
-// buffer_cursor_model
+// DBufferCursorModel
 //   enum: classifies how the buffer tracks read/write positions.
-enum class buffer_cursor_model
+enum class DBufferCursorModel
 {
     // single write cursor only - the consumer manages read position externally
     // (e.g. by taking the whole buffer via data()/release())
@@ -132,6 +135,9 @@ enum class buffer_cursor_model
     // advance()/consume()
     dual
 };
+
+// old name, until 0.9.0-rc.1
+using buffer_cursor_model = DBufferCursorModel;
 
 
 // =============================================================================
@@ -146,12 +152,12 @@ enum class buffer_cursor_model
 // no virtual functions, no inheritance, fully constexpr
 // where possible.
 
-// fixed_growth_policy
+// DFixedGrowthPolicy
 //   struct: no growth. Capacity is set at construction and never changes.
 // Writes that exceed capacity fail.
-struct fixed_growth_policy
+struct DFixedGrowthPolicy
 {
-    static constexpr buffer_growth_strategy strategy = buffer_growth_strategy::none;
+    static constexpr DBufferGrowthStrategy strategy = DBufferGrowthStrategy::none;
     static constexpr bool can_grow = false;
 
     // compute
@@ -165,6 +171,9 @@ struct fixed_growth_policy
     }
 };
 
+// old name, until 0.9.0-rc.1
+using fixed_growth_policy = DFixedGrowthPolicy;
+
 // DLinearGrowthPolicy
 //   struct: grow by a constant increment. The increment
 // defaults to 4096 bytes but can be overridden via the Increment template
@@ -172,7 +181,7 @@ struct fixed_growth_policy
 template<std::size_t Increment = 4096>
 struct DLinearGrowthPolicy
 {
-    static constexpr buffer_growth_strategy strategy = buffer_growth_strategy::linear;
+    static constexpr DBufferGrowthStrategy strategy = DBufferGrowthStrategy::linear;
     static constexpr bool        can_grow   = true;
     static constexpr std::size_t increment  = Increment;
 
@@ -200,13 +209,13 @@ struct DLinearGrowthPolicy
     }
 };
 
-// exponential_growth_policy
+// DExponentialGrowthPolicy
 //   struct: double capacity on exhaustion. Provides amortized O(1) appends.
 // The minimum initial capacity is 64 bytes.
-struct exponential_growth_policy
+struct DExponentialGrowthPolicy
 {
-    static constexpr buffer_growth_strategy strategy =
-        buffer_growth_strategy::exponential;
+    static constexpr DBufferGrowthStrategy strategy =
+        DBufferGrowthStrategy::exponential;
     static constexpr bool        can_grow     = true;
     static constexpr std::size_t min_capacity = 64;
 
@@ -232,14 +241,17 @@ struct exponential_growth_policy
     }
 };
 
+// old name, until 0.9.0-rc.1
+using exponential_growth_policy = DExponentialGrowthPolicy;
+
 // DPageGrowthPolicy
 //   struct: grow in multiples of the OS page size. The page size defaults to
 // 4096 bytes but can be overridden at compile time.
 template<std::size_t PageSize = 4096>
 struct DPageGrowthPolicy
 {
-    static constexpr buffer_growth_strategy strategy =
-        buffer_growth_strategy::page_aligned;
+    static constexpr DBufferGrowthStrategy strategy =
+        DBufferGrowthStrategy::page_aligned;
     static constexpr bool        can_grow  = true;
     static constexpr std::size_t page_size = PageSize;
 
@@ -270,12 +282,12 @@ struct DPageGrowthPolicy
 // the DBufferBase stores, plus static helpers for cursor
 // arithmetic.
 
-// write_only_cursor_policy
+// DWriteOnlyCursorPolicy
 //   struct: single write cursor. The consumer retrieves the accumulated data
 // via data()/size() and manages any read offset externally.
-struct write_only_cursor_policy
+struct DWriteOnlyCursorPolicy
 {
-    static constexpr buffer_cursor_model model = buffer_cursor_model::write_only;
+    static constexpr DBufferCursorModel model = DBufferCursorModel::write_only;
     static constexpr bool has_read_cursor     = false;
 
     struct cursor_state
@@ -339,14 +351,17 @@ struct write_only_cursor_policy
     }
 };
 
-// dual_cursor_policy
+// old name, until 0.9.0-rc.1
+using write_only_cursor_policy = DWriteOnlyCursorPolicy;
+
+// DDualCursorPolicy
 //   struct: paired write + read cursors. Supports incremental production and
 // consumption. The readable region is [read_pos, write_pos); the writable
 // region is [write_pos, capacity).
-struct dual_cursor_policy
+struct DDualCursorPolicy
 {
-    static constexpr buffer_cursor_model model =
-        buffer_cursor_model::dual;
+    static constexpr DBufferCursorModel model =
+        DBufferCursorModel::dual;
     static constexpr bool has_read_cursor = true;
 
     struct cursor_state
@@ -471,6 +486,9 @@ struct dual_cursor_policy
     }
 };
 
+// old name, until 0.9.0-rc.1
+using dual_cursor_policy = DDualCursorPolicy;
+
 
 // =============================================================================
 // V.   DBufferBase (CRTP)
@@ -554,10 +572,10 @@ public:
 
     // --- capacity and growth constants ---
 
-    static constexpr buffer_growth_strategy growth_strategy =
+    static constexpr DBufferGrowthStrategy growth_strategy =
         GrowthPolicy::strategy;
 
-    static constexpr buffer_cursor_model cursor_model =
+    static constexpr DBufferCursorModel cursor_model =
         CursorPolicy::model;
 
     static constexpr bool can_grow =
@@ -935,29 +953,29 @@ protected:
 // =============================================================================
 // Compile-time selection of growth policy by enum value.
 
-template<buffer_growth_strategy Strategy>
+template<DBufferGrowthStrategy Strategy>
 struct select_growth_policy;
 
 template<>
-struct select_growth_policy<buffer_growth_strategy::none>
+struct select_growth_policy<DBufferGrowthStrategy::none>
 {
-    using type = fixed_growth_policy;
+    using type = DFixedGrowthPolicy;
 };
 
 template<>
-struct select_growth_policy<buffer_growth_strategy::linear>
+struct select_growth_policy<DBufferGrowthStrategy::linear>
 {
     using type = DLinearGrowthPolicy<>;
 };
 
 template<>
-struct select_growth_policy<buffer_growth_strategy::exponential>
+struct select_growth_policy<DBufferGrowthStrategy::exponential>
 {
-    using type = exponential_growth_policy;
+    using type = DExponentialGrowthPolicy;
 };
 
 template<>
-struct select_growth_policy<buffer_growth_strategy::page_aligned>
+struct select_growth_policy<DBufferGrowthStrategy::page_aligned>
 {
     using type = DPageGrowthPolicy<>;
 };
@@ -965,7 +983,7 @@ struct select_growth_policy<buffer_growth_strategy::page_aligned>
 // select_growth_policy_t
 //   type: the carrier of select_growth_policy -- its `::type`, for use where a
 // type rather than a value is wanted.
-template<buffer_growth_strategy Strategy>
+template<DBufferGrowthStrategy Strategy>
 using select_growth_policy_t =
     typename select_growth_policy<Strategy>::type;
 
@@ -975,25 +993,25 @@ using select_growth_policy_t =
 // =============================================================================
 // Compile-time selection of cursor policy by enum value.
 
-template<buffer_cursor_model Model>
+template<DBufferCursorModel Model>
 struct select_cursor_policy;
 
 template<>
-struct select_cursor_policy<buffer_cursor_model::write_only>
+struct select_cursor_policy<DBufferCursorModel::write_only>
 {
-    using type = write_only_cursor_policy;
+    using type = DWriteOnlyCursorPolicy;
 };
 
 template<>
-struct select_cursor_policy<buffer_cursor_model::dual>
+struct select_cursor_policy<DBufferCursorModel::dual>
 {
-    using type = dual_cursor_policy;
+    using type = DDualCursorPolicy;
 };
 
 // select_cursor_policy_t
 //   type: the carrier of select_cursor_policy -- its `::type`, for use where a
 // type rather than a value is wanted.
-template<buffer_cursor_model Model>
+template<DBufferCursorModel Model>
 using select_cursor_policy_t = typename select_cursor_policy<Model>::type;
 
 
@@ -1004,8 +1022,11 @@ using select_cursor_policy_t = typename select_cursor_policy<Model>::type;
 // These can be used as default template arguments by
 // concrete buffer implementations.
 
-using default_growth_policy = exponential_growth_policy;
-using DDefaultCursorPolicy = dual_cursor_policy;
+using DDefaultGrowthPolicy = DExponentialGrowthPolicy;
+
+// old name, until 0.9.0-rc.1
+using default_growth_policy = DDefaultGrowthPolicy;
+using DDefaultCursorPolicy = DDualCursorPolicy;
 
 
 NS_END  // djinterp

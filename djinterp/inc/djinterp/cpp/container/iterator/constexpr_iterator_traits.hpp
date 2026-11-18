@@ -142,7 +142,7 @@ struct has_constexpr_end_method<Type, void_t<
 // ===========================================================================
 
 // has_constexpr_iterator_alias
-//   trait: detects a nested type alias `constexpr_iterator`.
+//   trait: detects a nested type alias `DConstexprIterator`.
 template<typename Type,
          typename = void>
 struct has_constexpr_iterator_alias : std::false_type
@@ -207,7 +207,7 @@ NS_END  // internal
 // has_constexpr_iteration
 //   trait: true if the container exposes a compile-time
 // iteration interface, either via:
-//     - a nested `constexpr_iterator` type alias, OR
+//     - a nested `DConstexprIterator` type alias, OR
 //     - a `constexpr_begin()` / `constexpr_end()` pair.
 template<typename Type>
 struct has_constexpr_iteration

@@ -109,7 +109,7 @@ bool tests_has_root_method()
 }
 
 /*
-tests_has_root_member_method
+tests_has_has_root_method
   Verifies the probe for has_root() - the interrogative that reports whether a
   tree's root is populated.
   Tests the following:
@@ -118,27 +118,27 @@ tests_has_root_member_method
   - the probe does not feed the entry disjunction: a type carrying has_root()
     alone exposes no entry reference
 */
-bool tests_has_root_member_method()
+bool tests_has_has_root_method()
 {
     bool ok = true;
 
     // present
-    D_NC_CHECK(has_root_member_method<DNctTree>::value == true);
-    D_NC_CHECK(has_root_member_method<nct_has_root_no_root>::value == true);
+    D_NC_CHECK(has_has_root_method<DNctTree>::value == true);
+    D_NC_CHECK(has_has_root_method<nct_has_root_no_root>::value == true);
 
     // absent
-    D_NC_CHECK(has_root_member_method<DNctUniqueContainer>::value == false);
-    D_NC_CHECK(has_root_member_method<DNctRootOnly>::value        == false);
-    D_NC_CHECK(has_root_member_method<DNctList>::value             == false);
-    D_NC_CHECK(has_root_member_method<DNctAllShapes>::value       == false);
-    D_NC_CHECK(has_root_member_method<DNctBare>::value             == false);
-    D_NC_CHECK(has_root_member_method<int>::value                  == false);
+    D_NC_CHECK(has_has_root_method<DNctUniqueContainer>::value == false);
+    D_NC_CHECK(has_has_root_method<DNctRootOnly>::value        == false);
+    D_NC_CHECK(has_has_root_method<DNctList>::value             == false);
+    D_NC_CHECK(has_has_root_method<DNctAllShapes>::value       == false);
+    D_NC_CHECK(has_has_root_method<DNctBare>::value             == false);
+    D_NC_CHECK(has_has_root_method<int>::value                  == false);
 
     // independent of root(), in both directions
-    D_NC_CHECK(   ( has_root_member_method<nct_has_root_no_root>::value
+    D_NC_CHECK(   ( has_has_root_method<nct_has_root_no_root>::value
                         == true )
                && ( has_root_method<nct_has_root_no_root>::value == false ));
-    D_NC_CHECK(   ( has_root_member_method<DNctRootOnly>::value == false )
+    D_NC_CHECK(   ( has_has_root_method<DNctRootOnly>::value == false )
                && ( has_root_method<DNctRootOnly>::value        == true ));
 
     // and it is not an entry reference
@@ -547,7 +547,7 @@ bool tests_entry_point_probe_qualification()
     // the observers: const-probed
     D_NC_CONST_PROBE_AGREE(has_entry_point_method, DNctGeneric, true);
     D_NC_CONST_PROBE_AGREE(has_root_method,        DNctTree,    true);
-    D_NC_CONST_PROBE_AGREE(has_root_member_method, DNctTree,    true);
+    D_NC_CONST_PROBE_AGREE(has_has_root_method, DNctTree,    true);
     D_NC_CONST_PROBE_AGREE(has_head_method,        DNctList,    true);
     D_NC_CONST_PROBE_AGREE(has_tail_method,        DNctList,    true);
     D_NC_CONST_PROBE_AGREE(has_entries_method,     DNctGraph,   true);
@@ -597,8 +597,9 @@ bool tests_entry_point_companions()
                    == has_entry_point_method<DNctGeneric>::value);
     D_NC_CHECK(has_root_method_v<DNctTree>
                    == has_root_method<DNctTree>::value);
+    // the old name (W5) agrees with the canonical one
     D_NC_CHECK(has_root_member_method_v<DNctTree>
-                   == has_root_member_method<DNctTree>::value);
+                   == has_has_root_method<DNctTree>::value);
     D_NC_CHECK(has_head_method_v<DNctList>
                    == has_head_method<DNctList>::value);
     D_NC_CHECK(has_tail_method_v<DNctList>

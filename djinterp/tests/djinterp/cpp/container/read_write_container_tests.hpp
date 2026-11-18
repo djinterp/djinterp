@@ -14,7 +14,7 @@
 *                                   -> core/container/meta/read_write.hpp
 *
 *   Neither target is where the named header ships.  The capability tag
-* `read_write` ships at core/container/access/read_write.hpp - a SIBLING of the
+* `DReadWrite` ships at core/container/access/read_write.hpp - a SIBLING of the
 * wrapper, per its own banner - so the include should read "read_write.hpp".
 * And djinterp.hpp ships at core/djinterp.hpp, which from access/ is
 * "../../djinterp.hpp"; that is exactly what the sibling tag headers already

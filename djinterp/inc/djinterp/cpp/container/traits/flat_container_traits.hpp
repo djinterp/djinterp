@@ -99,14 +99,14 @@ D_TYPE_TRAIT_VALUE_BOOL(is_strictly_flat_container)
 // II.  Aggregate snapshot
 // ===========================================================================
 
-// flat_container_class
+// DFlatContainerClass
 //   trait: one-shot snapshot of the structure (flat side) axis for `Type`.
 // Gathers every
 // signal and verdict this header computes into a single instantiation, so
 // a caller that needs several of them pays for detection once rather than per
 // query.
 template<typename Type>
-struct flat_container_class
+struct DFlatContainerClass
 {
 private:
     using clean_type = clean_t<Type>;
@@ -127,6 +127,10 @@ public:
     static constexpr const char*    kind_name =
         structure_kind_name(kind);
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using flat_container_class = DFlatContainerClass<Type>;
 
 
 NS_END  // djinterp

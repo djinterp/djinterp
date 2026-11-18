@@ -12,14 +12,14 @@
 * unsigned, signed, string, bytes -- and why a key that is none of those has
 * nowhere to go.
 *
-*   THE COMPILE-TIME FORM HAS NO SUCH LIMIT. `typed_view` compares keys with
+*   THE COMPILE-TIME FORM HAS NO SUCH LIMIT. `DTypedView` compares keys with
 * `operator<` and `operator==` on the member's own type, so a std::string key,
 * a user comparator, a fixed_string, or anything else with an ordering works
 * without a fifth entry point and without a widening step. The C form remains
 * for the case it is for: bytes whose record type is not visible where the
 * search happens.
 *
-*   BOTH PRODUCE THE SAME ANSWER SHAPE. `lookup_result` is the C struct's
+*   BOTH PRODUCE THE SAME ANSWER SHAPE. `DLookupResult` is the C struct's
 * contract -- found, index, and ON A MISS THE INSERTION POINT rather than a
 * sentinel -- so a caller written against one reads the same from the other.
 *
@@ -29,7 +29,7 @@
 *   D_LOOKUP_FLAG_CASE_INSENSITIVE exists in C because a comparator cannot be
 * passed at zero cost through a struct. Here it is a template parameter with a
 * default, so `ascii_fold_less` is one comparator among any number and the
-* framework's own is not privileged. `ci_less` is provided because the ASCII
+* framework's own is not privileged. `DCiLess` is provided because the ASCII
 * fold is the one comparison the C side had to get right for determinacy --
 * std::tolower is locale-dependent, so a registry keyed on it answers
 * differently under different locales, and that reasoning is unchanged here.
@@ -150,10 +150,10 @@ struct sorted_tag
 struct unsorted_tag
 {};
 
-// natural_less
+// DNaturalLess
 //   struct: the default comparator -- `operator<` on the key's own type.
 template<typename Key>
-struct natural_less
+struct DNaturalLess
 {
     D_CONSTEXPR
     bool operator()(
@@ -165,14 +165,18 @@ struct natural_less
     }
 };
 
-// ci_less
+// old name, until 0.9.0-rc.1
+template<typename Key>
+using natural_less = DNaturalLess<Key>;
+
+// DCiLess
 //   struct: case-insensitive ordering over NUL-terminated strings, folding
 // ASCII only.
 //   THE FOLD IS LOCALE-FREE AND DELIBERATELY ASCII-ONLY, for the reason
 // lookup.h gives: std::tolower answers differently under different locales, so
 // a registry keyed on it is not deterministic across builds. It defers to the
 // C fold so there is one table and not two.
-struct ci_less
+struct DCiLess
 {
     bool operator()(
         const char* _lhs,
@@ -183,15 +187,18 @@ struct ci_less
     }
 };
 
+// old name, until 0.9.0-rc.1
+using ci_less = DCiLess;
+
 
 // III.   the result
 
-// lookup_result
+// DLookupResult
 //   struct: the outcome of a search. On a miss `index` is the INSERTION POINT
 // rather than a sentinel, so a caller that failed to find a key already knows
 // where to put it -- the same contract dj_lookup_result carries.
 template<typename Record>
-struct lookup_result
+struct DLookupResult
 {
     const Record* record;  // borrowed; null when not found
     std::size_t    index;   // position when found; insertion point when not
@@ -206,29 +213,33 @@ struct lookup_result
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Record>
+using lookup_result = DLookupResult<Record>;
+
 
 // IV.    the compile-time view
 
-// typed_view
+// DTypedView
 //   class: a contiguous array of records and the field their key sits in,
 // both known at compile time. The key is compared with its OWN TYPE, so no
 // widening happens and any ordered type serves.
 template<typename Field,
          typename Compare =
-             natural_less<typename Field::member_type>>
-class typed_view
+             DNaturalLess<typename Field::member_type>>
+class DTypedView
 {
 public:
     using record_type = typename Field::record_type;
     using key_type    = typename Field::member_type;
     using field_type  = Field;
     using compare_type = Compare;
-    using result_type = lookup_result<record_type>;
+    using result_type = DLookupResult<record_type>;
 
     static_assert(is_lookup_key<key_type>::value,
                   "lookup: a key type must support both `<` and `==`.");
 
-    typed_view(
+    DTypedView(
         const record_type* _records,
         std::size_t        _count
     ) D_NOEXCEPT
@@ -237,7 +248,7 @@ public:
           m_compare(Compare())
     {}
 
-    typed_view(
+    DTypedView(
         const record_type* _records,
         std::size_t        _count,
         const Compare&    _compare
@@ -407,6 +418,11 @@ private:
     Compare           m_compare;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Field,
+         typename Compare = DNaturalLess<typename Field::member_type>>
+using typed_view = DTypedView<Field, Compare>;
+
 // make_typed_view
 //   function: deduce a view from an array, so the record count is not written
 // out and cannot disagree with the array.
@@ -414,7 +430,7 @@ template<typename Field,
          typename Record,
          std::size_t Count>
 D_INLINE
-typed_view<Field> make_typed_view(
+DTypedView<Field> make_typed_view(
     const Record (&_records)[Count]
 ) D_NOEXCEPT
 {
@@ -422,24 +438,24 @@ typed_view<Field> make_typed_view(
                                typename Field::record_type>::value,
                   "lookup: the field's record type must match the array's.");
 
-    return typed_view<Field>(_records, Count);
+    return DTypedView<Field>(_records, Count);
 }
 
 
 // V.     the runtime view
 
-// lookup_view
+// DLookupView
 //   class: the runtime form. PRIVATELY INHERITS THE C STRUCT AND ADDS NO DATA
 // MEMBER, so its layout is the C struct's and the address of one is the
 // address of the other.
-class lookup_view : private ::dj_lookup_view
+class DLookupView : private ::dj_lookup_view
 {
 public:
-    lookup_view() D_NOEXCEPT
+    DLookupView() D_NOEXCEPT
         : ::dj_lookup_view()
     {}
 
-    lookup_view(
+    DLookupView(
         const void*      _records,
         std::size_t      _stride,
         std::size_t      _count,
@@ -479,11 +495,11 @@ public:
     // entry point by the key's type rather than by the caller.
     template<typename Key>
     typename std::enable_if<is_lowerable_key<Key>::value,
-                            lookup_result<void>>::type
+                            DLookupResult<void>>::type
     find(Key _key) const D_NOEXCEPT
     {
         ::dj_lookup_result   raw;
-        lookup_result<void> result;
+        DLookupResult<void> result;
 
         // a signed key must not be widened as though it were unsigned
         if (std::is_signed<Key>::value)
@@ -506,12 +522,12 @@ public:
 
     // find
     //   function: search by a string key, honouring the view's case flag.
-    lookup_result<void> find(
+    DLookupResult<void> find(
         const char* _key
     ) const D_NOEXCEPT
     {
         ::dj_lookup_result   raw;
-        lookup_result<void> result;
+        DLookupResult<void> result;
 
         raw = ::d_lookup_find_string(this, _key);
 
@@ -528,6 +544,9 @@ public:
     }
 };
 
+// old name, until 0.9.0-rc.1
+using lookup_view = DLookupView;
+
 
 // VI.    lowering
 
@@ -542,7 +561,7 @@ D_INLINE
 typename std::enable_if<
     ( is_lowerable_key<typename View::key_type>::value &&
       View::field_type::has_offset ),
-    lookup_view>::type
+    DLookupView>::type
 lower_view(
     const View&      _view,
     re_std::uint16_t _flags = D_LOOKUP_FLAG_NONE
@@ -560,7 +579,7 @@ lower_view(
     // than from a descriptor bit. lookup.h moved it onto the view when the
     // descriptor went away, and this is the one place that knows the key's
     // actual C++ type -- so it is the right place to decide.
-    return lookup_view(
+    return DLookupView(
         _view.data(),
         sizeof(typename View::record_type),
         _view.size(),
@@ -575,16 +594,16 @@ lower_view(
 
 // VII.   layout assertions
 
-static_assert((sizeof(lookup_view) == sizeof(::dj_lookup_view)),
+static_assert((sizeof(DLookupView) == sizeof(::dj_lookup_view)),
               "lookup_view must add no storage to dj_lookup_view.");
-static_assert(std::is_standard_layout<lookup_view>::value,
+static_assert(std::is_standard_layout<DLookupView>::value,
               "lookup_view must be standard-layout for the base to sit at "
               "offset zero.");
 
 //   THE RESULT SHAPES MUST AGREE. A caller reading `index` off one and off the
 // other must get the same meaning, so the member set is checked rather than
 // trusted to stay parallel.
-static_assert((sizeof(lookup_result<void>::index) ==
+static_assert((sizeof(DLookupResult<void>::index) ==
                sizeof(((::dj_lookup_result*)0)->index)),
               "lookup_result::index must match dj_lookup_result::index.");
 

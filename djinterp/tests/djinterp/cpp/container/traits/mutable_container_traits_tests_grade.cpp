@@ -40,21 +40,21 @@ bool tests_mutability_enum()
     bool ok = true;
 
     // an enumeration, and scoped
-    D_MC_STATIC_CHECK(std::is_enum<mutability>::value == true);
-    D_MC_STATIC_CHECK(std::is_convertible<mutability, int>::value == false);
+    D_MC_STATIC_CHECK(std::is_enum<DMutability>::value == true);
+    D_MC_STATIC_CHECK(std::is_convertible<DMutability, int>::value == false);
 
     // pairwise distinct
-    D_MC_CHECK(mutability::immutable       != mutability::element_mutable);
-    D_MC_CHECK(mutability::immutable       != mutability::structural_mutable);
-    D_MC_CHECK(mutability::immutable       != mutability::fully_mutable);
-    D_MC_CHECK(mutability::element_mutable != mutability::structural_mutable);
-    D_MC_CHECK(mutability::element_mutable != mutability::fully_mutable);
-    D_MC_CHECK(mutability::structural_mutable != mutability::fully_mutable);
+    D_MC_CHECK(DMutability::immutable       != DMutability::element_mutable);
+    D_MC_CHECK(DMutability::immutable       != DMutability::structural_mutable);
+    D_MC_CHECK(DMutability::immutable       != DMutability::fully_mutable);
+    D_MC_CHECK(DMutability::element_mutable != DMutability::structural_mutable);
+    D_MC_CHECK(DMutability::element_mutable != DMutability::fully_mutable);
+    D_MC_CHECK(DMutability::structural_mutable != DMutability::fully_mutable);
 
     // usable as a non-type template argument
     D_MC_STATIC_CHECK(
-        std::integral_constant<mutability, mutability::fully_mutable>::value
-            == mutability::fully_mutable);
+        std::integral_constant<DMutability, DMutability::fully_mutable>::value
+            == DMutability::fully_mutable);
 
     return ok;
 }
@@ -74,31 +74,31 @@ bool tests_mutability_name()
     bool ok = true;
 
     // constant-expression usability, and first-character distinctness
-    D_MC_STATIC_CHECK(mutability_name(mutability::immutable)[0] == 'i');
-    D_MC_STATIC_CHECK(mutability_name(mutability::element_mutable)[0] == 'e');
+    D_MC_STATIC_CHECK(mutability_name(DMutability::immutable)[0] == 'i');
+    D_MC_STATIC_CHECK(mutability_name(DMutability::element_mutable)[0] == 'e');
     D_MC_STATIC_CHECK(
-        mutability_name(mutability::structural_mutable)[0] == 's');
-    D_MC_STATIC_CHECK(mutability_name(mutability::fully_mutable)[0] == 'f');
+        mutability_name(DMutability::structural_mutable)[0] == 's');
+    D_MC_STATIC_CHECK(mutability_name(DMutability::fully_mutable)[0] == 'f');
 
     // exact spellings
-    D_MC_CHECK(std::strcmp(mutability_name(mutability::immutable),
+    D_MC_CHECK(std::strcmp(mutability_name(DMutability::immutable),
                            "immutable") == 0);
-    D_MC_CHECK(std::strcmp(mutability_name(mutability::element_mutable),
+    D_MC_CHECK(std::strcmp(mutability_name(DMutability::element_mutable),
                            "element_mutable") == 0);
-    D_MC_CHECK(std::strcmp(mutability_name(mutability::structural_mutable),
+    D_MC_CHECK(std::strcmp(mutability_name(DMutability::structural_mutable),
                            "structural_mutable") == 0);
-    D_MC_CHECK(std::strcmp(mutability_name(mutability::fully_mutable),
+    D_MC_CHECK(std::strcmp(mutability_name(DMutability::fully_mutable),
                            "fully_mutable") == 0);
 
     // pairwise distinct spellings
-    D_MC_CHECK(std::strcmp(mutability_name(mutability::immutable),
-                           mutability_name(mutability::element_mutable))
+    D_MC_CHECK(std::strcmp(mutability_name(DMutability::immutable),
+                           mutability_name(DMutability::element_mutable))
                    != 0);
-    D_MC_CHECK(std::strcmp(mutability_name(mutability::element_mutable),
-                           mutability_name(mutability::structural_mutable))
+    D_MC_CHECK(std::strcmp(mutability_name(DMutability::element_mutable),
+                           mutability_name(DMutability::structural_mutable))
                    != 0);
-    D_MC_CHECK(std::strcmp(mutability_name(mutability::structural_mutable),
-                           mutability_name(mutability::fully_mutable))
+    D_MC_CHECK(std::strcmp(mutability_name(DMutability::structural_mutable),
+                           mutability_name(DMutability::fully_mutable))
                    != 0);
 
     return ok;
@@ -120,14 +120,14 @@ bool tests_mutability_grade_predicates()
 {
     bool ok = true;
 
-    const mutability imm  = mutability::immutable;
-    const mutability elem = mutability::element_mutable;
-    const mutability strc = mutability::structural_mutable;
-    const mutability full = mutability::fully_mutable;
+    const DMutability imm  = DMutability::immutable;
+    const DMutability elem = DMutability::element_mutable;
+    const DMutability strc = DMutability::structural_mutable;
+    const DMutability full = DMutability::fully_mutable;
 
     // constant-expression usability
-    D_MC_STATIC_CHECK(is_immutable_grade(mutability::immutable) == true);
-    D_MC_STATIC_CHECK(is_fully_mutable_grade(mutability::immutable) == false);
+    D_MC_STATIC_CHECK(is_immutable_grade(DMutability::immutable) == true);
+    D_MC_STATIC_CHECK(is_fully_mutable_grade(DMutability::immutable) == false);
 
     // is_immutable_grade
     D_MC_CHECK(is_immutable_grade(imm)  == true);
@@ -178,16 +178,16 @@ bool tests_mutability_grade_admits()
 {
     bool ok = true;
 
-    const mutability imm  = mutability::immutable;
-    const mutability elem = mutability::element_mutable;
-    const mutability strc = mutability::structural_mutable;
-    const mutability full = mutability::fully_mutable;
+    const DMutability imm  = DMutability::immutable;
+    const DMutability elem = DMutability::element_mutable;
+    const DMutability strc = DMutability::structural_mutable;
+    const DMutability full = DMutability::fully_mutable;
 
     // constant-expression usability
     D_MC_STATIC_CHECK(
-        grade_admits_element_mutation(mutability::fully_mutable) == true);
+        grade_admits_element_mutation(DMutability::fully_mutable) == true);
     D_MC_STATIC_CHECK(
-        grade_admits_structural_mutation(mutability::immutable) == false);
+        grade_admits_structural_mutation(DMutability::immutable) == false);
 
     // grade_admits_element_mutation
     D_MC_CHECK(grade_admits_element_mutation(imm)  == false);
@@ -234,87 +234,87 @@ bool tests_mutability_of()
 
     // fully mutable
     D_MC_CHECK(mutability_of<DMcVectorInt>::value
-                   == mutability::fully_mutable);
+                   == DMutability::fully_mutable);
     D_MC_CHECK(mutability_of<DMcVectorBool>::value
-                   == mutability::fully_mutable);
+                   == DMutability::fully_mutable);
     D_MC_CHECK(mutability_of<DMcDequeInt>::value
-                   == mutability::fully_mutable);
+                   == DMutability::fully_mutable);
     D_MC_CHECK(mutability_of<DMcString>::value
-                   == mutability::fully_mutable);
+                   == DMutability::fully_mutable);
     D_MC_CHECK(mutability_of<DMcAllSignals>::value
-                   == mutability::fully_mutable);
+                   == DMutability::fully_mutable);
 
     // structural only - node sequences and every associative discipline
     D_MC_CHECK(mutability_of<DMcListInt>::value
-                   == mutability::structural_mutable);
+                   == DMutability::structural_mutable);
     D_MC_CHECK(mutability_of<DMcFlistInt>::value
-                   == mutability::structural_mutable);
+                   == DMutability::structural_mutable);
     D_MC_CHECK(mutability_of<DMcSetInt>::value
-                   == mutability::structural_mutable);
+                   == DMutability::structural_mutable);
     D_MC_CHECK(mutability_of<DMcMultisetInt>::value
-                   == mutability::structural_mutable);
+                   == DMutability::structural_mutable);
     D_MC_CHECK(mutability_of<DMcMapIi>::value
-                   == mutability::structural_mutable);
+                   == DMutability::structural_mutable);
     D_MC_CHECK(mutability_of<DMcMultimapIi>::value
-                   == mutability::structural_mutable);
+                   == DMutability::structural_mutable);
     D_MC_CHECK(mutability_of<DMcUsetInt>::value
-                   == mutability::structural_mutable);
+                   == DMutability::structural_mutable);
     D_MC_CHECK(mutability_of<DMcUmapIi>::value
-                   == mutability::structural_mutable);
+                   == DMutability::structural_mutable);
 
     // element only - fixed extent, at a positive and a zero size
     D_MC_CHECK(mutability_of<DMcArray4>::value
-                   == mutability::element_mutable);
+                   == DMutability::element_mutable);
     D_MC_CHECK(mutability_of<DMcArray0>::value
-                   == mutability::element_mutable);
+                   == DMutability::element_mutable);
 
     // immutable
-    D_MC_CHECK(mutability_of<DMcInitList>::value  == mutability::immutable);
-    D_MC_CHECK(mutability_of<DMcSizedOnly>::value == mutability::immutable);
+    D_MC_CHECK(mutability_of<DMcInitList>::value  == DMutability::immutable);
+    D_MC_CHECK(mutability_of<DMcSizedOnly>::value == DMutability::immutable);
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
-    D_MC_CHECK(mutability_of<DMcStringView>::value == mutability::immutable);
+    D_MC_CHECK(mutability_of<DMcStringView>::value == DMutability::immutable);
 #endif
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
     D_MC_CHECK(mutability_of<DMcSpanInt>::value
-                   == mutability::element_mutable);
+                   == DMutability::element_mutable);
 #endif
 
     // the grade does not require container-hood
-    D_MC_CHECK(mutability_of<int>::value          == mutability::immutable);
-    D_MC_CHECK(mutability_of<void>::value         == mutability::immutable);
-    D_MC_CHECK(mutability_of<DMcBare>::value      == mutability::immutable);
-    D_MC_CHECK(mutability_of<DMcPairIi>::value   == mutability::immutable);
-    D_MC_CHECK(mutability_of<DMcTupleI>::value   == mutability::immutable);
-    D_MC_CHECK(mutability_of<DMcIntPtr>::value   == mutability::immutable);
-    D_MC_CHECK(mutability_of<DMcIntArray>::value == mutability::immutable);
+    D_MC_CHECK(mutability_of<int>::value          == DMutability::immutable);
+    D_MC_CHECK(mutability_of<void>::value         == DMutability::immutable);
+    D_MC_CHECK(mutability_of<DMcBare>::value      == DMutability::immutable);
+    D_MC_CHECK(mutability_of<DMcPairIi>::value   == DMutability::immutable);
+    D_MC_CHECK(mutability_of<DMcTupleI>::value   == DMutability::immutable);
+    D_MC_CHECK(mutability_of<DMcIntPtr>::value   == DMutability::immutable);
+    D_MC_CHECK(mutability_of<DMcIntArray>::value == DMutability::immutable);
 
     // ... and the immutable GRADE is not the immutable CONTAINER
-    D_MC_CHECK(   ( mutability_of<int>::value == mutability::immutable )
+    D_MC_CHECK(   ( mutability_of<int>::value == DMutability::immutable )
                && ( is_immutable_container<int>::value == false ));
     D_MC_CHECK(   ( mutability_of<DMcSizedOnly>::value
-                        == mutability::immutable )
+                        == DMutability::immutable )
                && ( is_immutable_container<DMcSizedOnly>::value == true ));
 
     // structural mutation does not imply dynamic storage: a bounded inline
     // buffer that grows within its capacity is fully mutable
     D_MC_CHECK(mutability_of<DMcFixedBuffer>::value
-                   == mutability::fully_mutable);
+                   == DMutability::fully_mutable);
 
     // each isolated structural signal reaches structural_mutable alone
     D_MC_CHECK(mutability_of<DMcPushBackOnly>::value
-                   == mutability::structural_mutable);
+                   == DMutability::structural_mutable);
     D_MC_CHECK(mutability_of<DMcClearOnly>::value
-                   == mutability::structural_mutable);
+                   == DMutability::structural_mutable);
     D_MC_CHECK(mutability_of<mc_no_value_type>::value
-                   == mutability::structural_mutable);
+                   == DMutability::structural_mutable);
 
     // and each isolated element signal reaches element_mutable alone
     D_MC_CHECK(mutability_of<DMcSubscriptOnly>::value
-                   == mutability::element_mutable);
+                   == DMutability::element_mutable);
     D_MC_CHECK(mutability_of<DMcDataOnly>::value
-                   == mutability::element_mutable);
+                   == DMutability::element_mutable);
 
     return ok;
 }
@@ -336,22 +336,22 @@ bool tests_mutability_of_companions()
     // ::type is the integral_constant carrying the grade
     D_MC_STATIC_CHECK(
         std::is_same<mutability_of<DMcVectorInt>::type,
-                     std::integral_constant<mutability,
-                                            mutability::fully_mutable>>::value);
+                     std::integral_constant<DMutability,
+                                            DMutability::fully_mutable>>::value);
     D_MC_STATIC_CHECK(
         std::is_same<mutability_of<DMcSetInt>::type,
                      std::integral_constant<
-                         mutability,
-                         mutability::structural_mutable>>::value);
+                         DMutability,
+                         DMutability::structural_mutable>>::value);
     D_MC_STATIC_CHECK(
         std::is_same<mutability_of<DMcArray4>::type,
                      std::integral_constant<
-                         mutability,
-                         mutability::element_mutable>>::value);
+                         DMutability,
+                         DMutability::element_mutable>>::value);
     D_MC_STATIC_CHECK(
         std::is_same<mutability_of<DMcBare>::type,
-                     std::integral_constant<mutability,
-                                            mutability::immutable>>::value);
+                     std::integral_constant<DMutability,
+                                            DMutability::immutable>>::value);
 
     // the _t alias names the same type
     D_MC_STATIC_CHECK(
@@ -372,7 +372,7 @@ bool tests_mutability_of_companions()
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
     D_MC_STATIC_CHECK(mutability_of_v<DMcVectorInt>
-                          == mutability::fully_mutable);
+                          == DMutability::fully_mutable);
 
     D_MC_CHECK(mutability_of_v<DMcVectorInt>
                    == mutability_of<DMcVectorInt>::value);
@@ -402,7 +402,7 @@ bool tests_mutability_grade_aliases()
     bool ok = true;
 
     // the grade dimension IS the mutability enum
-    D_MC_STATIC_CHECK(std::is_same<mutability_grade, mutability>::value);
+    D_MC_STATIC_CHECK(std::is_same<DMutabilityGrade, DMutability>::value);
 
     // the grade trait IS mutability_of
     D_MC_STATIC_CHECK(
@@ -418,7 +418,7 @@ bool tests_mutability_grade_aliases()
     D_MC_CHECK(mutability_grade_of<DMcVectorInt>::value
                    == mutability_of<DMcVectorInt>::value);
     D_MC_CHECK(mutability_grade_of<DMcArray4>::value
-                   == mutability::element_mutable);
+                   == DMutability::element_mutable);
     D_MC_STATIC_CHECK(
         std::is_same<mutability_grade_of<DMcArray4>::type,
                      mutability_of<DMcArray4>::type>::value);
@@ -499,15 +499,15 @@ bool tests_mutability_of_cv_ref_invariance()
 {
     bool ok = true;
 
-    D_MC_CV_REF_VALUE(mutability_of, DMcVectorInt, mutability::fully_mutable);
-    D_MC_CV_REF_VALUE(mutability_of, DMcString,     mutability::fully_mutable);
+    D_MC_CV_REF_VALUE(mutability_of, DMcVectorInt, DMutability::fully_mutable);
+    D_MC_CV_REF_VALUE(mutability_of, DMcString,     DMutability::fully_mutable);
     D_MC_CV_REF_VALUE(mutability_of, DMcSetInt,
-                      mutability::structural_mutable);
+                      DMutability::structural_mutable);
     D_MC_CV_REF_VALUE(mutability_of, DMcListInt,
-                      mutability::structural_mutable);
-    D_MC_CV_REF_VALUE(mutability_of, DMcArray4,  mutability::element_mutable);
-    D_MC_CV_REF_VALUE(mutability_of, DMcSizedOnly, mutability::immutable);
-    D_MC_CV_REF_VALUE(mutability_of, DMcBare,       mutability::immutable);
+                      DMutability::structural_mutable);
+    D_MC_CV_REF_VALUE(mutability_of, DMcArray4,  DMutability::element_mutable);
+    D_MC_CV_REF_VALUE(mutability_of, DMcSizedOnly, DMutability::immutable);
+    D_MC_CV_REF_VALUE(mutability_of, DMcBare,       DMutability::immutable);
 
     return ok;
 }

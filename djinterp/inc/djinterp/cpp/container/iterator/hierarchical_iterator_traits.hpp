@@ -97,9 +97,9 @@ NS_TRAITS
 // These delegate to the existing container_traits
 // detectors where available.
 
-// (has_parent_accessor, has_children_accessor,
-//  has_root_accessor, has_node_type, has_depth_type
-//  are already defined in container_traits.hpp)
+// (has_parent_method and has_root_method, in node_container_traits.hpp, and
+//  has_children_accessor, has_node_type and has_depth_type are already
+//  defined through container_traits.hpp)
 
 // has_first_child_accessor
 D_TYPE_TRAIT_DETECTED(has_first_child_accessor,
@@ -133,7 +133,7 @@ struct is_navigable_node
     using clean_type = clean_t<Type>;
 
     static constexpr bool value =
-        ( has_parent_accessor_v<clean_type>   &&
+        ( has_parent_method_v<const clean_type&> &&
           has_children_accessor_v<clean_type> );
 };
 
@@ -566,9 +566,9 @@ inline constexpr DTraversalCapability
 // VI.  Iteration Strategy Classification
 // ===========================================================================
 
-// hierarchical_strategy
+// DHierarchicalStrategy
 //   enum: best default iteration strategy for a hierarchical container.
-enum class hierarchical_strategy
+enum class DHierarchicalStrategy
 {
     // not hierarchical - use flat iteration
     flat,
@@ -587,6 +587,9 @@ enum class hierarchical_strategy
     unsupported
 };
 
+// old name, until 0.9.0-rc.1
+using hierarchical_strategy = DHierarchicalStrategy;
+
 NS_INTERNAL
 
     template<typename Type>
@@ -594,21 +597,21 @@ NS_INTERNAL
     {
         using C = clean_t<Type>;
 
-        static constexpr hierarchical_strategy value
+        static constexpr DHierarchicalStrategy value
             = !is_hierarchical_container_v<C>
-                ? hierarchical_strategy::flat
+                ? DHierarchicalStrategy::flat
 
             : ( has_next_sibling_v<C> &&
                 has_first_child_accessor_v<C> )
-                ? hierarchical_strategy::sibling_dfs
+                ? DHierarchicalStrategy::sibling_dfs
 
             : has_random_access_children_v<C>
-                ? hierarchical_strategy::indexed_dfs
+                ? DHierarchicalStrategy::indexed_dfs
 
             : has_children_accessor_v<C>
-                ? hierarchical_strategy::stack_dfs
+                ? DHierarchicalStrategy::stack_dfs
 
-            : hierarchical_strategy::unsupported;
+            : DHierarchicalStrategy::unsupported;
     };
 
 NS_END  // internal
@@ -616,11 +619,11 @@ NS_END  // internal
 template<typename Type>
 struct container_hierarchical_strategy
 {
-    static constexpr hierarchical_strategy value = internal::hier_strategy_impl<Type>::value;
+    static constexpr DHierarchicalStrategy value = internal::hier_strategy_impl<Type>::value;
 };
 
 template<typename Type>
-inline constexpr hierarchical_strategy
+inline constexpr DHierarchicalStrategy
     container_hierarchical_strategy_v =
         container_hierarchical_strategy<
             Type>::value;
@@ -638,9 +641,9 @@ struct is_tree_iterable
 {
     static constexpr bool value =
         ( container_hierarchical_strategy_v<Type> !=
-              hierarchical_strategy::unsupported &&
+              DHierarchicalStrategy::unsupported &&
           container_hierarchical_strategy_v<Type> !=
-              hierarchical_strategy::flat );
+              DHierarchicalStrategy::flat );
 };
 
 template<typename Type>
@@ -683,7 +686,7 @@ inline constexpr bool supports_level_order_v =
 // ===========================================================================
 
 template<typename Type>
-struct hierarchical_iterator_class
+struct DHierarchicalIteratorClass
 {
     // topology
     static constexpr bool is_navigable =
@@ -724,7 +727,7 @@ struct hierarchical_iterator_class
         traversals =
             container_traversal_capabilities_v<
                 Type>;
-    static constexpr hierarchical_strategy
+    static constexpr DHierarchicalStrategy
         strategy =
             container_hierarchical_strategy_v<
                 Type>;
@@ -733,6 +736,10 @@ struct hierarchical_iterator_class
     static constexpr bool is_tree_iterable =
         is_tree_iterable_v<Type>;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using hierarchical_iterator_class = DHierarchicalIteratorClass<Type>;
 
 
 NS_END  // traits

@@ -155,10 +155,10 @@ bool tests_stdlib_associative()
     D_CVT_TIER(DConversionTier::constructive, std_set, std_list);
 
     // ...and the rungs really are the rungs
-    D_CVT_LEVEL(content_level::seq, native_content_level_of<std_vector>::value);
-    D_CVT_LEVEL(content_level::bag,
+    D_CVT_LEVEL(DContentLevel::seq, native_content_level_of<std_vector>::value);
+    D_CVT_LEVEL(DContentLevel::bag,
                 native_content_level_of<std_multiset>::value);
-    D_CVT_LEVEL(content_level::set, native_content_level_of<std_set>::value);
+    D_CVT_LEVEL(DContentLevel::set, native_content_level_of<std_set>::value);
 
     // so the DIRECTION of the arrow is what decides
     D_CVT_CHECK((is_lossy_conversion<std_vector, std_set>::value));
@@ -167,15 +167,15 @@ bool tests_stdlib_associative()
     D_CVT_CHECK((is_lossless_conversion<std_set, std_multiset>::value));
 
     // ...and the shared rung a lossless conversion would preserve is the COARSER
-    D_CVT_LEVEL(content_level::set,
+    D_CVT_LEVEL(DContentLevel::set,
                 (DConversionClass<std_vector, std_set>::shared_content_level));
-    D_CVT_LEVEL(content_level::bag,
+    D_CVT_LEVEL(DContentLevel::bag,
                 (DConversionClass<std_vector,
                                   std_multiset>::shared_content_level));
 
-    // std::map is at `set` too - one value per key - so a vector of pairs would
+    // std::map is at `DSet` too - one value per key - so a vector of pairs would
     // deduplicate into it, and a map fans out into a vector losslessly
-    D_CVT_LEVEL(content_level::set, native_content_level_of<std_map>::value);
+    D_CVT_LEVEL(DContentLevel::set, native_content_level_of<std_map>::value);
 
     return ok;
 }
@@ -218,10 +218,10 @@ bool tests_stdlib_array()
     D_CVT_CHECK((sequential_layout_of<std_array>::value ==
                  sequential_layout_of<std_vector>::value));
     D_CVT_CHECK(sequential_layout_of<std_array>::value ==
-                sequential_layout::array_like);
+                DSequentialLayout::array_like);
     D_CVT_CHECK((elements_same_type<std_array, std_vector>::value));
     D_CVT_CHECK((lifetime_relation<std_array, std_vector>::value !=
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((!is_view_conversion<std_array, std_vector>::value));
 
     // *** vector -> array: LOSSY, and NO WAY TO DO IT ***
@@ -342,13 +342,13 @@ bool tests_stdlib_array_extent()
     D_CVT_CHECK((sequential_layout_of<std_array>::value ==
                  sequential_layout_of<std_array_64>::value));
     D_CVT_CHECK((lifetime_relation<std_array, std_array_64>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((storage_relation<std_array, std_array_64>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((DIterabilityRelation<std_array, std_array_64>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((discipline_relation<std_array, std_array_64>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
 
     // THE MECHANISM: boundedness is a BOOL, and the extent's value is never read
     D_CVT_CHECK(is_bounded_container<std_array>::value);
@@ -371,9 +371,9 @@ bool tests_stdlib_array_extent()
     // ...and the LAYOUT, which the header's RELIABILITY note leans on, is a SHAPE
     // and not a SIZE.  Two arrays of different length have the same shape
     D_CVT_CHECK(sequential_layout_of<std_array>::value ==
-                sequential_layout::array_like);
+                DSequentialLayout::array_like);
     D_CVT_CHECK(sequential_layout_of<std_array_64>::value ==
-                sequential_layout::array_like);
+                DSequentialLayout::array_like);
 
     // AS BEFORE.  An UNBOUNDED source against a bounded target is `lossy` -
     // there the bound is being ADDED
@@ -434,7 +434,7 @@ bool tests_stdlib_forward_list()
     D_CVT_CHECK((elements_same_type<std_vector, std_fwd_list>::value));
 
     // THE MECHANISM: no size(), so no rung, so rank zero - the coarsest
-    D_CVT_LEVEL(content_level::none,
+    D_CVT_LEVEL(DContentLevel::none,
                 native_content_level_of<std_fwd_list>::value);
     D_CVT_CHECK(content_level_rank(
                     native_content_level_of<std_fwd_list>::value) == 0);
@@ -459,7 +459,7 @@ bool tests_stdlib_forward_list()
                 (is_lossless_conversion<std_fwd_list, std_vector>::value));
 
     // the shared rung the class reports is still `none`
-    D_CVT_LEVEL(content_level::none,
+    D_CVT_LEVEL(DContentLevel::none,
                 (DConversionClass<std_vector,
                                   std_fwd_list>::shared_content_level));
 
@@ -495,7 +495,7 @@ bool tests_stdlib_structural()
     // ...and the sides really are the sides
     D_CVT_CHECK(is_hierarchical_container<std_vec_vec>::value);
     D_CVT_CHECK(!is_hierarchical_container<std_vector>::value);
-    D_CVT_LEVEL(content_level::str, native_content_level_of<std_vec_vec>::value);
+    D_CVT_LEVEL(DContentLevel::str, native_content_level_of<std_vec_vec>::value);
 
     // *** rung 1 beats rung 2: the ELEMENTS are incompatible, and it is still
     // structural ***

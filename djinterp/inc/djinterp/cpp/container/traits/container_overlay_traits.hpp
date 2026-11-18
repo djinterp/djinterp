@@ -183,14 +183,14 @@ NS_END  // internal
 // III. The overlay descriptor + algebra
 // ===========================================================================
 
-// overlay
+// DOverlay
 //   value type: the restrictions a container's contents bear. mu is carried as
 // its multiplicity_kind (the E + m parameterisation - sequence is the vacuous
 // cap); the remaining restrictions are present/absent flags. A literal type,
 // so it composes and compares at compile time.
-struct overlay
+struct DOverlay
 {
-    multiplicity_kind::value mult;             // mu  (bag-level): the E + m
+    DMultiplicityKind::value mult;             // mu  (bag-level): the E + m
                                                // parameter
     bool                     keyed;            // eta (static)
     bool                     sorted;           // sigma (sequence-level)
@@ -198,12 +198,15 @@ struct overlay
     bool                     domain_bounded;   // delta (bag-level)
 };
 
+// old name, until 0.9.0-rc.1
+using overlay = DOverlay;
+
 // overlay_top
 //   function: the empty overlay (top) - no restrictions, worn by everything.
 constexpr
-overlay overlay_top() noexcept
+DOverlay overlay_top() noexcept
 {
-    return overlay{ multiplicity_kind::sequence, false, false, false, false };
+    return DOverlay{ DMultiplicityKind::sequence, false, false, false, false };
 }
 
 // is_order_blind
@@ -211,7 +214,7 @@ overlay overlay_top() noexcept
 // it is not sorted, so it observes a container only through its bag.
 constexpr
 bool is_order_blind(
-    overlay _o
+    DOverlay _o
 ) noexcept
 {
     return !_o.sorted;
@@ -224,8 +227,8 @@ bool is_order_blind(
 // _a bears every flag-restriction _b requires.
 constexpr
 bool overlay_subsumes(
-    overlay _a,
-    overlay _b
+    DOverlay _a,
+    DOverlay _b
 ) noexcept
 {
     return
@@ -242,12 +245,12 @@ bool overlay_subsumes(
 // restrictions, the stronger combined overlay. Multiplicity takes the tighter
 // (smaller-rank) kind; the flag-restrictions take the disjunction.
 constexpr
-overlay overlay_meet(
-    overlay _a,
-    overlay _b
+DOverlay overlay_meet(
+    DOverlay _a,
+    DOverlay _b
 ) noexcept
 {
-    return overlay{
+    return DOverlay{
         (   multiplicity_kind_rank(_a.mult) <= multiplicity_kind_rank(_b.mult)
                 ? _a.mult : _b.mult ),
         _a.keyed            || _b.keyed,
@@ -275,7 +278,7 @@ private:
     using clean_type = clean_t<Type>;
 
 public:
-    static constexpr multiplicity_kind::value mult =
+    static constexpr DMultiplicityKind::value mult =
         multiplicity_kind_of<clean_type>::value;
     static constexpr bool keyed =
         is_keyed_container<clean_type>::value;
@@ -290,9 +293,9 @@ public:
     //   the assembled descriptor (a function, to sidestep an out-of-line
     // definition for a static member of class type pre-C++17).
     static constexpr
-    overlay value() noexcept
+    DOverlay value() noexcept
     {
-        return overlay{ mult, keyed, sorted, capacity_bounded, domain_bounded };
+        return DOverlay{ mult, keyed, sorted, capacity_bounded, domain_bounded };
     }
 };
 
@@ -313,7 +316,7 @@ D_TYPE_TRAIT_VALUE_BOOL(is_order_blind_overlay)
 // sites.
 template<typename Type>
 constexpr bool
-wears_overlay(overlay _target) noexcept
+wears_overlay(DOverlay _target) noexcept
 {
     return overlay_subsumes(
                overlay_of<clean_t<Type>>::value(), _target );
@@ -324,10 +327,10 @@ wears_overlay(overlay _target) noexcept
 // V.   Canonical overlays
 // ===========================================================================
 
-// canonical_overlay
+// DCanonicalOverlay
 //   enum: the named overlays - the 2x2 of keyed? against may-repeat? A type
 // that wears none of them (a plain sequence, or a non-container) is `none`.
-enum class canonical_overlay
+enum class DCanonicalOverlay
 {
     none,        // wears the trivial overlay (a sequence) / not a container
     set,         // {mu_1^E}                 unkeyed, unique
@@ -336,16 +339,19 @@ enum class canonical_overlay
     multimap     // {eta, mu_m^E_key}, m>1   keyed, repeatable
 };
 
+// old name, until 0.9.0-rc.1
+using canonical_overlay = DCanonicalOverlay;
+
 // canonical_overlay_name
 constexpr
 const char* canonical_overlay_name(
-    canonical_overlay _c
+    DCanonicalOverlay _c
 ) noexcept
 {
-    return ( _c == canonical_overlay::none     ? "none"
-           : _c == canonical_overlay::set      ? "set"
-           : _c == canonical_overlay::multiset ? "multiset"
-           : _c == canonical_overlay::map      ? "map"
+    return ( _c == DCanonicalOverlay::none     ? "none"
+           : _c == DCanonicalOverlay::set      ? "set"
+           : _c == DCanonicalOverlay::multiset ? "multiset"
+           : _c == DCanonicalOverlay::map      ? "map"
            :                                     "multimap" );
 }
 
@@ -354,16 +360,16 @@ const char* canonical_overlay_name(
 // multiplicity (unique vs repeatable) and whether the value type is keyed. A
 // sequence (the vacuous cap, no equivalence) or an unknown wears none.
 constexpr
-canonical_overlay classify_canonical(
-    multiplicity_kind::value _m,
+DCanonicalOverlay classify_canonical(
+    DMultiplicityKind::value _m,
     bool                     _keyed
 ) noexcept
 {
-    return ( _m == multiplicity_kind::unique
-                 ? ( _keyed ? canonical_overlay::map : canonical_overlay::set )
+    return ( _m == DMultiplicityKind::unique
+                 ? ( _keyed ? DCanonicalOverlay::map : DCanonicalOverlay::set )
            : is_multiset_kind(_m)
-                 ? ( _keyed ? canonical_overlay::multimap : canonical_overlay::multiset )
-           :       canonical_overlay::none );
+                 ? ( _keyed ? DCanonicalOverlay::multimap : DCanonicalOverlay::multiset )
+           :       DCanonicalOverlay::none );
 }
 
 // canonical_overlay_of
@@ -376,12 +382,12 @@ private:
     using clean_type = clean_t<Type>;
 
 public:
-    static constexpr canonical_overlay value =
+    static constexpr DCanonicalOverlay value =
         classify_canonical(
             multiplicity_kind_of<clean_type>::value,
             is_keyed_container<clean_type>::value );
 
-    using type = std::integral_constant<canonical_overlay, value>;
+    using type = std::integral_constant<DCanonicalOverlay, value>;
 };
 
 // canonical_overlay_of_t / canonical_overlay_of_v
@@ -392,11 +398,11 @@ using canonical_overlay_of_t = typename canonical_overlay_of<Type>::type;
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename Type>
-    inline constexpr canonical_overlay canonical_overlay_of_v =
+    inline constexpr DCanonicalOverlay canonical_overlay_of_v =
         canonical_overlay_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    constexpr canonical_overlay canonical_overlay_of_v =
+    constexpr DCanonicalOverlay canonical_overlay_of_v =
         canonical_overlay_of<Type>::value;
 #endif
 
@@ -413,7 +419,7 @@ private:
 
 public:
     // borne restrictions
-    static constexpr multiplicity_kind::value mult =
+    static constexpr DMultiplicityKind::value mult =
         overlay_of<clean_type>::mult;
     static constexpr bool keyed =
         overlay_of<clean_type>::keyed;
@@ -427,7 +433,7 @@ public:
     // derived
     static constexpr bool order_blind =
         is_order_blind_overlay<clean_type>::value;
-    static constexpr canonical_overlay canonical =
+    static constexpr DCanonicalOverlay canonical =
         canonical_overlay_of<clean_type>::value;
     static constexpr const char* canonical_name =
         canonical_overlay_name(canonical);

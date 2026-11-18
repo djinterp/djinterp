@@ -27,8 +27,8 @@ bool test_combinators()
 {
     bool verdict = true;
 
-    maybe<int> v(5);
-    maybe<int> e;
+    DMaybe<int> v(5);
+    DMaybe<int> e;
 
     // or_else_with: present -> value, absent -> default
     record_assertion(verdict, (v | or_else_with(0)) == 5,
@@ -41,16 +41,16 @@ bool test_combinators()
         "pipe: unwrap_or_with aliases or_else_with");
 
     // filter_with: pass keeps the maybe, fail yields nothing
-    maybe<int> kept = v | filter_with(pred_is_positive());
+    DMaybe<int> kept = v | filter_with(pred_is_positive());
     record_assertion(verdict, kept.has_value() && kept.value() == 5,
         "pipe: filter_with keeps a passing value");
 
-    maybe<int> dropped = v | filter_with(pred_is_even());
+    DMaybe<int> dropped = v | filter_with(pred_is_even());
     record_assertion(verdict, !dropped.has_value(),
         "pipe: filter_with drops a failing value");
 
     // filter_with on empty stays empty
-    maybe<int> filtered_empty = e | filter_with(pred_is_positive());
+    DMaybe<int> filtered_empty = e | filter_with(pred_is_positive());
     record_assertion(verdict, !filtered_empty.has_value(),
         "pipe: filter_with on empty stays empty");
 

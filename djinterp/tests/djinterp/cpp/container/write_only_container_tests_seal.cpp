@@ -26,7 +26,7 @@ tests_write_only_exposes_no_reader
 */
 bool tests_write_only_exposes_no_reader()
 {
-    typedef dj::write_only_container<std::vector<int> > sink;
+    typedef dj::DWriteOnlyContainer<std::vector<int> > sink;
 
     const wo_caps c = wo_probe<sink>();
 
@@ -76,19 +76,19 @@ tests_write_only_seal_holds_for_every_container
 bool tests_write_only_seal_holds_for_every_container()
 {
     D_WO_CHECK(!wo_any_reader(
-                   wo_probe<dj::write_only_container<std::vector<int> > >()));
+                   wo_probe<dj::DWriteOnlyContainer<std::vector<int> > >()));
     D_WO_CHECK(!wo_any_reader(
-                   wo_probe<dj::write_only_container<std::list<int> > >()));
+                   wo_probe<dj::DWriteOnlyContainer<std::list<int> > >()));
     D_WO_CHECK(!wo_any_reader(
-                   wo_probe<dj::write_only_container<std::deque<int> > >()));
+                   wo_probe<dj::DWriteOnlyContainer<std::deque<int> > >()));
     D_WO_CHECK(!wo_any_reader(
-                   wo_probe<dj::write_only_container<std::string> >()));
-    D_WO_CHECK(!wo_any_reader(
-                   wo_probe<
-                       dj::write_only_container<std::array<int, 3> > >()));
+                   wo_probe<dj::DWriteOnlyContainer<std::string> >()));
     D_WO_CHECK(!wo_any_reader(
                    wo_probe<
-                       dj::write_only_container<
+                       dj::DWriteOnlyContainer<std::array<int, 3> > >()));
+    D_WO_CHECK(!wo_any_reader(
+                   wo_probe<
+                       dj::DWriteOnlyContainer<
                            std::vector<wo_probe_type> > >()));
 
     // the underlying containers really do offer readers, which is what
@@ -101,7 +101,7 @@ bool tests_write_only_seal_holds_for_every_container()
 
     // even a const sink offers no reader, since there was none to begin
     // with - unlike read_only, where constness is what does the work
-    typedef const dj::write_only_container<std::vector<int> > const_sink;
+    typedef const dj::DWriteOnlyContainer<std::vector<int> > const_sink;
 
     D_WO_CHECK(!wo_any_reader(wo_probe<const_sink>()));
     D_WO_CHECK(wo_has_size<const_sink>::value);
@@ -120,9 +120,9 @@ tests_write_only_omits_positional_edits
 */
 bool tests_write_only_omits_positional_edits()
 {
-    typedef dj::write_only_container<std::vector<int> > vec_sink;
-    typedef dj::write_only_container<std::list<int> >   list_sink;
-    typedef dj::write_only_container<std::deque<int> >  deq_sink;
+    typedef dj::DWriteOnlyContainer<std::vector<int> > vec_sink;
+    typedef dj::DWriteOnlyContainer<std::list<int> >   list_sink;
+    typedef dj::DWriteOnlyContainer<std::deque<int> >  deq_sink;
 
     // named individually
     D_WO_CHECK(!wo_has_insert<vec_sink>::value);
@@ -138,7 +138,7 @@ bool tests_write_only_omits_positional_edits()
     D_WO_CHECK(!wo_any_positional_edit(wo_probe<list_sink>()));
     D_WO_CHECK(!wo_any_positional_edit(wo_probe<deq_sink>()));
     D_WO_CHECK(!wo_any_positional_edit(
-                   wo_probe<dj::write_only_container<std::string> >()));
+                   wo_probe<dj::DWriteOnlyContainer<std::string> >()));
 
     // a list offers push_front, pop_front, pop_back, insert, erase and
     // resize; not one survives the wrapping
@@ -171,10 +171,10 @@ tests_write_only_never_yields_the_container
 */
 bool tests_write_only_never_yields_the_container()
 {
-    typedef dj::write_only_container<std::vector<int> > sink;
+    typedef dj::DWriteOnlyContainer<std::vector<int> > sink;
     typedef std::vector<int>                            held;
 
-    dj::write_only_container<std::vector<int> > s;
+    dj::DWriteOnlyContainer<std::vector<int> > s;
 
     // the two observers return neither the container nor a handle to it
     D_WO_CHECK(!(std::is_same<decltype(s.size()), held>::value));
@@ -198,7 +198,7 @@ bool tests_write_only_never_yields_the_container()
     D_WO_CHECK((std::is_same<sink::container_type, held>::value));
 
     // the same holds for the other containers
-    typedef dj::write_only_container<std::list<int> > list_sink;
+    typedef dj::DWriteOnlyContainer<std::list<int> > list_sink;
 
     D_WO_CHECK(!(std::is_convertible<list_sink, std::list<int> >::value));
     D_WO_CHECK(!(std::is_constructible<std::list<int>, list_sink>::value));
@@ -217,10 +217,10 @@ tests_write_only_no_member_returns_an_element
 */
 bool tests_write_only_no_member_returns_an_element()
 {
-    typedef dj::write_only_container<std::vector<int> > sink;
+    typedef dj::DWriteOnlyContainer<std::vector<int> > sink;
     typedef sink::value_type                            element;
 
-    dj::write_only_container<std::vector<int> > s;
+    dj::DWriteOnlyContainer<std::vector<int> > s;
 
     // the observers
     D_WO_CHECK(!(std::is_same<decltype(s.size()), element>::value));
@@ -265,8 +265,8 @@ bool tests_write_only_is_stricter_than_read_write()
     typedef std::vector<int> held;
 
     const wo_caps raw = wo_probe<held>();
-    const wo_caps wo  = wo_probe<dj::write_only_container<held> >();
-    const wo_caps rw  = wo_probe<dj::read_write_container<held> >();
+    const wo_caps wo  = wo_probe<dj::DWriteOnlyContainer<held> >();
+    const wo_caps rw  = wo_probe<dj::DReadWriteContainer<held> >();
 
     // read_write mirrors the container; write_only does not
     D_WO_CHECK(rw.subscript == raw.subscript);
@@ -292,8 +292,8 @@ bool tests_write_only_is_stricter_than_read_write()
 
     // both hold the identical container type
     D_WO_CHECK((std::is_same<
-                    dj::write_only_container<held>::container_type,
-                    dj::read_write_container<held>::container_type>::value));
+                    dj::DWriteOnlyContainer<held>::container_type,
+                    dj::DReadWriteContainer<held>::container_type>::value));
 
     return true;
 }
@@ -312,8 +312,8 @@ bool tests_write_only_is_disjoint_from_read_only()
 {
     typedef std::vector<int> held;
 
-    const wo_caps wo = wo_probe<dj::write_only_container<held> >();
-    const wo_caps ro = wo_probe<dj::read_only_container<held> >();
+    const wo_caps wo = wo_probe<dj::DWriteOnlyContainer<held> >();
+    const wo_caps ro = wo_probe<dj::DReadOnlyContainer<held> >();
 
     // read_only keeps the readers, write_only drops them
     D_WO_CHECK(ro.subscript);
@@ -342,8 +342,8 @@ bool tests_write_only_is_disjoint_from_read_only()
     D_WO_CHECK(wo.empty && ro.empty);
 
     // and the two capability tags are opposed on both axes
-    D_WO_CHECK(dj::read_only::can_read != dj::write_only::can_read);
-    D_WO_CHECK(dj::read_only::can_write != dj::write_only::can_write);
+    D_WO_CHECK(dj::DReadOnly::can_read != dj::DWriteOnly::can_read);
+    D_WO_CHECK(dj::DReadOnly::can_write != dj::DWriteOnly::can_write);
 
     return true;
 }

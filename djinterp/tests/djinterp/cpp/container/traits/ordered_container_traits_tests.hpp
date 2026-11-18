@@ -167,35 +167,35 @@ static const int ord_layout_count = 6;
 //   function: the _i-th ordering_kind, in declaration order.  Out-of-range
 // indices clamp to non_container so a loop bug cannot read past the enum.
 inline
-ordering_kind ord_kind_at(
+DOrderingKind ord_kind_at(
     int _i
 )
 {
     switch (_i)
     {
-        case 0:  return ordering_kind::non_container;
-        case 1:  return ordering_kind::unordered;
-        case 2:  return ordering_kind::ordered;
-        default: return ordering_kind::non_container;
+        case 0:  return DOrderingKind::non_container;
+        case 1:  return DOrderingKind::unordered;
+        case 2:  return DOrderingKind::ordered;
+        default: return DOrderingKind::non_container;
     }
 }
 
 // ord_layout_at
 //   function: the _i-th sequential_layout, in declaration order.
 inline
-sequential_layout ord_layout_at(
+DSequentialLayout ord_layout_at(
     int _i
 )
 {
     switch (_i)
     {
-        case 0:  return sequential_layout::none;
-        case 1:  return sequential_layout::array_like;
-        case 2:  return sequential_layout::deque_like;
-        case 3:  return sequential_layout::list_like;
-        case 4:  return sequential_layout::forward_list_like;
-        case 5:  return sequential_layout::string_like;
-        default: return sequential_layout::none;
+        case 0:  return DSequentialLayout::none;
+        case 1:  return DSequentialLayout::array_like;
+        case 2:  return DSequentialLayout::deque_like;
+        case 3:  return DSequentialLayout::list_like;
+        case 4:  return DSequentialLayout::forward_list_like;
+        case 5:  return DSequentialLayout::string_like;
+        default: return DSequentialLayout::none;
     }
 }
 
@@ -205,7 +205,7 @@ sequential_layout ord_layout_at(
 // characters are.
 inline
 bool ord_kind_name_is(
-    ordering_kind _kind,
+    DOrderingKind _kind,
     const char*   _expected
 )
 {
@@ -214,7 +214,7 @@ bool ord_kind_name_is(
 
 inline
 bool ord_layout_name_is(
-    sequential_layout _layout,
+    DSequentialLayout _layout,
     const char*       _expected
 )
 {

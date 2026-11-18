@@ -31,7 +31,7 @@ NS_DJINTERP
 NS_TESTING
 
 
-using ri = result<int, std::string>;
+using ri = DResult<int, std::string>;
 
 
 // ---- is_result (structural), always available ----
@@ -39,7 +39,7 @@ static_assert(is_result<ri>::value,
     "is_result: result<int,string> is a result");
 static_assert(is_result<const ri&>::value,
     "is_result: cv/ref-qualified result is still a result");
-static_assert(is_result<result<std::string, int>>::value,
+static_assert(is_result<DResult<std::string, int>>::value,
     "is_result: order-swapped result is a result");
 static_assert(!is_result<int>::value,
     "is_result: int is not a result");

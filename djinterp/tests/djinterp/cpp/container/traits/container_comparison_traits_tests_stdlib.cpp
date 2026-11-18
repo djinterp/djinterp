@@ -29,9 +29,9 @@ tests_stdlib_content_rungs
   Where the standard library sits on the content hierarchy.
   Tests the following:
   - the sequences compare at `seq`
-  - std::set and std::unordered_set compare at `set` - a unique discipline
+  - std::set and std::unordered_set compare at `DSet` - a unique discipline
   - std::multiset compares at `bag`
-  - std::map compares at `set`: its multiplicity is unique (one value per key),
+  - std::map compares at `DSet`: its multiplicity is unique (one value per key),
     and its keyed-ness is a separate overlay flag, not a content rung
   - a vector of vectors compares at `str` - the nesting is structural
   - a non-container has no rung
@@ -41,44 +41,44 @@ bool tests_stdlib_content_rungs()
     bool ok = true;
 
     // sequences
-    D_CCM_LEVEL(content_level::seq,
+    D_CCM_LEVEL(DContentLevel::seq,
                 native_content_level_of<std_vector>::value);
-    D_CCM_LEVEL(content_level::seq,
+    D_CCM_LEVEL(DContentLevel::seq,
                 native_content_level_of<std_list>::value);
-    D_CCM_LEVEL(content_level::seq,
+    D_CCM_LEVEL(DContentLevel::seq,
                 native_content_level_of<std_deque>::value);
-    D_CCM_LEVEL(content_level::seq,
+    D_CCM_LEVEL(DContentLevel::seq,
                 native_content_level_of<std_array>::value);
-    D_CCM_LEVEL(content_level::seq,
+    D_CCM_LEVEL(DContentLevel::seq,
                 native_content_level_of<std_str>::value);
 
     // unique disciplines
-    D_CCM_LEVEL(content_level::set,
+    D_CCM_LEVEL(DContentLevel::set,
                 native_content_level_of<std_set>::value);
-    D_CCM_LEVEL(content_level::set,
+    D_CCM_LEVEL(DContentLevel::set,
                 native_content_level_of<DStdUnordSet>::value);
-    D_CCM_LEVEL(content_level::set,
+    D_CCM_LEVEL(DContentLevel::set,
                 native_content_level_of<std_map>::value);
 
     // a multiset
-    D_CCM_LEVEL(content_level::bag,
+    D_CCM_LEVEL(DContentLevel::bag,
                 native_content_level_of<std_multiset>::value);
 
     // nesting is structural
-    D_CCM_LEVEL(content_level::str,
+    D_CCM_LEVEL(DContentLevel::str,
                 native_content_level_of<std_vec_vec>::value);
     D_CCM_CHECK(is_hierarchical_container<
                     std_vec_vec>::value);
 
-    // a map is KEYED and its rung is still `set` - the keyed-ness is an overlay
+    // a map is KEYED and its rung is still `DSet` - the keyed-ness is an overlay
     // flag, not a content rung, and the two are different axes
     D_CCM_CHECK(overlay_of<std_map>::keyed);
     D_CCM_CHECK(!overlay_of<std_set>::keyed);
-    D_CCM_LEVEL(content_level::set,
+    D_CCM_LEVEL(DContentLevel::set,
                 native_content_level_of<std_map>::value);
 
     // and nothing at all
-    D_CCM_LEVEL(content_level::none, native_content_level_of<int>::value);
+    D_CCM_LEVEL(DContentLevel::none, native_content_level_of<int>::value);
 
     return ok;
 }
@@ -104,29 +104,29 @@ bool tests_stdlib_sequences()
     bool ok = true;
 
     // vector, list and deque are indistinguishable to this module
-    D_CCM_DUAL(order_relation::equivalent, std_vector, std_list);
-    D_CCM_DUAL(order_relation::equivalent, std_list, std_deque);
-    D_CCM_DUAL(order_relation::equivalent, std_vector, std_deque);
-    D_CCM_DUAL(order_relation::equivalent, std_vector, std_str);
+    D_CCM_DUAL(DOrderRelation::equivalent, std_vector, std_list);
+    D_CCM_DUAL(DOrderRelation::equivalent, std_list, std_deque);
+    D_CCM_DUAL(DOrderRelation::equivalent, std_vector, std_deque);
+    D_CCM_DUAL(DOrderRelation::equivalent, std_vector, std_str);
 
     D_CCM_CHECK((realization_equal<std_vector, std_list>::value));
     D_CCM_CHECK((realization_equal<std_vector, std_deque>::value));
 
     // std::array refines them all - and on THREE axes at once
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (discipline_relation<std_array,
                                    std_vector>::value));
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (lifetime_relation<std_array,
                                  std_vector>::value));
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (DIterabilityRelation<std_array,
                                     std_vector>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (storage_relation<std_array, std_vector>::value));
 
-    D_CCM_DUAL(order_relation::greater, std_array, std_vector);
-    D_CCM_DUAL(order_relation::greater, std_array, std_list);
+    D_CCM_DUAL(DOrderRelation::greater, std_array, std_vector);
+    D_CCM_DUAL(DOrderRelation::greater, std_array, std_list);
 
     D_CCM_CHECK((realization_comparable<std_array,
                                         std_vector>::value));
@@ -143,7 +143,7 @@ bool tests_stdlib_sequences()
 
     // two arrays of different extent are realization-EQUAL: the extent's VALUE is
     // not on any axis, only its existence
-    D_CCM_DUAL(order_relation::equivalent,
+    D_CCM_DUAL(DOrderRelation::equivalent,
                std_array, std_array_64);
 
     return ok;
@@ -170,28 +170,28 @@ bool tests_stdlib_associative()
     bool ok = true;
 
     // *** the headline: set against vector is INCOMPARABLE ***
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (discipline_relation<std_set, std_vector>::value));
-    D_CCM_REL(order_relation::less,
+    D_CCM_REL(DOrderRelation::less,
               (DIterabilityRelation<std_set, std_vector>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (lifetime_relation<std_set, std_vector>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (storage_relation<std_set, std_vector>::value));
 
-    D_CCM_DUAL(order_relation::incomparable,
+    D_CCM_DUAL(DOrderRelation::incomparable,
                std_set, std_vector);
     D_CCM_CHECK((!realization_comparable<std_set,
                                          std_vector>::value));
 
     // ...and the reason, in one line: a set's iterators are const
     D_CCM_CHECK(iteration_mode_of<std_set>::value ==
-                iteration_mode::const_only);
+                DIterationMode::const_only);
     D_CCM_CHECK(iteration_mode_of<std_vector>::value ==
-                iteration_mode::non_const);
+                DIterationMode::non_const);
 
     // A MULTISET IS *LESS* THAN A SEQUENCE, not incomparable - and the reason is
-    // a finding.  multiplicity_kind_rank gives `sequence` and `unbounded_multiset`
+    // a finding.  multiplicity_kind_rank gives `DSequence` and `unbounded_multiset`
     // THE SAME RANK (2), because both have m = inf.  So a multiset and a vector
     // are DISCIPLINE-EQUAL, even though a multiset carries a genuine equivalence
     // relation and a sequence carries none - the rank measures the multiplicity
@@ -201,27 +201,27 @@ bool tests_stdlib_associative()
     // multiset's iterators are const), and the verdict is a clean `less`: the
     // module reports that a multiset is a strictly WEAKER container than a vector,
     // and that its equivalence relation buys it nothing
-    D_CCM_CHECK(multiplicity_kind_rank(multiplicity_kind::sequence) ==
-                multiplicity_kind_rank(multiplicity_kind::unbounded_multiset));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_CHECK(multiplicity_kind_rank(DMultiplicityKind::sequence) ==
+                multiplicity_kind_rank(DMultiplicityKind::unbounded_multiset));
+    D_CCM_REL(DOrderRelation::equivalent,
               (discipline_relation<std_multiset, std_vector>::value));
-    D_CCM_REL(order_relation::less,
+    D_CCM_REL(DOrderRelation::less,
               (DIterabilityRelation<std_multiset, std_vector>::value));
-    D_CCM_DUAL(order_relation::less, std_multiset, std_vector);
+    D_CCM_DUAL(DOrderRelation::less, std_multiset, std_vector);
 
     // std::map refines std::set: same multiplicity, plus the keyed flag
     D_CCM_CHECK(overlay_of<std_map>::mult ==
                 overlay_of<std_set>::mult);
     D_CCM_CHECK(overlay_of<std_map>::keyed &&
                 !overlay_of<std_set>::keyed);
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (discipline_relation<std_map,
                                    std_set>::value));
-    D_CCM_DUAL(order_relation::greater, std_map, std_set);
+    D_CCM_DUAL(DOrderRelation::greater, std_map, std_set);
 
     // set and unordered_set are realization-EQUAL: the module reads neither the
     // ordering nor the hashing
-    D_CCM_DUAL(order_relation::equivalent,
+    D_CCM_DUAL(DOrderRelation::equivalent,
                std_set, DStdUnordSet);
     D_CCM_CHECK((realization_equal<std_set,
                                    DStdUnordSet>::value));
@@ -251,7 +251,7 @@ bool tests_stdlib_refinement()
     bool ok = true;
 
     #define D_CCM_STD_REFLEXIVE(...)                                          \
-        D_CCM_REL(order_relation::equivalent,                                 \
+        D_CCM_REL(DOrderRelation::equivalent,                                 \
                   (refinement_of<__VA_ARGS__, __VA_ARGS__>::value));                        \
         D_CCM_CHECK((realization_equal<__VA_ARGS__, __VA_ARGS__>::value))
 
@@ -266,27 +266,27 @@ bool tests_stdlib_refinement()
     #undef D_CCM_STD_REFLEXIVE
 
     // std::array is the only one that refines anything
-    D_CCM_DUAL(order_relation::greater, std_array, std_vector);
-    D_CCM_DUAL(order_relation::greater, std_array, std_str);
+    D_CCM_DUAL(DOrderRelation::greater, std_array, std_vector);
+    D_CCM_DUAL(DOrderRelation::greater, std_array, std_str);
 
     // the associatives are incomparable with the sequences
-    D_CCM_DUAL(order_relation::incomparable,
+    D_CCM_DUAL(DOrderRelation::incomparable,
                std_set, std_vector);
-    D_CCM_DUAL(order_relation::incomparable,
+    D_CCM_DUAL(DOrderRelation::incomparable,
                std_map, std_list);
-    D_CCM_DUAL(order_relation::less, std_multiset, std_deque);
+    D_CCM_DUAL(DOrderRelation::less, std_multiset, std_deque);
 
     // ...and with std::array, which is more static AND less mutable-capable than
     // they are on one axis and more disciplined on another.  Three-way mismatch
-    D_CCM_DUAL(order_relation::incomparable,
+    D_CCM_DUAL(DOrderRelation::incomparable,
                std_set, std_array);
 
     // a non-container is incomparable with every real one.  The iterability axis
     // is what saves it - see tests_refinement_non_container for the case it does
     // not save
-    D_CCM_DUAL(order_relation::incomparable, int, std_vector);
-    D_CCM_DUAL(order_relation::incomparable, void, std_set);
-    D_CCM_DUAL(order_relation::incomparable, int, std_array);
+    D_CCM_DUAL(DOrderRelation::incomparable, int, std_vector);
+    D_CCM_DUAL(DOrderRelation::incomparable, void, std_set);
+    D_CCM_DUAL(DOrderRelation::incomparable, int, std_array);
 
     // ...and the DISCIPLINE axis alone still says the non-container is stronger -
     // but ONLY against a container that wears no flag-restriction.  std::array
@@ -294,16 +294,16 @@ bool tests_stdlib_refinement()
     // of overlay_subsumes fails and the two come out incomparable.  The bogus
     // `greater` needs the flag clauses to be VACUOUS, which they are for every
     // standard container except std::array
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (discipline_relation<int, std_vector>::value));
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (discipline_relation<int, std_set>::value));
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (discipline_relation<int, std_list>::value));
 
     D_CCM_CHECK(overlay_of<std_array>::capacity_bounded);
     D_CCM_CHECK(!overlay_of<int>::capacity_bounded);
-    D_CCM_REL(order_relation::incomparable,
+    D_CCM_REL(DOrderRelation::incomparable,
               (discipline_relation<int, std_array>::value));
 
     return ok;

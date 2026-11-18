@@ -73,9 +73,9 @@ bool tests_broker_subscribe_tokens()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription s1 = b.subscribe("a", recorder(&log));
-    subscription s2 = b.subscribe("a", recorder(&log));
-    subscription s3 = b.subscribe("b", recorder(&log));
+    DSubscription s1 = b.subscribe("a", recorder(&log));
+    DSubscription s2 = b.subscribe("a", recorder(&log));
+    DSubscription s3 = b.subscribe("b", recorder(&log));
 
     bool ok = true;
 
@@ -101,8 +101,8 @@ bool tests_broker_publish_delivers()
     std::vector<delivery> first;
     std::vector<delivery> second;
 
-    subscription s1 = b.subscribe("t", recorder(&first));
-    subscription s2 = b.subscribe("t", recorder(&second));
+    DSubscription s1 = b.subscribe("t", recorder(&first));
+    DSubscription s2 = b.subscribe("t", recorder(&second));
 
     pubsub_status st = b.publish("t", 21);
 
@@ -127,9 +127,9 @@ bool tests_broker_publish_order()
     std::vector<delivery> log;
 
     // both handlers append to the same log, tagged by their payload transform
-    subscription s1 = b.subscribe("t",
+    DSubscription s1 = b.subscribe("t",
         [&](const std::string& _t, const int& _p) { log.push_back(delivery(_t, _p)); });
-    subscription s2 = b.subscribe("t",
+    DSubscription s2 = b.subscribe("t",
         [&](const std::string& _t, const int& _p) { log.push_back(delivery(_t, 100 + _p)); });
 
     b.publish("t", 5);
@@ -155,7 +155,7 @@ bool tests_broker_publish_no_subscribers()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription s = b.subscribe("known", recorder(&log));
+    DSubscription s = b.subscribe("known", recorder(&log));
 
     pubsub_status st = b.publish("unknown", 1);
 
@@ -179,8 +179,8 @@ bool tests_broker_publish_topic_isolation()
     std::vector<delivery> a_log;
     std::vector<delivery> b_log;
 
-    subscription sa = b.subscribe("a", recorder(&a_log));
-    subscription sb = b.subscribe("b", recorder(&b_log));
+    DSubscription sa = b.subscribe("a", recorder(&a_log));
+    DSubscription sb = b.subscribe("b", recorder(&b_log));
 
     b.publish("a", 3);
 
@@ -203,9 +203,9 @@ bool tests_broker_publish_message()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription s = b.subscribe("t", recorder(&log));
+    DSubscription s = b.subscribe("t", recorder(&log));
 
-    pubsub_status st = b.publish(pubsub_message<std::string, int>("t", 8));
+    pubsub_status st = b.publish(DPubsubMessage<std::string, int>("t", 8));
 
     bool ok = true;
 
@@ -226,7 +226,7 @@ bool tests_broker_operator_call()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription s = b.subscribe("t", recorder(&log));
+    DSubscription s = b.subscribe("t", recorder(&log));
 
     pubsub_status st = b("t", 4);
 
@@ -252,7 +252,7 @@ bool tests_broker_unsubscribe_eager()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription s = b.subscribe("t", recorder(&log));
+    DSubscription s = b.subscribe("t", recorder(&log));
 
     bool removed = b.unsubscribe(s.token());
 
@@ -281,9 +281,9 @@ bool tests_broker_unsubscribe_absent()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription s = b.subscribe("t", recorder(&log));
+    DSubscription s = b.subscribe("t", recorder(&log));
 
-    bool ok = (!b.unsubscribe(subscription_token(999)));   // never issued
+    bool ok = (!b.unsubscribe(DSubscriptionToken(999)));   // never issued
     ok = ok && (b.subscriber_count() == 1);
 
     ok = ok && ( b.unsubscribe(s.token()));                // first: found
@@ -308,7 +308,7 @@ bool tests_broker_unsubscribe_lazily_revoked_token()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription s = b.subscribe("t", recorder(&log));
+    DSubscription s = b.subscribe("t", recorder(&log));
 
     s.unsubscribe();                       // lazy: flag flipped, entry retained
 
@@ -333,9 +333,9 @@ bool tests_broker_unsubscribe_topic()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription a1 = b.subscribe("a", recorder(&log));
-    subscription a2 = b.subscribe("a", recorder(&log));
-    subscription c1 = b.subscribe("c", recorder(&log));
+    DSubscription a1 = b.subscribe("a", recorder(&log));
+    DSubscription a2 = b.subscribe("a", recorder(&log));
+    DSubscription c1 = b.subscribe("c", recorder(&log));
 
     std::size_t removed = b.unsubscribe_topic("a");
 
@@ -361,7 +361,7 @@ bool tests_broker_unsubscribe_topic_absent()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription s = b.subscribe("a", recorder(&log));
+    DSubscription s = b.subscribe("a", recorder(&log));
 
     std::size_t removed = b.unsubscribe_topic("nonexistent");
 
@@ -386,8 +386,8 @@ bool tests_broker_unsubscribe_all()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription s1 = b.subscribe("a", recorder(&log));
-    subscription s2 = b.subscribe("b", recorder(&log));
+    DSubscription s1 = b.subscribe("a", recorder(&log));
+    DSubscription s2 = b.subscribe("b", recorder(&log));
 
     b.unsubscribe_all();
 
@@ -417,8 +417,8 @@ bool tests_broker_lazy_revoke_skipped()
     std::vector<delivery> dead_log;
     std::vector<delivery> live_log;
 
-    subscription dead = b.subscribe("t", recorder(&dead_log));
-    subscription live = b.subscribe("t", recorder(&live_log));
+    DSubscription dead = b.subscribe("t", recorder(&dead_log));
+    DSubscription live = b.subscribe("t", recorder(&live_log));
 
     dead.unsubscribe();                    // lazy revoke
 
@@ -446,8 +446,8 @@ bool tests_broker_lazy_revoke_all_dead()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription s1 = b.subscribe("t", recorder(&log));
-    subscription s2 = b.subscribe("t", recorder(&log));
+    DSubscription s1 = b.subscribe("t", recorder(&log));
+    DSubscription s2 = b.subscribe("t", recorder(&log));
 
     s1.unsubscribe();
     s2.unsubscribe();                      // every entry dead, storage retained
@@ -482,8 +482,8 @@ bool tests_broker_compact()
     std::vector<delivery> dead_log;
     std::vector<delivery> live_log;
 
-    subscription dead = b.subscribe("t", recorder(&dead_log));
-    subscription live = b.subscribe("t", recorder(&live_log));
+    DSubscription dead = b.subscribe("t", recorder(&dead_log));
+    DSubscription live = b.subscribe("t", recorder(&live_log));
 
     dead.unsubscribe();
 
@@ -516,9 +516,9 @@ bool tests_broker_subscriber_count()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription s1 = b.subscribe("a", recorder(&log));
-    subscription s2 = b.subscribe("a", recorder(&log));
-    subscription s3 = b.subscribe("b", recorder(&log));
+    DSubscription s1 = b.subscribe("a", recorder(&log));
+    DSubscription s2 = b.subscribe("a", recorder(&log));
+    DSubscription s3 = b.subscribe("b", recorder(&log));
 
     bool ok = true;
 
@@ -543,7 +543,7 @@ bool tests_broker_has_subscribers()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription s = b.subscribe("t", recorder(&log));
+    DSubscription s = b.subscribe("t", recorder(&log));
 
     bool ok = true;
 
@@ -568,9 +568,9 @@ bool tests_broker_topic_count()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription a1 = b.subscribe("a", recorder(&log));
-    subscription a2 = b.subscribe("a", recorder(&log));
-    subscription c1 = b.subscribe("c", recorder(&log));
+    DSubscription a1 = b.subscribe("a", recorder(&log));
+    DSubscription a2 = b.subscribe("a", recorder(&log));
+    DSubscription c1 = b.subscribe("c", recorder(&log));
 
     bool ok = (b.topic_count() == 2);      // "a" counted once, plus "c"
 
@@ -595,7 +595,7 @@ bool tests_broker_empty()
 
     bool ok = (b.empty());
 
-    subscription s = b.subscribe("t", recorder(&log));
+    DSubscription s = b.subscribe("t", recorder(&log));
     ok = ok && (!b.empty());
 
     s.unsubscribe();
@@ -620,7 +620,7 @@ bool tests_broker_reserve_topics()
 
     bool ok = (b.empty() && b.topic_count() == 0);
 
-    subscription s = b.subscribe("t", recorder(&log));
+    DSubscription s = b.subscribe("t", recorder(&log));
     b.publish("t", 5);
 
     ok = ok && (b.subscriber_count() == 1);
@@ -640,7 +640,7 @@ tests_broker_not_directly_constructible
 */
 bool tests_broker_not_directly_constructible()
 {
-    using base_type = broker<string_bus, std::string, int>;
+    using base_type = DBroker<string_bus, std::string, int>;
 
     static_assert(!std::is_default_constructible<base_type>::value,
                   "the broker base has a protected constructor");

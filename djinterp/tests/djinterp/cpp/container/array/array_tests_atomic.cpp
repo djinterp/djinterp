@@ -49,7 +49,7 @@ bool tests_atomic_construction()
     D_AY_CHECK(atomic4::lifetime == DArrayLifetime::mutable_lifetime);
     D_AY_CHECK(atomic4::iterable);
 
-    DAtomicArray<array_opt_type<int>, DArrayOptExtent<0>> z;
+    DAtomicArray<DArrayOptType<int>, DArrayOptExtent<0>> z;
     D_AY_CHECK(z.empty() && z.size() == 0);
     D_AY_CHECK(z.is_lock_free());
 

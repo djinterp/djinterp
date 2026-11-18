@@ -149,7 +149,7 @@ public:
         requires_runtime_storage<clean_type>::value;
     static constexpr bool has_allocator =
         has_allocator_alias<clean_type>::value;
-    static constexpr lifetime::value life =
+    static constexpr DLifetime::value life =
         container_lifetime_of<clean_type>::value;
 };
 

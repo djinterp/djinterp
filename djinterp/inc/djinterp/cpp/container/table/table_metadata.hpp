@@ -102,53 +102,65 @@ NS_DJINTERP
 // header (the "coordinate" over x, y, z example) is an outer level whose cell
 // spans the finer level beneath it.  The label type is open.
 
-// header_cell
+// DHeaderCell
 //   struct: one header label and the number of table positions it spans (1 for
 // an ungrouped cell; more for a group covering several finer positions).
 template<typename Label>
-struct header_cell
+struct DHeaderCell
 {
     Label       label;
     std::size_t span;
 
-    header_cell()
+    DHeaderCell()
         : label(),
           span(1)
     {}
 
-    explicit header_cell(Label _label, std::size_t _span = 1)
+    explicit DHeaderCell(Label _label, std::size_t _span = 1)
         : label(static_cast<Label&&>(_label)),
           span(_span)
     {}
 };
 
-// header_level
+// old name, until 0.9.0-rc.1
+template<typename Label>
+using header_cell = DHeaderCell<Label>;
+
+// DHeaderLevel
 //   type: one level of a header -- a run of cells covering the dimension once.
 template<typename Label>
-using header_level = std::vector<header_cell<Label>>;
+using DHeaderLevel = std::vector<DHeaderCell<Label>>;
 
-// header_stack
+// old name, until 0.9.0-rc.1
+template<typename Label>
+using header_level = DHeaderLevel<Label>;
+
+// DHeaderStack
 //   type: a stack of header levels, outermost first. Its size is the NUMBER of
 // headers on the dimension; each level covers the dimension (their spans sum
 // to the extent). This is the default column-/row-header type of
 // table_metadata.
 template<typename Label>
-using header_stack = std::vector<header_level<Label>>;
+using DHeaderStack = std::vector<DHeaderLevel<Label>>;
+
+// old name, until 0.9.0-rc.1
+template<typename Label>
+using header_stack = DHeaderStack<Label>;
 
 // make_header_level
 //   function: a single level of unit-span cells from a list of labels -- the
 // common simple (ungrouped) header.
 template<typename Label>
-D_NODISCARD header_level<Label> make_header_level(
+D_NODISCARD DHeaderLevel<Label> make_header_level(
     std::initializer_list<Label> _labels
 )
 {
-    header_level<Label> _level;
+    DHeaderLevel<Label> _level;
     _level.reserve(_labels.size());
 
     for (const Label& _l : _labels)
     {
-        _level.push_back(header_cell<Label>(_l, 1));
+        _level.push_back(DHeaderCell<Label>(_l, 1));
     }
 
     return _level;
@@ -171,12 +183,12 @@ D_NODISCARD header_level<Label> make_header_level(
 //   the positions a single level covers: the sum of its cells' spans.
 template<typename Label>
 D_NODISCARD std::size_t header_extent(
-    const header_level<Label>& _level
+    const DHeaderLevel<Label>& _level
 )
 {
     std::size_t _n = 0;
 
-    for (const header_cell<Label>& _cell : _level)
+    for (const DHeaderCell<Label>& _cell : _level)
     {
         _n += _cell.span;
     }
@@ -190,7 +202,7 @@ D_NODISCARD std::size_t header_extent(
 // nothing.
 template<typename Label>
 D_NODISCARD std::size_t header_extent(
-    const header_stack<Label>& _stack
+    const DHeaderStack<Label>& _stack
 )
 {
     if (_stack.empty())
@@ -228,17 +240,17 @@ NS_END  // internal
 // III. table_metadata (class)
 // ===========================================================================
 
-// table_metadata
+// DTableMetadata
 //   class: a table's metadata -- DContainerMetadata's open key-value entries
 // plus a column-header set and a row-header set of OPEN types. It exposes,
 // sets, and checks the conformance of the headers without inspecting their
 // internals.
 template<typename Key            = std::string,
          typename Value          = std::string,
-         typename ColumnHeaders = header_stack<std::string>,
-         typename RowHeaders     = header_stack<std::string>,
+         typename ColumnHeaders = DHeaderStack<std::string>,
+         typename RowHeaders     = DHeaderStack<std::string>,
          typename Store          = std::vector<std::pair<Key, Value>>>
-class table_metadata
+class DTableMetadata
     : public DContainerMetadata<Key, Value, Store>
 {
 public:
@@ -248,7 +260,7 @@ public:
 
     // --- construction ---
 
-    table_metadata()
+    DTableMetadata()
         : base_type(),
           m_column_headers(),
           m_row_headers(),
@@ -407,6 +419,14 @@ private:
     bool           m_has_row_headers;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Key            = std::string,
+         typename Value          = std::string,
+         typename ColumnHeaders = DHeaderStack<std::string>,
+         typename RowHeaders     = DHeaderStack<std::string>,
+         typename Store          = std::vector<std::pair<Key, Value>>>
+using table_metadata = DTableMetadata<Key, Value, ColumnHeaders, RowHeaders, Store>;
+
 
 // ===========================================================================
 // IV.  is_table_metadata (detection trait)
@@ -426,7 +446,7 @@ NS_INTERNAL
              typename C,
              typename R,
              typename S>
-    struct is_table_metadata_impl<table_metadata<K, V, C, R, S>>
+    struct is_table_metadata_impl<DTableMetadata<K, V, C, R, S>>
         : std::true_type
     {};
 

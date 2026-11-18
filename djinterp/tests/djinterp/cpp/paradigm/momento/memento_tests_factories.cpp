@@ -51,7 +51,7 @@ bool tests_make_memento_with_policy()
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
     clonable_state c(9);
 
-    auto m = make_memento<clone_snapshot>(c);
+    auto m = make_memento<DCloneSnapshot>(c);
 
     return (m.state.value == 9);
 #else
@@ -89,8 +89,8 @@ bool tests_make_caretaker()
 {
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
     auto ct = make_caretaker<int>();
-    ct.push(memento<int>(1));
-    ct.push(memento<int>(2));
+    ct.push(DMemento<int>(1));
+    ct.push(DMemento<int>(2));
 
     return (ct.size() == 2 && ct.peek().state == 2);
 #else

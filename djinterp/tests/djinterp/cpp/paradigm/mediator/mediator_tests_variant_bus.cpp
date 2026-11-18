@@ -50,7 +50,7 @@ tests_variant_bus_subscribe_publish
 bool tests_variant_bus_subscribe_publish()
 {
 #if D_MEDIATOR_HAS_VARIANT
-    variant_event_bus<ping, pong> bus;
+    DVariantEventBus<ping, pong> bus;
     int                           seen = 0;
 
     bus.subscribe<ping>([&](const ping& _e) { seen += _e.n; });
@@ -77,7 +77,7 @@ tests_variant_bus_multiple_types
 bool tests_variant_bus_multiple_types()
 {
 #if D_MEDIATOR_HAS_VARIANT
-    variant_event_bus<ping, pong> bus;
+    DVariantEventBus<ping, pong> bus;
     int                           pings = 0;
     int                           pongs = 0;
 
@@ -109,7 +109,7 @@ tests_variant_bus_subscribe_all
 bool tests_variant_bus_subscribe_all()
 {
 #if D_MEDIATOR_HAS_VARIANT
-    variant_event_bus<ping, pong> bus;
+    DVariantEventBus<ping, pong> bus;
     int                           pings = 0;
     int                           pongs = 0;
 
@@ -140,10 +140,10 @@ tests_variant_bus_unsubscribe
 bool tests_variant_bus_unsubscribe()
 {
 #if D_MEDIATOR_HAS_VARIANT
-    variant_event_bus<ping, pong> bus;
+    DVariantEventBus<ping, pong> bus;
     int                           seen = 0;
 
-    subscription_id tok =
+    DSubscriptionId tok =
         bus.subscribe<ping>([&](const ping&) { ++seen; });
 
     bus.unsubscribe(tok);
@@ -168,7 +168,7 @@ tests_variant_bus_handler_count
 bool tests_variant_bus_handler_count()
 {
 #if D_MEDIATOR_HAS_VARIANT
-    variant_event_bus<ping, pong> bus;
+    DVariantEventBus<ping, pong> bus;
 
     bool ok = (bus.handler_count() == 0);
 
@@ -197,7 +197,7 @@ tests_variant_bus_clear
 bool tests_variant_bus_clear()
 {
 #if D_MEDIATOR_HAS_VARIANT
-    variant_event_bus<ping, pong> bus;
+    DVariantEventBus<ping, pong> bus;
     int                           seen = 0;
 
     bus.subscribe<ping>([&](const ping&) { ++seen; });

@@ -33,13 +33,13 @@ tests_caretaker_push_size
 */
 bool tests_caretaker_push_size()
 {
-    memento_caretaker<int> ct;
+    DMementoCaretaker<int> ct;
 
     bool ok = (ct.empty() && ct.size() == 0);
 
-    ct.push(memento<int>(1));
-    ct.push(memento<int>(2));
-    ct.push(memento<int>(3));
+    ct.push(DMemento<int>(1));
+    ct.push(DMemento<int>(2));
+    ct.push(DMemento<int>(3));
 
     ok = ok && (ct.size() == 3);
     ok = ok && (!ct.empty());
@@ -56,11 +56,11 @@ tests_caretaker_pop
 */
 bool tests_caretaker_pop()
 {
-    memento_caretaker<int> ct;
-    ct.push(memento<int>(1));
-    ct.push(memento<int>(2));
+    DMementoCaretaker<int> ct;
+    ct.push(DMemento<int>(1));
+    ct.push(DMemento<int>(2));
 
-    memento<int> m = ct.pop();
+    DMemento<int> m = ct.pop();
 
     bool ok = true;
 
@@ -79,9 +79,9 @@ tests_caretaker_peek
 */
 bool tests_caretaker_peek()
 {
-    memento_caretaker<int> ct;
-    ct.push(memento<int>(5));
-    ct.push(memento<int>(9));
+    DMementoCaretaker<int> ct;
+    ct.push(DMemento<int>(5));
+    ct.push(DMemento<int>(9));
 
     bool ok = true;
 
@@ -99,10 +99,10 @@ tests_caretaker_at
 */
 bool tests_caretaker_at()
 {
-    memento_caretaker<int> ct;
-    ct.push(memento<int>(10));
-    ct.push(memento<int>(20));
-    ct.push(memento<int>(30));
+    DMementoCaretaker<int> ct;
+    ct.push(DMemento<int>(10));
+    ct.push(DMemento<int>(20));
+    ct.push(DMemento<int>(30));
 
     bool ok = true;
 
@@ -121,9 +121,9 @@ tests_caretaker_empty_clear
 */
 bool tests_caretaker_empty_clear()
 {
-    memento_caretaker<int> ct;
-    ct.push(memento<int>(1));
-    ct.push(memento<int>(2));
+    DMementoCaretaker<int> ct;
+    ct.push(DMemento<int>(1));
+    ct.push(DMemento<int>(2));
 
     ct.clear();
 
@@ -139,14 +139,14 @@ tests_caretaker_for_each
 */
 bool tests_caretaker_for_each()
 {
-    memento_caretaker<int> ct;
-    ct.push(memento<int>(1));
-    ct.push(memento<int>(2));
-    ct.push(memento<int>(3));
+    DMementoCaretaker<int> ct;
+    ct.push(DMemento<int>(1));
+    ct.push(DMemento<int>(2));
+    ct.push(DMemento<int>(3));
 
     int sum   = 0;
     int first = -1;
-    ct.for_each([&](const memento<int>& _m)
+    ct.for_each([&](const DMemento<int>& _m)
     {
         if (first < 0) { first = _m.state; }
         sum += _m.state;
@@ -169,14 +169,14 @@ tests_caretaker_for_each_reverse
 */
 bool tests_caretaker_for_each_reverse()
 {
-    memento_caretaker<int> ct;
-    ct.push(memento<int>(1));
-    ct.push(memento<int>(2));
-    ct.push(memento<int>(3));
+    DMementoCaretaker<int> ct;
+    ct.push(DMemento<int>(1));
+    ct.push(DMemento<int>(2));
+    ct.push(DMemento<int>(3));
 
     int count = 0;
     int first = -1;
-    ct.for_each_reverse([&](const memento<int>& _m)
+    ct.for_each_reverse([&](const DMemento<int>& _m)
     {
         if (first < 0) { first = _m.state; }
         ++count;
@@ -200,16 +200,16 @@ tests_caretaker_try_pop
 bool tests_caretaker_try_pop()
 {
 #if D_MEMENTO_HAS_OPTIONAL
-    memento_caretaker<int> ct;
-    ct.push(memento<int>(8));
+    DMementoCaretaker<int> ct;
+    ct.push(DMemento<int>(8));
 
-    std::optional<memento<int> > got = ct.try_pop();
+    std::optional<DMemento<int> > got = ct.try_pop();
 
     bool ok = true;
 
     ok = ok && (got.has_value() && got->state == 8);
 
-    std::optional<memento<int> > none = ct.try_pop();
+    std::optional<DMemento<int> > none = ct.try_pop();
     ok = ok && (!none.has_value());
 
     return ok;
@@ -227,12 +227,12 @@ tests_caretaker_coalescing
 */
 bool tests_caretaker_coalescing()
 {
-    memento_caretaker<int, coalescing_history> ct;
+    DMementoCaretaker<int, DCoalescingHistory> ct;
 
-    ct.push(memento<int>(7));
-    ct.push(memento<int>(7));   // suppressed
-    ct.push(memento<int>(8));
-    ct.push(memento<int>(8));   // suppressed
+    ct.push(DMemento<int>(7));
+    ct.push(DMemento<int>(7));   // suppressed
+    ct.push(DMemento<int>(8));
+    ct.push(DMemento<int>(8));   // suppressed
 
     bool ok = true;
 
@@ -252,11 +252,11 @@ tests_caretaker_bounded
 */
 bool tests_caretaker_bounded()
 {
-    memento_caretaker<int, bounded_history<3> > ct;
+    DMementoCaretaker<int, DBoundedHistory<3> > ct;
 
     for (int i = 1; i <= 6; ++i)
     {
-        ct.push(memento<int>(i));
+        ct.push(DMemento<int>(i));
     }
 
     bool ok = true;

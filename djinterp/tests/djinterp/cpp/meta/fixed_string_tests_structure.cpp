@@ -34,27 +34,27 @@ bool tests_fixed_string_layout()
     bool ok = true;
 
     // the payload is the whole object, at every length
-    D_FS_CHECK(ok, sizeof(fixed_string<1>) == 1);
-    D_FS_CHECK(ok, sizeof(fixed_string<4>) == 4);
-    D_FS_CHECK(ok, sizeof(fixed_string<32>) == 32);
+    D_FS_CHECK(ok, sizeof(DFixedString<1>) == 1);
+    D_FS_CHECK(ok, sizeof(DFixedString<4>) == 4);
+    D_FS_CHECK(ok, sizeof(DFixedString<32>) == 32);
     D_FS_CHECK(ok, sizeof(fs_abc) == 4);
     D_FS_CHECK(ok, sizeof(fs_abc) == sizeof(fs_abc.data));
 
     // a real array member, of the right extent
-    D_FS_CHECK(ok, std::is_same_v<decltype(fixed_string<4>::data), char[4]>);
-    D_FS_CHECK(ok, std::is_array_v<decltype(fixed_string<4>::data)>);
-    D_FS_CHECK(ok, std::extent_v<decltype(fixed_string<4>::data)> == 4);
-    D_FS_CHECK(ok, std::extent_v<decltype(fixed_string<32>::data)> == 32);
+    D_FS_CHECK(ok, std::is_same_v<decltype(DFixedString<4>::data), char[4]>);
+    D_FS_CHECK(ok, std::is_array_v<decltype(DFixedString<4>::data)>);
+    D_FS_CHECK(ok, std::extent_v<decltype(DFixedString<4>::data)> == 4);
+    D_FS_CHECK(ok, std::extent_v<decltype(DFixedString<32>::data)> == 32);
     D_FS_CHECK(ok, std::is_same_v<
                        std::remove_extent_t<
-                           decltype(fixed_string<4>::data)>,
+                           decltype(DFixedString<4>::data)>,
                        char>);
 
     // char alignment, standard layout, and genuinely stateful
-    D_FS_CHECK(ok, alignof(fixed_string<4>) == alignof(char));
-    D_FS_CHECK(ok, std::is_standard_layout_v<fixed_string<4>>);
-    D_FS_CHECK(ok, !std::is_empty_v<fixed_string<4>>);
-    D_FS_CHECK(ok, std::is_class_v<fixed_string<4>>);
+    D_FS_CHECK(ok, alignof(DFixedString<4>) == alignof(char));
+    D_FS_CHECK(ok, std::is_standard_layout_v<DFixedString<4>>);
+    D_FS_CHECK(ok, !std::is_empty_v<DFixedString<4>>);
+    D_FS_CHECK(ok, std::is_class_v<DFixedString<4>>);
 
     // the payload is public - that this line compiles is the claim - and
     // it is not mutable, so a const object's bytes are const
@@ -90,47 +90,47 @@ bool tests_fixed_string_structural_requirements()
     bool ok = true;
 
     // trivial copies and moves
-    D_FS_CHECK(ok, std::is_trivially_copy_constructible_v<fixed_string<4>>);
-    D_FS_CHECK(ok, std::is_trivially_move_constructible_v<fixed_string<4>>);
-    D_FS_CHECK(ok, std::is_trivially_copy_assignable_v<fixed_string<4>>);
-    D_FS_CHECK(ok, std::is_trivially_move_assignable_v<fixed_string<4>>);
-    D_FS_CHECK(ok, std::is_trivially_destructible_v<fixed_string<4>>);
-    D_FS_CHECK(ok, std::is_nothrow_destructible_v<fixed_string<4>>);
-    D_FS_CHECK(ok, std::is_trivially_copyable_v<fixed_string<4>>);
+    D_FS_CHECK(ok, std::is_trivially_copy_constructible_v<DFixedString<4>>);
+    D_FS_CHECK(ok, std::is_trivially_move_constructible_v<DFixedString<4>>);
+    D_FS_CHECK(ok, std::is_trivially_copy_assignable_v<DFixedString<4>>);
+    D_FS_CHECK(ok, std::is_trivially_move_assignable_v<DFixedString<4>>);
+    D_FS_CHECK(ok, std::is_trivially_destructible_v<DFixedString<4>>);
+    D_FS_CHECK(ok, std::is_nothrow_destructible_v<DFixedString<4>>);
+    D_FS_CHECK(ok, std::is_trivially_copyable_v<DFixedString<4>>);
 
     // no polymorphism anywhere
-    D_FS_CHECK(ok, !std::is_polymorphic_v<fixed_string<4>>);
-    D_FS_CHECK(ok, !std::has_virtual_destructor_v<fixed_string<4>>);
-    D_FS_CHECK(ok, !std::is_abstract_v<fixed_string<4>>);
-    D_FS_CHECK(ok, !std::is_final_v<fixed_string<4>>);
+    D_FS_CHECK(ok, !std::is_polymorphic_v<DFixedString<4>>);
+    D_FS_CHECK(ok, !std::has_virtual_destructor_v<DFixedString<4>>);
+    D_FS_CHECK(ok, !std::is_abstract_v<DFixedString<4>>);
+    D_FS_CHECK(ok, !std::is_final_v<DFixedString<4>>);
 
     // trivially copyable, yet not trivial - the user-provided constructor
     // is what separates the two, and it is why there is no way to obtain
     // an uninitialised payload
-    D_FS_CHECK(ok, !std::is_trivial_v<fixed_string<4>>);
-    D_FS_CHECK(ok, !std::is_default_constructible_v<fixed_string<4>>);
+    D_FS_CHECK(ok, !std::is_trivial_v<DFixedString<4>>);
+    D_FS_CHECK(ok, !std::is_default_constructible_v<DFixedString<4>>);
     D_FS_CHECK(ok, !std::is_trivially_default_constructible_v<
-                       fixed_string<4>>);
+                       DFixedString<4>>);
 
     // ... and why it is not an aggregate: brace-init runs the
     // constructor rather than initialising the array directly
-    D_FS_CHECK(ok, !std::is_aggregate_v<fixed_string<4>>);
+    D_FS_CHECK(ok, !std::is_aggregate_v<DFixedString<4>>);
 
     // the constructor is not explicit, so a literal converts implicitly
     D_FS_CHECK(ok, (std::is_convertible_v<const char(&)[4],
-                                          fixed_string<4>>));
-    D_FS_CHECK(ok, (std::is_constructible_v<fixed_string<4>,
+                                          DFixedString<4>>));
+    D_FS_CHECK(ok, (std::is_constructible_v<DFixedString<4>,
                                             const char(&)[4]>));
 
     // and it binds _N exactly - a mismatched length is not viable, and
     // neither is a pointer that has lost its extent
-    D_FS_CHECK(ok, !(std::is_constructible_v<fixed_string<4>,
+    D_FS_CHECK(ok, !(std::is_constructible_v<DFixedString<4>,
                                              const char(&)[5]>));
-    D_FS_CHECK(ok, !(std::is_constructible_v<fixed_string<4>,
+    D_FS_CHECK(ok, !(std::is_constructible_v<DFixedString<4>,
                                              const char(&)[3]>));
-    D_FS_CHECK(ok, !(std::is_constructible_v<fixed_string<4>,
+    D_FS_CHECK(ok, !(std::is_constructible_v<DFixedString<4>,
                                              const char*>));
-    D_FS_CHECK(ok, !(std::is_constructible_v<fixed_string<4>, char>));
+    D_FS_CHECK(ok, !(std::is_constructible_v<DFixedString<4>, char>));
 
     return ok;
 }
@@ -152,21 +152,21 @@ bool tests_fixed_string_distinctness()
     bool ok = true;
 
     // distinct lengths, distinct types
-    D_FS_CHECK(ok, !std::is_same_v<fixed_string<4>, fixed_string<5>>);
-    D_FS_CHECK(ok, !std::is_same_v<fixed_string<1>, fixed_string<2>>);
-    D_FS_CHECK(ok, sizeof(fixed_string<4>) != sizeof(fixed_string<5>));
+    D_FS_CHECK(ok, !std::is_same_v<DFixedString<4>, DFixedString<5>>);
+    D_FS_CHECK(ok, !std::is_same_v<DFixedString<1>, DFixedString<2>>);
+    D_FS_CHECK(ok, sizeof(DFixedString<4>) != sizeof(DFixedString<5>));
 
     // ... and with no conversion between them
-    D_FS_CHECK(ok, !(std::is_convertible_v<fixed_string<4>,
-                                           fixed_string<5>>));
-    D_FS_CHECK(ok, !(std::is_convertible_v<fixed_string<5>,
-                                           fixed_string<4>>));
-    D_FS_CHECK(ok, !(std::is_constructible_v<fixed_string<4>,
-                                             fixed_string<5>>));
+    D_FS_CHECK(ok, !(std::is_convertible_v<DFixedString<4>,
+                                           DFixedString<5>>));
+    D_FS_CHECK(ok, !(std::is_convertible_v<DFixedString<5>,
+                                           DFixedString<4>>));
+    D_FS_CHECK(ok, !(std::is_constructible_v<DFixedString<4>,
+                                             DFixedString<5>>));
 
     // the same length is the same type, however it was reached
-    D_FS_CHECK(ok, std::is_same_v<fixed_string<4>, fixed_string<4>>);
-    D_FS_CHECK(ok, std::is_same_v<decltype(fs_abc), const fixed_string<4>>);
+    D_FS_CHECK(ok, std::is_same_v<DFixedString<4>, DFixedString<4>>);
+    D_FS_CHECK(ok, std::is_same_v<decltype(fs_abc), const DFixedString<4>>);
     D_FS_CHECK(ok, std::is_same_v<
                        std::remove_const_t<decltype(fs_abc)>,
                        std::remove_const_t<decltype(fs_embedded)>>);
@@ -174,7 +174,7 @@ bool tests_fixed_string_distinctness()
     // the length survives in the type, and is recoverable from a value
     D_FS_CHECK(ok, fs_extent(fs_abc) == 4);
     D_FS_CHECK(ok, fs_extent(fs_empty) == 1);
-    D_FS_CHECK(ok, fs_extent(fs_abc) == sizeof(fixed_string<4>));
+    D_FS_CHECK(ok, fs_extent(fs_abc) == sizeof(DFixedString<4>));
 
     return ok;
 }

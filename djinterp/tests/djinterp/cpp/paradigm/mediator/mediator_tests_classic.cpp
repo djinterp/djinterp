@@ -28,13 +28,13 @@ namespace
 {
     // test_colleague : a concrete colleague_base that logs deliveries and
     // surfaces the protected members for inspection.
-    struct test_colleague : colleague_base
+    struct test_colleague : DColleagueBase
     {
         std::vector<int> received;        // payload of every delivered event
-        colleague_id     last_sender = static_cast<colleague_id>(-1);
+        DColleagueId     last_sender = static_cast<DColleagueId>(-1);
 
         void on_event(
-            colleague_id       _sender,
+            DColleagueId       _sender,
             const re_std::any& _event
         ) override
         {
@@ -71,10 +71,10 @@ tests_colleague_id_type
 */
 bool tests_colleague_id_type()
 {
-    static_assert(std::is_same<colleague_id, std::size_t>::value,
+    static_assert(std::is_same<DColleagueId, std::size_t>::value,
                   "colleague_id is std::size_t");
 
-    return std::is_same<colleague_id, std::size_t>::value;
+    return std::is_same<DColleagueId, std::size_t>::value;
 }
 
 /*
@@ -86,7 +86,7 @@ tests_colleague_base_defaults
 */
 bool tests_colleague_base_defaults()
 {
-    concrete_mediator med;
+    DConcreteMediator med;
     test_colleague    c;
 
     bool ok = true;
@@ -111,12 +111,12 @@ tests_concrete_mediator_add
 */
 bool tests_concrete_mediator_add()
 {
-    concrete_mediator med;
+    DConcreteMediator med;
     test_colleague    a, b, c;
 
-    colleague_id ida = med.add_colleague(&a);
-    colleague_id idb = med.add_colleague(&b);
-    colleague_id idc = med.add_colleague(&c);
+    DColleagueId ida = med.add_colleague(&a);
+    DColleagueId idb = med.add_colleague(&b);
+    DColleagueId idc = med.add_colleague(&c);
 
     bool ok = true;
 
@@ -139,10 +139,10 @@ tests_concrete_mediator_broadcast
 */
 bool tests_concrete_mediator_broadcast()
 {
-    concrete_mediator med;
+    DConcreteMediator med;
     test_colleague    a, b, c;
 
-    colleague_id ida = med.add_colleague(&a);
+    DColleagueId ida = med.add_colleague(&a);
     med.add_colleague(&b);
     med.add_colleague(&c);
 
@@ -169,11 +169,11 @@ tests_concrete_mediator_remove
 */
 bool tests_concrete_mediator_remove()
 {
-    concrete_mediator med;
+    DConcreteMediator med;
     test_colleague    a, b, c;
 
     med.add_colleague(&a);
-    colleague_id idb = med.add_colleague(&b);
+    DColleagueId idb = med.add_colleague(&b);
     med.add_colleague(&c);
 
     med.remove_colleague(idb);

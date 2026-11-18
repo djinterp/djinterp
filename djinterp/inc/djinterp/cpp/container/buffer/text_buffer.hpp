@@ -130,17 +130,17 @@ NS_CONTAINER
 // I.   text_buffer Class
 // =============================================================================
 
-template<typename GrowthPolicy = default_growth_policy,
-         typename CursorPolicy = write_only_cursor_policy>
-class text_buffer
+template<typename GrowthPolicy = DDefaultGrowthPolicy,
+         typename CursorPolicy = DWriteOnlyCursorPolicy>
+class DTextBuffer
     : public DBufferBase<
-          text_buffer<GrowthPolicy, CursorPolicy>,
+          DTextBuffer<GrowthPolicy, CursorPolicy>,
           GrowthPolicy,
           CursorPolicy>
 {
 private:
     using base_type = DBufferBase<
-        text_buffer<GrowthPolicy, CursorPolicy>,
+        DTextBuffer<GrowthPolicy, CursorPolicy>,
         GrowthPolicy,
         CursorPolicy>;
 
@@ -174,7 +174,7 @@ public:
     // default constructor
     //   creates an empty text buffer with no allocation. The first append
     // triggers the growth policy.
-    text_buffer() noexcept
+    DTextBuffer() noexcept
         : base_type()
         , m_data(nullptr)
         , m_capacity(0)
@@ -184,7 +184,7 @@ public:
     //   creates an empty text buffer pre-allocated to hold at least
     // _initial_capacity bytes of text content (plus the null terminator).
     explicit
-    text_buffer(size_type _initial_capacity)
+    DTextBuffer(size_type _initial_capacity)
         : base_type()
         , m_data(nullptr)
         , m_capacity(0)
@@ -200,7 +200,7 @@ public:
     //   creates a text buffer initialized with a copy of the provided C
     // string.
     explicit
-    text_buffer(const char* _str)
+    DTextBuffer(const char* _str)
         : base_type()
         , m_data(nullptr)
         , m_capacity(0)
@@ -216,7 +216,7 @@ public:
     // string + length constructor
     //   creates a text buffer initialized with _len bytes copied from _str.
     // _str need not be null-terminated.
-    text_buffer(const char* _str,
+    DTextBuffer(const char* _str,
                 size_type   _len)
         : base_type()
         , m_data(nullptr)
@@ -231,7 +231,7 @@ public:
     // std::string constructor
     //   creates a text buffer initialized from a string.
     explicit
-    text_buffer(const std::string& _str)
+    DTextBuffer(const std::string& _str)
         : base_type()
         , m_data(nullptr)
         , m_capacity(0)
@@ -246,7 +246,7 @@ public:
     // string_view constructor
     //   creates a text buffer initialized from a string_view.
     explicit
-    text_buffer(std::string_view _sv)
+    DTextBuffer(std::string_view _sv)
         : base_type()
         , m_data(nullptr)
         , m_capacity(0)
@@ -259,7 +259,7 @@ public:
 #endif  // C++17
 
     // destructor
-    ~text_buffer() noexcept
+    ~DTextBuffer() noexcept
     {
         if (m_data)
         {
@@ -274,7 +274,7 @@ public:
     // =========================================================================
 
     // move constructor
-    text_buffer(text_buffer&& _other) noexcept
+    DTextBuffer(DTextBuffer&& _other) noexcept
         : base_type(static_cast<base_type&&>(_other))
         , m_data(_other.m_data)
         , m_capacity(_other.m_capacity)
@@ -284,7 +284,7 @@ public:
     }
 
     // move assignment
-    text_buffer& operator=(text_buffer&& _other) noexcept
+    DTextBuffer& operator=(DTextBuffer&& _other) noexcept
     {
         if (this != &_other)
         {
@@ -310,7 +310,7 @@ public:
     }
 
     // copy constructor
-    text_buffer(const text_buffer& _other)
+    DTextBuffer(const DTextBuffer& _other)
         : base_type()
         , m_data(nullptr)
         , m_capacity(0)
@@ -335,7 +335,7 @@ public:
     }
 
     // copy assignment
-    text_buffer& operator=(const text_buffer& _other)
+    DTextBuffer& operator=(const DTextBuffer& _other)
     {
         if (this != &_other)
         {
@@ -924,7 +924,7 @@ public:
 
     // swap
     //   exchanges contents with another text_buffer.
-    void swap(text_buffer& _other) noexcept
+    void swap(DTextBuffer& _other) noexcept
     {
         if (this == &_other)
         {
@@ -959,7 +959,7 @@ public:
     template<typename GP, typename CP>
     friend std::ostream&
     operator<<(std::ostream&            _os,
-               const text_buffer<GP,
+               const DTextBuffer<GP,
                                  CP>& _buf);
 
 
@@ -1109,13 +1109,18 @@ private:
     size_type m_capacity;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename GrowthPolicy = DDefaultGrowthPolicy,
+         typename CursorPolicy = DWriteOnlyCursorPolicy>
+using text_buffer = DTextBuffer<GrowthPolicy, CursorPolicy>;
+
 
 // --- ostream operator (out-of-class definition) ---
 
 template<typename GP, typename CP>
 std::ostream& operator<<(
     std::ostream&              _os,
-    const text_buffer<GP, CP>& _buf
+    const DTextBuffer<GP, CP>& _buf
 )
 {
     if (_buf.size() > 0)
@@ -1137,42 +1142,42 @@ std::ostream& operator<<(
 //   creates a text_buffer with default policies and the specified initial
 // capacity.
 inline
-text_buffer<> make_text_buffer(
+DTextBuffer<> make_text_buffer(
     std::size_t _capacity = 0
 )
 {
-    return text_buffer<>(_capacity);
+    return DTextBuffer<>(_capacity);
 }
 
 // make_text_buffer (from C string)
 //   creates a text_buffer initialized with a copy of the provided string.
 inline
-text_buffer<> make_text_buffer(
+DTextBuffer<> make_text_buffer(
     const char* _str
 )
 {
-    return text_buffer<>(_str);
+    return DTextBuffer<>(_str);
 }
 
 // make_text_buffer (from std::string)
 //   creates a text_buffer initialized from a string.
 inline
-text_buffer<> make_text_buffer(
+DTextBuffer<> make_text_buffer(
     const std::string& _str
 )
 {
-    return text_buffer<>(_str);
+    return DTextBuffer<>(_str);
 }
 
 // make_fixed_text_buffer
 //   creates a text_buffer with fixed (non-growable) storage of the specified
 // capacity.
 inline
-text_buffer<fixed_growth_policy> make_fixed_text_buffer(
+DTextBuffer<DFixedGrowthPolicy> make_fixed_text_buffer(
     std::size_t _capacity
 )
 {
-    return text_buffer<fixed_growth_policy>(_capacity);
+    return DTextBuffer<DFixedGrowthPolicy>(_capacity);
 }
 
 

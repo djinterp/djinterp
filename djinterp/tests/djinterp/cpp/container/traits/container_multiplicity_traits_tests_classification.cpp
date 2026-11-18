@@ -37,7 +37,7 @@ bool tests_multiplicity_container_class()
         D_CMP_CHECK( (!C::unique_insert) );
         D_CMP_CHECK( (!C::interval_domain) );
         D_CMP_CHECK( (!C::opt_in_bound) );
-        D_CMP_CHECK( (C::kind == multiplicity_kind::sequence) );
+        D_CMP_CHECK( (C::kind == DMultiplicityKind::sequence) );
         D_CMP_CHECK( (C::bound == unbounded_multiplicity) );
         D_CMP_CHECK( (cmp_cstr_eq(C::kind_name, "sequence")) );
         D_CMP_CHECK( (C::is_sequence) );
@@ -52,7 +52,7 @@ bool tests_multiplicity_container_class()
         D_CMP_CHECK( (C::unique_insert) );
         D_CMP_CHECK( (!C::interval_domain) );
         D_CMP_CHECK( (!C::opt_in_bound) );
-        D_CMP_CHECK( (C::kind == multiplicity_kind::unique) );
+        D_CMP_CHECK( (C::kind == DMultiplicityKind::unique) );
         D_CMP_CHECK( (C::bound == unique_multiplicity) );
         D_CMP_CHECK( (C::bound == 1u) );
         D_CMP_CHECK( (cmp_cstr_eq(C::kind_name, "unique")) );
@@ -66,7 +66,7 @@ bool tests_multiplicity_container_class()
         using C = DMultiplicityContainerClass<std::multiset<int>>;
         D_CMP_CHECK( (C::has_equivalence) );
         D_CMP_CHECK( (!C::unique_insert) );
-        D_CMP_CHECK( (C::kind == multiplicity_kind::unbounded_multiset) );
+        D_CMP_CHECK( (C::kind == DMultiplicityKind::unbounded_multiset) );
         D_CMP_CHECK( (C::bound == unbounded_multiplicity) );
         D_CMP_CHECK( (cmp_cstr_eq(C::kind_name, "unbounded_multiset")) );
         D_CMP_CHECK( (!C::is_unique) );
@@ -79,7 +79,7 @@ bool tests_multiplicity_container_class()
         D_CMP_CHECK( (!C::has_equivalence) );
         D_CMP_CHECK( (C::interval_domain) );
         D_CMP_CHECK( (!C::opt_in_bound) );
-        D_CMP_CHECK( (C::kind == multiplicity_kind::unique) );
+        D_CMP_CHECK( (C::kind == DMultiplicityKind::unique) );
         D_CMP_CHECK( (C::bound == 1u) );
         D_CMP_CHECK( (C::is_unique) );
     }
@@ -90,7 +90,7 @@ bool tests_multiplicity_container_class()
         D_CMP_CHECK( (!C::has_equivalence) );
         D_CMP_CHECK( (!C::interval_domain) );
         D_CMP_CHECK( (C::opt_in_bound) );
-        D_CMP_CHECK( (C::kind == multiplicity_kind::bounded_multiset) );
+        D_CMP_CHECK( (C::kind == DMultiplicityKind::bounded_multiset) );
         D_CMP_CHECK( (C::bound == 5u) );
         D_CMP_CHECK( (cmp_cstr_eq(C::kind_name, "bounded_multiset")) );
         D_CMP_CHECK( (!C::is_unique) );
@@ -104,7 +104,7 @@ bool tests_multiplicity_container_class()
         D_CMP_CHECK( (!C::unique_insert) );
         D_CMP_CHECK( (!C::interval_domain) );
         D_CMP_CHECK( (!C::opt_in_bound) );
-        D_CMP_CHECK( (C::kind == multiplicity_kind::unknown) );
+        D_CMP_CHECK( (C::kind == DMultiplicityKind::unknown) );
         D_CMP_CHECK( (cmp_cstr_eq(C::kind_name, "unknown")) );
         D_CMP_CHECK( (!C::is_sequence) );
         D_CMP_CHECK( (!C::is_unique) );

@@ -105,7 +105,7 @@ NS_DJINTERP
 // I.   region
 // ===========================================================================
 
-// region
+// DRegion
 //   type: a rectangular region of atomic positions -- the span of a layout
 // cell. Covers the box [Row0, Row0+Rows) x [Col0, Col0+Cols); its extent
 // is the number of atomic positions it holds. A region is non-empty by
@@ -121,7 +121,7 @@ template<std::size_t Row0,
          std::size_t Col0,
          std::size_t Rows,
          std::size_t Cols>
-struct region
+struct DRegion
 {
     static_assert(( (Rows > 0) && (Cols > 0) ),
                   "region: a layout cell's span must be non-empty.");
@@ -147,7 +147,14 @@ struct region
     static D_CONSTEXPR bool merged_along_cols = (Cols > 1);
 };
 
-// merge
+// old name, until 0.9.0-rc.1
+template<std::size_t Row0,
+         std::size_t Col0,
+         std::size_t Rows,
+         std::size_t Cols>
+using region = DRegion<Row0, Col0, Rows, Cols>;
+
+// DMerge
 //   type: a region intended as a merged cell -- an alias for region, named for
 // the call site (a merged_cell<Rows, Cols, V> declaration places one of these
 // at the atomic position it is declared at). It carries no extra data; whether
@@ -156,7 +163,14 @@ template<std::size_t Row0,
          std::size_t Col0,
          std::size_t Rows,
          std::size_t Cols>
-using merge = region<Row0, Col0, Rows, Cols>;
+using DMerge = DRegion<Row0, Col0, Rows, Cols>;
+
+// old name, until 0.9.0-rc.1
+template<std::size_t Row0,
+         std::size_t Col0,
+         std::size_t Rows,
+         std::size_t Cols>
+using merge = DMerge<Row0, Col0, Rows, Cols>;
 
 
 // ===========================================================================
@@ -216,7 +230,7 @@ NS_INTERNAL
     struct find_owner
     {
         // no declared merge covers it: the position is its own singleton cell
-        using type = region<Row, Col, 1, 1>;
+        using type = DRegion<Row, Col, 1, 1>;
     };
 
     template<std::size_t Row,
@@ -235,7 +249,7 @@ NS_INTERNAL
 
 NS_END  // internal
 
-// layout
+// DTableLayout
 //   type: a compile-time cover, given by its declared merges. Every atomic
 // position a merge does not cover is its own singleton cell, so this is the
 // laid-out table's Gamma with the trivial cover filling the rest. The empty
@@ -243,7 +257,7 @@ NS_END  // internal
 //
 //   Regions...: the declared merges (region<>s).
 template<typename... Regions>
-struct layout
+struct DTableLayout
 {
     // merge_count -- the number of declared merges.
     static D_CONSTEXPR std::size_t merge_count = sizeof...(Regions);
@@ -263,9 +277,16 @@ struct layout
         typename internal::find_owner<Row, Col, Regions...>::type;
 };
 
-// trivial_layout
+// old name, until 0.9.0-rc.1
+template<typename... Regions>
+using layout = DTableLayout<Regions...>;
+
+// DTrivialLayout
 //   type: the trivial cover Gamma_0 -- no merges, every position its own cell.
-using trivial_layout = layout<>;
+using DTrivialLayout = DTableLayout<>;
+
+// old name, until 0.9.0-rc.1
+using trivial_layout = DTrivialLayout;
 
 
 // ===========================================================================
@@ -335,7 +356,7 @@ NS_INTERNAL
     template<typename... Regions,
              std::size_t  H,
              std::size_t  W>
-    struct layout_valid_impl<layout<Regions...>, H, W>
+    struct layout_valid_impl<DTableLayout<Regions...>, H, W>
         : std::integral_constant<bool,
             ( all_within<H, W, Regions...>::value &&
               pairwise_disjoint<Regions...>::value )>
@@ -404,7 +425,7 @@ NS_INTERNAL
 
 NS_END  // internal
 
-// split
+// DSplit
 //   type: a refinement of a cell -- its region Parent partitioned into pieces
 // Pieces... (s >= 2 sub-regions). The descriptor the builder's split_cell and
 // the parser's sub-cell grid map onto. Splitting a cell whose region is
@@ -413,7 +434,7 @@ NS_END  // internal
 // projection pi (containers.tex); that case is deferred.
 template<typename    Parent,
          typename... Pieces>
-struct split
+struct DSplit
 {
     static_assert((sizeof...(Pieces) >= 2),
                   "split: a refinement partitions a cell into two or more pieces.");
@@ -423,6 +444,11 @@ struct split
     // piece_count -- the number of sub-cells the parent is split into.
     static D_CONSTEXPR std::size_t piece_count = sizeof...(Pieces);
 };
+
+// old name, until 0.9.0-rc.1
+template<typename    Parent,
+         typename... Pieces>
+using split = DSplit<Parent, Pieces...>;
 
 NS_INTERNAL
 
@@ -435,7 +461,7 @@ NS_INTERNAL
 
     template<typename    Parent,
              typename... Pieces>
-    struct split_valid_impl<split<Parent, Pieces...>>
+    struct split_valid_impl<DSplit<Parent, Pieces...>>
         : std::integral_constant<bool,
             ( all_within_region<Parent, Pieces...>::value  &&
               pairwise_disjoint<Pieces...>::value           &&
@@ -464,25 +490,25 @@ D_CONSTEXPR bool split_valid_v = split_valid<Split>::value;
 // VI.  runtime region + layout
 // ===========================================================================
 
-// region_value
+// DRegionValue
 //   struct: the runtime counterpart of region -- a box the parser accumulates
 // from a spanning text grid. Same box arithmetic (extent, contains, anchor) as
 // the compile-time region.
-struct region_value
+struct DRegionValue
 {
     std::size_t row0;
     std::size_t col0;
     std::size_t rows;
     std::size_t cols;
 
-    D_CONSTEXPR region_value() D_NOEXCEPT
+    D_CONSTEXPR DRegionValue() D_NOEXCEPT
         : row0(0),
           col0(0),
           rows(1),
           cols(1)
     {}
 
-    D_CONSTEXPR region_value(
+    D_CONSTEXPR DRegionValue(
         std::size_t _row0,
         std::size_t _col0,
         std::size_t _rows,
@@ -528,11 +554,14 @@ struct region_value
     }
 };
 
+// old name, until 0.9.0-rc.1
+using region_value = DRegionValue;
+
 // regions_overlap (runtime)
 //   function: whether two runtime regions share any atomic position.
 D_NODISCARD D_CONSTEXPR inline bool regions_overlap_rt(
-    const region_value& _a,
-    const region_value& _b
+    const DRegionValue& _a,
+    const DRegionValue& _b
 ) D_NOEXCEPT
 {
     return ( (_a.row0 < _b.row0 + _b.rows) &&
@@ -541,16 +570,16 @@ D_NODISCARD D_CONSTEXPR inline bool regions_overlap_rt(
              (_b.col0 < _a.col0 + _a.cols) );
 }
 
-// runtime_layout
+// DRuntimeLayout
 //   class: the value-level cover -- the declared merges, with singletons
 // implied on the rest, exactly as the compile-time layout. The parser adds a
 // merge per spanning cell it recognises; a consumer reads owner_of / anchor.
-class runtime_layout
+class DRuntimeLayout
 {
 public:
-    using merge_store = std::vector<region_value>;
+    using merge_store = std::vector<DRegionValue>;
 
-    runtime_layout()
+    DRuntimeLayout()
         : m_merges()
     {}
 
@@ -563,7 +592,7 @@ public:
         std::size_t _cols
     )
     {
-        m_merges.push_back(region_value(_row0, _col0, _rows, _cols));
+        m_merges.push_back(DRegionValue(_row0, _col0, _rows, _cols));
 
         return;
     }
@@ -587,13 +616,13 @@ public:
 
     // owner_of -- the layout cell owning (_row, _col): a declared merge that
     // covers it, or the singleton cell there.
-    D_NODISCARD region_value owner_of(
+    D_NODISCARD DRegionValue owner_of(
         std::size_t _row,
         std::size_t _col
     ) const
     {
         // return the first declared merge that covers the position
-        for (const region_value& _m : m_merges)
+        for (const DRegionValue& _m : m_merges)
         {
             if (_m.contains(_row, _col))
             {
@@ -602,7 +631,7 @@ public:
         }
 
         // none does: the position is its own singleton cell
-        return region_value(_row, _col, 1, 1);
+        return DRegionValue(_row, _col, 1, 1);
     }
 
     // valid -- every declared merge lies within an _height x _width table and
@@ -617,7 +646,7 @@ public:
         // every merge must lie within the table bounds
         for (std::size_t i = 0; i < n; ++i)
         {
-            const region_value& _m = m_merges[i];
+            const DRegionValue& _m = m_merges[i];
 
             if ( (_m.row0 + _m.rows > _height) ||
                  (_m.col0 + _m.cols > _width) )
@@ -651,6 +680,9 @@ private:
     merge_store m_merges;
 };
 
+// old name, until 0.9.0-rc.1
+using runtime_layout = DRuntimeLayout;
+
 
 // ===========================================================================
 // VII. detection traits
@@ -666,7 +698,7 @@ NS_INTERNAL
              std::size_t C,
              std::size_t Rows,
              std::size_t Cols>
-    struct is_region_impl<region<R, C, Rows, Cols>> : std::true_type
+    struct is_region_impl<DRegion<R, C, Rows, Cols>> : std::true_type
     {};
 
     template<typename Type>
@@ -674,7 +706,7 @@ NS_INTERNAL
     {};
 
     template<typename... Regions>
-    struct is_layout_impl<layout<Regions...>> : std::true_type
+    struct is_layout_impl<DTableLayout<Regions...>> : std::true_type
     {};
 
     template<typename Type>
@@ -683,7 +715,7 @@ NS_INTERNAL
 
     template<typename    Parent,
              typename... Pieces>
-    struct is_split_impl<split<Parent, Pieces...>> : std::true_type
+    struct is_split_impl<DSplit<Parent, Pieces...>> : std::true_type
     {};
 
 NS_END  // internal

@@ -88,38 +88,38 @@ NS_DJINTERP
 // value in the other case.
 template<template<typename> class F,
          typename                 A>
-class free
+class DFree
 {
 public:
     using value_type = A;
-    using layer_type = F<std::shared_ptr<free> >;
+    using layer_type = F<std::shared_ptr<DFree> >;
 
     // free (default)
     //   constructor: a Pure leaf holding a value-initialized A. Public so a
     // free can sit in a container that default-constructs its elements.
-    free()
+    DFree()
         : m_node(std::in_place_index<0>)
     {}
 
     // pure
     //   factory: a finished computation -- a leaf holding _value.
     static
-    free pure(
+    DFree pure(
         const A& _value
     )
     {
-        return free(std::in_place_index<0>,
+        return DFree(std::in_place_index<0>,
                     _value);
     }
 
     // roll
     //   factory: one layer of F whose positions hold the rest of the tree.
     static
-    free roll(
+    DFree roll(
         const layer_type& _layer
     )
     {
-        return free(std::in_place_index<1>,
+        return DFree(std::in_place_index<1>,
                     _layer);
     }
 
@@ -155,7 +155,7 @@ private:
     // nor the layer has to be default-constructible.
     template<std::size_t Index,
              typename    Value>
-    free(
+    DFree(
         std::in_place_index_t<Index> _index,
         const Value&                 _value
     )
@@ -165,6 +165,11 @@ private:
 
     std::variant<A, layer_type> m_node;
 };
+
+// old name, until 0.9.0-rc.1
+template<template<typename> class F,
+         typename                 A>
+using free = DFree<F, A>;
 
 
 //==============================================================================
@@ -190,12 +195,12 @@ D_NODISCARD
 typename std::decay<decltype(
     std::declval<const OnPure&>()(std::declval<const A&>()))>::type
 fold_free(
-    const free<F, A>& _free,
+    const DFree<F, A>& _free,
     const OnPure&     _on_pure,
     const OnRoll&     _on_roll
 )
 {
-    using child_t = std::shared_ptr<free<F, A> >;
+    using child_t = std::shared_ptr<DFree<F, A> >;
 
     // a leaf is interpreted directly
     if (_free.is_pure())
@@ -228,13 +233,13 @@ D_NODISCARD
 typename std::decay<decltype(
     std::declval<const Continue&>()(std::declval<const A&>()))>::type
 free_bind(
-    const free<F, A>& _free,
+    const DFree<F, A>& _free,
     const Continue&   _continue
 )
 {
     using result_t = typename std::decay<decltype(
         _continue(std::declval<const A&>()))>::type;
-    using child_t  = std::shared_ptr<free<F, A> >;
+    using child_t  = std::shared_ptr<DFree<F, A> >;
 
     // a leaf is replaced by its continuation
     if (_free.is_pure())
@@ -259,10 +264,10 @@ template<template<typename> class F,
          typename                 A,
          typename                 Function>
 D_NODISCARD
-free<F, typename std::decay<decltype(
+DFree<F, typename std::decay<decltype(
     std::declval<const Function&>()(std::declval<const A&>()))>::type>
 free_map(
-    const free<F, A>& _free,
+    const DFree<F, A>& _free,
     const Function&   _function
 )
 {
@@ -272,7 +277,7 @@ free_map(
     return free_bind(_free,
                      [&_function](const A& _value)
                      {
-                         return free<F, mapped_t>::pure(_function(_value));
+                         return DFree<F, mapped_t>::pure(_function(_value));
                      });
 }
 
@@ -283,15 +288,15 @@ free_map(
 template<template<typename> class F,
          typename                 A>
 D_NODISCARD
-free<F, A> lift_free(
+DFree<F, A> lift_free(
     const F<A>& _layer
 )
 {
-    return free<F, A>::roll(::djinterp::functor_map(
+    return DFree<F, A>::roll(::djinterp::functor_map(
         _layer,
         [](const A& _value)
         {
-            return std::make_shared<free<F, A> >(free<F, A>::pure(_value));
+            return std::make_shared<DFree<F, A> >(DFree<F, A>::pure(_value));
         }));
 }
 
@@ -311,22 +316,22 @@ free<F, A> lift_free(
 //   trait: unit is pure, bind is free_bind.
 template<template<typename> class F,
          typename                 A>
-struct monad_traits<free<F, A> >
+struct monad_traits<DFree<F, A> >
 {
     using is_specialized = std::true_type;
     using value_type     = A;
 
     template<typename To>
-    using rebind = free<F, To>;
+    using rebind = DFree<F, To>;
 
     // unit
     //   function: lifts a value into a Pure leaf.
     static
-    free<F, A> unit(
+    DFree<F, A> unit(
         const A& _value
     )
     {
-        return free<F, A>::pure(_value);
+        return DFree<F, A>::pure(_value);
     }
 
     // bind

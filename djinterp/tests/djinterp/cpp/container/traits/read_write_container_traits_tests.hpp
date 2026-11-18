@@ -174,17 +174,17 @@ static const int rw_capability_count = 4;
 //   function: the _i-th access_capability, in declaration order.  Out-of-range
 // indices clamp to none so a loop bug cannot read past the enum.
 inline
-access_capability rw_capability_at(
+DAccessCapability rw_capability_at(
     int _i
 )
 {
     switch (_i)
     {
-        case 0:  return access_capability::none;
-        case 1:  return access_capability::read_only;
-        case 2:  return access_capability::write_only;
-        case 3:  return access_capability::read_write;
-        default: return access_capability::none;
+        case 0:  return DAccessCapability::none;
+        case 1:  return DAccessCapability::read_only;
+        case 2:  return DAccessCapability::write_only;
+        case 3:  return DAccessCapability::read_write;
+        default: return DAccessCapability::none;
     }
 }
 
@@ -194,7 +194,7 @@ access_capability rw_capability_at(
 // the characters are.
 inline
 bool rw_name_is(
-    access_capability _capability,
+    DAccessCapability _capability,
     const char*       _expected
 )
 {
@@ -475,7 +475,7 @@ private:
 struct DRwTagReadOnly
 {
     using value_type = int;
-    using capability = read_only;
+    using capability = DReadOnly;
 
     const int* begin() const;
     void clear();
@@ -484,7 +484,7 @@ struct DRwTagReadOnly
 struct DRwTagWriteOnly
 {
     using value_type = int;
-    using capability = write_only;
+    using capability = DWriteOnly;
 
     const int* begin() const;
     void clear();
@@ -493,7 +493,7 @@ struct DRwTagWriteOnly
 struct DRwTagReadWrite
 {
     using value_type = int;
-    using capability = read_write;
+    using capability = DReadWrite;
 
     const int* begin() const;
     void clear();
@@ -506,7 +506,7 @@ struct DRwTagReadWrite
 struct DRwTagOverrides
 {
     using value_type = int;
-    using capability = read_only;
+    using capability = DReadOnly;
 
     const int& operator[](
         std::size_t _i
@@ -647,7 +647,7 @@ struct DRwTagPrivate
     void clear();
 
 private:
-    using capability = read_only;
+    using capability = DReadOnly;
 };
 
 

@@ -62,10 +62,10 @@ NS_DJINTERP
 //  linux_scanner
 // ================================================================
 
-// linux_scanner
+// DLinuxScanner
 //   policy: Linux directory walk. Consults d_type, then issues a masked statx
 // (or fstatat fallback) only when a size or a missing type must be resolved.
-struct linux_scanner
+struct DLinuxScanner
 {
 #if D_FS_HAVE_STATX
 
@@ -76,7 +76,7 @@ struct linux_scanner
     bool statx_size_type(
         int               _dfd,
         const char*       _name,
-        file_type&        _io_type,
+        DFileType&        _io_type,
         re_std::uint64_t& _out_size
     )
     {
@@ -115,7 +115,7 @@ struct linux_scanner
     bool resolve_size_type(
         int               _dfd,
         const char*       _name,
-        file_type&        _io_type,
+        DFileType&        _io_type,
         re_std::uint64_t& _out_size
     )
     {
@@ -131,7 +131,7 @@ struct linux_scanner
 
         if (_io_type == file_type_unknown)
         {
-            _io_type = posix_scanner::classify(st.st_mode);
+            _io_type = DPosixScanner::classify(st.st_mode);
         }
 
         _out_size = static_cast<re_std::uint64_t>(st.st_size);
@@ -146,7 +146,7 @@ struct linux_scanner
     void scan(
         Ctx&               _ctx,
         const std::string& _dir_path,
-        file_node_id       _parent
+        DFileNodeId       _parent
     )
     {
         DIR* dir = ::opendir(_dir_path.c_str());
@@ -164,7 +164,7 @@ struct linux_scanner
         {
             const char* child_name = ent->d_name;
 
-            if (posix_scanner::is_dot_entry(child_name))
+            if (DPosixScanner::is_dot_entry(child_name))
             {
                 continue;
             }
@@ -172,7 +172,7 @@ struct linux_scanner
             std::size_t child_len = std::strlen(child_name);
 
 #ifdef DT_DIR
-            file_type type = bsd_scanner::type_from_dtype(ent->d_type);
+            DFileType type = DBsdScanner::type_from_dtype(ent->d_type);
 #else
             file_type type = file_type_unknown;
 #endif
@@ -190,7 +190,7 @@ struct linux_scanner
                 }
             }
 
-            file_node_id id = _ctx.intern_child(
+            DFileNodeId id = _ctx.intern_child(
                 _parent, child_name, child_len, type, sz);
 
             if (type == file_type_directory)
@@ -204,6 +204,9 @@ struct linux_scanner
         return;
     }
 };
+
+// old name, until 0.9.0-rc.1
+using linux_scanner = DLinuxScanner;
 
 
 NS_END  // djinterp

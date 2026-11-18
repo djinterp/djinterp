@@ -25,14 +25,14 @@ tests_encode_options_leaf_bool
 */
 bool tests_encode_options_leaf_bool()
 {
-    D_EO_CHECK((encode_leaf<DSerialEndian::big>(true) == byte_string{ 0x01 }));
-    D_EO_CHECK((encode_leaf<DSerialEndian::big>(false) == byte_string{ 0x00 }));
-    D_EO_CHECK((encode_leaf<DSerialEndian::little>(true) == byte_string{ 0x01 }));
-    D_EO_CHECK((encode_leaf<DSerialEndian::little>(false) == byte_string{ 0x00 }));
+    D_EO_CHECK((encode_leaf<DSerialEndian::big>(true) == DByteString{ 0x01 }));
+    D_EO_CHECK((encode_leaf<DSerialEndian::big>(false) == DByteString{ 0x00 }));
+    D_EO_CHECK((encode_leaf<DSerialEndian::little>(true) == DByteString{ 0x01 }));
+    D_EO_CHECK((encode_leaf<DSerialEndian::little>(false) == DByteString{ 0x00 }));
 
     DEoSink _s;
     encode_leaf_into<DSerialEndian::little>(_s, true);
-    D_EO_CHECK((_s.data == byte_string{ 0x01 }));
+    D_EO_CHECK((_s.data == DByteString{ 0x01 }));
 
     return true;
 }
@@ -50,35 +50,35 @@ bool tests_encode_options_leaf_integrals()
 {
     // unsigned, order reverses
     D_EO_CHECK((encode_leaf<DSerialEndian::big>(static_cast<re_std::uint16_t>(0x1234))
-                == byte_string{ 0x12, 0x34 }));
+                == DByteString{ 0x12, 0x34 }));
     D_EO_CHECK((encode_leaf<DSerialEndian::little>(static_cast<re_std::uint16_t>(0x1234))
-                == byte_string{ 0x34, 0x12 }));
+                == DByteString{ 0x34, 0x12 }));
     D_EO_CHECK((encode_leaf<DSerialEndian::big>(static_cast<re_std::uint32_t>(0xDEADBEEF))
-                == byte_string{ 0xDE, 0xAD, 0xBE, 0xEF }));
+                == DByteString{ 0xDE, 0xAD, 0xBE, 0xEF }));
     D_EO_CHECK((encode_leaf<DSerialEndian::little>(static_cast<re_std::uint32_t>(0xDEADBEEF))
-                == byte_string{ 0xEF, 0xBE, 0xAD, 0xDE }));
+                == DByteString{ 0xEF, 0xBE, 0xAD, 0xDE }));
 
     // signed, order reverses
     D_EO_CHECK((encode_leaf<DSerialEndian::big>(static_cast<re_std::int16_t>(-2))
-                == byte_string{ 0xFF, 0xFE }));
+                == DByteString{ 0xFF, 0xFE }));
     D_EO_CHECK((encode_leaf<DSerialEndian::little>(static_cast<re_std::int16_t>(-2))
-                == byte_string{ 0xFE, 0xFF }));
+                == DByteString{ 0xFE, 0xFF }));
     D_EO_CHECK((encode_leaf<DSerialEndian::big>(static_cast<re_std::int32_t>(-2147483647 - 1))
-                == byte_string{ 0x80, 0x00, 0x00, 0x00 }));
+                == DByteString{ 0x80, 0x00, 0x00, 0x00 }));
     D_EO_CHECK((encode_leaf<DSerialEndian::little>(static_cast<re_std::int32_t>(-2147483647 - 1))
-                == byte_string{ 0x00, 0x00, 0x00, 0x80 }));
+                == DByteString{ 0x00, 0x00, 0x00, 0x80 }));
 
     // one byte is order-invariant
     D_EO_CHECK((encode_leaf<DSerialEndian::big>(static_cast<re_std::uint8_t>(0xFF))
-                == byte_string{ 0xFF }));
+                == DByteString{ 0xFF }));
     D_EO_CHECK((encode_leaf<DSerialEndian::little>(static_cast<re_std::uint8_t>(0xFF))
-                == byte_string{ 0xFF }));
+                == DByteString{ 0xFF }));
 
     // an all-ones 64-bit value is eight 0xFF bytes under either order
     D_EO_CHECK((encode_leaf<DSerialEndian::big>(static_cast<re_std::int64_t>(-1))
-                == byte_string{ 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }));
+                == DByteString{ 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }));
     D_EO_CHECK((encode_leaf<DSerialEndian::little>(static_cast<re_std::int64_t>(-1))
-                == byte_string{ 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }));
+                == DByteString{ 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }));
 
     return true;
 }
@@ -93,14 +93,14 @@ tests_encode_options_leaf_enums
 bool tests_encode_options_leaf_enums()
 {
     D_EO_CHECK((encode_leaf<DSerialEndian::big>(DEoEnumU16::value)
-                == byte_string{ 0x12, 0x34 }));
+                == DByteString{ 0x12, 0x34 }));
     D_EO_CHECK((encode_leaf<DSerialEndian::little>(DEoEnumU16::value)
-                == byte_string{ 0x34, 0x12 }));
+                == DByteString{ 0x34, 0x12 }));
 
     D_EO_CHECK((encode_leaf<DSerialEndian::big>(DEoEnumI32::value)
-                == byte_string{ 0xFF, 0xFE, 0x1D, 0xC0 }));
+                == DByteString{ 0xFF, 0xFE, 0x1D, 0xC0 }));
     D_EO_CHECK((encode_leaf<DSerialEndian::little>(DEoEnumI32::value)
-                == byte_string{ 0xC0, 0x1D, 0xFE, 0xFF }));
+                == DByteString{ 0xC0, 0x1D, 0xFE, 0xFF }));
 
     return true;
 }
@@ -116,18 +116,18 @@ tests_encode_options_leaf_floating
 bool tests_encode_options_leaf_floating()
 {
     D_EO_CHECK((encode_leaf<DSerialEndian::big>(1.0f)
-                == byte_string{ 0x3F, 0x80, 0x00, 0x00 }));
+                == DByteString{ 0x3F, 0x80, 0x00, 0x00 }));
     D_EO_CHECK((encode_leaf<DSerialEndian::little>(1.0f)
-                == byte_string{ 0x00, 0x00, 0x80, 0x3F }));
+                == DByteString{ 0x00, 0x00, 0x80, 0x3F }));
     D_EO_CHECK((encode_leaf<DSerialEndian::big>(-2.0f)
-                == byte_string{ 0xC0, 0x00, 0x00, 0x00 }));
+                == DByteString{ 0xC0, 0x00, 0x00, 0x00 }));
     D_EO_CHECK((encode_leaf<DSerialEndian::little>(-2.0f)
-                == byte_string{ 0x00, 0x00, 0x00, 0xC0 }));
+                == DByteString{ 0x00, 0x00, 0x00, 0xC0 }));
 
     D_EO_CHECK((encode_leaf<DSerialEndian::big>(1.0)
-                == byte_string{ 0x3F, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }));
+                == DByteString{ 0x3F, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }));
     D_EO_CHECK((encode_leaf<DSerialEndian::little>(1.0)
-                == byte_string{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x3F }));
+                == DByteString{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x3F }));
 
     return true;
 }
@@ -143,13 +143,13 @@ tests_encode_options_leaf_member
 bool tests_encode_options_leaf_member()
 {
     D_EO_CHECK((encode_leaf<DSerialEndian::big>(DEoCustomLeaf{})
-                == byte_string{ 0xAB, 0xCD, 0xEF }));
+                == DByteString{ 0xAB, 0xCD, 0xEF }));
     D_EO_CHECK((encode_leaf<DSerialEndian::little>(DEoCustomLeaf{})
-                == byte_string{ 0xAB, 0xCD, 0xEF }));
+                == DByteString{ 0xAB, 0xCD, 0xEF }));
 
     DEoSink _s;
     encode_leaf_into<DSerialEndian::big>(_s, DEoCustomLeaf{});
-    D_EO_CHECK((_s.data == byte_string{ 0xAB, 0xCD, 0xEF }));
+    D_EO_CHECK((_s.data == DByteString{ 0xAB, 0xCD, 0xEF }));
 
     return true;
 }

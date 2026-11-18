@@ -105,24 +105,27 @@ struct is_unordered_container
 
 D_TYPE_TRAIT_VALUE_BOOL(is_unordered_container)
 
-// ordering_kind
+// DOrderingKind
 //   enum: a container's position on the order axis.
-enum class ordering_kind
+enum class DOrderingKind
 {
     non_container,  // not an (iterable) container
     unordered,      // permutation-invariant (associative); no positional order
     ordered         // positional identity (a sequence)
 };
 
+// old name, until 0.9.0-rc.1
+using ordering_kind = DOrderingKind;
+
 // ordering_kind_name
 //   function: a stable spelling, for diagnostics and agent-facing summaries.
 constexpr
 const char* ordering_kind_name(
-    ordering_kind _k
+    DOrderingKind _k
 ) noexcept
 {
-    return ( _k == ordering_kind::non_container ? "non_container"
-           : _k == ordering_kind::unordered     ? "unordered"
+    return ( _k == DOrderingKind::non_container ? "non_container"
+           : _k == DOrderingKind::unordered     ? "unordered"
            :                                       "ordered" );
 }
 
@@ -136,14 +139,14 @@ private:
     using clean_type = clean_t<Type>;
 
 public:
-    static constexpr ordering_kind value =
+    static constexpr DOrderingKind value =
         ( !is_iterable_container<clean_type>::value )
-              ? ordering_kind::non_container
+              ? DOrderingKind::non_container
       : (  internal::has_key_type_helper<clean_type>::value )
-              ? ordering_kind::unordered
-      :         ordering_kind::ordered;
+              ? DOrderingKind::unordered
+      :         DOrderingKind::ordered;
 
-    using type = std::integral_constant<ordering_kind, value>;
+    using type = std::integral_constant<DOrderingKind, value>;
 };
 
 // ordering_kind_of_t / ordering_kind_of_v
@@ -154,11 +157,11 @@ using ordering_kind_of_t = typename ordering_kind_of<Type>::type;
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename Type>
-    inline constexpr ordering_kind ordering_kind_of_v =
+    inline constexpr DOrderingKind ordering_kind_of_v =
         ordering_kind_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    constexpr ordering_kind ordering_kind_of_v =
+    constexpr DOrderingKind ordering_kind_of_v =
         ordering_kind_of<Type>::value;
 #endif
 
@@ -187,12 +190,12 @@ NS_INTERNAL
 
 NS_END  // internal
 
-// sequential_layout
+// DSequentialLayout
 //   enum: the storage shape of an ordered container, as its iterator category
 // and storage accessors reveal it. This is a REPRESENTATION classification -
 // the Order axis proper abstracts backing away - offered for code that must
 // dispatch on storage shape.
-enum class sequential_layout
+enum class DSequentialLayout
 {
     none,               // not an ordered container
     array_like,         // contiguous, random-access (array, vector)
@@ -202,18 +205,21 @@ enum class sequential_layout
     string_like         // a text buffer (has c_str())
 };
 
+// old name, until 0.9.0-rc.1
+using sequential_layout = DSequentialLayout;
+
 // sequential_layout_name
 //   function: a stable spelling, for diagnostics and agent-facing summaries.
 constexpr
 const char* sequential_layout_name(
-    sequential_layout _l
+    DSequentialLayout _l
 ) noexcept
 {
-    return ( _l == sequential_layout::none              ? "none"
-           : _l == sequential_layout::array_like        ? "array_like"
-           : _l == sequential_layout::deque_like        ? "deque_like"
-           : _l == sequential_layout::list_like         ? "list_like"
-           : _l == sequential_layout::forward_list_like ? "forward_list_like"
+    return ( _l == DSequentialLayout::none              ? "none"
+           : _l == DSequentialLayout::array_like        ? "array_like"
+           : _l == DSequentialLayout::deque_like        ? "deque_like"
+           : _l == DSequentialLayout::list_like         ? "list_like"
+           : _l == DSequentialLayout::forward_list_like ? "forward_list_like"
            :                                              "string_like" );
 }
 
@@ -229,22 +235,22 @@ private:
     using clean_type = clean_t<Type>;
 
 public:
-    static constexpr sequential_layout value =
+    static constexpr DSequentialLayout value =
         ( !is_ordered_container<clean_type>::value )
-              ? sequential_layout::none
+              ? DSequentialLayout::none
       : (  internal::has_c_str_helper<clean_type>::value )
-              ? sequential_layout::string_like
+              ? DSequentialLayout::string_like
       : (  is_contiguous_iterable<clean_type>::value )
-              ? sequential_layout::array_like
+              ? DSequentialLayout::array_like
       : (  is_random_access_iterable<clean_type>::value )
-              ? sequential_layout::deque_like
+              ? DSequentialLayout::deque_like
       : (  is_bidirectional_iterable<clean_type>::value )
-              ? sequential_layout::list_like
+              ? DSequentialLayout::list_like
       : (  is_forward_iterable<clean_type>::value )
-              ? sequential_layout::forward_list_like
-      :         sequential_layout::none;
+              ? DSequentialLayout::forward_list_like
+      :         DSequentialLayout::none;
 
-    using type = std::integral_constant<sequential_layout, value>;
+    using type = std::integral_constant<DSequentialLayout, value>;
 };
 
 // sequential_layout_of_t / sequential_layout_of_v
@@ -255,11 +261,11 @@ using sequential_layout_of_t = typename sequential_layout_of<Type>::type;
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename Type>
-    inline constexpr sequential_layout sequential_layout_of_v =
+    inline constexpr DSequentialLayout sequential_layout_of_v =
         sequential_layout_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    constexpr sequential_layout sequential_layout_of_v =
+    constexpr DSequentialLayout sequential_layout_of_v =
         sequential_layout_of<Type>::value;
 #endif
 

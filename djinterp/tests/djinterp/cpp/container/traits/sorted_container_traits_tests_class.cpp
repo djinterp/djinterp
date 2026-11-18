@@ -68,11 +68,11 @@ bool tests_sorted_container_class_signals()
     D_SR_CHECK(   ( DSortedContainerClass<
                         DSrtKeyedBounds>::interval_domain == true )
                && ( DSortedContainerClass<DSrtKeyedBounds>::kind
-                        == sortedness::unordered ));
+                        == DSortedness::unordered ));
     D_SR_CHECK(   ( DSortedContainerClass<
                         DSrtSequenceCompare>::has_comparator == true )
                && ( DSortedContainerClass<DSrtSequenceCompare>::kind
-                        == sortedness::order_dependent ));
+                        == DSortedness::order_dependent ));
 
     // usable in a constant expression
     D_SR_STATIC_CHECK(DSortedContainerClass<DSrtSet>::has_comparator);
@@ -98,15 +98,15 @@ bool tests_sorted_container_class_kind()
 
     // a carrier for each state
     D_SR_CHECK(DSortedContainerClass<DSrtBare>::kind
-                   == sortedness::non_container);
+                   == DSortedness::non_container);
     D_SR_CHECK(DSortedContainerClass<DSrtUset>::kind
-                   == sortedness::unordered);
+                   == DSortedness::unordered);
     D_SR_CHECK(DSortedContainerClass<DSrtSet>::kind
-                   == sortedness::monotone);
+                   == DSortedness::monotone);
     D_SR_CHECK(DSortedContainerClass<DSrtVector>::kind
-                   == sortedness::order_dependent);
+                   == DSortedness::order_dependent);
     D_SR_CHECK(DSortedContainerClass<DSrtBounds>::kind
-                   == sortedness::sorted);
+                   == DSortedness::sorted);
 
     // kind_name spells kind
     D_SR_CHECK(std::strcmp(DSortedContainerClass<DSrtBare>::kind_name,
@@ -132,7 +132,7 @@ bool tests_sorted_container_class_kind()
 
     // usable in a constant expression
     D_SR_STATIC_CHECK(DSortedContainerClass<DSrtSet>::kind
-                          == sortedness::monotone);
+                          == DSortedness::monotone);
     D_SR_STATIC_CHECK(DSortedContainerClass<DSrtSet>::kind_name[0] == 'm');
 
     return ok;
@@ -310,7 +310,7 @@ bool tests_sorted_container_class_cv_ref()
 
     // spelled out on one carrier
     D_SR_CHECK(DSortedContainerClass<volatile DSrtSet>::kind
-                   == sortedness::monotone);
+                   == DSortedness::monotone);
     D_SR_CHECK(DSortedContainerClass<const volatile DSrtBounds&>::
                    is_sorted_type == true);
 

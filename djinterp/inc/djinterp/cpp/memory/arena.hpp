@@ -2,9 +2,9 @@
 * djinterp [cpp]                                                       arena.hpp
 *
 * C++ face of the monotonic bump arena.
-*   `arena` DERIVES from dj_arena and adds no data members, so it IS one: it may
-* be passed to any C entry point, its layout is the C layout, and its size is
-* asserted equal below. What it adds is lifetime -- construction initializes,
+*   `DArena` DERIVES from dj_arena and adds no data members, so it IS one: it
+* may be passed to any C entry point, its layout is the C layout, and its size
+* is asserted equal below. What it adds is lifetime -- construction initializes,
 * destruction releases -- and the two ergonomics that a C caller has to write
 * by hand every time: a scope guard over mark/rewind, and typed allocation.
 *
@@ -15,7 +15,7 @@
 *
 * THE SCOPE GUARD IS THE REASON TO PREFER THIS FACE:
 *
-*     void render_frame(arena& _scratch)
+*     void render_frame(DArena& _scratch)
 *     {
 *         DArenaScope guard(_scratch);      // mark
 *         auto* verts = _scratch.create_array<vertex>(count);
@@ -75,13 +75,13 @@ NS_DJINTERP
 ///                          I.   arena                                     ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// arena
+// DArena
 //   class: a monotonic bump allocator. Derives from dj_arena and adds no
 // state; every operation forwards to the C kernel.
 //   NOT THREAD-SAFE, exactly as the kernel is not -- the wrapper does not
 // silently add a lock, because a caller who needs one should be able to see
 // where it is.
-class arena : public ::dj_arena
+class DArena : public ::dj_arena
 {
 public:
 
@@ -91,7 +91,7 @@ public:
     //   constructor: an arena over the configured default source. Obtains no
     // memory -- the first region is taken on the first allocation.
     D_INLINE
-    arena()
+    DArena()
     {
         ::d_arena_init(this, nullptr);
     }
@@ -99,7 +99,7 @@ public:
     // arena (configured)
     //   constructor: an arena differing from the defaults as the config says.
     explicit D_INLINE
-    arena(
+    DArena(
         const ::dj_arena_config& _config
     )
     {
@@ -111,7 +111,7 @@ public:
     // size and total budget. The common case that would otherwise need a
     // config struct at every call site.
     explicit D_INLINE
-    arena(
+    DArena(
         const ::dj_mem_source& _source,
         size_type              _initial_bytes = 0,
         size_type              _max_bytes = 0
@@ -131,7 +131,7 @@ public:
     // source at all. The buffer must outlive the arena; nothing here can
     // check that, and nothing here will free it.
     D_INLINE
-    arena(
+    DArena(
         void*     _buffer,
         size_type _bytes
     )
@@ -144,16 +144,16 @@ public:
     // on anything allocated from the arena -- the kernel deals in raw
     // storage, and so does this.
     D_INLINE
-    ~arena()
+    ~DArena()
     {
         ::d_arena_release(this);
     }
 
-    arena(
-        const arena&
+    DArena(
+        const DArena&
     ) = delete;
-    arena& operator=(
-        const arena&
+    DArena& operator=(
+        const DArena&
     ) = delete;
 
     // arena (move)
@@ -162,17 +162,17 @@ public:
     // holds no self-pointers -- its regions point at each other, never back
     // at the arena.
     D_INLINE
-    arena(
-        arena&& _other
+    DArena(
+        DArena&& _other
     ) noexcept
     {
         static_cast< ::dj_arena& >(*this) = static_cast< ::dj_arena& >(_other);
         ::d_arena_init(&_other, nullptr);
     }
 
-    D_INLINE arena&
+    D_INLINE DArena&
     operator=(
-        arena&& _other
+        DArena&& _other
     ) noexcept
     {
         if (this != &_other)
@@ -448,7 +448,7 @@ public:
     //   constructor: marks _arena's current position.
     explicit D_INLINE
     DArenaScope(
-        arena& _arena
+        DArena& _arena
     )
         : m_arena(&_arena),
           m_mark(_arena.mark())
@@ -457,7 +457,7 @@ public:
     // ~DArenaScope
     //   destructor: rewinds to the marked position, unless released.
     //   RUNS NO DESTRUCTORS on anything allocated inside the scope, for the
-    // same reason arena::create does not: the arena has no record of what it
+    // same reason DArena::create does not: the arena has no record of what it
     // handed out. A scope over non-trivially-destructible objects is a
     // deliberate choice, not an oversight the guard will cover for.
     D_INLINE
@@ -490,7 +490,7 @@ public:
 
 private:
 
-    arena*         m_arena;
+    DArena*         m_arena;
     ::dj_arena_mark m_mark;
 };
 
@@ -501,10 +501,10 @@ private:
 ///                      III.   THE COST LAW                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
-D_STATIC_ASSERT(sizeof(arena) == sizeof(::dj_arena),
+D_STATIC_ASSERT(sizeof(DArena) == sizeof(::dj_arena),
                 "arena must add nothing to dj_arena");
 
-D_STATIC_ASSERT((std::is_base_of< ::dj_arena, arena>::value),
+D_STATIC_ASSERT((std::is_base_of< ::dj_arena, DArena>::value),
                 "arena must derive from the C kernel, not mirror it");
 
 D_STATIC_ASSERT(std::is_standard_layout< ::dj_arena>::value,

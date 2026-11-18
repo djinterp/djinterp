@@ -49,12 +49,12 @@ tests_size_lifetime_disjuncts()
 {
     bool ok = true;
 
-    D_CCT_LIFE(lifetime::both, DSizeLifetime<DTagTrue>::value);
-    D_CCT_LIFE(lifetime::both, DSizeLifetime<extent_static>::value);
-    D_CCT_LIFE(lifetime::both, DSizeLifetime<tuple_conformer>::value);
-    D_CCT_LIFE(lifetime::both, DSizeLifetime<size_constexpr>::value);
-    D_CCT_LIFE(lifetime::both, DSizeLifetime<DIterAlias>::value);
-    D_CCT_LIFE(lifetime::both, DSizeLifetime<iter_pair>::value);
+    D_CCT_LIFE(DLifetime::both, DSizeLifetime<DTagTrue>::value);
+    D_CCT_LIFE(DLifetime::both, DSizeLifetime<extent_static>::value);
+    D_CCT_LIFE(DLifetime::both, DSizeLifetime<tuple_conformer>::value);
+    D_CCT_LIFE(DLifetime::both, DSizeLifetime<size_constexpr>::value);
+    D_CCT_LIFE(DLifetime::both, DSizeLifetime<DIterAlias>::value);
+    D_CCT_LIFE(DLifetime::both, DSizeLifetime<iter_pair>::value);
 
     // each of those fixtures really does carry ONE signal and no other
     D_CCT_CHECK(has_constexpr_container_tag<DTagTrue>::value &&
@@ -102,13 +102,13 @@ bool tests_size_lifetime_negative()
 {
     bool ok = true;
 
-    D_CCT_LIFE(lifetime::runtime, DSizeLifetime<no_signal>::value);
-    D_CCT_LIFE(lifetime::runtime, DSizeLifetime<no_signal_nonliteral>::value);
-    D_CCT_LIFE(lifetime::runtime, DSizeLifetime<DSizeRuntime>::value);
-    D_CCT_LIFE(lifetime::runtime, DSizeLifetime<DIterBeginOnly>::value);
-    D_CCT_LIFE(lifetime::runtime, DSizeLifetime<DIterEndOnly>::value);
-    D_CCT_LIFE(lifetime::runtime, DSizeLifetime<int>::value);
-    D_CCT_LIFE(lifetime::runtime, DSizeLifetime<life_compile_unsized>::value);
+    D_CCT_LIFE(DLifetime::runtime, DSizeLifetime<no_signal>::value);
+    D_CCT_LIFE(DLifetime::runtime, DSizeLifetime<no_signal_nonliteral>::value);
+    D_CCT_LIFE(DLifetime::runtime, DSizeLifetime<DSizeRuntime>::value);
+    D_CCT_LIFE(DLifetime::runtime, DSizeLifetime<DIterBeginOnly>::value);
+    D_CCT_LIFE(DLifetime::runtime, DSizeLifetime<DIterEndOnly>::value);
+    D_CCT_LIFE(DLifetime::runtime, DSizeLifetime<int>::value);
+    D_CCT_LIFE(DLifetime::runtime, DSizeLifetime<life_compile_unsized>::value);
 
     return ok;
 }
@@ -180,13 +180,13 @@ bool tests_size_lifetime_opt_out_ignored()
 
     // ...and the extent disjunct promotes anyway
     D_CCT_CHECK(has_constexpr_extent<tag_false_with_extent>::value);
-    D_CCT_LIFE(lifetime::both, DSizeLifetime<tag_false_with_extent>::value);
-    D_CCT_LIFE(lifetime::both,
+    D_CCT_LIFE(DLifetime::both, DSizeLifetime<tag_false_with_extent>::value);
+    D_CCT_LIFE(DLifetime::both,
                container_lifetime_of<tag_false_with_extent>::value);
     D_CCT_CHECK(is_constexpr_container<tag_false_with_extent>::value);
 
     // a bare opt-out with no other signal is, of course, not promoted
-    D_CCT_LIFE(lifetime::runtime, DSizeLifetime<tag_false>::value);
+    D_CCT_LIFE(DLifetime::runtime, DSizeLifetime<tag_false>::value);
 
     return ok;
 }
@@ -208,16 +208,16 @@ bool tests_container_lifetime_meet()
     bool ok = true;
 
     // meet(both, X) = X
-    D_CCT_LIFE(lifetime::both,         container_lifetime_of<life_both_sized>::value);
-    D_CCT_LIFE(lifetime::compile_time, container_lifetime_of<life_compile_sized>::value);
-    D_CCT_LIFE(lifetime::runtime,      container_lifetime_of<life_runtime_sized>::value);
-    D_CCT_LIFE(lifetime::none,         container_lifetime_of<life_none_sized>::value);
+    D_CCT_LIFE(DLifetime::both,         container_lifetime_of<life_both_sized>::value);
+    D_CCT_LIFE(DLifetime::compile_time, container_lifetime_of<life_compile_sized>::value);
+    D_CCT_LIFE(DLifetime::runtime,      container_lifetime_of<life_runtime_sized>::value);
+    D_CCT_LIFE(DLifetime::none,         container_lifetime_of<life_none_sized>::value);
 
     // and each fixture really does have DSizeLifetime = both
-    D_CCT_LIFE(lifetime::both, DSizeLifetime<life_both_sized>::value);
-    D_CCT_LIFE(lifetime::both, DSizeLifetime<life_compile_sized>::value);
-    D_CCT_LIFE(lifetime::both, DSizeLifetime<life_runtime_sized>::value);
-    D_CCT_LIFE(lifetime::both, DSizeLifetime<life_none_sized>::value);
+    D_CCT_LIFE(DLifetime::both, DSizeLifetime<life_both_sized>::value);
+    D_CCT_LIFE(DLifetime::both, DSizeLifetime<life_compile_sized>::value);
+    D_CCT_LIFE(DLifetime::both, DSizeLifetime<life_runtime_sized>::value);
+    D_CCT_LIFE(DLifetime::both, DSizeLifetime<life_none_sized>::value);
 
     // the verdict IS the meet - recomputed from the two operands
     #define D_CCT_IS_MEET(...)                                                \
@@ -274,19 +274,19 @@ bool tests_container_lifetime_lattice()
 {
     bool ok = true;
 
-    D_CCT_LIFE(lifetime::both,         container_lifetime_of<life_both_sized>::value);
-    D_CCT_LIFE(lifetime::compile_time, container_lifetime_of<life_compile_sized>::value);
-    D_CCT_LIFE(lifetime::runtime,      container_lifetime_of<extent_nonliteral>::value);
+    D_CCT_LIFE(DLifetime::both,         container_lifetime_of<life_both_sized>::value);
+    D_CCT_LIFE(DLifetime::compile_time, container_lifetime_of<life_compile_sized>::value);
+    D_CCT_LIFE(DLifetime::runtime,      container_lifetime_of<extent_nonliteral>::value);
 
     // `none`, route 1: declared outright
-    D_CCT_LIFE(lifetime::none, container_lifetime_of<life_none_sized>::value);
+    D_CCT_LIFE(DLifetime::none, container_lifetime_of<life_none_sized>::value);
 
     // `none`, route 2: meet(runtime, compile_time) - the stage-sets are disjoint
-    D_CCT_LIFE(lifetime::runtime,      DSizeLifetime<life_compile_unsized>::value);
-    D_CCT_LIFE(lifetime::compile_time, lifetime_of<life_compile_unsized>::value);
-    D_CCT_LIFE(lifetime::none, container_lifetime_of<life_compile_unsized>::value);
-    D_CCT_CHECK(lifetime_meet(lifetime::runtime, lifetime::compile_time) ==
-                lifetime::none);
+    D_CCT_LIFE(DLifetime::runtime,      DSizeLifetime<life_compile_unsized>::value);
+    D_CCT_LIFE(DLifetime::compile_time, lifetime_of<life_compile_unsized>::value);
+    D_CCT_LIFE(DLifetime::none, container_lifetime_of<life_compile_unsized>::value);
+    D_CCT_CHECK(lifetime_meet(DLifetime::runtime, DLifetime::compile_time) ==
+                DLifetime::none);
 
     // the predicates read the lattice correctly
     D_CCT_CHECK(is_both(container_lifetime_of<life_both_sized>::value));
@@ -320,20 +320,20 @@ bool tests_container_lifetime_tag_bypass()
     bool ok = true;
 
     // the contents are demonstrably not constexpr-constructible
-    D_CCT_LIFE(lifetime::runtime, lifetime_of<tag_true_nonliteral>::value);
+    D_CCT_LIFE(DLifetime::runtime, lifetime_of<tag_true_nonliteral>::value);
 
     // ...and the verdict is `both` regardless
-    D_CCT_LIFE(lifetime::both, container_lifetime_of<tag_true_nonliteral>::value);
+    D_CCT_LIFE(DLifetime::both, container_lifetime_of<tag_true_nonliteral>::value);
     D_CCT_CHECK(is_constexpr_container<tag_true_nonliteral>::value);
 
     // which is NOT what the meet would have said
     D_CCT_CHECK(lifetime_meet(DSizeLifetime<tag_true_nonliteral>::value,
                               lifetime_of<tag_true_nonliteral>::value) ==
-                lifetime::runtime);
+                DLifetime::runtime);
 
     // a tagged type with literal contents agrees with the meet, so the bypass
     // is only observable on the non-literal ones
-    D_CCT_LIFE(lifetime::both, container_lifetime_of<DTagTrue>::value);
+    D_CCT_LIFE(DLifetime::both, container_lifetime_of<DTagTrue>::value);
     D_CCT_CHECK(container_lifetime_of<DTagTrue>::value ==
                 lifetime_meet(DSizeLifetime<DTagTrue>::value,
                               lifetime_of<DTagTrue>::value));
@@ -361,14 +361,14 @@ bool tests_container_lifetime_type()
     bool ok = true;
 
     D_CCT_CHECK((std::is_same<container_lifetime_of<life_both_sized>::type,
-                              DLifetimeConstant<lifetime::both>>::value));
+                              DLifetimeConstant<DLifetime::both>>::value));
     D_CCT_CHECK((std::is_same<container_lifetime_of<life_compile_sized>::type,
                               DLifetimeConstant<
-                                  lifetime::compile_time>>::value));
+                                  DLifetime::compile_time>>::value));
     D_CCT_CHECK((std::is_same<container_lifetime_of<extent_nonliteral>::type,
-                              DLifetimeConstant<lifetime::runtime>>::value));
+                              DLifetimeConstant<DLifetime::runtime>>::value));
     D_CCT_CHECK((std::is_same<container_lifetime_of<life_none_sized>::type,
-                              DLifetimeConstant<lifetime::none>>::value));
+                              DLifetimeConstant<DLifetime::none>>::value));
 
     // the _t alias names the same type
     D_CCT_CHECK((std::is_same<container_lifetime_of_t<life_both_sized>,
@@ -410,7 +410,7 @@ tests_container_lifetime_value_companion
   on C++14, absent below.
   Tests the following:
   - the shorthand carries the same value as the trait
-  - it is typed `lifetime`, not bool - so it cannot be folded into a boolean
+  - it is typed `DLifetime`, not bool - so it cannot be folded into a boolean
     expression by accident
 */
 bool tests_container_lifetime_value_companion()
@@ -426,14 +426,14 @@ bool tests_container_lifetime_value_companion()
     D_CCT_CHECK(container_lifetime_of_v<std::vector<int>> ==
                 container_lifetime_of<std::vector<int>>::value);
 
-    D_CCT_CHECK(container_lifetime_of_v<life_both_sized> == lifetime::both);
+    D_CCT_CHECK(container_lifetime_of_v<life_both_sized> == DLifetime::both);
     D_CCT_CHECK(container_lifetime_of_v<life_compile_sized> ==
-                lifetime::compile_time);
-    D_CCT_CHECK(container_lifetime_of_v<life_none_sized> == lifetime::none);
-    D_CCT_CHECK(container_lifetime_of_v<std::vector<int>> == lifetime::runtime);
+                DLifetime::compile_time);
+    D_CCT_CHECK(container_lifetime_of_v<life_none_sized> == DLifetime::none);
+    D_CCT_CHECK(container_lifetime_of_v<std::vector<int>> == DLifetime::runtime);
 
     D_CCT_CHECK((std::is_same<decltype(container_lifetime_of_v<std::vector<int>>),
-                              const lifetime::value>::value));
+                              const DLifetime::value>::value));
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 

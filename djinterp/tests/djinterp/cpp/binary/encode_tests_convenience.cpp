@@ -27,35 +27,35 @@ tests_encode_convenience
 bool tests_encode_convenience()
 {
     // a fresh buffer each call - no accumulation across calls
-    const byte_string _first  = encode(static_cast<re_std::uint16_t>(0x1234));
-    const byte_string _second = encode(static_cast<re_std::uint16_t>(0x1234));
-    D_EN_CHECK((_first == byte_string{ 0x12, 0x34 }));
-    D_EN_CHECK((_second == byte_string{ 0x12, 0x34 }));
+    const DByteString _first  = encode(static_cast<re_std::uint16_t>(0x1234));
+    const DByteString _second = encode(static_cast<re_std::uint16_t>(0x1234));
+    D_EN_CHECK((_first == DByteString{ 0x12, 0x34 }));
+    D_EN_CHECK((_second == DByteString{ 0x12, 0x34 }));
     D_EN_CHECK(_first.size() == 2);
 
     // encode agrees with a manual encode_into into an empty buffer, per family
     {
-        byte_string _manual;
+        DByteString _manual;
         encode_into(_manual, true);
         D_EN_CHECK(encode(true) == _manual);
     }
     {
-        byte_string _manual;
+        DByteString _manual;
         encode_into(_manual, static_cast<re_std::int32_t>(-2147483647 - 1));
         D_EN_CHECK(encode(static_cast<re_std::int32_t>(-2147483647 - 1)) == _manual);
     }
     {
-        byte_string _manual;
+        DByteString _manual;
         encode_into(_manual, 0.5);
         D_EN_CHECK(encode(0.5) == _manual);
     }
     {
-        byte_string _manual;
+        DByteString _manual;
         encode_into(_manual, DEncEnumU16::value);
         D_EN_CHECK(encode(DEncEnumU16::value) == _manual);
     }
     {
-        byte_string _manual;
+        DByteString _manual;
         encode_into(_manual, DEncCustomLeaf{});
         D_EN_CHECK(encode(DEncCustomLeaf{}) == _manual);
     }

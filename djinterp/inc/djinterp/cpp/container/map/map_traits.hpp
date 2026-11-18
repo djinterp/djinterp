@@ -911,10 +911,10 @@ constexpr bool map_does_full_mutation =
 // IV.  Combined Classification              (map_class)
 // =============================================================================
 
-// map_class
+// DMapClass
 //   struct: complete compile-time classification of a map-like container type.
 template<typename Type>
-struct map_class
+struct DMapClass
 {
     using C = clean_t<Type>;
 
@@ -972,6 +972,10 @@ struct map_class
     static constexpr bool can_erase_key     =
         has_map_erase_key_v<C>;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using map_class = DMapClass<Type>;
 
 
 NS_END  // traits

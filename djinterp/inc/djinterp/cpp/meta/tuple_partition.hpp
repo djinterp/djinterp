@@ -7,7 +7,7 @@
 *
 *   1. SIZING
 *        sized        — uniform chunk size N.
-*        unsuffixed   — variable sizes via `sizes<N1, N2, ...>` wrapper.
+*        unsuffixed   — variable sizes via `DSizes<N1, N2, ...>` wrapper.
 *
 *   2. LEVEL
 *        type-level   — traits producing tuple types from type packs.
@@ -52,7 +52,7 @@
 *       pack_chunks<N, Vs...>         -> DPartitionPackSized<N, Vs...>
 *       DNttpChunk                     -> DNttpChunk (unchanged)
 *
-*   For variable chunk sizes, the new `sizes<...>` and corresponding
+*   For variable chunk sizes, the new `DSizes<...>` and corresponding
 * `partition_tuples`, `copy_tuples`, `partition_tuples` (value-level),
 * and `partition_pack` traits/functions have no prior equivalent.
 *
@@ -132,13 +132,17 @@ NS_DJINTERP
 // I.   sizes wrapper
 // ===========================================================================
 
-// sizes
+// DSizes
 //   alias: explicit boundary between chunk sizes and types in
 // `partition_tuples<...>` and value-level analogues.  Alias for
 // `std::index_sequence` so callers can use stdlib utilities to
 // construct or manipulate size lists.
 template<std::size_t... Ns>
-using sizes = std::index_sequence<Ns...>;
+using DSizes = std::index_sequence<Ns...>;
+
+// old name, until 0.9.0-rc.1
+template<std::size_t... Ns>
+using sizes = DSizes<Ns...>;
 
 
 // ===========================================================================
@@ -322,7 +326,7 @@ struct partition_tuples_trait;
 // primary: variadic pack form
 template<std::size_t... Ns,
          typename...    Source>
-struct partition_tuples_trait<sizes<Ns...>, Source...>
+struct partition_tuples_trait<DSizes<Ns...>, Source...>
 {
     static_assert(
         internal::sum_sizes<Ns...>::value <= sizeof...(Source),
@@ -338,8 +342,8 @@ struct partition_tuples_trait<sizes<Ns...>, Source...>
 // tuple form: routes to the pack form by unwrapping std::tuple
 template<std::size_t... Ns,
          typename... Inner>
-struct partition_tuples_trait<sizes<Ns...>, std::tuple<Inner...>>
-    : partition_tuples_trait<sizes<Ns...>, Inner...>
+struct partition_tuples_trait<DSizes<Ns...>, std::tuple<Inner...>>
+    : partition_tuples_trait<DSizes<Ns...>, Inner...>
 {};
 
 // partition_tuples_t
@@ -708,7 +712,7 @@ template<std::size_t... Ns,
          typename... Args>
 D_CONSTEXPR
 auto copy_tuples(
-    sizes<Ns...>,
+    DSizes<Ns...>,
     const Args&... _args
 )
 {
@@ -729,7 +733,7 @@ template<std::size_t... Ns,
          typename... Inner>
 D_CONSTEXPR
 auto copy_tuples(
-    sizes<Ns...>,
+    DSizes<Ns...>,
     const std::tuple<Inner...>& _tuple
 )
 {
@@ -930,7 +934,7 @@ template<std::size_t... Ns,
          typename... Args>
 D_CONSTEXPR
 auto partition_tuples(
-    sizes<Ns...>,
+    DSizes<Ns...>,
     Args&&... _args
 )
 {
@@ -953,7 +957,7 @@ template<std::size_t... Ns,
          typename... Inner>
 D_CONSTEXPR
 auto partition_tuples(
-    sizes<Ns...>,
+    DSizes<Ns...>,
     std::tuple<Inner...>&& _tuple
 )
 {
@@ -1113,7 +1117,7 @@ auto partition_tuples(
 
     template<std::size_t... Ns,
              auto...        Vs>
-    struct partition_pack<sizes<Ns...>, Vs...>
+    struct partition_pack<DSizes<Ns...>, Vs...>
     {
         static_assert(
             internal::sum_sizes<Ns...>::value <= sizeof...(Vs),

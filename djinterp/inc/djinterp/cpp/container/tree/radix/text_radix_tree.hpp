@@ -128,7 +128,7 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// radix_child_map
+// DRadixChildMap
 //   struct: the child slots of a text node -- 256 possible labels, stored as a
 // 256-BIT CHARACTERISTIC FUNCTION plus a densely packed array of only the
 // children that exist.
@@ -154,7 +154,7 @@ NS_END  // internal
 // So the first k_inline of them live in the object and the vast majority of
 // nodes never allocate a slot array at all.
 template<typename Node>
-struct radix_child_map
+struct DRadixChildMap
 {
     // 256 labels / 64 bits per word
     static D_CONSTEXPR std::size_t k_words = 4u;
@@ -172,7 +172,7 @@ struct radix_child_map
     re_std::uint16_t count;
     re_std::uint16_t cap;
 
-    radix_child_map() D_NOEXCEPT
+    DRadixChildMap() D_NOEXCEPT
         : spill(nullptr),
           count(0u),
           cap(0u)
@@ -188,16 +188,16 @@ struct radix_child_map
         }
     }
 
-    ~radix_child_map()
+    ~DRadixChildMap()
     {
         delete[] spill;
     }
 
-    radix_child_map(
-        const radix_child_map&
+    DRadixChildMap(
+        const DRadixChildMap&
     ) = delete;
-    radix_child_map& operator=(
-        const radix_child_map&
+    DRadixChildMap& operator=(
+        const DRadixChildMap&
     ) = delete;
 
     // slots
@@ -355,7 +355,7 @@ struct radix_child_map
     //   take everything from _o, leaving it empty. Used by the edge split (the
     // whole subtree moves down) and by the move constructor.
     void adopt(
-        radix_child_map& _o
+        DRadixChildMap& _o
     ) D_NOEXCEPT
     {
         delete[] spill;
@@ -438,12 +438,16 @@ private:
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Node>
+using radix_child_map = DRadixChildMap<Node>;
+
 
 // ==========================================================================
 //  text_radix_node
 // ==========================================================================
 
-// text_radix_node
+// DTextRadixNode
 //   struct: one node. Carries the compressed edge label from its parent, an
 // optional terminal value, and 256 child slots indexed by the first byte of
 // the remaining key.
@@ -453,18 +457,18 @@ private:
 // here, it is unrepresentable to violate. That is why a descent never
 // backtracks: the next byte of the key picks the only child that could match.
 template<typename Value>
-struct text_radix_node
-    : public radix_node_base<text_radix_node<Value>>
+struct DTextRadixNode
+    : public DRadixNodeBase<DTextRadixNode<Value>>
 {
     using value_type = Value;
-    using node_type  = text_radix_node<Value>;
+    using node_type  = DTextRadixNode<Value>;
 
     // the compressed edge label from the parent to this node. The root's is
     // EMPTY -- the root contributes no label.
     std::string edge;
 
     // the mapped value.  present == false at a waypoint.
-    radix_terminal<Value> terminal;
+    DRadixTerminal<Value> terminal;
 
     // THE MEMBER has_radix_children PROBES FOR. It used to be called
     // child_ptrs, with a *type alias* named `children` beside it -- so the
@@ -473,21 +477,21 @@ struct text_radix_node
     // whether the node had two children or none. It is now 256 BITS plus only
     // the children that exist. Same separation, same one-place-per-label: the
     // lookup table simply became its own characteristic function.
-    radix_child_map<node_type> children;
+    DRadixChildMap<node_type> children;
 
-    text_radix_node()
-        : radix_node_base<node_type>(),
+    DTextRadixNode()
+        : DRadixNodeBase<node_type>(),
           edge(),
           terminal(),
           children()
     {}
 
     explicit
-    text_radix_node(
+    DTextRadixNode(
         re_std::string_view _edge_label,
         bool               _is_terminal = false
     )
-        : radix_node_base<node_type>(),
+        : DRadixNodeBase<node_type>(),
           edge(_edge_label.data(), _edge_label.size()),
           terminal(),
           children()
@@ -497,11 +501,11 @@ struct text_radix_node
 
     // deep copy is a tree-level operation (m_copy_subtree); a node cannot copy
     // itself without copying everything below it.
-    text_radix_node(
-        const text_radix_node&
+    DTextRadixNode(
+        const DTextRadixNode&
     ) = delete;
-    text_radix_node& operator=(
-        const text_radix_node&
+    DTextRadixNode& operator=(
+        const DTextRadixNode&
     ) = delete;
 
     // These three were 256-iteration scans. The map answers all of them in
@@ -510,6 +514,10 @@ struct text_radix_node
     std::size_t child_count()    const D_NOEXCEPT { return children.size(); }
     node_type*  sole_child()     const D_NOEXCEPT { return children.sole(); }
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Value>
+using text_radix_node = DTextRadixNode<Value>;
 
 
 // ==========================================================================
@@ -567,18 +575,18 @@ struct radix_storage_signals<false, Node, Capacity>
 
 template<typename         Value,
          std::size_t      Capacity = 0,
-         container_option Flags     = container_option::none>
-class text_radix_tree
+         DContainerOption Flags     = DContainerOption::none>
+class DTextRadixTree
     : public radix_storage_signals<
           container_option_has(
               radix_tree_option_resolve(Flags, Capacity),
-              container_option::fixed_size),
-          text_radix_node<Value>,
+              DContainerOption::fixed_size),
+          DTextRadixNode<Value>,
           Capacity>
 {
 private:
     // --- option resolution --------------------------------------------
-    static D_CONSTEXPR container_option k_resolved =
+    static D_CONSTEXPR DContainerOption k_resolved =
         radix_tree_option_resolve(Flags, Capacity);
 
     static_assert(
@@ -586,23 +594,23 @@ private:
         "container_option: at most one flag per axis.");
 
     static_assert(
-        !container_option_has(k_resolved, container_option::compile_time),
+        !container_option_has(k_resolved, DContainerOption::compile_time),
         "compile_time mutability is handled by text_radix_tree_ct.");
 
     static D_CONSTEXPR bool k_writable =
-        container_option_has(k_resolved, container_option::writable);
+        container_option_has(k_resolved, DContainerOption::writable);
     static D_CONSTEXPR bool k_immutable =
-        container_option_has(k_resolved, container_option::immutable);
+        container_option_has(k_resolved, DContainerOption::immutable);
     static D_CONSTEXPR bool k_ordered =
-        container_option_has(k_resolved, container_option::ordered);
+        container_option_has(k_resolved, DContainerOption::ordered);
     static D_CONSTEXPR bool k_unordered =
-        container_option_has(k_resolved, container_option::unordered);
+        container_option_has(k_resolved, DContainerOption::unordered);
     static D_CONSTEXPR bool k_fixed =
-        container_option_has(k_resolved, container_option::fixed_size);
+        container_option_has(k_resolved, DContainerOption::fixed_size);
     static D_CONSTEXPR bool k_dynamic =
-        container_option_has(k_resolved, container_option::dynamic_size);
+        container_option_has(k_resolved, DContainerOption::dynamic_size);
 
-    using node_type = text_radix_node<Value>;
+    using node_type = DTextRadixNode<Value>;
 
     // fixed_node_pool
     //   a slab of Capacity nodes. Slot 0 is ALWAYS the root, so the root
@@ -638,8 +646,8 @@ public:
     using difference_type = std::ptrdiff_t;
     using size_type       = std::size_t;
 
-    using options_type = container_option;
-    static D_CONSTEXPR container_option option_flags = k_resolved;
+    using options_type = DContainerOption;
+    static D_CONSTEXPR DContainerOption option_flags = k_resolved;
 
     static D_CONSTEXPR bool is_writable  = k_writable;
     static D_CONSTEXPR bool is_immutable = k_immutable;
@@ -649,7 +657,7 @@ public:
 
     // the framework's axes. multiplicity is UNIQUE: one key, at most one
     // value. That is what makes the key an ADDRESS.
-    static D_CONSTEXPR container_structure axis_structure =
+    static D_CONSTEXPR DContainerStructure axis_structure =
         radix_axis_structure;
     static D_CONSTEXPR DContainerMultiplicity axis_multiplicity =
         radix_axis_multiplicity;
@@ -659,14 +667,14 @@ public:
     //  construction
     // ------------------------------------------------------------------
 
-    text_radix_tree()
+    DTextRadixTree()
         : m_store(),
           m_count(0u)
     {
         m_init_root();
     }
 
-    text_radix_tree(const text_radix_tree& _other)
+    DTextRadixTree(const DTextRadixTree& _other)
         : m_store(),
           m_count(0u)
     {
@@ -684,26 +692,26 @@ public:
         m_count = _other.m_count;
     }
 
-    text_radix_tree(text_radix_tree&& _other) D_NOEXCEPT
+    DTextRadixTree(DTextRadixTree&& _other) D_NOEXCEPT
         : m_store(),
           m_count(0u)
     {
         m_init_root();
 
-        m_move_from(static_cast<text_radix_tree&&>(_other));
+        m_move_from(static_cast<DTextRadixTree&&>(_other));
     }
 
-    ~text_radix_tree()
+    ~DTextRadixTree()
     {
         m_destroy_all();
     }
 
-    text_radix_tree&
-    operator=(const text_radix_tree& _other)
+    DTextRadixTree&
+    operator=(const DTextRadixTree& _other)
     {
         if (this != &_other)
         {
-            text_radix_tree tmp(_other);
+            DTextRadixTree tmp(_other);
 
             m_swap_with(tmp);
         }
@@ -711,18 +719,18 @@ public:
         return *this;
     }
 
-    text_radix_tree&
-    operator=(text_radix_tree&& _other) D_NOEXCEPT
+    DTextRadixTree&
+    operator=(DTextRadixTree&& _other) D_NOEXCEPT
     {
         if (this != &_other)
         {
             m_destroy_children(m_root_ptr());
 
-            m_root_ptr()->terminal    = radix_terminal<Value>();
+            m_root_ptr()->terminal    = DRadixTerminal<Value>();
             m_root_ptr()->is_terminal = false;
             m_count                   = 0u;
 
-            m_move_from(static_cast<text_radix_tree&&>(_other));
+            m_move_from(static_cast<DTextRadixTree&&>(_other));
         }
 
         return *this;
@@ -900,7 +908,7 @@ public:
             return false;
         }
 
-        n->terminal    = radix_terminal<Value>();
+        n->terminal    = DRadixTerminal<Value>();
         n->is_terminal = false;
 
         --m_count;
@@ -919,7 +927,7 @@ public:
 
         m_destroy_children(r);
 
-        r->terminal    = radix_terminal<Value>();
+        r->terminal    = DRadixTerminal<Value>();
         r->is_terminal = false;
         m_count        = 0u;
 
@@ -995,7 +1003,7 @@ public:
             re_std::string_view rest(_key.data() + pos, _key.size() - pos);
             re_std::string_view edge(child->edge.data(), child->edge.size());
 
-            text_prefix_match_result r = text_prefix_compare(rest, edge);
+            DTextPrefixMatchResult r = text_prefix_compare(rest, edge);
 
             if (!r.edge_consumed)
             {
@@ -1039,17 +1047,17 @@ public:
     // tree's insert takes (key, value) -- two arguments -- so the probe cannot
     // fire. The container was therefore claiming it admits DUPLICATE KEYS. It
     // cannot: the key IS the address, one node per address, and insert
-    // OVERWRITES. m = 1. The static `multiplicity` constant is the documented
+    // OVERWRITES. m = 1. The static `DMultiplicity` constant is the documented
     // authoritative override for exactly this -- a bound with no structural
     // tell.
     static D_CONSTEXPR std::size_t multiplicity = 1u;
 
-    // STRUCTURE. structure_kind_of said `flat`. has_node_summand wants a
+    // STRUCTURE. structure_kind_of said `DFlat`. has_node_summand wants a
     // node_type that is ITSELF container-shaped, and container_depth walks the
     // value_type chain -- which here is just Value, so depth 1. Neither probe
     // can see that a TRIE NESTS. This is precisely what the hierarchical tag
     // is documented for: "asserts nesting the chain cannot expose".
-    using structure_category = hierarchical;
+    using structure_category = DHierarchical;
 
     // ------------------------------------------------------------------
     //  ITERATION  --  walking the addresses, in order
@@ -1328,7 +1336,7 @@ private:
         m_store.used[0]  = true;   // slot 0 is ALWAYS the root
         m_store.count    = 1u;
         m_store.nodes[0].edge.clear();
-        m_store.nodes[0].terminal    = radix_terminal<Value>();
+        m_store.nodes[0].terminal    = DRadixTerminal<Value>();
         m_store.nodes[0].is_terminal = false;
         m_store.nodes[0].parent      = nullptr;
         m_store.nodes[0].children.clear();
@@ -1374,7 +1382,7 @@ private:
                 node_type& n = m_store.nodes[i];
 
                 n.edge.assign(_edge.data(), _edge.size());
-                n.terminal    = radix_terminal<Value>();
+                n.terminal    = DRadixTerminal<Value>();
                 n.is_terminal = _is_terminal;
                 n.parent      = nullptr;
                 n.children.clear();
@@ -1424,7 +1432,7 @@ private:
         }
 
         _node->edge.clear();
-        _node->terminal    = radix_terminal<Value>();
+        _node->terminal    = DRadixTerminal<Value>();
         _node->is_terminal = false;
         _node->parent      = nullptr;
         _node->children.clear();
@@ -1546,7 +1554,7 @@ private:
     // the source -- which is what a move must do when the storage is
     // in-object.
     void
-    m_move_from(text_radix_tree&& _other)
+    m_move_from(DTextRadixTree&& _other)
     {
         node_type* src = _other.m_root_ptr();
         node_type* dst = m_root_ptr();
@@ -1569,7 +1577,7 @@ private:
     m_move_children_impl(
         node_type*       _src,
         node_type*       _dst,
-        text_radix_tree& /*_other*/,
+        DTextRadixTree& /*_other*/,
         std::true_type   /*fixed: in-object storage, cannot steal*/
     )
     {
@@ -1580,7 +1588,7 @@ private:
     m_move_children_impl(
         node_type*       _src,
         node_type*       _dst,
-        text_radix_tree& _other,
+        DTextRadixTree& _other,
         std::false_type  /*dynamic: steal the pointers*/
     )
     {
@@ -1605,7 +1613,7 @@ private:
 
         m_destroy_children(r);
 
-        r->terminal    = radix_terminal<Value>();
+        r->terminal    = DRadixTerminal<Value>();
         r->is_terminal = false;
         m_count        = 0u;
 
@@ -1613,7 +1621,7 @@ private:
     }
 
     void
-    m_swap_with(text_radix_tree& _other)
+    m_swap_with(DTextRadixTree& _other)
     {
         // a fixed pool is in-object, so a pointer swap is not available; the
         // copy-and-swap idiom degrades to a copy either way.
@@ -1659,7 +1667,7 @@ private:
             re_std::string_view rest(_key.data() + pos, _key.size() - pos);
             re_std::string_view edge(child->edge.data(), child->edge.size());
 
-            text_prefix_match_result r = text_prefix_compare(rest, edge);
+            DTextPrefixMatchResult r = text_prefix_compare(rest, edge);
 
             // The edge must be FULLY consumed to step past it. If it is not,
             // the key either diverges from it or ends inside it -- and a key
@@ -1706,7 +1714,7 @@ private:
             re_std::string_view edge(
                 child->edge.data(), child->edge.size());
 
-            text_prefix_match_result r = text_prefix_compare(rest, edge);
+            DTextPrefixMatchResult r = text_prefix_compare(rest, edge);
 
             if (r.edge_consumed)
             {
@@ -1775,7 +1783,7 @@ private:
 
         // the upper half keeps only the shared prefix, and becomes a waypoint
         _node->edge.resize(_split_pos);
-        _node->terminal    = radix_terminal<Value>();
+        _node->terminal    = DRadixTerminal<Value>();
         _node->is_terminal = false;
         _node->children.clear();
 
@@ -1874,7 +1882,7 @@ private:
             re_std::string_view edge(
                 child->edge.data(), child->edge.size());
 
-            text_prefix_match_result r = text_prefix_compare(rest, edge);
+            DTextPrefixMatchResult r = text_prefix_compare(rest, edge);
 
             if (r.edge_consumed)
             {
@@ -2085,35 +2093,54 @@ private:
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename         Value,
+         std::size_t      Capacity = 0,
+         DContainerOption Flags     = DContainerOption::none>
+using text_radix_tree = DTextRadixTree<Value, Capacity, Flags>;
+
 
 // ==========================================================================
 //  named subtypes
 // ==========================================================================
 
-// dyn_text_radix_tree
+// DDynTextRadixTree
 //   heap-backed, writable, unbounded.
 template<typename Value>
-using dyn_text_radix_tree =
-    text_radix_tree<Value, 0,
-                    container_option::writable |
-                    container_option::dynamic_size>;
+using DDynTextRadixTree =
+    DTextRadixTree<Value, 0,
+                    DContainerOption::writable |
+                    DContainerOption::dynamic_size>;
 
-// fixed_text_radix_tree
+// old name, until 0.9.0-rc.1
+template<typename Value>
+using dyn_text_radix_tree = DDynTextRadixTree<Value>;
+
+// DFixedTextRadixTree
 //   a slab of Capacity nodes; insertion throws bad_alloc when exhausted.
 template<typename    Value,
          std::size_t Capacity>
-using fixed_text_radix_tree =
-    text_radix_tree<Value, Capacity,
-                    container_option::writable |
-                    container_option::fixed_size>;
+using DFixedTextRadixTree =
+    DTextRadixTree<Value, Capacity,
+                    DContainerOption::writable |
+                    DContainerOption::fixed_size>;
 
-// immutable_text_radix_tree
+// old name, until 0.9.0-rc.1
+template<typename    Value,
+         std::size_t Capacity>
+using fixed_text_radix_tree = DFixedTextRadixTree<Value, Capacity>;
+
+// DImmutableTextRadixTree
 //   read-only: the mutators are SFINAE'd away.
 template<typename Value>
-using immutable_text_radix_tree =
-    text_radix_tree<Value, 0,
-                    container_option::immutable |
-                    container_option::dynamic_size>;
+using DImmutableTextRadixTree =
+    DTextRadixTree<Value, 0,
+                    DContainerOption::immutable |
+                    DContainerOption::dynamic_size>;
+
+// old name, until 0.9.0-rc.1
+template<typename Value>
+using immutable_text_radix_tree = DImmutableTextRadixTree<Value>;
 
 
 NS_END  // djinterp

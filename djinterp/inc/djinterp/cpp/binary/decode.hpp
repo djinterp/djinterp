@@ -84,7 +84,7 @@ NS_DJINTERP
 // ===========================================================================
 // I.   The medium (B*) - reader side
 // ===========================================================================
-//   `byte` and `byte_string` are the same medium encode.hpp names; declared
+//   `byte` and `DByteString` are the same medium encode.hpp names; declared
 // here too so this header stands alone.  Identical `using` aliases are
 // compatible, so the two coexist when both headers are included.
 
@@ -92,14 +92,20 @@ NS_DJINTERP
 //   type: one octet of the binary medium.
 using byte = unsigned char;
 
-// byte_string
+// DByteString
 //   type: a finite run of bytes - the concrete realisation of B*.
-using byte_string = std::vector<byte>;
+using DByteString = std::vector<byte>;
 
-// decode_length_type
+// old name, until 0.9.0-rc.1
+using byte_string = DByteString;
+
+// DDecodeLengthType
 //   type: the width-fixed unsigned integer a container decoder reads as the
 // leading size (element count) - the inverse of encode's leading count.
-using decode_length_type = re_std::uint64_t;
+using DDecodeLengthType = re_std::uint64_t;
+
+// old name, until 0.9.0-rc.1
+using decode_length_type = DDecodeLengthType;
 
 
 // ===========================================================================
@@ -136,7 +142,7 @@ public:
 
     // over a byte_string (the buffer must outlive the reader).
     explicit DByteReader(
-        const byte_string& _bytes
+        const DByteString& _bytes
     )
         : m_cur(_bytes.data()),
           m_end(_bytes.data() + _bytes.size()),
@@ -285,7 +291,7 @@ NS_INTERNAL
     bool get_uint_be(
         DByteReader&        _reader,
         std::size_t         _width,
-        decode_length_type& _out
+        DDecodeLengthType& _out
     )
     {
         byte _tmp[8] = {0};
@@ -303,11 +309,11 @@ NS_INTERNAL
         }
 
         // reassemble most-significant byte first
-        decode_length_type _value = 0;
+        DDecodeLengthType _value = 0;
         for (std::size_t _i = 0; _i < _width; ++_i)
         {
             _value = ( _value << 8 )
-                   | static_cast<decode_length_type>(_tmp[_i]);
+                   | static_cast<DDecodeLengthType>(_tmp[_i]);
         }
 
         _out = _value;
@@ -326,7 +332,7 @@ NS_INTERNAL
     {
         using unsigned_type = typename std::make_unsigned<Integral>::type;
 
-        decode_length_type _raw = 0;
+        DDecodeLengthType _raw = 0;
 
         if (!get_uint_be(_reader, sizeof(Integral), _raw))
         {
@@ -346,7 +352,7 @@ NS_INTERNAL
         DByteReader& _reader
     )
     {
-        decode_length_type _raw = 0;
+        DDecodeLengthType _raw = 0;
 
         if (!get_uint_be(_reader, sizeof(Float), _raw))
         {
@@ -500,11 +506,11 @@ DDecodeResult<clean_t<Type>> decode(
 }
 
 // decode
-//   function: convenience over a whole `byte_string` - wraps it in a reader and
+//   function: convenience over a whole `DByteString` - wraps it in a reader and
 // reads one leaf `Type` from the front.
 template<typename Type>
 DDecodeResult<clean_t<Type>> decode(
-    const byte_string& _bytes
+    const DByteString& _bytes
 )
 {
     DByteReader _reader(_bytes);

@@ -1,17 +1,17 @@
 /*******************************************************************************
 * djinterp [cpp]                                               array_options.hpp
 *
-*   Convenience facade for constructing `array<...>` instances from a
+*   Convenience facade for constructing `DArray<...>` instances from a
 * template option pack.  Three things live here:
 *
-*     1. The canonical-form option aliases (`array_opt_type<T>`,
+*     1. The canonical-form option aliases (`DArrayOptType<T>`,
 *        `DArrayOptExtent<N>`).  These wrap the array-specific keys
 *        defined in array.hpp into fully-formed `option<...>` entries
 *        so users do not have to spell out `std::integral_constant`
 *        wrappers.
 *     2. The trait `array_from_options<...>` and its `_t` alias,
-*        which expose the resolved `array<...>` instantiation as a
-*        public type.  Since `array<>` is itself an options-pack
+*        which expose the resolved `DArray<...>` instantiation as a
+*        public type.  Since `DArray<>` is itself an options-pack
 *        primary template, the trait is essentially an identity -
 *        but it remains useful as a documentation surface and as a
 *        place for future helper logic.
@@ -85,10 +85,14 @@ NS_DJINTERP
 // and iterability) use `DContainerOptLifetime<>` and
 // `DContainerOptIterability<>` from container_options.hpp.
 
-// array_opt_type
+// DArrayOptType
 //   alias: `option<array_type_key, Type>` for the element type axis.
 template<typename Type>
-using array_opt_type = option<array_type_key, Type>;
+using DArrayOptType = option<array_type_key, Type>;
+
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using array_opt_type = DArrayOptType<Type>;
 
 // DArrayOptExtent
 //   alias: `option<array_extent_key, integral_constant<size_t, N>>` for the
@@ -103,15 +107,15 @@ using DArrayOptExtent = option<array_extent_key,
 // ===========================================================================
 
 // array_from_options
-//   trait: exposes the `array<...>` instantiation produced by a given options
-// pack as `::type`. Since `array<>` is itself options-pack-shaped, this trait
+//   trait: exposes the `DArray<...>` instantiation produced by a given options
+// pack as `::type`. Since `DArray<>` is itself options-pack-shaped, this trait
 // is almost an identity - but it is useful as a self-documenting alias and as
 // an extension point for future post-processing (e.g. sanity checks,
 // normalization of the pack).
 template<typename... Options>
 struct array_from_options
 {
-    using type = array<Options...>;
+    using type = DArray<Options...>;
 };
 
 // array_from_options_t
@@ -125,7 +129,7 @@ using array_from_options_t = typename array_from_options<Options...>::type;
 // ===========================================================================
 
 // make_array_from_options
-//   factory: constructs an `array<...>` from a template option pack and a
+//   factory: constructs an `DArray<...>` from a template option pack and a
 // runtime element-initializer pack. When `array_extent_key` is absent from
 // `Options...`, the factory injects an extent equal to `sizeof...(Args)` so
 // that callers can omit extent altogether and let the argument count drive it
@@ -133,7 +137,7 @@ using array_from_options_t = typename array_from_options<Options...>::type;
 //
 // Implementation note: the function builds a fresh axes resolver
 // with the appropriate fallback extent, looks up which extent would actually
-// apply, and instantiates `array<...>` with an `DArrayOptExtent<>` injection
+// apply, and instantiates `DArray<...>` with an `DArrayOptExtent<>` injection
 // if needed. When the pack already contains an extent option, the user's value
 // wins and the injected option is shadowed by `option_list_lookup_t`'s
 // first-match rule. Example (extent deduced from args):
@@ -148,7 +152,7 @@ using array_from_options_t = typename array_from_options<Options...>::type;
 template<typename... Options,
          typename... Args>
 D_CONSTEXPR
-array<Options...,
+DArray<Options...,
       DArrayOptExtent<sizeof...(Args)>>
 make_array_from_options(
     Args&&... _args
@@ -158,7 +162,7 @@ make_array_from_options(
     // user already supplied an extent, theirs comes first in the pack and
     // `option_list_lookup_t` will return it; the trailing injection becomes
     // unreachable.
-    return array<Options...,
+    return DArray<Options...,
                  DArrayOptExtent<sizeof...(Args)>>(
         std::forward<Args>(_args)...);
 }

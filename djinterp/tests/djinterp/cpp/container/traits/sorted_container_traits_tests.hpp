@@ -175,18 +175,18 @@ static const int srt_state_count = 5;
 //   function: the _i-th sortedness state, in declaration order.  Out-of-range
 // indices clamp to non_container so a loop bug cannot read past the enum.
 inline
-sortedness srt_state_at(
+DSortedness srt_state_at(
     int _i
 )
 {
     switch (_i)
     {
-        case 0:  return sortedness::non_container;
-        case 1:  return sortedness::unordered;
-        case 2:  return sortedness::monotone;
-        case 3:  return sortedness::order_dependent;
-        case 4:  return sortedness::sorted;
-        default: return sortedness::non_container;
+        case 0:  return DSortedness::non_container;
+        case 1:  return DSortedness::unordered;
+        case 2:  return DSortedness::monotone;
+        case 3:  return DSortedness::order_dependent;
+        case 4:  return DSortedness::sorted;
+        default: return DSortedness::non_container;
     }
 }
 
@@ -196,7 +196,7 @@ sortedness srt_state_at(
 // characters are.
 inline
 bool srt_name_is(
-    sortedness  _state,
+    DSortedness  _state,
     const char* _expected
 )
 {

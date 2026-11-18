@@ -177,12 +177,12 @@ bool tests_runtime_container_class_life()
 
     // a carrier for each of the four verdicts
     D_RT_CHECK(DRuntimeContainerClass<DRtCategoryNone>::life
-                   == lifetime::none);
+                   == DLifetime::none);
     D_RT_CHECK(DRuntimeContainerClass<
                    DRtCategoryCompileTimeSized>::life
-                   == lifetime::compile_time);
-    D_RT_CHECK(DRuntimeContainerClass<rt_vector>::life == lifetime::runtime);
-    D_RT_CHECK(DRuntimeContainerClass<rt_array>::life  == lifetime::both);
+                   == DLifetime::compile_time);
+    D_RT_CHECK(DRuntimeContainerClass<rt_vector>::life == DLifetime::runtime);
+    D_RT_CHECK(DRuntimeContainerClass<rt_array>::life  == DLifetime::both);
 
     // the raw verdict, not a reduction: three verdicts collapse to
     // is_runtime == false, and life keeps them apart
@@ -211,7 +211,7 @@ bool tests_runtime_container_class_life()
 
     // constexpr, and it names itself
     D_RT_STATIC_CHECK(DRuntimeContainerClass<rt_vector>::life
-                          == lifetime::runtime);
+                          == DLifetime::runtime);
     D_RT_CHECK(rt_life_is(DRuntimeContainerClass<rt_vector>::life,
                           "runtime"));
     D_RT_CHECK(rt_life_is(DRuntimeContainerClass<rt_array>::life, "both"));

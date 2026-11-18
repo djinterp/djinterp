@@ -64,13 +64,13 @@
 NS_DJINTERP
 
 
-// flat_iterator
+// DFlatIterator
 //   class: a random-access iterator over a flat container's contiguous
 // storage. Parameterised on the element type and on constness; the latter
 // fixes whether the per-position access is settable.
 template<typename Type,
          bool     Const = false>
-class flat_iterator
+class DFlatIterator
 {
 public:
     using value_type        = Type;
@@ -89,13 +89,13 @@ public:
 
     // flat_iterator (default)
     //   a singular iterator addressing nothing.
-    constexpr flat_iterator() noexcept
+    constexpr DFlatIterator() noexcept
         : m_ptr(nullptr)
     {}
 
     // flat_iterator (pointer)
     //   an iterator addressing the position at _ptr.
-    constexpr explicit flat_iterator(pointer _ptr) noexcept
+    constexpr explicit DFlatIterator(pointer _ptr) noexcept
         : m_ptr(_ptr)
     {}
 
@@ -105,7 +105,7 @@ public:
     // non-const.
     template<bool C = Const,
              typename = typename std::enable_if<C>::type>
-    constexpr flat_iterator(const flat_iterator<Type, false>& _other) noexcept
+    constexpr DFlatIterator(const DFlatIterator<Type, false>& _other) noexcept
         : m_ptr(_other.raw())
     {}
 
@@ -147,40 +147,40 @@ public:
 
     // next
     //   the iterator one position forward.
-    constexpr flat_iterator next() const noexcept
+    constexpr DFlatIterator next() const noexcept
     {
-        return flat_iterator(m_ptr + 1);
+        return DFlatIterator(m_ptr + 1);
     }
 
     // prev
     //   the iterator one position back.
-    constexpr flat_iterator prev() const noexcept
+    constexpr DFlatIterator prev() const noexcept
     {
-        return flat_iterator(m_ptr - 1);
+        return DFlatIterator(m_ptr - 1);
     }
 
     // advanced
     //   the iterator _n positions away.
-    constexpr flat_iterator advanced(difference_type _n) const noexcept
+    constexpr DFlatIterator advanced(difference_type _n) const noexcept
     {
-        return flat_iterator(m_ptr + _n);
+        return DFlatIterator(m_ptr + _n);
     }
 
     // operator+ / operator-
-    constexpr flat_iterator operator+(difference_type _n) const noexcept
+    constexpr DFlatIterator operator+(difference_type _n) const noexcept
     {
-        return flat_iterator(m_ptr + _n);
+        return DFlatIterator(m_ptr + _n);
     }
 
-    constexpr flat_iterator operator-(difference_type _n) const noexcept
+    constexpr DFlatIterator operator-(difference_type _n) const noexcept
     {
-        return flat_iterator(m_ptr - _n);
+        return DFlatIterator(m_ptr - _n);
     }
 
     // operator- (distance)
     //   the number of positions from _other to this.
     constexpr difference_type
-    operator-(const flat_iterator& _other) const noexcept
+    operator-(const DFlatIterator& _other) const noexcept
     {
         return m_ptr - _other.m_ptr;
     }
@@ -190,46 +190,46 @@ public:
     // ------------------------------------------------------------------
 
     // operator++ (pre / post)
-    D_CONSTEXPR_CPP14 flat_iterator& operator++() noexcept
+    D_CONSTEXPR_CPP14 DFlatIterator& operator++() noexcept
     {
         ++m_ptr;
 
         return *this;
     }
 
-    D_CONSTEXPR_CPP14 flat_iterator operator++(int) noexcept
+    D_CONSTEXPR_CPP14 DFlatIterator operator++(int) noexcept
     {
-        flat_iterator _tmp(*this);
+        DFlatIterator _tmp(*this);
         ++m_ptr;
 
         return _tmp;
     }
 
     // operator-- (pre / post)
-    D_CONSTEXPR_CPP14 flat_iterator& operator--() noexcept
+    D_CONSTEXPR_CPP14 DFlatIterator& operator--() noexcept
     {
         --m_ptr;
 
         return *this;
     }
 
-    D_CONSTEXPR_CPP14 flat_iterator operator--(int) noexcept
+    D_CONSTEXPR_CPP14 DFlatIterator operator--(int) noexcept
     {
-        flat_iterator _tmp(*this);
+        DFlatIterator _tmp(*this);
         --m_ptr;
 
         return _tmp;
     }
 
     // operator+= / operator-=
-    D_CONSTEXPR_CPP14 flat_iterator& operator+=(difference_type _n) noexcept
+    D_CONSTEXPR_CPP14 DFlatIterator& operator+=(difference_type _n) noexcept
     {
         m_ptr += _n;
 
         return *this;
     }
 
-    D_CONSTEXPR_CPP14 flat_iterator& operator-=(difference_type _n) noexcept
+    D_CONSTEXPR_CPP14 DFlatIterator& operator-=(difference_type _n) noexcept
     {
         m_ptr -= _n;
 
@@ -240,32 +240,32 @@ public:
     //  comparison (constexpr throughout)
     // ------------------------------------------------------------------
 
-    constexpr bool operator==(const flat_iterator& _o) const noexcept
+    constexpr bool operator==(const DFlatIterator& _o) const noexcept
     {
         return m_ptr == _o.m_ptr;
     }
 
-    constexpr bool operator!=(const flat_iterator& _o) const noexcept
+    constexpr bool operator!=(const DFlatIterator& _o) const noexcept
     {
         return m_ptr != _o.m_ptr;
     }
 
-    constexpr bool operator<(const flat_iterator& _o) const noexcept
+    constexpr bool operator<(const DFlatIterator& _o) const noexcept
     {
         return m_ptr < _o.m_ptr;
     }
 
-    constexpr bool operator>(const flat_iterator& _o) const noexcept
+    constexpr bool operator>(const DFlatIterator& _o) const noexcept
     {
         return m_ptr > _o.m_ptr;
     }
 
-    constexpr bool operator<=(const flat_iterator& _o) const noexcept
+    constexpr bool operator<=(const DFlatIterator& _o) const noexcept
     {
         return m_ptr <= _o.m_ptr;
     }
 
-    constexpr bool operator>=(const flat_iterator& _o) const noexcept
+    constexpr bool operator>=(const DFlatIterator& _o) const noexcept
     {
         return m_ptr >= _o.m_ptr;
     }
@@ -274,15 +274,20 @@ private:
     pointer m_ptr;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Type,
+         bool     Const = false>
+using flat_iterator = DFlatIterator<Type, Const>;
+
 
 // operator+ (n + it)
 //   the symmetric scalar-plus-iterator form.
 template<typename Type,
          bool     Const>
 constexpr
-flat_iterator<Type, Const> operator+(
-    typename flat_iterator<Type, Const>::difference_type _n,
-    const flat_iterator<Type, Const>&                    _it
+DFlatIterator<Type, Const> operator+(
+    typename DFlatIterator<Type, Const>::difference_type _n,
+    const DFlatIterator<Type, Const>&                    _it
 ) noexcept
 {
     return _it + _n;
@@ -297,22 +302,22 @@ flat_iterator<Type, Const> operator+(
 //   factory: a non-const flat iterator at _ptr.
 template<typename Type>
 constexpr
-flat_iterator<Type, false> make_flat_iterator(
+DFlatIterator<Type, false> make_flat_iterator(
     Type* _ptr
 ) noexcept
 {
-    return flat_iterator<Type, false>(_ptr);
+    return DFlatIterator<Type, false>(_ptr);
 }
 
 // make_const_flat_iterator
 //   factory: a const flat iterator at _ptr.
 template<typename Type>
 constexpr
-flat_iterator<Type, true> make_const_flat_iterator(
+DFlatIterator<Type, true> make_const_flat_iterator(
     const Type* _ptr
 ) noexcept
 {
-    return flat_iterator<Type, true>(_ptr);
+    return DFlatIterator<Type, true>(_ptr);
 }
 
 

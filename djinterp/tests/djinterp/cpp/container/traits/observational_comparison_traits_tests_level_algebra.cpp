@@ -47,20 +47,20 @@ bool tests_observational_level_enum()
     bool ok = true;
 
     // scoped
-    D_OC_STATIC_CHECK(std::is_enum<observational_level>::value == true);
+    D_OC_STATIC_CHECK(std::is_enum<DObservationalLevel>::value == true);
     D_OC_STATIC_CHECK(
-        std::is_convertible<observational_level, int>::value == false);
+        std::is_convertible<DObservationalLevel, int>::value == false);
 
     // the implicit ordinals, in refinement order
-    D_OC_CHECK(static_cast<int>(observational_level::none) == 0);
-    D_OC_CHECK(static_cast<int>(observational_level::size) == 1);
-    D_OC_CHECK(static_cast<int>(observational_level::set)  == 2);
-    D_OC_CHECK(static_cast<int>(observational_level::bag)  == 3);
-    D_OC_CHECK(static_cast<int>(observational_level::seq)  == 4);
-    D_OC_CHECK(static_cast<int>(observational_level::str)  == 5);
+    D_OC_CHECK(static_cast<int>(DObservationalLevel::none) == 0);
+    D_OC_CHECK(static_cast<int>(DObservationalLevel::size) == 1);
+    D_OC_CHECK(static_cast<int>(DObservationalLevel::set)  == 2);
+    D_OC_CHECK(static_cast<int>(DObservationalLevel::bag)  == 3);
+    D_OC_CHECK(static_cast<int>(DObservationalLevel::seq)  == 4);
+    D_OC_CHECK(static_cast<int>(DObservationalLevel::str)  == 5);
 
     // a value-initialised level is the coarsest
-    D_OC_CHECK(observational_level{} == observational_level::none);
+    D_OC_CHECK(DObservationalLevel{} == DObservationalLevel::none);
 
     // pairwise distinct, checked over the whole enum rather than by hand
     for (int i = 0; i < oct_level_count; ++i)
@@ -75,9 +75,9 @@ bool tests_observational_level_enum()
 
     // usable as a non-type template argument
     D_OC_STATIC_CHECK(
-        std::integral_constant<observational_level,
-                               observational_level::bag>::value
-            == observational_level::bag);
+        std::integral_constant<DObservationalLevel,
+                               DObservationalLevel::bag>::value
+            == DObservationalLevel::bag);
 
     return ok;
 }
@@ -96,12 +96,12 @@ bool tests_observational_level_name()
     bool ok = true;
 
     // each level's spelling
-    D_OC_CHECK(oct_name_is(observational_level::none, "none"));
-    D_OC_CHECK(oct_name_is(observational_level::size, "size"));
-    D_OC_CHECK(oct_name_is(observational_level::set,  "set"));
-    D_OC_CHECK(oct_name_is(observational_level::bag,  "bag"));
-    D_OC_CHECK(oct_name_is(observational_level::seq,  "seq"));
-    D_OC_CHECK(oct_name_is(observational_level::str,  "str"));
+    D_OC_CHECK(oct_name_is(DObservationalLevel::none, "none"));
+    D_OC_CHECK(oct_name_is(DObservationalLevel::size, "size"));
+    D_OC_CHECK(oct_name_is(DObservationalLevel::set,  "set"));
+    D_OC_CHECK(oct_name_is(DObservationalLevel::bag,  "bag"));
+    D_OC_CHECK(oct_name_is(DObservationalLevel::seq,  "seq"));
+    D_OC_CHECK(oct_name_is(DObservationalLevel::str,  "str"));
 
     // pairwise distinct spellings
     for (int i = 0; i < oct_level_count; ++i)
@@ -119,7 +119,7 @@ bool tests_observational_level_name()
 
     // constexpr
     D_OC_STATIC_CHECK(
-        observational_level_name(observational_level::seq)[0] == 's');
+        observational_level_name(DObservationalLevel::seq)[0] == 's');
 
     return ok;
 }
@@ -143,12 +143,12 @@ bool tests_observational_level_rank()
     bool ok = true;
 
     // each level's rank
-    D_OC_CHECK(observational_level_rank(observational_level::none) == 0);
-    D_OC_CHECK(observational_level_rank(observational_level::size) == 1);
-    D_OC_CHECK(observational_level_rank(observational_level::set)  == 2);
-    D_OC_CHECK(observational_level_rank(observational_level::bag)  == 3);
-    D_OC_CHECK(observational_level_rank(observational_level::seq)  == 4);
-    D_OC_CHECK(observational_level_rank(observational_level::str)  == 5);
+    D_OC_CHECK(observational_level_rank(DObservationalLevel::none) == 0);
+    D_OC_CHECK(observational_level_rank(DObservationalLevel::size) == 1);
+    D_OC_CHECK(observational_level_rank(DObservationalLevel::set)  == 2);
+    D_OC_CHECK(observational_level_rank(DObservationalLevel::bag)  == 3);
+    D_OC_CHECK(observational_level_rank(DObservationalLevel::seq)  == 4);
+    D_OC_CHECK(observational_level_rank(DObservationalLevel::str)  == 5);
 
     // strictly increasing, so no two levels tie
     for (int i = 1; i < oct_level_count; ++i)
@@ -168,7 +168,7 @@ bool tests_observational_level_rank()
 
     // constexpr
     D_OC_STATIC_CHECK(
-        observational_level_rank(observational_level::str) == 5);
+        observational_level_rank(DObservationalLevel::str) == 5);
 
     return ok;
 }
@@ -191,31 +191,31 @@ bool tests_observational_level_coarser()
     bool ok = true;
 
     // the lower rank wins, in either order
-    D_OC_CHECK(observational_level_coarser(observational_level::str,
-                                           observational_level::seq)
-                   == observational_level::seq);
-    D_OC_CHECK(observational_level_coarser(observational_level::seq,
-                                           observational_level::str)
-                   == observational_level::seq);
-    D_OC_CHECK(observational_level_coarser(observational_level::bag,
-                                           observational_level::set)
-                   == observational_level::set);
-    D_OC_CHECK(observational_level_coarser(observational_level::size,
-                                           observational_level::str)
-                   == observational_level::size);
+    D_OC_CHECK(observational_level_coarser(DObservationalLevel::str,
+                                           DObservationalLevel::seq)
+                   == DObservationalLevel::seq);
+    D_OC_CHECK(observational_level_coarser(DObservationalLevel::seq,
+                                           DObservationalLevel::str)
+                   == DObservationalLevel::seq);
+    D_OC_CHECK(observational_level_coarser(DObservationalLevel::bag,
+                                           DObservationalLevel::set)
+                   == DObservationalLevel::set);
+    D_OC_CHECK(observational_level_coarser(DObservationalLevel::size,
+                                           DObservationalLevel::str)
+                   == DObservationalLevel::size);
 
     // none annihilates, str is the identity, over the whole enum
     for (int i = 0; i < oct_level_count; ++i)
     {
-        const observational_level l = oct_level_at(i);
+        const DObservationalLevel l = oct_level_at(i);
 
-        D_OC_CHECK(observational_level_coarser(l, observational_level::none)
-                       == observational_level::none);
-        D_OC_CHECK(observational_level_coarser(observational_level::none, l)
-                       == observational_level::none);
-        D_OC_CHECK(observational_level_coarser(l, observational_level::str)
+        D_OC_CHECK(observational_level_coarser(l, DObservationalLevel::none)
+                       == DObservationalLevel::none);
+        D_OC_CHECK(observational_level_coarser(DObservationalLevel::none, l)
+                       == DObservationalLevel::none);
+        D_OC_CHECK(observational_level_coarser(l, DObservationalLevel::str)
                        == l);
-        D_OC_CHECK(observational_level_coarser(observational_level::str, l)
+        D_OC_CHECK(observational_level_coarser(DObservationalLevel::str, l)
                        == l);
     }
 
@@ -224,9 +224,9 @@ bool tests_observational_level_coarser()
     {
         for (int j = 0; j < oct_level_count; ++j)
         {
-            const observational_level a = oct_level_at(i);
-            const observational_level b = oct_level_at(j);
-            const observational_level m = observational_level_coarser(a, b);
+            const DObservationalLevel a = oct_level_at(i);
+            const DObservationalLevel b = oct_level_at(j);
+            const DObservationalLevel m = observational_level_coarser(a, b);
 
             D_OC_CHECK((m == a) || (m == b));
             D_OC_CHECK(observational_level_rank(m)
@@ -238,9 +238,9 @@ bool tests_observational_level_coarser()
 
     // constexpr
     D_OC_STATIC_CHECK(
-        observational_level_coarser(observational_level::str,
-                                    observational_level::set)
-            == observational_level::set);
+        observational_level_coarser(DObservationalLevel::str,
+                                    DObservationalLevel::set)
+            == DObservationalLevel::set);
 
     return ok;
 }
@@ -259,29 +259,29 @@ bool tests_observational_level_finer()
     bool ok = true;
 
     // the higher rank wins, in either order
-    D_OC_CHECK(observational_level_finer(observational_level::str,
-                                         observational_level::seq)
-                   == observational_level::str);
-    D_OC_CHECK(observational_level_finer(observational_level::seq,
-                                         observational_level::str)
-                   == observational_level::str);
-    D_OC_CHECK(observational_level_finer(observational_level::none,
-                                         observational_level::size)
-                   == observational_level::size);
+    D_OC_CHECK(observational_level_finer(DObservationalLevel::str,
+                                         DObservationalLevel::seq)
+                   == DObservationalLevel::str);
+    D_OC_CHECK(observational_level_finer(DObservationalLevel::seq,
+                                         DObservationalLevel::str)
+                   == DObservationalLevel::str);
+    D_OC_CHECK(observational_level_finer(DObservationalLevel::none,
+                                         DObservationalLevel::size)
+                   == DObservationalLevel::size);
 
     // none is the identity, str annihilates
     for (int i = 0; i < oct_level_count; ++i)
     {
-        const observational_level l = oct_level_at(i);
+        const DObservationalLevel l = oct_level_at(i);
 
-        D_OC_CHECK(observational_level_finer(l, observational_level::none)
+        D_OC_CHECK(observational_level_finer(l, DObservationalLevel::none)
                        == l);
-        D_OC_CHECK(observational_level_finer(observational_level::none, l)
+        D_OC_CHECK(observational_level_finer(DObservationalLevel::none, l)
                        == l);
-        D_OC_CHECK(observational_level_finer(l, observational_level::str)
-                       == observational_level::str);
-        D_OC_CHECK(observational_level_finer(observational_level::str, l)
-                       == observational_level::str);
+        D_OC_CHECK(observational_level_finer(l, DObservationalLevel::str)
+                       == DObservationalLevel::str);
+        D_OC_CHECK(observational_level_finer(DObservationalLevel::str, l)
+                       == DObservationalLevel::str);
     }
 
     // the result is one of the arguments, and is >= both by rank
@@ -289,9 +289,9 @@ bool tests_observational_level_finer()
     {
         for (int j = 0; j < oct_level_count; ++j)
         {
-            const observational_level a = oct_level_at(i);
-            const observational_level b = oct_level_at(j);
-            const observational_level j2 = observational_level_finer(a, b);
+            const DObservationalLevel a = oct_level_at(i);
+            const DObservationalLevel b = oct_level_at(j);
+            const DObservationalLevel j2 = observational_level_finer(a, b);
 
             D_OC_CHECK((j2 == a) || (j2 == b));
             D_OC_CHECK(observational_level_rank(j2)
@@ -303,9 +303,9 @@ bool tests_observational_level_finer()
 
     // constexpr
     D_OC_STATIC_CHECK(
-        observational_level_finer(observational_level::set,
-                                  observational_level::bag)
-            == observational_level::bag);
+        observational_level_finer(DObservationalLevel::set,
+                                  DObservationalLevel::bag)
+            == DObservationalLevel::bag);
 
     return ok;
 }
@@ -329,17 +329,17 @@ bool tests_observational_level_subsumes()
     bool ok = true;
 
     // named pairs
-    D_OC_CHECK(observational_level_subsumes(observational_level::str,
-                                            observational_level::none)
+    D_OC_CHECK(observational_level_subsumes(DObservationalLevel::str,
+                                            DObservationalLevel::none)
                    == true);
-    D_OC_CHECK(observational_level_subsumes(observational_level::none,
-                                            observational_level::str)
+    D_OC_CHECK(observational_level_subsumes(DObservationalLevel::none,
+                                            DObservationalLevel::str)
                    == false);
-    D_OC_CHECK(observational_level_subsumes(observational_level::seq,
-                                            observational_level::bag)
+    D_OC_CHECK(observational_level_subsumes(DObservationalLevel::seq,
+                                            DObservationalLevel::bag)
                    == true);
-    D_OC_CHECK(observational_level_subsumes(observational_level::set,
-                                            observational_level::bag)
+    D_OC_CHECK(observational_level_subsumes(DObservationalLevel::set,
+                                            DObservationalLevel::bag)
                    == false);
 
     // reflexive
@@ -354,8 +354,8 @@ bool tests_observational_level_subsumes()
     {
         for (int j = 0; j < oct_level_count; ++j)
         {
-            const observational_level a = oct_level_at(i);
-            const observational_level b = oct_level_at(j);
+            const DObservationalLevel a = oct_level_at(i);
+            const DObservationalLevel b = oct_level_at(j);
             const bool ab = observational_level_subsumes(a, b);
             const bool ba = observational_level_subsumes(b, a);
 
@@ -373,9 +373,9 @@ bool tests_observational_level_subsumes()
         {
             for (int k = 0; k < oct_level_count; ++k)
             {
-                const observational_level a = oct_level_at(i);
-                const observational_level b = oct_level_at(j);
-                const observational_level c = oct_level_at(k);
+                const DObservationalLevel a = oct_level_at(i);
+                const DObservationalLevel b = oct_level_at(j);
+                const DObservationalLevel c = oct_level_at(k);
 
                 if (   observational_level_subsumes(a, b)
                     && observational_level_subsumes(b, c) )
@@ -388,8 +388,8 @@ bool tests_observational_level_subsumes()
 
     // constexpr
     D_OC_STATIC_CHECK(
-        observational_level_subsumes(observational_level::seq,
-                                     observational_level::set));
+        observational_level_subsumes(DObservationalLevel::seq,
+                                     DObservationalLevel::set));
 
     return ok;
 }
@@ -413,7 +413,7 @@ bool tests_level_algebra_lattice_laws()
     // idempotent
     for (int i = 0; i < oct_level_count; ++i)
     {
-        const observational_level a = oct_level_at(i);
+        const DObservationalLevel a = oct_level_at(i);
 
         D_OC_CHECK(observational_level_coarser(a, a) == a);
         D_OC_CHECK(observational_level_finer(a, a)   == a);
@@ -424,8 +424,8 @@ bool tests_level_algebra_lattice_laws()
     {
         for (int j = 0; j < oct_level_count; ++j)
         {
-            const observational_level a = oct_level_at(i);
-            const observational_level b = oct_level_at(j);
+            const DObservationalLevel a = oct_level_at(i);
+            const DObservationalLevel b = oct_level_at(j);
 
             D_OC_CHECK(observational_level_coarser(a, b)
                            == observational_level_coarser(b, a));
@@ -446,9 +446,9 @@ bool tests_level_algebra_lattice_laws()
         {
             for (int k = 0; k < oct_level_count; ++k)
             {
-                const observational_level a = oct_level_at(i);
-                const observational_level b = oct_level_at(j);
-                const observational_level c = oct_level_at(k);
+                const DObservationalLevel a = oct_level_at(i);
+                const DObservationalLevel b = oct_level_at(j);
+                const DObservationalLevel c = oct_level_at(k);
 
                 D_OC_CHECK(
                     observational_level_coarser(
@@ -478,9 +478,9 @@ bool tests_level_algebra_lattice_laws()
         {
             for (int k = 0; k < oct_level_count; ++k)
             {
-                const observational_level a = oct_level_at(i);
-                const observational_level b = oct_level_at(j);
-                const observational_level c = oct_level_at(k);
+                const DObservationalLevel a = oct_level_at(i);
+                const DObservationalLevel b = oct_level_at(j);
+                const DObservationalLevel c = oct_level_at(k);
 
                 if (   observational_level_subsumes(a, c)
                     && observational_level_subsumes(b, c) )
@@ -550,9 +550,9 @@ bool tests_level_algebra_out_of_range()
 {
     bool ok = true;
 
-    const observational_level six   = static_cast<observational_level>(6);
-    const observational_level seven = static_cast<observational_level>(7);
-    const observational_level str   = observational_level::str;
+    const DObservationalLevel six   = static_cast<DObservationalLevel>(6);
+    const DObservationalLevel seven = static_cast<DObservationalLevel>(7);
+    const DObservationalLevel str   = DObservationalLevel::str;
 
     // the fall-through answers the FINEST level, not the coarsest
     D_OC_CHECK(oct_name_is(six,   "str"));
@@ -572,7 +572,7 @@ bool tests_level_algebra_out_of_range()
     // unnamed value never bounds a comparison below the finest rung
     for (int i = 0; i < oct_level_count - 1; ++i)
     {
-        const observational_level l = oct_level_at(i);
+        const DObservationalLevel l = oct_level_at(i);
 
         D_OC_CHECK(observational_level_subsumes(six, l) == true);
         D_OC_CHECK(observational_level_coarser(six, l)  == l);
@@ -599,8 +599,8 @@ bool tests_level_algebra_out_of_range()
     {
         for (int j = 0; j < oct_level_count; ++j)
         {
-            const observational_level a = oct_level_at(i);
-            const observational_level b = oct_level_at(j);
+            const DObservationalLevel a = oct_level_at(i);
+            const DObservationalLevel b = oct_level_at(j);
 
             D_OC_CHECK(   ( observational_level_rank(a)
                                 == observational_level_rank(b) )
@@ -609,9 +609,9 @@ bool tests_level_algebra_out_of_range()
     }
 
     // the DEFAULT is the coarsest, so value initialisation is safe
-    D_OC_CHECK(observational_level{} == observational_level::none);
-    D_OC_CHECK(observational_level_rank(observational_level{}) == 0);
-    D_OC_CHECK(oct_name_is(observational_level{}, "none"));
+    D_OC_CHECK(DObservationalLevel{} == DObservationalLevel::none);
+    D_OC_CHECK(observational_level_rank(DObservationalLevel{}) == 0);
+    D_OC_CHECK(oct_name_is(DObservationalLevel{}, "none"));
 
     return ok;
 }

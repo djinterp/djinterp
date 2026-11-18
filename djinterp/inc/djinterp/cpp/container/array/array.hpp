@@ -2,10 +2,10 @@
 * djinterp [cpp]                                                       array.hpp
 *
 * Concrete array container.
-*   `array<typename... Options>` is the framework's options-pack form
+*   `DArray<typename... Options>` is the framework's options-pack form
 * of a fixed-extent contiguous container.  It satisfies
 * the options-container contract: inheriting from
-* `options_container_base<Options...>` surfaces the four contract
+* `DOptionsContainerBase<Options...>` surfaces the four contract
 * members (`options_type`, `option_count`, `has_option_v<>`,
 * `option_t<>`) and the four positional axes that array<>'s storage
 * depends on (element type, extent, lifetime, iterability) are
@@ -136,10 +136,10 @@ using re_std::dynamic_extent;
 // (lifetime, iterability), so both are container_axis enumerators, named
 // here as the module has always named them: `option<array_type_key, T>` is
 // what array_opt_type<T> spells.
-D_CONSTEXPR_INLINE_VAR container_axis array_type_key =
-    container_axis::element_type;
-D_CONSTEXPR_INLINE_VAR container_axis array_extent_key =
-    container_axis::extent;
+D_CONSTEXPR_INLINE_VAR DContainerAxis array_type_key =
+    DContainerAxis::element_type;
+D_CONSTEXPR_INLINE_VAR DContainerAxis array_extent_key =
+    DContainerAxis::extent;
 
 
 NS_INTERNAL
@@ -243,29 +243,29 @@ NS_INTERNAL
 // ===========================================================================
 
     // to_array_lifetime
-    //   helper: translates a universal `container_lifetime` to the
+    //   helper: translates a universal `DContainerLifetime` to the
     // corresponding `DArrayLifetime`.
     inline D_CONSTEXPR
     DArrayLifetime to_array_lifetime(
-        container_lifetime _l
+        DContainerLifetime _l
     ) noexcept
     {
-        return (_l == container_lifetime::constexpr_storage)
+        return (_l == DContainerLifetime::constexpr_storage)
                    ? DArrayLifetime::constexpr_lifetime
-                   : (_l == container_lifetime::immutable)
+                   : (_l == DContainerLifetime::immutable)
                        ? DArrayLifetime::immutable_lifetime
                        : DArrayLifetime::mutable_lifetime;
     }
 
     // to_array_iterability
-    //   helper: translates a universal `container_iterability` to the
+    //   helper: translates a universal `DContainerIterability` to the
     // per-array `DArrayIterability` enum.
     inline D_CONSTEXPR
     DArrayIterability to_array_iterability(
-        container_iterability _i
+        DContainerIterability _i
     ) noexcept
     {
-        return (_i == container_iterability::iterable)
+        return (_i == DContainerIterability::iterable)
                    ? DArrayIterability::iterable
                    : DArrayIterability::non_iterable;
     }
@@ -299,8 +299,8 @@ NS_INTERNAL
         static constexpr DArrayLifetime lifetime =
             to_array_lifetime(
                 container_axis_value_v<Set,
-                                       container_axis::lifetime,
-                                       container_lifetime::mutable_storage>);
+                                       DContainerAxis::lifetime,
+                                       DContainerLifetime::mutable_storage>);
 
         // iterability (enum)
         //   value: read from the universal iterability axis, then translated
@@ -308,8 +308,8 @@ NS_INTERNAL
         static constexpr DArrayIterability iterability =
             to_array_iterability(
                 container_axis_value_v<Set,
-                                       container_axis::iterability,
-                                       container_iterability::iterable>);
+                                       DContainerAxis::iterability,
+                                       DContainerIterability::iterable>);
 
         // iterable (bool convenience, derived)
         //   value: true iff `iterability == DArrayIterability::iterable`.
@@ -327,14 +327,14 @@ NS_END  // internal
 // III. array primary template (options-pack)
 // ===========================================================================
 
-// array
+// DArray
 //   class template: fixed- or dynamic-extent contiguous container.
 // The single template parameter is a pack of options consumed by
-// `with_options_pack` (via `options_container_base`) and by an internal
+// `with_options_pack` (via `DOptionsContainerBase`) and by an internal
 // resolver that reads the four positional axes.
 //
 // Required options:
-//   - `array_type_key` (or `array_opt_type<T>`): element type.
+//   - `array_type_key` (or `DArrayOptType<T>`): element type.
 //
 // Optional options:
 //   - `array_extent_key` (or `DArrayOptExtent<N>`): extent;
@@ -345,10 +345,10 @@ NS_END  // internal
 //     (or `DContainerOptIterability<I>`): iterability;
 //     default `iterable`.
 template<typename... Options>
-class array : public options_container_base<Options...>
+class DArray : public DOptionsContainerBase<Options...>
 {
 private:
-    using contract_base = options_container_base<Options...>;
+    using contract_base = DOptionsContainerBase<Options...>;
 
     using resolver = internal::DArrayAxesResolver<
         typename contract_base::options_type,
@@ -397,7 +397,7 @@ public:
     // ---------------------------------------------------------------
 
     constexpr
-    array() D_NOEXCEPT
+    DArray() D_NOEXCEPT
         : m_data{}
     {}
 
@@ -407,13 +407,13 @@ public:
     // when no cast can throw.
     template<typename... Args,
              typename = typename std::enable_if<
-                 ( !internal::array_is_self_arg<array, Args...>::value  &&
+                 ( !internal::array_is_self_arg<DArray, Args...>::value  &&
                    (sizeof...(Args) <= extent)                          &&
                    internal::array_args_cast<value_type,
                                              Args...>::value )
              >::type>
     constexpr
-    array(Args&&... _args)
+    DArray(Args&&... _args)
         D_NOEXCEPT_IF((internal::array_args_nothrow<value_type,
                                                     Args...>::value))
         : m_data{static_cast<value_type>(
@@ -640,7 +640,7 @@ public:
              typename = typename std::enable_if<Enabled>::type>
     D_INTERNAL_ARRAY_CONSTEXPR
     void
-    swap(array& _other) D_NOEXCEPT
+    swap(DArray& _other) D_NOEXCEPT
     {
         for (size_type i = 0; i < extent; ++i)
         {
@@ -651,11 +651,15 @@ public:
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename... Options>
+using array = DArray<Options...>;
+
 // is_contiguous_array<array<Options...>>
 //   trait: every cell of array<> stores its elements in one contiguous
 // block reached through data(), iterable or not; it reports true.
 template<typename... Options>
-struct is_contiguous_array<array<Options...>>
+struct is_contiguous_array<DArray<Options...>>
     : std::true_type
 {};
 
@@ -667,52 +671,52 @@ struct is_contiguous_array<array<Options...>>
 #if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
 
     template<typename Type, std::size_t N>
-    using DMutableIterableArray = array<
+    using DMutableIterableArray = DArray<
         option<array_type_key,   Type>,
         option<array_extent_key,
             std::integral_constant<std::size_t, N>>,
-        DContainerOptLifetime<container_lifetime::mutable_storage>,
-        DContainerOptIterability<container_iterability::iterable>>;
+        DContainerOptLifetime<DContainerLifetime::mutable_storage>,
+        DContainerOptIterability<DContainerIterability::iterable>>;
 
     template<typename Type, std::size_t N>
-    using DMutableNonIterableArray = array<
+    using DMutableNonIterableArray = DArray<
         option<array_type_key,   Type>,
         option<array_extent_key,
             std::integral_constant<std::size_t, N>>,
-        DContainerOptLifetime<container_lifetime::mutable_storage>,
-        DContainerOptIterability<container_iterability::non_iterable>>;
+        DContainerOptLifetime<DContainerLifetime::mutable_storage>,
+        DContainerOptIterability<DContainerIterability::non_iterable>>;
 
     template<typename Type, std::size_t N>
-    using DImmutableIterableArray = array<
+    using DImmutableIterableArray = DArray<
         option<array_type_key,   Type>,
         option<array_extent_key,
             std::integral_constant<std::size_t, N>>,
-        DContainerOptLifetime<container_lifetime::immutable>,
-        DContainerOptIterability<container_iterability::iterable>>;
+        DContainerOptLifetime<DContainerLifetime::immutable>,
+        DContainerOptIterability<DContainerIterability::iterable>>;
 
     template<typename Type, std::size_t N>
-    using DImmutableNonIterableArray = array<
+    using DImmutableNonIterableArray = DArray<
         option<array_type_key,   Type>,
         option<array_extent_key,
             std::integral_constant<std::size_t, N>>,
-        DContainerOptLifetime<container_lifetime::immutable>,
-        DContainerOptIterability<container_iterability::non_iterable>>;
+        DContainerOptLifetime<DContainerLifetime::immutable>,
+        DContainerOptIterability<DContainerIterability::non_iterable>>;
 
     template<typename Type, std::size_t N>
-    using DConstexprIterableArray = array<
+    using DConstexprIterableArray = DArray<
         option<array_type_key,   Type>,
         option<array_extent_key,
             std::integral_constant<std::size_t, N>>,
-        DContainerOptLifetime<container_lifetime::constexpr_storage>,
-        DContainerOptIterability<container_iterability::iterable>>;
+        DContainerOptLifetime<DContainerLifetime::constexpr_storage>,
+        DContainerOptIterability<DContainerIterability::iterable>>;
 
     template<typename Type, std::size_t N>
-    using DConstexprNonIterableArray = array<
+    using DConstexprNonIterableArray = DArray<
         option<array_type_key,   Type>,
         option<array_extent_key,
             std::integral_constant<std::size_t, N>>,
-        DContainerOptLifetime<container_lifetime::constexpr_storage>,
-        DContainerOptIterability<container_iterability::non_iterable>>;
+        DContainerOptLifetime<DContainerLifetime::constexpr_storage>,
+        DContainerOptIterability<DContainerIterability::non_iterable>>;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
 
@@ -756,21 +760,21 @@ template<typename... OptsA,
          typename... OptsB>
 constexpr
 bool array_equal(
-    const array<OptsA...>& _a,
-    const array<OptsB...>& _b
+    const DArray<OptsA...>& _a,
+    const DArray<OptsB...>& _b
 ) D_NOEXCEPT
 {
     static_assert(
-        std::is_same<typename array<OptsA...>::value_type,
-                     typename array<OptsB...>::value_type>::value,
+        std::is_same<typename DArray<OptsA...>::value_type,
+                     typename DArray<OptsB...>::value_type>::value,
         "array_equal: element types must match");
     static_assert(
-        array<OptsA...>::extent == array<OptsB...>::extent,
+        DArray<OptsA...>::extent == DArray<OptsB...>::extent,
         "array_equal: extents must match");
 
     return constexpr_equal(
         _a.data(),
-        _a.data() + array<OptsA...>::extent,
+        _a.data() + DArray<OptsA...>::extent,
         _b.data());
 }
 
@@ -779,24 +783,24 @@ bool array_equal(
 template<typename... OptsSrc,
          typename... OptsDst,
          typename = typename std::enable_if<
-             (array<OptsDst...>::lifetime !=
+             (DArray<OptsDst...>::lifetime !=
               DArrayLifetime::immutable_lifetime)
          >::type>
 D_INTERNAL_ARRAY_CONSTEXPR
 void
 array_copy(
-    const array<OptsSrc...>& _src,
-    array<OptsDst...>&       _dst)
+    const DArray<OptsSrc...>& _src,
+    DArray<OptsDst...>&       _dst)
 {
     static_assert(
-        std::is_same<typename array<OptsSrc...>::value_type,
-                     typename array<OptsDst...>::value_type>::value,
+        std::is_same<typename DArray<OptsSrc...>::value_type,
+                     typename DArray<OptsDst...>::value_type>::value,
         "array_copy: element types must match");
     static_assert(
-        array<OptsSrc...>::extent == array<OptsDst...>::extent,
+        DArray<OptsSrc...>::extent == DArray<OptsDst...>::extent,
         "array_copy: extents must match");
 
-    for (std::size_t i = 0; i < array<OptsSrc...>::extent; ++i)
+    for (std::size_t i = 0; i < DArray<OptsSrc...>::extent; ++i)
     {
         _dst.data()[i] = _src.data()[i];
     }
@@ -807,28 +811,28 @@ array_copy(
 template<typename... OptsA,
          typename... OptsB,
          typename = typename std::enable_if<
-                (array<OptsA...>::lifetime !=
+                (DArray<OptsA...>::lifetime !=
                  DArrayLifetime::immutable_lifetime)
-             && (array<OptsB...>::lifetime !=
+             && (DArray<OptsB...>::lifetime !=
                  DArrayLifetime::immutable_lifetime)
          >::type>
 D_INTERNAL_ARRAY_CONSTEXPR
 void
 array_swap(
-    array<OptsA...>& _a,
-    array<OptsB...>& _b)
+    DArray<OptsA...>& _a,
+    DArray<OptsB...>& _b)
 {
     static_assert(
-        std::is_same<typename array<OptsA...>::value_type,
-                     typename array<OptsB...>::value_type>::value,
+        std::is_same<typename DArray<OptsA...>::value_type,
+                     typename DArray<OptsB...>::value_type>::value,
         "array_swap: element types must match");
     static_assert(
-        array<OptsA...>::extent == array<OptsB...>::extent,
+        DArray<OptsA...>::extent == DArray<OptsB...>::extent,
         "array_swap: extents must match");
 
-    using value_type = typename array<OptsA...>::value_type;
+    using value_type = typename DArray<OptsA...>::value_type;
 
-    for (std::size_t i = 0; i < array<OptsA...>::extent; ++i)
+    for (std::size_t i = 0; i < DArray<OptsA...>::extent; ++i)
     {
         value_type tmp = std::move(_a.data()[i]);
         _a.data()[i]   = std::move(_b.data()[i]);

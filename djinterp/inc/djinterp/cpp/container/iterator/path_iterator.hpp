@@ -195,7 +195,7 @@ struct path_iterator_end_tag
 {};
 
 
-// path_iterator
+// DPathIterator
 //   class: a forward iterator over path(n) -- the unique chain of components
 // from a node up to its anchor -- yielded LEAF-FIRST, the node itself first and
 // the anchor last.
@@ -217,7 +217,7 @@ struct path_iterator_end_tag
 // iterator is constructed already at its end.
 template<typename Policy,
          typename Container>
-class path_iterator
+class DPathIterator
 {
 public:
     using policy_type       = Policy;
@@ -238,7 +238,7 @@ public:
     // path_iterator (default)
     //   a singular iterator addressing nothing. It compares equal only to
     // another singular iterator, never to a real traversal's end.
-    path_iterator()
+    DPathIterator()
         : m_policy(),
           m_container(nullptr),
           m_node(),
@@ -252,7 +252,7 @@ public:
     // not reach _anchor it has no path to it, and the iterator is already at
     // its end.
     D_CONSTEXPR_CPP14
-    path_iterator(
+    DPathIterator(
         Policy            _policy,
         const Container& _container,
         index_type        _node,
@@ -270,7 +270,7 @@ public:
     // path_iterator (end)
     //   the past-the-end iterator of any path anchored at _anchor.
     D_CONSTEXPR_CPP14
-    path_iterator(
+    DPathIterator(
         Policy            _policy,
         const Container& _container,
         index_type        _anchor,
@@ -357,7 +357,7 @@ public:
     //   ascends one link, to the parent. Stepping off the anchor ends the
     // walk.
     D_CONSTEXPR_CPP14
-    path_iterator& operator++()
+    DPathIterator& operator++()
     {
         advance();
 
@@ -366,11 +366,11 @@ public:
 
     // operator++ (post)
     D_CONSTEXPR_CPP14
-    path_iterator operator++(
+    DPathIterator operator++(
         int
     )
     {
-        path_iterator tmp(*this);
+        DPathIterator tmp(*this);
 
         advance();
 
@@ -387,7 +387,7 @@ public:
     // iterator (which holds none) from ever comparing equal to a real end.
     D_CONSTEXPR
     bool operator==(
-        const path_iterator& _other
+        const DPathIterator& _other
     ) const
     {
         return ( (m_container == _other.m_container) &&
@@ -397,7 +397,7 @@ public:
     // operator!=
     D_CONSTEXPR
     bool operator!=(
-        const path_iterator& _other
+        const DPathIterator& _other
     ) const
     {
         return !(*this == _other);
@@ -491,12 +491,17 @@ private:
     std::size_t       m_level;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Policy,
+         typename Container>
+using path_iterator = DPathIterator<Policy, Container>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             III.  PATH VIEW AND FACTORIES                               ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// path_view
+// DPathView
 //   class: a range over path(_node) -- the chain of components from _node up
 // to _anchor, leaf-first -- so a path may drive a range-for. Holds a policy, a
 // container pointer, the node, and the anchor; it owns nothing, and it
@@ -504,15 +509,15 @@ private:
 // into a vector merely to walk it once.
 template<typename Policy,
          typename Container>
-class path_view
+class DPathView
 {
 public:
-    using iterator   = path_iterator<Policy, Container>;
+    using iterator   = DPathIterator<Policy, Container>;
     using index_type = typename Policy::index_type;
 
     // path_view
     //   constructs a view of path(_node), anchored at _anchor.
-    path_view(
+    DPathView(
         Policy            _policy,
         const Container& _container,
         index_type        _node,
@@ -582,6 +587,11 @@ private:
     index_type        m_anchor;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Policy,
+         typename Container>
+using path_view = DPathView<Policy, Container>;
+
 
 // make_path_view
 //   factory: a range over path(_node) anchored at _anchor -- the components
@@ -595,14 +605,14 @@ private:
 template<typename Policy,
          typename Container,
          typename Index>
-path_view<Policy, Container> make_path_view(
+DPathView<Policy, Container> make_path_view(
     Policy           _policy,
     const Container& _container,
     Index            _node,
     Index            _anchor
 )
 {
-    return path_view<Policy, Container>(
+    return DPathView<Policy, Container>(
         _policy,
         _container,
         _node,
@@ -616,14 +626,14 @@ template<typename Policy,
          typename Container,
          typename Index>
 D_CONSTEXPR_CPP14
-path_iterator<Policy, Container> make_path_iterator(
+DPathIterator<Policy, Container> make_path_iterator(
     Policy           _policy,
     const Container& _container,
     Index            _node,
     Index            _anchor
 )
 {
-    return path_iterator<Policy, Container>(
+    return DPathIterator<Policy, Container>(
         _policy,
         _container,
         _node,

@@ -404,7 +404,7 @@ struct DPatternMatchResult
 // went 2026-11-09.)
 
 
-// pattern
+// DPattern
 //   class: generic CRTP base for all concrete pattern types.
 // Provides the four public faces (operator(), match, extract,
 // render, rewrite) by forwarding to the derived implementation,
@@ -414,7 +414,7 @@ struct DPatternMatchResult
 // static_asserts in the public methods, mirroring the
 // approach used in parse/scanner.hpp.
 template<typename Derived>
-class pattern
+class DPattern
 {
 public:
     using derived_type = Derived;
@@ -518,8 +518,8 @@ public:
     }
 
 protected:
-    pattern() = default;
-    ~pattern() = default;
+    DPattern() = default;
+    ~DPattern() = default;
 
 private:
     // self
@@ -574,6 +574,10 @@ private:
             "function returning an input_type.");
     }
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Derived>
+using pattern = DPattern<Derived>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -721,7 +725,7 @@ private:
 template<typename PatternA,
          typename PatternB>
 class DPatternAndCombinator
-    : public pattern<DPatternAndCombinator<PatternA, PatternB>>
+    : public DPattern<DPatternAndCombinator<PatternA, PatternB>>
 {
 public:
     using input_type       = typename PatternA::input_type;
@@ -848,7 +852,7 @@ pattern_and
 template<typename PatternA,
          typename PatternB>
 class DPatternOrCombinator
-    : public pattern<DPatternOrCombinator<PatternA, PatternB>>
+    : public DPattern<DPatternOrCombinator<PatternA, PatternB>>
 {
 public:
     using input_type       = typename PatternA::input_type;
@@ -975,7 +979,7 @@ pattern_or
 // returns the input unchanged.
 template<typename Pattern>
 class DPatternNotCombinator
-    : public pattern<DPatternNotCombinator<Pattern>>
+    : public DPattern<DPatternNotCombinator<Pattern>>
 {
 public:
     using input_type       = typename Pattern::input_type;

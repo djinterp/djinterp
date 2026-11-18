@@ -33,8 +33,8 @@ bool tests_container_memory_class()
 
     // -- vector<int>: individual discipline, dynamic siting --
     {
-        using C = container_memory_class<std::vector<int>>;
-        D_CM_CHECK( (C::discipline == memory_discipline::individual) );
+        using C = DContainerMemoryClass<std::vector<int>>;
+        D_CM_CHECK( (C::discipline == DMemoryDiscipline::individual) );
         D_CM_CHECK( (cm_cstr_eq(C::discipline_name, "individual")) );
         D_CM_CHECK( (!C::is_none) );
         D_CM_CHECK( (C::is_individual) );
@@ -42,43 +42,43 @@ bool tests_container_memory_class()
         D_CM_CHECK( (!C::is_arena) );
         D_CM_CHECK( (C::allocates) );
         D_CM_CHECK( (C::resolved) );
-        D_CM_CHECK( (C::siting == storage_duration::dynamic_storage) );
+        D_CM_CHECK( (C::siting == DStorageDuration::dynamic_storage) );
         D_CM_CHECK( (cm_cstr_eq(C::siting_name, "dynamic_storage")) );
         D_CM_CHECK( (C::siting_consistent) );
     }
 
     // -- array<int,4>: none discipline, static siting --
     {
-        using C = container_memory_class<std::array<int, 4>>;
-        D_CM_CHECK( (C::discipline == memory_discipline::none) );
+        using C = DContainerMemoryClass<std::array<int, 4>>;
+        D_CM_CHECK( (C::discipline == DMemoryDiscipline::none) );
         D_CM_CHECK( (cm_cstr_eq(C::discipline_name, "none")) );
         D_CM_CHECK( (C::is_none) );
         D_CM_CHECK( (!C::is_individual) );
         D_CM_CHECK( (!C::allocates) );
         D_CM_CHECK( (C::resolved) );
-        D_CM_CHECK( (C::siting == storage_duration::static_storage) );
+        D_CM_CHECK( (C::siting == DStorageDuration::static_storage) );
         D_CM_CHECK( (cm_cstr_eq(C::siting_name, "static_storage")) );
         D_CM_CHECK( (C::siting_consistent) );
     }
 
     // -- pooled_via_strategy: pooled discipline, undetermined siting --
     {
-        using C = container_memory_class<pooled_via_strategy>;
-        D_CM_CHECK( (C::discipline == memory_discipline::pooled) );
+        using C = DContainerMemoryClass<pooled_via_strategy>;
+        D_CM_CHECK( (C::discipline == DMemoryDiscipline::pooled) );
         D_CM_CHECK( (cm_cstr_eq(C::discipline_name, "pooled")) );
         D_CM_CHECK( (C::is_pooled) );
         D_CM_CHECK( (!C::is_individual) );
         D_CM_CHECK( (C::allocates) );
         D_CM_CHECK( (C::resolved) );
-        D_CM_CHECK( (C::siting == storage_duration::unknown) );
+        D_CM_CHECK( (C::siting == DStorageDuration::unknown) );
         D_CM_CHECK( (cm_cstr_eq(C::siting_name, "unknown")) );
         D_CM_CHECK( (C::siting_consistent) );          // holds via the unknown-siting clause
     }
 
     // -- arena_via_strategy: arena discipline --
     {
-        using C = container_memory_class<arena_via_strategy>;
-        D_CM_CHECK( (C::discipline == memory_discipline::arena) );
+        using C = DContainerMemoryClass<arena_via_strategy>;
+        D_CM_CHECK( (C::discipline == DMemoryDiscipline::arena) );
         D_CM_CHECK( (cm_cstr_eq(C::discipline_name, "arena")) );
         D_CM_CHECK( (C::is_arena) );
         D_CM_CHECK( (C::allocates) );
@@ -88,8 +88,8 @@ bool tests_container_memory_class()
 
     // -- int: unknown discipline --
     {
-        using C = container_memory_class<int>;
-        D_CM_CHECK( (C::discipline == memory_discipline::unknown) );
+        using C = DContainerMemoryClass<int>;
+        D_CM_CHECK( (C::discipline == DMemoryDiscipline::unknown) );
         D_CM_CHECK( (cm_cstr_eq(C::discipline_name, "unknown")) );
         D_CM_CHECK( (!C::is_none) );
         D_CM_CHECK( (!C::is_individual) );
@@ -97,26 +97,26 @@ bool tests_container_memory_class()
         D_CM_CHECK( (!C::is_arena) );
         D_CM_CHECK( (!C::allocates) );
         D_CM_CHECK( (!C::resolved) );
-        D_CM_CHECK( (C::siting == storage_duration::unknown) );
+        D_CM_CHECK( (C::siting == DStorageDuration::unknown) );
         D_CM_CHECK( (C::siting_consistent) );
     }
 
     // -- alloc_beats_static: individual discipline, HYBRID siting (both signals) --
     {
-        using C = container_memory_class<alloc_beats_static>;
-        D_CM_CHECK( (C::discipline == memory_discipline::individual) );
+        using C = DContainerMemoryClass<alloc_beats_static>;
+        D_CM_CHECK( (C::discipline == DMemoryDiscipline::individual) );
         D_CM_CHECK( (C::is_individual) );
-        D_CM_CHECK( (C::siting == storage_duration::hybrid_storage) );
+        D_CM_CHECK( (C::siting == DStorageDuration::hybrid_storage) );
         D_CM_CHECK( (cm_cstr_eq(C::siting_name, "hybrid_storage")) );
         D_CM_CHECK( (C::siting_consistent) );          // hybrid carries a dynamic component
     }
 
     // -- inconsistent_individual_static: the aggregate reports the contradiction --
     {
-        using C = container_memory_class<inconsistent_individual_static>;
-        D_CM_CHECK( (C::discipline == memory_discipline::individual) );
+        using C = DContainerMemoryClass<inconsistent_individual_static>;
+        D_CM_CHECK( (C::discipline == DMemoryDiscipline::individual) );
         D_CM_CHECK( (C::is_individual) );
-        D_CM_CHECK( (C::siting == storage_duration::static_storage) );
+        D_CM_CHECK( (C::siting == DStorageDuration::static_storage) );
         D_CM_CHECK( (cm_cstr_eq(C::siting_name, "static_storage")) );
         D_CM_CHECK( (!C::siting_consistent) );         // individual discipline over static-only storage
     }

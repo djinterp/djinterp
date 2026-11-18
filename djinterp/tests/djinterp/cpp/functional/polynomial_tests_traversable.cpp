@@ -32,13 +32,13 @@ bool tests_is_traversable_poly()
 {
     bool ok = true;
 
-    ok = ok && (is_traversable<poly_var<int> >::value);
-    ok = ok && (is_traversable<poly_unit<int> >::value);
-    ok = ok && (is_traversable<poly_const<char, int> >::value);
+    ok = ok && (is_traversable<DPolyVar<int> >::value);
+    ok = ok && (is_traversable<DPolyUnit<int> >::value);
+    ok = ok && (is_traversable<DPolyConst<char, int> >::value);
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    ok = ok && (is_traversable_v<poly_var<int> > ==
-                is_traversable<poly_var<int> >::value);
+    ok = ok && (is_traversable_v<DPolyVar<int> > ==
+                is_traversable<DPolyVar<int> >::value);
 #endif
 
     return ok;
@@ -59,8 +59,8 @@ bool tests_is_traversable_negative()
 {
     bool ok = true;
 
-    typedef poly_sum<poly_var<int>, poly_unit<int> >         sum_t;
-    typedef poly_product<poly_var<int>, poly_const<char,int> > prod_t;
+    typedef DPolySum<DPolyVar<int>, DPolyUnit<int> >         sum_t;
+    typedef DPolyProduct<DPolyVar<int>, DPolyConst<char,int> > prod_t;
 
     // the asymmetry: Functor yes, Traversable no.
     ok = ok && (!is_traversable<sum_t>::value);
@@ -85,11 +85,11 @@ tests_traversable_value_type
 */
 bool tests_traversable_value_type()
 {
-    static_assert(std::is_same<traversable_value_type_t<poly_var<int> >,
+    static_assert(std::is_same<traversable_value_type_t<DPolyVar<int> >,
                                int>::value, "var");
-    static_assert(std::is_same<traversable_value_type_t<poly_unit<int> >,
+    static_assert(std::is_same<traversable_value_type_t<DPolyUnit<int> >,
                                int>::value, "unit");
-    static_assert(std::is_same<traversable_value_type_t<poly_const<char,int> >,
+    static_assert(std::is_same<traversable_value_type_t<DPolyConst<char,int> >,
                                int>::value, "const");
 
     return true;
@@ -109,25 +109,25 @@ bool tests_traverse_poly_var()
     bool ok = true;
 
     // present effect -> just(poly_var{mapped}).
-    auto r = traverse(poly_var<int>(5),
+    auto r = traverse(DPolyVar<int>(5),
                       [](int _x){ return t_just(_x + 1); });
     ok = ok && (std::is_same<decltype(r),
-                             DTestMaybe<poly_var<int> > >::value);
+                             DTestMaybe<DPolyVar<int> > >::value);
     ok = ok && (r.has == true);
     ok = ok && (r.val.content == 6);
 
     // absent effect -> nothing.
-    auto rn = traverse(poly_var<int>(5),
+    auto rn = traverse(DPolyVar<int>(5),
                        [](int _x){ (void)_x; return t_nothing<int>(); });
     ok = ok && (rn.has == false);
 
     // type-changing effect.
-    auto rd = traverse(poly_var<int>(5),
+    auto rd = traverse(DPolyVar<int>(5),
                        [](int _x){
                            return t_just(static_cast<double>(_x) + 0.5);
                        });
     ok = ok && (std::is_same<decltype(rd),
-                             DTestMaybe<poly_var<double> > >::value);
+                             DTestMaybe<DPolyVar<double> > >::value);
     ok = ok && (rd.has == true);
     ok = ok && close_enough(rd.val.content, 5.5);
 
@@ -149,7 +149,7 @@ bool tests_traverse_poly_unit()
     bool ok = true;
 
     bool called = false;
-    auto r = traverse(poly_unit<int>(),
+    auto r = traverse(DPolyUnit<int>(),
                       [&called](int _x){
                           called = true;
                           (void)_x;
@@ -157,7 +157,7 @@ bool tests_traverse_poly_unit()
                       });
     ok = ok && (called == false);                       // ...but never called
     ok = ok && (std::is_same<decltype(r),
-                             DTestMaybe<poly_unit<double> > >::value);
+                             DTestMaybe<DPolyUnit<double> > >::value);
     ok = ok && (r.has == true);                         // pure => present
 
     return ok;
@@ -177,7 +177,7 @@ bool tests_traverse_poly_const()
     bool ok = true;
 
     bool called = false;
-    auto r = traverse(poly_const<char, int>('z'),
+    auto r = traverse(DPolyConst<char, int>('z'),
                       [&called](int _x){
                           called = true;
                           (void)_x;
@@ -185,7 +185,7 @@ bool tests_traverse_poly_const()
                       });
     ok = ok && (called == false);
     ok = ok && (std::is_same<decltype(r),
-                             DTestMaybe<poly_const<char, double> > >::value);
+                             DTestMaybe<DPolyConst<char, double> > >::value);
     ok = ok && (r.has == true);
     ok = ok && (r.val.content == 'z');
 
@@ -206,14 +206,14 @@ bool tests_sequence_poly_var()
     bool ok = true;
 
     // present -> just(poly_var{7}).
-    auto r = traverse_sequence(poly_var<DTestMaybe<int> >(t_just(7)));
+    auto r = traverse_sequence(DPolyVar<DTestMaybe<int> >(t_just(7)));
     ok = ok && (std::is_same<decltype(r),
-                             DTestMaybe<poly_var<int> > >::value);
+                             DTestMaybe<DPolyVar<int> > >::value);
     ok = ok && (r.has == true);
     ok = ok && (r.val.content == 7);
 
     // absent -> nothing.
-    auto rn = traverse_sequence(poly_var<DTestMaybe<int> >(t_nothing<int>()));
+    auto rn = traverse_sequence(DPolyVar<DTestMaybe<int> >(t_nothing<int>()));
     ok = ok && (rn.has == false);
 
     return ok;
@@ -232,15 +232,15 @@ bool tests_sequence_poly_unit_const()
     bool ok = true;
 
     // unit: no effect to sequence -> present.
-    auto ru = traverse_sequence(poly_unit<DTestMaybe<int> >());
+    auto ru = traverse_sequence(DPolyUnit<DTestMaybe<int> >());
     ok = ok && (std::is_same<decltype(ru),
-                             DTestMaybe<poly_unit<int> > >::value);
+                             DTestMaybe<DPolyUnit<int> > >::value);
     ok = ok && (ru.has == true);
 
     // const: constant threads through, present.
-    auto rc = traverse_sequence(poly_const<char, DTestMaybe<int> >('k'));
+    auto rc = traverse_sequence(DPolyConst<char, DTestMaybe<int> >('k'));
     ok = ok && (std::is_same<decltype(rc),
-                             DTestMaybe<poly_const<char, int> > >::value);
+                             DTestMaybe<DPolyConst<char, int> > >::value);
     ok = ok && (rc.has == true);
     ok = ok && (rc.val.content == 'k');
 

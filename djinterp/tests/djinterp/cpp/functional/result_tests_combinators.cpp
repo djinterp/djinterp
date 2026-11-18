@@ -24,7 +24,7 @@ NS_DJINTERP
 NS_TESTING
 
 
-using ri = result<int, std::string>;
+using ri = DResult<int, std::string>;
 
 
 bool test_combinators()
@@ -41,12 +41,12 @@ bool test_combinators()
         "pipe: or_value_with returns default when err");
 
     // map_err_with: transforms err side, passes ok through
-    result<int, std::size_t> mapped_err = errv | map_err_with(DFnErrLen());
+    DResult<int, std::size_t> mapped_err = errv | map_err_with(DFnErrLen());
     record_assertion(verdict,
         mapped_err.is_err() && mapped_err.error() == 1u,
         "pipe: map_err_with transforms the error");
 
-    result<int, std::size_t> mapped_ok = okv | map_err_with(DFnErrLen());
+    DResult<int, std::size_t> mapped_ok = okv | map_err_with(DFnErrLen());
     record_assertion(verdict,
         mapped_ok.is_ok() && mapped_ok.value() == 5,
         "pipe: map_err_with leaves an ok value untouched");

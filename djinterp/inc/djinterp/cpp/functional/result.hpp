@@ -142,7 +142,7 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// result
+// DResult
 //   class: holds either a value of type Type (ok) or an error of
 // type Error (err). The active branch is tracked by a boolean
 // discriminator; storage for the inactive branch is unused.
@@ -153,7 +153,7 @@ NS_END  // internal
 // deleted: every result must be explicitly an ok or an err.
 template<typename Type,
          typename Error>
-class result
+class DResult
 {
 public:
     using value_type = Type;
@@ -162,10 +162,10 @@ public:
     // constructor (deleted default)
     //   no implicit "empty" state; constructors below are the
     // only way to instantiate.
-    result() = delete;
+    DResult() = delete;
 
     // constructor (ok, copy)
-    D_CONSTEXPR_CPP14 result(
+    D_CONSTEXPR_CPP14 DResult(
         internal::DOkTag,
         const Type& _value
     )
@@ -175,7 +175,7 @@ public:
     }
 
     // constructor (ok, move)
-    D_CONSTEXPR_CPP14 result(
+    D_CONSTEXPR_CPP14 DResult(
         internal::DOkTag,
         Type&& _value
     )
@@ -185,7 +185,7 @@ public:
     }
 
     // constructor (err, copy)
-    D_CONSTEXPR_CPP14 result(
+    D_CONSTEXPR_CPP14 DResult(
         internal::DErrTag,
         const Error& _error
     )
@@ -195,7 +195,7 @@ public:
     }
 
     // constructor (err, move)
-    D_CONSTEXPR_CPP14 result(
+    D_CONSTEXPR_CPP14 DResult(
         internal::DErrTag,
         Error&& _error
     )
@@ -205,8 +205,8 @@ public:
     }
 
     // constructor (copy)
-    D_CONSTEXPR_CPP14 result(
-        const result& _other
+    D_CONSTEXPR_CPP14 DResult(
+        const DResult& _other
     )
         : m_is_ok(_other.m_is_ok)
     {
@@ -221,8 +221,8 @@ public:
     }
 
     // constructor (move)
-    D_CONSTEXPR_CPP14 result(
-        result&& _other
+    D_CONSTEXPR_CPP14 DResult(
+        DResult&& _other
     ) noexcept(std::is_nothrow_move_constructible<Type>::value &&
                std::is_nothrow_move_constructible<Error>::value)
         : m_is_ok(_other.m_is_ok)
@@ -239,15 +239,15 @@ public:
 
     // destructor
     D_CONSTEXPR_CPP20
-    ~result()
+    ~DResult()
     {
         destroy_active();
     }
 
     // assignment (copy)
-    D_CONSTEXPR_CPP14 result&
+    D_CONSTEXPR_CPP14 DResult&
     operator=(
-        const result& _other
+        const DResult& _other
     )
     {
         if (this == &_other)
@@ -288,9 +288,9 @@ public:
     }
 
     // assignment (move)
-    D_CONSTEXPR_CPP14 result&
+    D_CONSTEXPR_CPP14 DResult&
     operator=(
-        result&& _other
+        DResult&& _other
     ) noexcept(std::is_nothrow_move_assignable<Type>::value     &&
                std::is_nothrow_move_assignable<Error>::value    &&
                std::is_nothrow_move_constructible<Type>::value  &&
@@ -421,11 +421,11 @@ public:
     template<typename Function>
     D_NODISCARD D_CONSTEXPR_CPP14 auto map(
         Function _function
-    ) const -> result<typename std::decay<decltype( _function(std::declval<const Type&>()))>::type, Error>
+    ) const -> DResult<typename std::decay<decltype( _function(std::declval<const Type&>()))>::type, Error>
     {
         using mapped_t = typename std::decay<decltype(
             _function(std::declval<const Type&>()))>::type;
-        using out_t    = result<mapped_t, Error>;
+        using out_t    = DResult<mapped_t, Error>;
 
         if (m_is_ok)
         {
@@ -446,11 +446,11 @@ public:
     template<typename Function>
     D_NODISCARD D_CONSTEXPR_CPP14 auto map_err(
         Function _function
-    ) const -> result<Type, typename std::decay<decltype( _function(std::declval<const Error&>()))>::type>
+    ) const -> DResult<Type, typename std::decay<decltype( _function(std::declval<const Error&>()))>::type>
     {
         using mapped_e = typename std::decay<decltype(
             _function(std::declval<const Error&>()))>::type;
-        using out_t    = result<Type, mapped_e>;
+        using out_t    = DResult<Type, mapped_e>;
 
         if (m_is_ok)
         {
@@ -540,26 +540,26 @@ public:
     // ok (conversion to maybe)
     //   method: returns just(value) if ok, nothing if err. Lossy:
     // drops the error information.
-    D_NODISCARD maybe<Type> ok() const
+    D_NODISCARD DMaybe<Type> ok() const
     {
         if (m_is_ok)
         {
-            return maybe<Type>(*value_pointer());
+            return DMaybe<Type>(*value_pointer());
         }
 
-        return maybe<Type>{};
+        return DMaybe<Type>{};
     }
 
     // err (conversion to maybe)
     //   method: returns just(error) if err, nothing if ok.
-    D_NODISCARD maybe<Error> err() const
+    D_NODISCARD DMaybe<Error> err() const
     {
         if (!m_is_ok)
         {
-            return maybe<Error>(*error_pointer());
+            return DMaybe<Error>(*error_pointer());
         }
 
-        return maybe<Error>{};
+        return DMaybe<Error>{};
     }
 
 private:
@@ -730,6 +730,11 @@ private:
     bool m_is_ok;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Type,
+         typename Error>
+using result = DResult<Type, Error>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //                            EQUALITY OPERATORS                             //
@@ -741,8 +746,8 @@ private:
 template<typename Type,
          typename Error>
 D_NODISCARD bool operator==(
-    const result<Type, Error>& _a,
-    const result<Type, Error>& _b
+    const DResult<Type, Error>& _a,
+    const DResult<Type, Error>& _b
 )
 {
     if (_a.is_ok() != _b.is_ok())
@@ -761,8 +766,8 @@ D_NODISCARD bool operator==(
 template<typename Type,
          typename Error>
 D_NODISCARD bool operator!=(
-    const result<Type, Error>& _a,
-    const result<Type, Error>& _b
+    const DResult<Type, Error>& _a,
+    const DResult<Type, Error>& _b
 )
 {
     return !(_a == _b);
@@ -794,7 +799,7 @@ NS_INTERNAL
 
     template<typename Type,
              typename Error>
-    struct is_result_helper<result<Type, Error>>
+    struct is_result_helper<DResult<Type, Error>>
         : std::true_type
     {};
 
@@ -808,7 +813,7 @@ NS_INTERNAL
 
     template<typename Type,
              typename Error>
-    struct DResultDecomposeHelper<result<Type, Error>>
+    struct DResultDecomposeHelper<DResult<Type, Error>>
     {
         using value_type = Type;
         using error_type = Error;
@@ -973,11 +978,11 @@ struct is_result_error_mapper
 template<typename Type,
          typename Error,
          typename Value>
-D_NODISCARD D_CONSTEXPR result<Type, Error> ok(
+D_NODISCARD D_CONSTEXPR DResult<Type, Error> ok(
     Value&& _value
 )
 {
-    return result<Type, Error>(
+    return DResult<Type, Error>(
         internal::DOkTag(internal::DOkTag::DConstructTag{}),
         std::forward<Value>(_value));
 }
@@ -989,11 +994,11 @@ D_NODISCARD D_CONSTEXPR result<Type, Error> ok(
 template<typename Type,
          typename Error,
          typename Value>
-D_NODISCARD D_CONSTEXPR result<Type, Error> err(
+D_NODISCARD D_CONSTEXPR DResult<Type, Error> err(
     Value&& _error
 )
 {
-    return result<Type, Error>(
+    return DResult<Type, Error>(
         internal::DErrTag(internal::DErrTag::DConstructTag{}),
         std::forward<Value>(_error));
 }
@@ -1027,7 +1032,7 @@ NS_INTERNAL
                  typename Error>
         D_CONSTEXPR
         Type apply(
-            const result<Type, Error>& _r
+            const DResult<Type, Error>& _r
         ) const
         {
             return _r.value_or(m_default);
@@ -1057,7 +1062,7 @@ NS_INTERNAL
                  typename Error>
         D_CONSTEXPR
         auto apply(
-            const result<Type, Error>& _r
+            const DResult<Type, Error>& _r
         ) const -> decltype(_r.map_err(std::declval<const Function&>()))
         {
             return _r.map_err(m_function);
@@ -1083,7 +1088,7 @@ NS_INTERNAL
         template<typename Type,
                  typename Error>
         Type apply(
-            const result<Type, Error>& _r
+            const DResult<Type, Error>& _r
         ) const
         {
             return _r.unwrap(m_message);
@@ -1147,10 +1152,10 @@ template<typename Type,
          typename Combinator,
          typename = decltype(
              std::declval<const Combinator&>().apply(
-                 std::declval<const result<Type, Error>&>()))>
+                 std::declval<const DResult<Type, Error>&>()))>
 D_CONSTEXPR auto
 operator|(
-    const result<Type, Error>& _r,
+    const DResult<Type, Error>& _r,
     Combinator&&                _combinator
 )
 -> decltype(_combinator.apply(_r))
@@ -1169,25 +1174,25 @@ operator|(
 // preserved across map/bind (errors propagate unchanged).
 template<typename Type,
          typename Error>
-struct monad_traits<result<Type, Error>>
+struct monad_traits<DResult<Type, Error>>
 {
     using is_specialized = std::true_type;
     using value_type     = Type;
     using error_type     = Error;
 
     template<typename U>
-    using rebind = result<U, Error>;
+    using rebind = DResult<U, Error>;
 
     // unit
     //   lifts a value into result as an ok. The error type is
     // preserved by rebind; no error can be produced by unit
     // alone.
     static D_CONSTEXPR
-    result<Type, Error> unit(
+    DResult<Type, Error> unit(
         Type _value
     )
     {
-        return result<Type, Error>(
+        return DResult<Type, Error>(
             internal::DOkTag(internal::DOkTag::DConstructTag{}),
             std::move(_value));
     }
@@ -1202,7 +1207,7 @@ struct monad_traits<result<Type, Error>>
     template<typename Function>
     static D_CONSTEXPR
     auto bind(
-        const result<Type, Error>& _r,
+        const DResult<Type, Error>& _r,
         Function                   _function
     ) -> typename std::decay<decltype( _function(std::declval<const Type&>()))>::type
     {
@@ -1261,7 +1266,7 @@ NS_INTERNAL
     struct DTraversableOkHelper
     {
         D_CONSTEXPR
-        result<Value, Error> operator()(
+        DResult<Value, Error> operator()(
             const Value& _value
         ) const
         {
@@ -1367,13 +1372,13 @@ D_NODISCARD auto
 collect(
     const Container& _container
 )
--> result<std::vector<typename Container::value_type::value_type>,
+-> DResult<std::vector<typename Container::value_type::value_type>,
           typename Container::value_type::error_type>
 {
     using element_t = typename Container::value_type;
     using inner_t   = typename element_t::value_type;
     using error_t   = typename element_t::error_type;
-    using out_t     = result<std::vector<inner_t>, error_t>;
+    using out_t     = DResult<std::vector<inner_t>, error_t>;
 
     std::vector<inner_t> result_vec;
 
@@ -1404,15 +1409,15 @@ template<typename A,
          typename Error,
          typename Function>
 D_NODISCARD auto combine(
-    const result<A, Error>& _ra,
-    const result<B, Error>& _rb,
+    const DResult<A, Error>& _ra,
+    const DResult<B, Error>& _rb,
     Function                _function
-) -> result<typename std::decay<decltype( _function(std::declval<const A&>(), std::declval<const B&>()))>::type, Error>
+) -> DResult<typename std::decay<decltype( _function(std::declval<const A&>(), std::declval<const B&>()))>::type, Error>
 {
     using out_value_t = typename std::decay<decltype(
         _function(std::declval<const A&>(),
                   std::declval<const B&>()))>::type;
-    using out_t = result<out_value_t, Error>;
+    using out_t = DResult<out_value_t, Error>;
 
     if (_ra.is_err())
     {
@@ -1440,8 +1445,8 @@ D_NODISCARD auto combine(
 // the failure reason.
 template<typename Type,
          typename Error>
-D_NODISCARD maybe<Type> to_maybe(
-    const result<Type, Error>& _r
+D_NODISCARD DMaybe<Type> to_maybe(
+    const DResult<Type, Error>& _r
 )
 {
     return _r.ok();

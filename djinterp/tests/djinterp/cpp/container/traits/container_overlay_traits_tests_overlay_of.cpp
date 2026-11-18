@@ -38,14 +38,14 @@ bool tests_overlay_of()
     // -- vector<int>: an unrestricted sequence --
     {
         using O = overlay_of<std::vector<int>>;
-        D_OVL_CHECK( (O::mult == multiplicity_kind::sequence) );
+        D_OVL_CHECK( (O::mult == DMultiplicityKind::sequence) );
         D_OVL_CHECK( (!O::keyed && !O::sorted && !O::capacity_bounded && !O::domain_bounded) );
     }
 
     // -- set<int>: unique, nothing else --
     {
         using O = overlay_of<std::set<int>>;
-        D_OVL_CHECK( (O::mult == multiplicity_kind::unique) );
+        D_OVL_CHECK( (O::mult == DMultiplicityKind::unique) );
         D_OVL_CHECK( (!O::keyed) );
         D_OVL_CHECK( (!O::capacity_bounded && !O::domain_bounded && !O::sorted) );
     }
@@ -53,21 +53,21 @@ bool tests_overlay_of()
     // -- map<int,int>: unique AND keyed --
     {
         using O = overlay_of<std::map<int, int>>;
-        D_OVL_CHECK( (O::mult == multiplicity_kind::unique) );
+        D_OVL_CHECK( (O::mult == DMultiplicityKind::unique) );
         D_OVL_CHECK( (O::keyed) );
     }
 
     // -- multiset<int>: unbounded_multiset, unkeyed --
     {
         using O = overlay_of<std::multiset<int>>;
-        D_OVL_CHECK( (O::mult == multiplicity_kind::unbounded_multiset) );
+        D_OVL_CHECK( (O::mult == DMultiplicityKind::unbounded_multiset) );
         D_OVL_CHECK( (!O::keyed) );
     }
 
     // -- array<int,4>: capacity-bounded, but a sequence (no mu, no domain) --
     {
         using O = overlay_of<std::array<int, 4>>;
-        D_OVL_CHECK( (O::mult == multiplicity_kind::sequence) );
+        D_OVL_CHECK( (O::mult == DMultiplicityKind::sequence) );
         D_OVL_CHECK( (O::capacity_bounded) );
         D_OVL_CHECK( (!O::domain_bounded && !O::keyed && !O::sorted) );
     }
@@ -75,7 +75,7 @@ bool tests_overlay_of()
     // -- vector<pair>: keyed, yet an unrestricted sequence otherwise --
     {
         using O = overlay_of<std::vector<std::pair<int, int>>>;
-        D_OVL_CHECK( (O::mult == multiplicity_kind::sequence) );
+        D_OVL_CHECK( (O::mult == DMultiplicityKind::sequence) );
         D_OVL_CHECK( (O::keyed) );
         D_OVL_CHECK( (!O::capacity_bounded && !O::sorted) );
     }
@@ -84,14 +84,14 @@ bool tests_overlay_of()
     {
         using O = overlay_of<DSortedSeq>;
         D_OVL_CHECK( (O::sorted) );
-        D_OVL_CHECK( (O::mult == multiplicity_kind::sequence) );
+        D_OVL_CHECK( (O::mult == DMultiplicityKind::sequence) );
         D_OVL_CHECK( (!O::keyed) );
     }
 
     // -- DDomainBoundedSeq: an interval carrier -> unique + capacity + domain --
     {
         using O = overlay_of<DDomainBoundedSeq>;
-        D_OVL_CHECK( (O::mult == multiplicity_kind::unique) );
+        D_OVL_CHECK( (O::mult == DMultiplicityKind::unique) );
         D_OVL_CHECK( (O::capacity_bounded) );
         D_OVL_CHECK( (O::domain_bounded) );
         D_OVL_CHECK( (!O::keyed && !O::sorted) );
@@ -100,7 +100,7 @@ bool tests_overlay_of()
     // -- capacity_bounded_seq: gamma via capacity()/!reserve, a sequence --
     {
         using O = overlay_of<capacity_bounded_seq>;
-        D_OVL_CHECK( (O::mult == multiplicity_kind::sequence) );
+        D_OVL_CHECK( (O::mult == DMultiplicityKind::sequence) );
         D_OVL_CHECK( (O::capacity_bounded) );
         D_OVL_CHECK( (!O::domain_bounded) );
     }
@@ -108,26 +108,26 @@ bool tests_overlay_of()
     // -- DBoundedMultisetSeq: the bounded_multiset kind --
     {
         using O = overlay_of<DBoundedMultisetSeq>;
-        D_OVL_CHECK( (O::mult == multiplicity_kind::bounded_multiset) );
+        D_OVL_CHECK( (O::mult == DMultiplicityKind::bounded_multiset) );
         D_OVL_CHECK( (!O::keyed) );
     }
 
     // -- int: a non-container wears nothing (unknown multiplicity) --
     {
         using O = overlay_of<int>;
-        D_OVL_CHECK( (O::mult == multiplicity_kind::unknown) );
+        D_OVL_CHECK( (O::mult == DMultiplicityKind::unknown) );
         D_OVL_CHECK( (!O::keyed && !O::sorted && !O::capacity_bounded && !O::domain_bounded) );
     }
 
     // value() materialises the members faithfully
     {
-        constexpr overlay v = overlay_of<std::map<int, int>>::value();
+        constexpr DOverlay v = overlay_of<std::map<int, int>>::value();
         D_OVL_CHECK( (v.mult == overlay_of<std::map<int, int>>::mult) );
         D_OVL_CHECK( (v.keyed == overlay_of<std::map<int, int>>::keyed) );
         D_OVL_CHECK( (v.capacity_bounded == overlay_of<std::map<int, int>>::capacity_bounded) );
     }
     {
-        constexpr overlay v = overlay_of<DDomainBoundedSeq>::value();
+        constexpr DOverlay v = overlay_of<DDomainBoundedSeq>::value();
         D_OVL_CHECK( (v.domain_bounded) );
         D_OVL_CHECK( (v.capacity_bounded) );
     }
@@ -164,11 +164,11 @@ bool tests_wears_overlay()
 {
     bool _ovl_ok = true;
 
-    constexpr overlay target_top = overlay_top();
-    constexpr overlay target_set{ multiplicity_kind::unique, false, false, false, false };
-    constexpr overlay target_map{ multiplicity_kind::unique, true,  false, false, false };
-    constexpr overlay target_cap{ multiplicity_kind::sequence, false, false, true, false };  // capacity-bounded sequence
-    constexpr overlay target_dom{ multiplicity_kind::unique, false, false, true, true };     // bounded + domain set
+    constexpr DOverlay target_top = overlay_top();
+    constexpr DOverlay target_set{ DMultiplicityKind::unique, false, false, false, false };
+    constexpr DOverlay target_map{ DMultiplicityKind::unique, true,  false, false, false };
+    constexpr DOverlay target_cap{ DMultiplicityKind::sequence, false, false, true, false };  // capacity-bounded sequence
+    constexpr DOverlay target_dom{ DMultiplicityKind::unique, false, false, true, true };     // bounded + domain set
 
     // everything wears the empty (top) overlay
     D_OVL_CHECK( (wears_overlay<std::set<int>>(target_top)) );

@@ -45,37 +45,37 @@ bool tests_observational_level_of_cascade()
 
     // str - positional access into a nested shape
     D_OC_CHECK(observational_level_of<DOctHierarchicalIndexed>::value
-                   == observational_level::str);
+                   == DObservationalLevel::str);
 
     // seq - by iteration
     D_OC_CHECK(observational_level_of<DOctIterableOnly>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
 
     // seq - by a flat positional read, either operand
     D_OC_CHECK(observational_level_of<DOctSubscriptOnly>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
     D_OC_CHECK(observational_level_of<DOctAtOnly>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
 
     // bag - per-class counts
     D_OC_CHECK(observational_level_of<DOctCountOnly>::value
-                   == observational_level::bag);
+                   == DObservationalLevel::bag);
 
     // set - membership
     D_OC_CHECK(observational_level_of<DOctContainsOnly>::value
-                   == observational_level::set);
+                   == DObservationalLevel::set);
 
     // size - equal size only
     D_OC_CHECK(observational_level_of<DOctSizeOnly>::value
-                   == observational_level::size);
+                   == DObservationalLevel::size);
 
     // none
     D_OC_CHECK(observational_level_of<DOctBare>::value
-                   == observational_level::none);
+                   == DObservationalLevel::none);
     D_OC_CHECK(observational_level_of<int>::value
-                   == observational_level::none);
+                   == DObservationalLevel::none);
     D_OC_CHECK(observational_level_of<void>::value
-                   == observational_level::none);
+                   == DObservationalLevel::none);
 
     // str needs neither iteration nor size
     D_OC_CHECK(   ( is_iterable_container<DOctHierarchicalIndexed>::value
@@ -83,11 +83,11 @@ bool tests_observational_level_of_cascade()
                && ( has_size_member<DOctHierarchicalIndexed>::value
                         == false )
                && ( observational_level_of<DOctHierarchicalIndexed>::value
-                        == observational_level::str ));
+                        == DObservationalLevel::str ));
 
     // a wholly non-const surface observes nothing
     D_OC_CHECK(observational_level_of<DOctNonconstSubscript>::value
-                   == observational_level::none);
+                   == DObservationalLevel::none);
 
     return ok;
 }
@@ -121,27 +121,27 @@ bool tests_observational_level_of_precedence()
                && ( is_iterable_container<DOctNested>::value     == true )
                && ( is_hierarchical_container<DOctNested>::value == true )
                && ( observational_level_of<DOctNested>::value
-                        == observational_level::str ));
+                        == DObservationalLevel::str ));
 
     // seq beats bag
     D_OC_CHECK(   ( is_iterable_container<DOctIterableAndCount>::value
                         == true )
                && ( has_count_member<DOctIterableAndCount>::value == true )
                && ( observational_level_of<DOctIterableAndCount>::value
-                        == observational_level::seq ));
+                        == DObservationalLevel::seq ));
 
     // bag beats set
     D_OC_CHECK(   ( has_count_member<DOctCountAndContains>::value == true )
                && ( has_contains_member<DOctCountAndContains>::value
                         == true )
                && ( observational_level_of<DOctCountAndContains>::value
-                        == observational_level::bag ));
+                        == DObservationalLevel::bag ));
 
     // set beats size
     D_OC_CHECK(   ( has_contains_member<DOctContainsAndSize>::value == true )
                && ( has_size_member<DOctContainsAndSize>::value     == true )
                && ( observational_level_of<DOctContainsAndSize>::value
-                        == observational_level::set ));
+                        == DObservationalLevel::set ));
 
     // str needs BOTH conjuncts - shape without positional access
     D_OC_CHECK(   ( is_hierarchical_container<DOctHierarchicalIterable>::value
@@ -149,54 +149,54 @@ bool tests_observational_level_of_precedence()
                && ( has_indexed_access<DOctHierarchicalIterable>::value
                         == false )
                && ( observational_level_of<DOctHierarchicalIterable>::value
-                        == observational_level::seq ));
+                        == DObservationalLevel::seq ));
 
     // ... and positional access without shape
     D_OC_CHECK(   ( has_indexed_access<DOctIndexedFlat>::value == true )
                && ( is_hierarchical_container<DOctIndexedFlat>::value
                         == false )
                && ( observational_level_of<DOctIndexedFlat>::value
-                        == observational_level::seq ));
+                        == DObservationalLevel::seq ));
 
     // the shape signal alone contributes nothing
     D_OC_CHECK(   ( is_hierarchical_container<DOctHierarchicalCount>::value
                         == true )
                && ( observational_level_of<DOctHierarchicalCount>::value
-                        == observational_level::bag ));
+                        == DObservationalLevel::bag ));
 
     // the cascade, re-derived term by term on a carrier lighting every probe
     D_OC_CHECK(observational_level_of<DOctFullInterface>::value
                    == (    (    has_indexed_access<DOctFullInterface>::value
                              && is_hierarchical_container<
                                     DOctFullInterface>::value )
-                             ? observational_level::str
+                             ? DObservationalLevel::str
                        : (    is_iterable_container<DOctFullInterface>::value
                            || has_indexed_access<DOctFullInterface>::value )
-                             ? observational_level::seq
+                             ? DObservationalLevel::seq
                        : ( has_count_member<DOctFullInterface>::value )
-                             ? observational_level::bag
+                             ? DObservationalLevel::bag
                        : ( has_contains_member<DOctFullInterface>::value )
-                             ? observational_level::set
+                             ? DObservationalLevel::set
                        : ( has_size_member<DOctFullInterface>::value )
-                             ? observational_level::size
-                       :       observational_level::none ));
+                             ? DObservationalLevel::size
+                       :       DObservationalLevel::none ));
 
     // ... and on a carrier lighting only the coarsest
     D_OC_CHECK(observational_level_of<DOctSizeOnly>::value
                    == (    (    has_indexed_access<DOctSizeOnly>::value
                              && is_hierarchical_container<
                                     DOctSizeOnly>::value )
-                             ? observational_level::str
+                             ? DObservationalLevel::str
                        : (    is_iterable_container<DOctSizeOnly>::value
                            || has_indexed_access<DOctSizeOnly>::value )
-                             ? observational_level::seq
+                             ? DObservationalLevel::seq
                        : ( has_count_member<DOctSizeOnly>::value )
-                             ? observational_level::bag
+                             ? DObservationalLevel::bag
                        : ( has_contains_member<DOctSizeOnly>::value )
-                             ? observational_level::set
+                             ? DObservationalLevel::set
                        : ( has_size_member<DOctSizeOnly>::value )
-                             ? observational_level::size
-                       :       observational_level::none ));
+                             ? DObservationalLevel::size
+                       :       DObservationalLevel::none ));
 
     return ok;
 }
@@ -225,43 +225,43 @@ bool tests_observational_level_of_std_types()
 
     // sequence containers
     D_OC_CHECK(observational_level_of<DOctVector>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
     D_OC_CHECK(observational_level_of<DOctDeque>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
     D_OC_CHECK(observational_level_of<DOctArray>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
     D_OC_CHECK(observational_level_of<DOctString>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
 
     // nesting reaches str with no tag, by the depth heuristic
     D_OC_CHECK(observational_level_of<DOctNested>::value
-                   == observational_level::str);
+                   == DObservationalLevel::str);
 
     // associative containers
     D_OC_CHECK(observational_level_of<DOctSet>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
     D_OC_CHECK(observational_level_of<DOctMultiset>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
     D_OC_CHECK(observational_level_of<DOctMapInt>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
     D_OC_CHECK(observational_level_of<DOctMapString>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
 
     // seq without size()
     D_OC_CHECK(   ( has_size_member<DOctFlist>::value == false )
                && ( observational_level_of<DOctFlist>::value
-                        == observational_level::seq ));
+                        == DObservationalLevel::seq ));
 
     // seq with no members at all
     D_OC_CHECK(   ( has_size_member<DOctRawArray>::value == false )
                && ( is_iterable_container<DOctRawArray>::value == false )
                && ( has_subscript_index<DOctRawArray>::value == true )
                && ( observational_level_of<DOctRawArray>::value
-                        == observational_level::seq ));
+                        == DObservationalLevel::seq ));
 
     // a product type observes nothing
     D_OC_CHECK(observational_level_of<DOctPair>::value
-                   == observational_level::none);
+                   == DObservationalLevel::none);
 
     return ok;
 }
@@ -295,19 +295,19 @@ bool tests_observational_level_of_set_gap()
 
     // the set resolves seq, by iteration
     D_OC_CHECK(observational_level_of<DOctSet>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
     D_OC_CHECK(is_iterable_container<DOctSet>::value == true);
     D_OC_CHECK(has_indexed_access<DOctSet>::value    == false);
 
     // strictly finer than the rung its membership operations would give
     D_OC_CHECK(observational_level_subsumes(
                    observational_level_of<DOctSet>::value,
-                   observational_level::set) == true);
+                   DObservationalLevel::set) == true);
     D_OC_CHECK(observational_level_of<DOctSet>::value
-                   != observational_level::set);
+                   != DObservationalLevel::set);
     D_OC_CHECK(observational_level_rank(
                    observational_level_of<DOctSet>::value)
-                   > observational_level_rank(observational_level::set));
+                   > observational_level_rank(DObservationalLevel::set));
 
     // ... and those operations really are present, so the finer answer is a
     // choice of the cascade rather than the absence of an alternative
@@ -315,23 +315,23 @@ bool tests_observational_level_of_set_gap()
 
     // a multiset, whose native level is bag, likewise resolves seq
     D_OC_CHECK(observational_level_of<DOctMultiset>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
     D_OC_CHECK(observational_level_rank(
                    observational_level_of<DOctMultiset>::value)
-                   > observational_level_rank(observational_level::bag));
+                   > observational_level_rank(DObservationalLevel::bag));
 
     // the gap belongs to the INTERFACE: remove the iteration and the same
     // membership operations resolve set
     D_OC_CHECK(   ( has_contains_member<DOctContainsOnly>::value == true )
                && ( is_iterable_container<DOctContainsOnly>::value == false )
                && ( observational_level_of<DOctContainsOnly>::value
-                        == observational_level::set ));
+                        == DObservationalLevel::set ));
 
     // and with counts but no iteration, bag
     D_OC_CHECK(   ( has_count_member<DOctCountOnly>::value == true )
                && ( is_iterable_container<DOctCountOnly>::value == false )
                && ( observational_level_of<DOctCountOnly>::value
-                        == observational_level::bag ));
+                        == DObservationalLevel::bag ));
 
     return ok;
 }
@@ -361,28 +361,28 @@ bool tests_observational_level_of_cv_ref()
     bool ok = true;
 
     D_OC_CV_REF_AGREE(observational_level_of, DOctHierarchicalIndexed,
-                      observational_level::str);
+                      DObservationalLevel::str);
     D_OC_CV_REF_AGREE(observational_level_of, DOctNested,
-                      observational_level::str);
+                      DObservationalLevel::str);
     D_OC_CV_REF_AGREE(observational_level_of, DOctVector,
-                      observational_level::seq);
+                      DObservationalLevel::seq);
     D_OC_CV_REF_AGREE(observational_level_of, DOctSet,
-                      observational_level::seq);
+                      DObservationalLevel::seq);
     D_OC_CV_REF_AGREE(observational_level_of, DOctCountOnly,
-                      observational_level::bag);
+                      DObservationalLevel::bag);
     D_OC_CV_REF_AGREE(observational_level_of, DOctContainsOnly,
-                      observational_level::set);
+                      DObservationalLevel::set);
     D_OC_CV_REF_AGREE(observational_level_of, DOctSizeOnly,
-                      observational_level::size);
+                      DObservationalLevel::size);
     D_OC_CV_REF_AGREE(observational_level_of, DOctBare,
-                      observational_level::none);
+                      DObservationalLevel::none);
 
     // spelled out on one carrier, since surviving the volatile spelling is the
     // point of writing clean_t
     D_OC_CHECK(observational_level_of<volatile DOctVector>::value
                    == observational_level_of<DOctVector>::value);
     D_OC_CHECK(observational_level_of<const volatile DOctNested>::value
-                   == observational_level::str);
+                   == DObservationalLevel::str);
 
     return ok;
 }
@@ -404,17 +404,17 @@ bool tests_observational_level_of_companions()
     // the _t alias is the integral_constant, exactly
     D_OC_STATIC_CHECK(
         std::is_same<observational_level_of_t<DOctVector>,
-                     std::integral_constant<observational_level,
-                                            observational_level::seq> >::value);
+                     std::integral_constant<DObservationalLevel,
+                                            DObservationalLevel::seq> >::value);
     D_OC_STATIC_CHECK(
         std::is_same<observational_level_of_t<DOctBare>,
                      std::integral_constant<
-                         observational_level,
-                         observational_level::none> >::value);
+                         DObservationalLevel,
+                         DObservationalLevel::none> >::value);
     D_OC_STATIC_CHECK(
         std::is_same<observational_level_of_t<DOctNested>,
-                     std::integral_constant<observational_level,
-                                            observational_level::str> >::value);
+                     std::integral_constant<DObservationalLevel,
+                                            DObservationalLevel::str> >::value);
 
     // ... and carries the same value the trait reports
     D_OC_CHECK(observational_level_of_t<DOctSet>::value
@@ -424,12 +424,12 @@ bool tests_observational_level_of_companions()
 
     // usable in a constant expression
     D_OC_STATIC_CHECK(observational_level_of<DOctVector>::value
-                          == observational_level::seq);
+                          == DObservationalLevel::seq);
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
     D_OC_STATIC_CHECK(observational_level_of_v<DOctNested>
-                          == observational_level::str);
+                          == DObservationalLevel::str);
 
     D_OC_CHECK(observational_level_of_v<DOctVector>
                    == observational_level_of<DOctVector>::value);

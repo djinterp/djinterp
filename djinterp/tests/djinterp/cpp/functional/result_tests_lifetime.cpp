@@ -41,7 +41,7 @@ int tracked::constructed = 0;
 int tracked::destroyed   = 0;
 
 
-using ri = result<int, std::string>;
+using ri = DResult<int, std::string>;
 
 
 // the default constructor is intentionally deleted: a result is always
@@ -244,12 +244,12 @@ bool test_lifetime()
     // ---- value branch ----
     tracked::reset_counters();
     {
-        result<tracked, int> r = ok<tracked, int>(tracked(1));
+        DResult<tracked, int> r = ok<tracked, int>(tracked(1));
         record_assertion(verdict, r.is_ok() && tracked::live >= 1,
             "lifetime: ok branch holds a live instance");
 
         // branch-changing assignment destroys the tracked value
-        result<tracked, int> e = err<tracked, int>(7);
+        DResult<tracked, int> e = err<tracked, int>(7);
         r = e;
         record_assertion(verdict, r.is_err() && r.error() == 7,
             "lifetime: ok -> err assignment switches branch");
@@ -261,11 +261,11 @@ bool test_lifetime()
     // ---- error branch ----
     tracked::reset_counters();
     {
-        result<int, tracked> r = err<int, tracked>(tracked(2));
+        DResult<int, tracked> r = err<int, tracked>(tracked(2));
         record_assertion(verdict, r.is_err() && tracked::live >= 1,
             "lifetime: err branch holds a live instance");
 
-        result<int, tracked> copy(r);
+        DResult<int, tracked> copy(r);
         record_assertion(verdict, copy.is_err() && copy.error().id == 2,
             "lifetime: copy duplicates the error payload");
     }

@@ -84,7 +84,7 @@ NS_END  // internal
 //  sequence
 // ================================================================
 
-// sequence
+// DSequence
 //   class: an ordered, contiguous collection of elements of
 // type Type.  Provides value semantics with move support.
 //
@@ -98,7 +98,7 @@ NS_END  // internal
 // Equality comparison of sequences requires Type to support
 // operator==.
 template<typename Type>
-class sequence
+class DSequence
 {
 public:
     using value_type      = Type;
@@ -117,7 +117,7 @@ public:
 
     // sequence (default)
     //   constructs an empty sequence.
-    sequence()
+    DSequence()
     {}
 
     // sequence (variadic)
@@ -128,7 +128,7 @@ public:
     template<typename... Args,
              typename = typename std::enable_if<(sizeof...(Args) > 0) &&
                                          conjunction<std::is_same<Args, Type>...>::value>::type>
-    explicit sequence(
+    explicit DSequence(
         Args... _args
     )
         : m_data{_args...}
@@ -136,7 +136,7 @@ public:
 
     // sequence (initializer_list)
     //   constructs a sequence from a brace-enclosed list.
-    sequence(
+    DSequence(
         std::initializer_list<Type> _init
     )
         : m_data(_init)
@@ -152,7 +152,7 @@ public:
              typename = typename std::enable_if<
                  internal::is_sequence_source_iterator<Iterator,
                                                        Type>::value>::type>
-    sequence(
+    DSequence(
         Iterator _begin,
         Iterator _end
     )
@@ -161,7 +161,7 @@ public:
 
     // sequence (pointer + count)
     //   constructs a sequence from a contiguous array.
-    sequence(
+    DSequence(
         const Type* _data,
         size_type    _count
     )
@@ -170,7 +170,7 @@ public:
 
     // sequence (vector move)
     //   constructs a sequence by taking ownership of a vector.
-    explicit sequence(
+    explicit DSequence(
         std::vector<Type>&& _vec
     )
         : m_data(static_cast<std::vector<Type>&&>(_vec))
@@ -178,7 +178,7 @@ public:
 
     // sequence (vector copy)
     //   constructs a sequence by copying a vector.
-    explicit sequence(
+    explicit DSequence(
         const std::vector<Type>& _vec
     )
         : m_data(_vec)
@@ -186,7 +186,7 @@ public:
 
     // sequence (count + value fill)
     //   constructs a sequence with _count copies of _value.
-    sequence(
+    DSequence(
         size_type _count,
         const Type& _value
     )
@@ -351,7 +351,7 @@ public:
     // append
     //   appends another sequence to the end.
     void append(
-        const sequence& _other
+        const DSequence& _other
     )
     {
         // a range into m_data itself breaks std::vector::insert's
@@ -412,19 +412,19 @@ public:
 
     // sub
     //   returns a new sequence from [_offset, _offset+_count).
-    sequence sub(
+    DSequence sub(
         size_type _offset,
         size_type _count
     ) const
     {
-        return sequence(
+        return DSequence(
             m_data.data() + _offset,
             _count);
     }
 
     // head
     //   returns the first _count elements.
-    sequence head(
+    DSequence head(
         size_type _count
     ) const
     {
@@ -433,7 +433,7 @@ public:
 
     // tail
     //   returns the last _count elements.
-    sequence tail(
+    DSequence tail(
         size_type _count
     ) const
     {
@@ -449,8 +449,8 @@ public:
     // all elements compare equal.
     friend
     bool operator==(
-        const sequence& _a,
-        const sequence& _b
+        const DSequence& _a,
+        const DSequence& _b
     )
     {
         if (_a.m_data.size() != _b.m_data.size())
@@ -474,8 +474,8 @@ public:
     //   returns true if the sequences differ.
     friend
     bool operator!=(
-        const sequence& _a,
-        const sequence& _b
+        const DSequence& _a,
+        const DSequence& _b
     )
     {
         return !(_a == _b);
@@ -504,6 +504,10 @@ private:
     std::vector<Type> m_data;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using sequence = DSequence<Type>;
+
 
 // ================================================================
 //  make_sequence
@@ -513,33 +517,33 @@ private:
 //   factory: creates a sequence from a list of elements.
 template<typename    Type,
          typename... Args>
-sequence<Type> make_sequence(
+DSequence<Type> make_sequence(
     Args... _args
 )
 {
-    return sequence<Type>(_args...);
+    return DSequence<Type>(_args...);
 }
 
 // make_sequence (pointer + count)
 //   factory: creates a sequence from a contiguous array.
 template<typename Type>
-sequence<Type> make_sequence(
+DSequence<Type> make_sequence(
     const Type* _data,
     std::size_t _count
 )
 {
-    return sequence<Type>(_data, _count);
+    return DSequence<Type>(_data, _count);
 }
 
 // make_sequence (C array)
 //   factory: creates a sequence from a C array.
 template<typename    Type,
          std::size_t N>
-sequence<Type> make_sequence(
+DSequence<Type> make_sequence(
     const Type (&_arr)[N]
 )
 {
-    return sequence<Type>(_arr, N);
+    return DSequence<Type>(_arr, N);
 }
 
 

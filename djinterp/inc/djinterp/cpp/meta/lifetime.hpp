@@ -87,12 +87,12 @@ NS_DJINTERP
 // I.   The lifetime lattice
 // ===========================================================================
 
-// lifetime
+// DLifetime
 //   enum: a type's determination capability across the two evaluation stages
 // - compile-time (constexpr) and runtime - with one bit per stage so the four
 // values form a lattice.  compile-time precedes runtime (c < r); a value fixed
 // at compile time is a fortiori available at runtime.
-struct lifetime
+struct DLifetime
 {
     enum value
     {
@@ -102,6 +102,9 @@ struct lifetime
         both         = (compile_time | runtime)  // either stage (top)
     };
 };
+
+// old name, until 0.9.0-rc.1
+using lifetime = DLifetime;
 
 
 // ===========================================================================
@@ -119,12 +122,12 @@ struct lifetime
 // parts are.  This is the canonical COMPOSITION operator; it reproduces the
 // Lifetime-axis max-over-stages.
 constexpr
-lifetime::value lifetime_meet(
-    lifetime::value _a,
-    lifetime::value _b
+DLifetime::value lifetime_meet(
+    DLifetime::value _a,
+    DLifetime::value _b
 ) noexcept
 {
-    return static_cast<lifetime::value>(
+    return static_cast<DLifetime::value>(
         static_cast<unsigned>(_a) & static_cast<unsigned>(_b) );
 }
 
@@ -133,12 +136,12 @@ lifetime::value lifetime_meet(
 // alternative that may be either _a or _b (a sum / variant), capable at any
 // stage either operand is.
 constexpr
-lifetime::value lifetime_join(
-    lifetime::value _a,
-    lifetime::value _b
+DLifetime::value lifetime_join(
+    DLifetime::value _a,
+    DLifetime::value _b
 ) noexcept
 {
-    return static_cast<lifetime::value>(
+    return static_cast<DLifetime::value>(
         static_cast<unsigned>(_a) | static_cast<unsigned>(_b) );
 }
 
@@ -146,14 +149,14 @@ lifetime::value lifetime_join(
 //   function: builds a lifetime from two independent stage facts (is the type
 // usable at compile time? at runtime?).
 constexpr
-lifetime::value make_lifetime(
+DLifetime::value make_lifetime(
     bool _is_compile_time,
     bool _is_runtime
 ) noexcept
 {
-    return static_cast<lifetime::value>(
-        ( _is_compile_time ? static_cast<unsigned>(lifetime::compile_time) : 0u ) |
-        ( _is_runtime      ? static_cast<unsigned>(lifetime::runtime)      : 0u ) );
+    return static_cast<DLifetime::value>(
+        ( _is_compile_time ? static_cast<unsigned>(DLifetime::compile_time) : 0u ) |
+        ( _is_runtime      ? static_cast<unsigned>(DLifetime::runtime)      : 0u ) );
 }
 
 // is_compile_time
@@ -161,11 +164,11 @@ lifetime::value make_lifetime(
 // stage - i.e. the type is constexpr-capable (compile_time or both).
 constexpr
 bool is_compile_time(
-    lifetime::value _life
+    DLifetime::value _life
 ) noexcept
 {
     return ( ( static_cast<unsigned>(_life) &
-               static_cast<unsigned>(lifetime::compile_time) ) != 0u );
+               static_cast<unsigned>(DLifetime::compile_time) ) != 0u );
 }
 
 // is_runtime
@@ -173,31 +176,31 @@ bool is_compile_time(
 // both).
 constexpr
 bool is_runtime(
-    lifetime::value _life
+    DLifetime::value _life
 ) noexcept
 {
     return ( ( static_cast<unsigned>(_life) &
-               static_cast<unsigned>(lifetime::runtime) ) != 0u );
+               static_cast<unsigned>(DLifetime::runtime) ) != 0u );
 }
 
 // is_both
 //   function: true iff the lifetime spans both stages.
 constexpr
 bool is_both(
-    lifetime::value _life
+    DLifetime::value _life
 ) noexcept
 {
-    return ( _life == lifetime::both );
+    return ( _life == DLifetime::both );
 }
 
 // is_none
 //   function: true iff the lifetime spans neither stage (the bottom).
 constexpr
 bool is_none(
-    lifetime::value _life
+    DLifetime::value _life
 ) noexcept
 {
-    return ( _life == lifetime::none );
+    return ( _life == DLifetime::none );
 }
 
 // is_compile_time_only
@@ -205,10 +208,10 @@ bool is_none(
 // (constexpr, not runtime).
 constexpr
 bool is_compile_time_only(
-    lifetime::value _life
+    DLifetime::value _life
 ) noexcept
 {
-    return ( _life == lifetime::compile_time );
+    return ( _life == DLifetime::compile_time );
 }
 
 // is_runtime_only
@@ -216,10 +219,10 @@ bool is_compile_time_only(
 // constant-evaluable).
 constexpr
 bool is_runtime_only(
-    lifetime::value _life
+    DLifetime::value _life
 ) noexcept
 {
-    return ( _life == lifetime::runtime );
+    return ( _life == DLifetime::runtime );
 }
 
 // lifetime_name
@@ -227,12 +230,12 @@ bool is_runtime_only(
 // and agent-facing summaries.
 constexpr
 const char* lifetime_name(
-    lifetime::value _life
+    DLifetime::value _life
 ) noexcept
 {
-    return ( _life == lifetime::both         ? "both"
-           : _life == lifetime::compile_time ? "compile_time"
-           : _life == lifetime::runtime      ? "runtime"
+    return ( _life == DLifetime::both         ? "both"
+           : _life == DLifetime::compile_time ? "compile_time"
+           : _life == DLifetime::runtime      ? "runtime"
            :                                   "none" );
 }
 
@@ -246,15 +249,15 @@ const char* lifetime_name(
 // DLifetimeConstant
 //   type: an integral_constant specialized to a lifetime value (the lifetime
 // analogue of std::bool_constant).
-template<lifetime::value Life>
-using DLifetimeConstant = std::integral_constant<lifetime::value, Life>;
+template<DLifetime::value Life>
+using DLifetimeConstant = std::integral_constant<DLifetime::value, Life>;
 
 // DNoneLifetime / DCompileTimeLifetime / DRuntimeLifetime / DBothLifetime
 //   type: named carriers for the four lattice values, for tag dispatch.
-using DNoneLifetime         = DLifetimeConstant<lifetime::none>;
-using DCompileTimeLifetime = DLifetimeConstant<lifetime::compile_time>;
-using DRuntimeLifetime      = DLifetimeConstant<lifetime::runtime>;
-using DBothLifetime         = DLifetimeConstant<lifetime::both>;
+using DNoneLifetime         = DLifetimeConstant<DLifetime::none>;
+using DCompileTimeLifetime = DLifetimeConstant<DLifetime::compile_time>;
+using DRuntimeLifetime      = DLifetimeConstant<DLifetime::runtime>;
+using DBothLifetime         = DLifetimeConstant<DLifetime::both>;
 
 
 // ===========================================================================
@@ -315,7 +318,7 @@ NS_INTERNAL
              typename = void>
     struct lifetime_category_member
     {
-        static constexpr lifetime::value value = lifetime::none;
+        static constexpr DLifetime::value value = DLifetime::none;
     };
 
     // lifetime_category_member (opt-in present)
@@ -324,7 +327,7 @@ NS_INTERNAL
     struct lifetime_category_member<Type,
         D_VOID_T<decltype(clean_t<Type>::lifetime_category)>>
     {
-        static constexpr lifetime::value value =
+        static constexpr DLifetime::value value =
             clean_t<Type>::lifetime_category;
     };
 
@@ -347,12 +350,12 @@ private:
     using clean_type = clean_t<Type>;
 
 public:
-    static constexpr lifetime::value value =
+    static constexpr DLifetime::value value =
         ( has_lifetime_category<clean_type>::value
               ? internal::lifetime_category_member<clean_type>::value
               : ( is_literal_type<clean_type>::value
-                      ? lifetime::both
-                      : lifetime::runtime ) );
+                      ? DLifetime::both
+                      : DLifetime::runtime ) );
 
     using type = DLifetimeConstant<value>;
 };

@@ -24,31 +24,31 @@ tests_write_only_size_reports_the_count
 */
 bool tests_write_only_size_reports_the_count()
 {
-    const dj::write_only_container<std::vector<int> > e;
+    const dj::DWriteOnlyContainer<std::vector<int> > e;
 
     D_WO_CHECK(e.size() == 0u);
 
-    const dj::write_only_container<std::vector<int> > three(
+    const dj::DWriteOnlyContainer<std::vector<int> > three(
         std::size_t(3), 7);
 
     D_WO_CHECK(three.size() == 3u);
 
-    const dj::write_only_container<std::vector<int> > one(std::size_t(1), 0);
+    const dj::DWriteOnlyContainer<std::vector<int> > one(std::size_t(1), 0);
 
     D_WO_CHECK(one.size() == 1u);
 
     // a node container, where size is not a pointer subtraction
-    const dj::write_only_container<std::list<int> > l(std::size_t(5), 1);
+    const dj::DWriteOnlyContainer<std::list<int> > l(std::size_t(5), 1);
 
     D_WO_CHECK(l.size() == 5u);
 
     // a fixed-size container reports its own size
-    const dj::write_only_container<std::array<int, 4> > a;
+    const dj::DWriteOnlyContainer<std::array<int, 4> > a;
 
     D_WO_CHECK(a.size() == 4u);
 
     // a character container
-    const dj::write_only_container<std::string> s(std::string("hello"));
+    const dj::DWriteOnlyContainer<std::string> s(std::string("hello"));
 
     D_WO_CHECK(s.size() == 5u);
 
@@ -69,20 +69,20 @@ tests_write_only_empty_agrees_with_size
 */
 bool tests_write_only_empty_agrees_with_size()
 {
-    const dj::write_only_container<std::vector<int> > e;
+    const dj::DWriteOnlyContainer<std::vector<int> > e;
 
     D_WO_CHECK(e.empty());
     D_WO_CHECK(e.empty() == (e.size() == 0u));
 
-    const dj::write_only_container<std::vector<int> > full(
+    const dj::DWriteOnlyContainer<std::vector<int> > full(
         std::size_t(2), 1);
 
     D_WO_CHECK(!full.empty());
     D_WO_CHECK(full.empty() == (full.size() == 0u));
 
     // a node container
-    const dj::write_only_container<std::list<int> > le;
-    const dj::write_only_container<std::list<int> > lf(std::size_t(1), 1);
+    const dj::DWriteOnlyContainer<std::list<int> > le;
+    const dj::DWriteOnlyContainer<std::list<int> > lf(std::size_t(1), 1);
 
     D_WO_CHECK(le.empty() == (le.size() == 0u));
     D_WO_CHECK(lf.empty() == (lf.size() == 0u));
@@ -90,7 +90,7 @@ bool tests_write_only_empty_agrees_with_size()
     D_WO_CHECK(!lf.empty());
 
     // a fixed-size container is never empty
-    const dj::write_only_container<std::array<int, 2> > a;
+    const dj::DWriteOnlyContainer<std::array<int, 2> > a;
 
     D_WO_CHECK(!a.empty());
     D_WO_CHECK(a.empty() == (a.size() == 0u));
@@ -112,7 +112,7 @@ tests_write_only_metadata_tracks_appends
 */
 bool tests_write_only_metadata_tracks_appends()
 {
-    dj::write_only_container<std::vector<int> > sink;
+    dj::DWriteOnlyContainer<std::vector<int> > sink;
 
     D_WO_CHECK(sink.empty());
     D_WO_CHECK(sink.size() == 0u);
@@ -148,7 +148,7 @@ bool tests_write_only_metadata_tracks_appends()
     D_WO_CHECK(sink.size() == 1u);
 
     // a node container behaves the same way
-    dj::write_only_container<std::list<int> > l;
+    dj::DWriteOnlyContainer<std::list<int> > l;
 
     l.push_back(1);
     l.push_back(2);
@@ -172,10 +172,10 @@ tests_write_only_metadata_is_value_free
 */
 bool tests_write_only_metadata_is_value_free()
 {
-    typedef dj::write_only_container<std::vector<int> > sink;
+    typedef dj::DWriteOnlyContainer<std::vector<int> > sink;
     typedef sink::value_type                            element;
 
-    dj::write_only_container<std::vector<int> > s;
+    dj::DWriteOnlyContainer<std::vector<int> > s;
 
     // neither observer's return type is the element type
     D_WO_CHECK(!(std::is_same<decltype(s.size()), element>::value));
@@ -196,8 +196,8 @@ bool tests_write_only_metadata_is_value_free()
 
     // two sinks with the same count but different contents cannot be told
     // apart through this surface
-    dj::write_only_container<std::vector<int> > a;
-    dj::write_only_container<std::vector<int> > b;
+    dj::DWriteOnlyContainer<std::vector<int> > a;
+    dj::DWriteOnlyContainer<std::vector<int> > b;
 
     a.push_back(1);
     a.push_back(2);
@@ -208,7 +208,7 @@ bool tests_write_only_metadata_is_value_free()
     D_WO_CHECK(a.empty() == b.empty());
 
     // and a character sink is likewise value-free
-    dj::write_only_container<std::string> t;
+    dj::DWriteOnlyContainer<std::string> t;
 
     D_WO_CHECK(!(std::is_same<decltype(t.size()), char>::value));
     D_WO_CHECK(!(std::is_same<decltype(t.size()), char&>::value));
@@ -227,7 +227,7 @@ tests_write_only_metadata_is_constexpr
 */
 bool tests_write_only_metadata_is_constexpr()
 {
-    typedef dj::write_only_container<std::array<int, 3> > sink;
+    typedef dj::DWriteOnlyContainer<std::array<int, 3> > sink;
 
     constexpr std::array<int, 3> raw = { { 4, 5, 6 } };
     constexpr sink               s(raw);
@@ -245,7 +245,7 @@ bool tests_write_only_metadata_is_constexpr()
     D_WO_CHECK(d.size() == 3u);
 
     // an empty fixed-size container really does report empty
-    typedef dj::write_only_container<std::array<int, 0> > empty_sink;
+    typedef dj::DWriteOnlyContainer<std::array<int, 0> > empty_sink;
 
     constexpr empty_sink e;
 

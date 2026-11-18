@@ -9,7 +9,7 @@
 *
 *   The traits answer concrete, falsifiable questions: "does it have a
 * `scan(const char*)`?", "does it expose a `resolve(...)`?", "does it carry a
-* `file_entry`-shaped payload (name_offset / name_length / type / size)?".
+* `DFileEntry`-shaped payload (name_offset / name_length / type / size)?".
 * Policy decisions are left to the consumer; classification is aggregated into
 * file_tree_class at the bottom of the header.
 *
@@ -223,7 +223,7 @@ struct has_name_str_method : std::false_type
 // Type&>().name_str(std::declval<file_node_id>()) )>` case; it reports true.
 template<typename Type>
 struct has_name_str_method<Type, void_t<decltype(
-    std::declval<const Type&>().name_str(std::declval<file_node_id>())
+    std::declval<const Type&>().name_str(std::declval<DFileNodeId>())
 )>> : std::true_type
 {};
 
@@ -247,7 +247,7 @@ struct has_full_path_method : std::false_type
 // Type&>().full_path(std::declval<file_node_id>()) )>` case; it reports true.
 template<typename Type>
 struct has_full_path_method<Type, void_t<decltype(
-    std::declval<const Type&>().full_path(std::declval<file_node_id>())
+    std::declval<const Type&>().full_path(std::declval<DFileNodeId>())
 )>> : std::true_type
 {};
 
@@ -271,7 +271,7 @@ NS_INTERNAL
     // visit_depth_first / visit_breadth_first.
     struct file_tree_noop_visitor
     {
-        void operator()(file_node_id, std::size_t) const {}
+        void operator()(DFileNodeId, std::size_t) const {}
     };
 
 NS_END  // internal
@@ -293,7 +293,7 @@ struct has_depth_first_method : std::false_type
 template<typename Type>
 struct has_depth_first_method<Type, void_t<decltype(
     std::declval<const Type&>().visit_depth_first(
-        std::declval<file_node_id>(),
+        std::declval<DFileNodeId>(),
         std::declval<internal::file_tree_noop_visitor>())
 )>> : std::true_type
 {};
@@ -321,7 +321,7 @@ struct has_breadth_first_method : std::false_type
 template<typename Type>
 struct has_breadth_first_method<Type, void_t<decltype(
     std::declval<const Type&>().visit_breadth_first(
-        std::declval<file_node_id>(),
+        std::declval<DFileNodeId>(),
         std::declval<internal::file_tree_noop_visitor>())
 )>> : std::true_type
 {};
@@ -464,11 +464,11 @@ struct is_file_entry_payload
 // Note: uses ::value syntax for C++11 compatibility.  The _v variable
 // templates above are a convenience layer that requires C++14.
 
-// file_tree_class
+// DFileTreeClass
 //   struct: comprehensive aggregation of a file-tree container's detected
 // capabilities.
 template<typename Type>
-struct file_tree_class
+struct DFileTreeClass
 {
     // -----------------------------------------------------------------
     // Core Identity
@@ -486,7 +486,7 @@ struct file_tree_class
     // Naming Surface
     // -----------------------------------------------------------------
     static constexpr bool is_named =
-        ( has_name_method<const Type, file_node_id>::value ||
+        ( has_name_method<const Type, DFileNodeId>::value ||
           has_name_str_method<Type>::value );
 
     static constexpr bool is_path_addressable =
@@ -510,9 +510,9 @@ struct file_tree_class
     // -----------------------------------------------------------------
     static constexpr bool is_mutable =
         ( has_add_child_method<Type,
-                               file_node_id,
+                               DFileNodeId,
                                const char*,
-                               file_type>::value &&
+                               DFileType>::value &&
           has_clear_method<Type>::value );
 
     // -----------------------------------------------------------------
@@ -522,6 +522,10 @@ struct file_tree_class
         is_file_entry_payload<
             file_payload_type_of_t<Type>>::value;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using file_tree_class = DFileTreeClass<Type>;
 
 
 NS_END  // djinterp

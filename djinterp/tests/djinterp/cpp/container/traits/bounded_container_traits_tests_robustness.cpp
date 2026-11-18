@@ -178,9 +178,9 @@ bool tests_cvref_verdicts()
         D_BCT_CHECK(DBoundedContainerClass<const __VA_ARGS__&>::capacity ==         \
                     EXPECTED)
 
-    D_BCT_CB_CVREF(capacity_bound::bounded,   std::array<int, 3>);
-    D_BCT_CB_CVREF(capacity_bound::unbounded, std::vector<int>);
-    D_BCT_CB_CVREF(capacity_bound::unknown,   no_signal);
+    D_BCT_CB_CVREF(DCapacityBound::bounded,   std::array<int, 3>);
+    D_BCT_CB_CVREF(DCapacityBound::unbounded, std::vector<int>);
+    D_BCT_CB_CVREF(DCapacityBound::unknown,   no_signal);
 
     #undef D_BCT_CB_CVREF
 
@@ -234,7 +234,7 @@ bool tests_hostile_types_rejected()
     // a raw array has an extent but no `extent`, so it is unknown
     D_BCT_CHECK(!is_bounded_container<int[3]>::value);
     D_BCT_CHECK(!is_unbounded_container<int[3]>::value);
-    D_BCT_CHECK(capacity_bound_of<int[3]>::value == capacity_bound::unknown);
+    D_BCT_CHECK(capacity_bound_of<int[3]>::value == DCapacityBound::unknown);
 
     return ok;
 }
@@ -271,23 +271,23 @@ bool tests_hostile_types_survived()
 
     // capacity_bound_of and the snapshot are not bool traits, so they are
     // instantiated by hand on the shapes most likely to break a probe
-    D_BCT_CHECK(capacity_bound_of<void>::value == capacity_bound::unknown);
+    D_BCT_CHECK(capacity_bound_of<void>::value == DCapacityBound::unknown);
     D_BCT_CHECK(capacity_bound_of<const void>::value ==
-                capacity_bound::unknown);
-    D_BCT_CHECK(capacity_bound_of<int(int)>::value == capacity_bound::unknown);
+                DCapacityBound::unknown);
+    D_BCT_CHECK(capacity_bound_of<int(int)>::value == DCapacityBound::unknown);
     D_BCT_CHECK(capacity_bound_of<int (*)(int)>::value ==
-                capacity_bound::unknown);
-    D_BCT_CHECK(capacity_bound_of<int[3]>::value == capacity_bound::unknown);
-    D_BCT_CHECK(capacity_bound_of<int[]>::value == capacity_bound::unknown);
-    D_BCT_CHECK(capacity_bound_of<int&>::value == capacity_bound::unknown);
+                DCapacityBound::unknown);
+    D_BCT_CHECK(capacity_bound_of<int[3]>::value == DCapacityBound::unknown);
+    D_BCT_CHECK(capacity_bound_of<int[]>::value == DCapacityBound::unknown);
+    D_BCT_CHECK(capacity_bound_of<int&>::value == DCapacityBound::unknown);
     D_BCT_CHECK(capacity_bound_of<std::nullptr_t>::value ==
-                capacity_bound::unknown);
+                DCapacityBound::unknown);
 
     D_BCT_CHECK(!DBoundedContainerClass<void>::is_bounded);
     D_BCT_CHECK(!DBoundedContainerClass<int(int)>::is_bounded);
     D_BCT_CHECK(!DBoundedContainerClass<int[3]>::is_bounded);
     D_BCT_CHECK(DBoundedContainerClass<void>::capacity ==
-                capacity_bound::unknown);
+                DCapacityBound::unknown);
 
     return ok;
 }
@@ -324,7 +324,7 @@ bool tests_incomplete_type()
     D_BCT_CHECK(!is_domain_bounded_container<incomplete>::value);
 
     D_BCT_CHECK(capacity_bound_of<incomplete>::value ==
-                capacity_bound::unknown);
+                DCapacityBound::unknown);
     D_BCT_CHECK(!DBoundedContainerClass<incomplete>::is_bounded);
 
     // and it holds through the cv-ref forms too

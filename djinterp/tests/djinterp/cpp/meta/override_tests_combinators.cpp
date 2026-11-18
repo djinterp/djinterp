@@ -32,7 +32,7 @@ bool tests_override_with_on_both()
 {
     bool ok = true;
 
-    using p = DWithOnBoth<keep_base, always_keep_right>;
+    using p = DWithOnBoth<DKeepBase, always_keep_right>;
     using h = ov_hooks<p, ov_base, ov_delta>;
 
     // the replaced hook
@@ -42,11 +42,11 @@ bool tests_override_with_on_both()
     D_OV_CHECK(ok, std::is_same_v<h::base_only,  ov_base>);
     D_OV_CHECK(ok, std::is_same_v<h::delta_only, dropped>);
     D_OV_CHECK(ok, std::is_same_v<h::delta_only,
-                                  keep_base::on_delta_only<ov_delta>>);
+                                  DKeepBase::on_delta_only<ov_delta>>);
 
     // inheritance is the mechanism
-    D_OV_CHECK(ok, std::is_base_of_v<keep_base, p>);
-    D_OV_CHECK(ok, std::is_convertible_v<p*, keep_base*>);
+    D_OV_CHECK(ok, std::is_base_of_v<DKeepBase, p>);
+    D_OV_CHECK(ok, std::is_convertible_v<p*, DKeepBase*>);
 
     // a genuine metafunction call, not a projection
     using swapped = DWithOnBoth<DKeepDelta, ov_swap_sides>;
@@ -73,7 +73,7 @@ bool tests_override_with_on_both()
                                                                ov_delta>,
                        ov_base>);
     D_OV_CHECK(ok, std::is_same_v<
-                       DWithOnBoth<keep_base,
+                       DWithOnBoth<DKeepBase,
                                     always_keep_right>::on_both<ov_base,
                                                                 ov_delta>,
                        ov_delta>);
@@ -122,7 +122,7 @@ bool tests_override_with_on_base_only()
     D_OV_CHECK(ok, !std::is_same_v<ident, DKeepDelta>);
 
     // an arbitrary rewrite
-    using third = DWithOnBaseOnly<keep_base, ov_to_third>;
+    using third = DWithOnBaseOnly<DKeepBase, ov_to_third>;
 
     D_OV_CHECK(ok, std::is_same_v<third::on_base_only<ov_base>, ov_third>);
     D_OV_CHECK(ok, std::is_same_v<third::on_both<ov_base, ov_delta>,
@@ -222,7 +222,7 @@ bool tests_override_combinator_stacking()
     using stacked =
         DWithOnDeltaOnly<
             DWithOnBaseOnly<
-                DWithOnBoth<keep_base, always_keep_right>,
+                DWithOnBoth<DKeepBase, always_keep_right>,
                 ov_to_third>,
             identity_t>;
 
@@ -233,13 +233,13 @@ bool tests_override_combinator_stacking()
     D_OV_CHECK(ok, std::is_same_v<h::delta_only, ov_delta>);
 
     // the chain is transitive
-    D_OV_CHECK(ok, std::is_base_of_v<keep_base, stacked>);
+    D_OV_CHECK(ok, std::is_base_of_v<DKeepBase, stacked>);
     D_OV_CHECK(ok, std::is_base_of_v<
-                       DWithOnBoth<keep_base, always_keep_right>,
+                       DWithOnBoth<DKeepBase, always_keep_right>,
                        stacked>);
 
     // re-wrapping one hook: the outermost wrapper wins
-    using twice = DWithOnBoth<DWithOnBoth<keep_base, always_keep_left>,
+    using twice = DWithOnBoth<DWithOnBoth<DKeepBase, always_keep_left>,
                                always_keep_right>;
 
     D_OV_CHECK(ok, std::is_same_v<twice::on_both<ov_base, ov_delta>,
@@ -287,7 +287,7 @@ bool tests_override_combinator_equivalences()
                        DWithOnDeltaOnly<
                            DWithOnBoth<DKeepDelta, always_keep_left>,
                            always_drop>,
-                       keep_base>::value);
+                       DKeepBase>::value);
 
     // DDropExtras = DKeepDelta that refuses to extend
     D_OV_CHECK(ok, ov_hooks_agree<
@@ -307,11 +307,11 @@ bool tests_override_combinator_equivalences()
     // keep_base = DDropExtras with the overlap hook flipped
     D_OV_CHECK(ok, ov_hooks_agree<
                        DWithOnBoth<DDropExtras, always_keep_left>,
-                       keep_base>::value);
+                       DKeepBase>::value);
 
     // DStrictSubset, up to the hooks that may be instantiated
     D_OV_CHECK(ok, ov_probed_hooks_agree<
-                       DWithOnBoth<keep_base, always_keep_right>,
+                       DWithOnBoth<DKeepBase, always_keep_right>,
                        DStrictSubset>::value);
     D_OV_CHECK(ok, ov_probed_hooks_agree<DDropExtras,
                                          DStrictSubset>::value);
@@ -342,7 +342,7 @@ bool tests_override_combinator_equivalences()
     // primitives, and because it is the trap the equivalences above walk
     // past: which primitive you start from decides what the inherited
     // third hook contributes
-    using intersect = DWithOnBaseOnly<DWithOnBoth<keep_base,
+    using intersect = DWithOnBaseOnly<DWithOnBoth<DKeepBase,
                                                      always_keep_right>,
                                         always_drop>;
 
@@ -353,12 +353,12 @@ bool tests_override_combinator_equivalences()
     D_OV_CHECK(ok, OverridePolicy<intersect>);
     D_OV_CHECK(ok, !ov_hooks_agree<intersect, DDropUnmatchedBase>::value);
     D_OV_CHECK(ok, !ov_hooks_agree<intersect, DDropExtras>::value);
-    D_OV_CHECK(ok, !ov_hooks_agree<intersect, keep_base>::value);
+    D_OV_CHECK(ok, !ov_hooks_agree<intersect, DKeepBase>::value);
 
     // the identity replacement is the algebra's unit on every hook
     D_OV_CHECK(ok, ov_hooks_agree<
-                       DWithOnBaseOnly<keep_base, identity_t>,
-                       keep_base>::value);
+                       DWithOnBaseOnly<DKeepBase, identity_t>,
+                       DKeepBase>::value);
     D_OV_CHECK(ok, ov_hooks_agree<
                        DWithOnBoth<DKeepDelta, always_keep_right>,
                        DKeepDelta>::value);

@@ -32,11 +32,11 @@ NS_TESTING
 // ---- compile-time guarantees (struct form, always available) ----
 
 // is_maybe: positive forms, including cv-/ref-qualified
-static_assert(is_maybe<maybe<int>>::value,
+static_assert(is_maybe<DMaybe<int>>::value,
     "is_maybe: maybe<int> is a maybe");
-static_assert(is_maybe<maybe<std::string>>::value,
+static_assert(is_maybe<DMaybe<std::string>>::value,
     "is_maybe: maybe<string> is a maybe");
-static_assert(is_maybe<const maybe<int>&>::value,
+static_assert(is_maybe<const DMaybe<int>&>::value,
     "is_maybe: cv/ref-qualified maybe is still a maybe");
 
 // is_maybe: negative forms
@@ -63,7 +63,7 @@ static_assert(!is_maybe_predicate<int, int>::value,
 
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-static_assert(is_maybe_v<maybe<int>>,
+static_assert(is_maybe_v<DMaybe<int>>,
     "is_maybe_v: positive");
 static_assert(!is_maybe_v<int>,
     "is_maybe_v: negative");
@@ -75,7 +75,7 @@ static_assert(!is_maybe_predicate_v<DFnReturnsVoid, int>,
 
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-static_assert(maybe_type<maybe<int>>,
+static_assert(maybe_type<DMaybe<int>>,
     "maybe_type: positive");
 static_assert(!maybe_type<int>,
     "maybe_type: negative");
@@ -91,9 +91,9 @@ bool test_traits()
     bool verdict = true;
 
     // ---- is_maybe (structural) ----
-    record_assertion(verdict, is_maybe<maybe<int>>::value,
+    record_assertion(verdict, is_maybe<DMaybe<int>>::value,
         "trait: is_maybe true for maybe<int>");
-    record_assertion(verdict, is_maybe<const maybe<double>&>::value,
+    record_assertion(verdict, is_maybe<const DMaybe<double>&>::value,
         "trait: is_maybe strips cv/ref before matching");
     record_assertion(verdict, !is_maybe<int>::value,
         "trait: is_maybe false for a plain value type");
@@ -112,7 +112,7 @@ bool test_traits()
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     record_assertion(verdict,
-        is_maybe_v<maybe<int>> && !is_maybe_v<int>,
+        is_maybe_v<DMaybe<int>> && !is_maybe_v<int>,
         "trait: is_maybe_v matches the struct form");
     record_assertion(verdict,
         is_maybe_predicate_v<pred_is_positive, int> &&
@@ -122,7 +122,7 @@ bool test_traits()
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
     record_assertion(verdict,
-        maybe_type<maybe<int>> && !maybe_type<int>,
+        maybe_type<DMaybe<int>> && !maybe_type<int>,
         "trait: maybe_type concept matches is_maybe");
     record_assertion(verdict,
         maybe_predicate_for<pred_is_even, int> &&

@@ -474,7 +474,7 @@ NS_INTERNAL
         D_CONSTEXPR
         auto operator()(
             const Source& _value
-        ) const -> maybe<typename std::decay< decltype(std::declval<const Extractor&>()(_value)) >::type>
+        ) const -> DMaybe<typename std::decay< decltype(std::declval<const Extractor&>()(_value)) >::type>
         {
             using extracted_t = typename std::decay<
                 decltype(m_e(_value))>::type;
@@ -515,7 +515,7 @@ NS_INTERNAL
         D_CONSTEXPR
         auto operator()(
             const Source& _value
-        ) const -> maybe<typename std::decay< decltype(std::declval<const Extractor&>()(_value)) >::type>
+        ) const -> DMaybe<typename std::decay< decltype(std::declval<const Extractor&>()(_value)) >::type>
         {
             using extracted_t = typename std::decay<
                 decltype(m_e(_value))>::type;
@@ -588,7 +588,7 @@ NS_INTERNAL
         template<typename Source>
         auto operator()(
             const Source& _value
-        ) const -> maybe<typename std::decay< decltype(std::declval<const Extractor&>()(_value)) >::type>
+        ) const -> DMaybe<typename std::decay< decltype(std::declval<const Extractor&>()(_value)) >::type>
         {
             using extracted_t = typename std::decay<
                 decltype(m_e(_value))>::type;
@@ -1084,7 +1084,7 @@ template<typename Extractor,
 D_NODISCARD auto extract_first(
     const Extractor& _e,
     const Container& _container
-) -> maybe<typename std::decay< decltype(_e(*std::begin(_container))) >::type>
+) -> DMaybe<typename std::decay< decltype(_e(*std::begin(_container))) >::type>
 {
     using value_t = typename std::decay<
         decltype(_e(*std::begin(_container)))>::type;

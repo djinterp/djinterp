@@ -183,10 +183,10 @@ bool tests_cvref_verdicts()
         D_CCT_CHECK(DConstexprContainerClass<const __VA_ARGS__&>::life ==    \
                     EXPECTED)
 
-    D_CCT_LIFE_CVREF(lifetime::both,    std::array<int, 3>);
-    D_CCT_LIFE_CVREF(lifetime::runtime, std::vector<int>);
-    D_CCT_LIFE_CVREF(lifetime::runtime, no_signal);
-    D_CCT_LIFE_CVREF(lifetime::none,    life_none_sized);
+    D_CCT_LIFE_CVREF(DLifetime::both,    std::array<int, 3>);
+    D_CCT_LIFE_CVREF(DLifetime::runtime, std::vector<int>);
+    D_CCT_LIFE_CVREF(DLifetime::runtime, no_signal);
+    D_CCT_LIFE_CVREF(DLifetime::none,    life_none_sized);
 
     #undef D_CCT_LIFE_CVREF
 
@@ -233,9 +233,9 @@ bool tests_hostile_types_rejected()
     D_CCT_CHECK(!is_constexpr_container<int&>::value);
     D_CCT_CHECK(!is_constexpr_container<std::nullptr_t>::value);
 
-    D_CCT_LIFE(lifetime::runtime, DSizeLifetime<void>::value);
-    D_CCT_LIFE(lifetime::runtime, DSizeLifetime<int(int)>::value);
-    D_CCT_LIFE(lifetime::runtime, DSizeLifetime<int[3]>::value);
+    D_CCT_LIFE(DLifetime::runtime, DSizeLifetime<void>::value);
+    D_CCT_LIFE(DLifetime::runtime, DSizeLifetime<int(int)>::value);
+    D_CCT_LIFE(DLifetime::runtime, DSizeLifetime<int[3]>::value);
 
     // a raw C array has a compile-time extent, and no `extent` MEMBER and no
     // std::tuple_size specialization - so nothing promotes it.  The archetypal
@@ -278,11 +278,11 @@ bool tests_hostile_types_survived()
 
     // the value traits and the snapshot are not bool traits, so they are
     // instantiated by hand on the shapes most likely to break a probe
-    D_CCT_LIFE(lifetime::runtime, container_lifetime_of<void>::value);
-    D_CCT_LIFE(lifetime::runtime, container_lifetime_of<int(int)>::value);
-    D_CCT_LIFE(lifetime::runtime, container_lifetime_of<int[3]>::value);
-    D_CCT_LIFE(lifetime::runtime, container_lifetime_of<int (*)(int)>::value);
-    D_CCT_LIFE(lifetime::runtime, container_lifetime_of<std::nullptr_t>::value);
+    D_CCT_LIFE(DLifetime::runtime, container_lifetime_of<void>::value);
+    D_CCT_LIFE(DLifetime::runtime, container_lifetime_of<int(int)>::value);
+    D_CCT_LIFE(DLifetime::runtime, container_lifetime_of<int[3]>::value);
+    D_CCT_LIFE(DLifetime::runtime, container_lifetime_of<int (*)(int)>::value);
+    D_CCT_LIFE(DLifetime::runtime, container_lifetime_of<std::nullptr_t>::value);
 
     D_CCT_CHECK(!DConstexprContainerClass<void>::is_constexpr);
     D_CCT_CHECK(!DConstexprContainerClass<int(int)>::is_constexpr);
@@ -341,12 +341,12 @@ bool tests_incomplete_type()
     D_CCT_CHECK(!has_constexpr_iteration<incomplete>::value);
 
     // and so does DSizeLifetime, which consults only them
-    D_CCT_LIFE(lifetime::runtime, DSizeLifetime<incomplete>::value);
+    D_CCT_LIFE(DLifetime::runtime, DSizeLifetime<incomplete>::value);
 
     // through the cv-ref forms as well
     D_CCT_CHECK(!has_constexpr_extent<const incomplete&>::value);
     D_CCT_CHECK(!has_tuple_size<incomplete&&>::value);
-    D_CCT_LIFE(lifetime::runtime, DSizeLifetime<const incomplete&>::value);
+    D_CCT_LIFE(DLifetime::runtime, DSizeLifetime<const incomplete&>::value);
 
     // container_lifetime_of<incomplete>, is_constexpr_container<incomplete>,
     // is_not_constexpr_container<incomplete> and

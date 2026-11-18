@@ -43,7 +43,7 @@ tests_push_back_copy
 */
 bool tests_push_back_copy()
 {
-    sequence<probe> s;
+    DSequence<probe> s;
 
     probe source(7);
 
@@ -71,7 +71,7 @@ tests_push_back_move
 */
 bool tests_push_back_move()
 {
-    sequence<probe> s;
+    DSequence<probe> s;
 
     probe source(9);
 

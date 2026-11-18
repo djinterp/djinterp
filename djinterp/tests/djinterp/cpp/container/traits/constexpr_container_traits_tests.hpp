@@ -666,7 +666,7 @@ struct tuple_conformer_nonliteral
 // v.   constexpr-iteration shapes
 //////////////////////////////////////////
 //   has_constexpr_iteration (constexpr_iterator_traits.hpp) is the fifth
-// disjunct.  It wants a nested `constexpr_iterator` alias OR a
+// disjunct.  It wants a nested `DConstexprIterator` alias OR a
 // constexpr_begin()/constexpr_end() PAIR - either half alone is not enough.
 
 // DIterAlias
@@ -731,7 +731,7 @@ struct DIterEndOnly
 struct life_both_sized
 {
     static constexpr std::size_t extent           = 4;
-    static constexpr lifetime::value lifetime_category = lifetime::both;
+    static constexpr DLifetime::value lifetime_category = DLifetime::both;
 };
 
 // life_compile_sized
@@ -742,7 +742,7 @@ struct life_both_sized
 struct life_compile_sized
 {
     static constexpr std::size_t extent           = 4;
-    static constexpr lifetime::value lifetime_category = lifetime::compile_time;
+    static constexpr DLifetime::value lifetime_category = DLifetime::compile_time;
 };
 
 // life_runtime_sized
@@ -751,7 +751,7 @@ struct life_compile_sized
 struct life_runtime_sized
 {
     static constexpr std::size_t extent           = 4;
-    static constexpr lifetime::value lifetime_category = lifetime::runtime;
+    static constexpr DLifetime::value lifetime_category = DLifetime::runtime;
 };
 
 // life_none_sized
@@ -760,7 +760,7 @@ struct life_runtime_sized
 struct life_none_sized
 {
     static constexpr std::size_t extent           = 4;
-    static constexpr lifetime::value lifetime_category = lifetime::none;
+    static constexpr DLifetime::value lifetime_category = DLifetime::none;
 };
 
 // life_compile_unsized
@@ -772,7 +772,7 @@ struct life_none_sized
 // for, and exactly what a boolean "is it constexpr?" could never have said.
 struct life_compile_unsized
 {
-    static constexpr lifetime::value lifetime_category = lifetime::compile_time;
+    static constexpr DLifetime::value lifetime_category = DLifetime::compile_time;
 };
 
 

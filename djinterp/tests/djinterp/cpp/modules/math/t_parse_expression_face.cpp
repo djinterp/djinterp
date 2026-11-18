@@ -52,12 +52,18 @@
 
 // D_TESTS_MODULE_READ
 //   1 where each of the module's five headers was read: at every level, as
-// each defines its guard before its floor.
-#if ( defined(DJINTERP_PARSE_EXPRESSION_EXPRESSION_HPP)        &&             \
-      defined(DJINTERP_PARSE_EXPRESSION_EXPRESSION_OPS_HPP)    &&             \
-      defined(DJINTERP_PARSE_EXPRESSION_EXPRESSION_PARSE_HPP)  &&             \
-      defined(DJINTERP_PARSE_EXPRESSION_EXPRESSION_RENDER_HPP) &&             \
-      defined(DJINTERP_PARSE_EXPRESSION_EXPRESSION_STATIC_HPP) )
+// each defines its guard before its floor. A guard counts under its name
+// before ruling #71 or after it.
+#if ( ( defined(DJINTERP_PARSE_EXPRESSION_EXPRESSION_HPP)         ||         \
+        defined(DJINTERP_PARSE_EXPRESSION_HPP) )                  &&         \
+      ( defined(DJINTERP_PARSE_EXPRESSION_EXPRESSION_OPS_HPP)     ||         \
+        defined(DJINTERP_PARSE_EXPRESSION_OPS_HPP) )              &&         \
+      ( defined(DJINTERP_PARSE_EXPRESSION_EXPRESSION_PARSE_HPP)   ||         \
+        defined(DJINTERP_PARSE_EXPRESSION_PARSE_HPP) )            &&         \
+      ( defined(DJINTERP_PARSE_EXPRESSION_EXPRESSION_RENDER_HPP)  ||         \
+        defined(DJINTERP_PARSE_EXPRESSION_RENDER_HPP) )           &&         \
+      ( defined(DJINTERP_PARSE_EXPRESSION_EXPRESSION_STATIC_HPP)  ||         \
+        defined(DJINTERP_PARSE_EXPRESSION_STATIC_HPP) ) )
     #define D_TESTS_MODULE_READ 1
 #else
     #define D_TESTS_MODULE_READ 0

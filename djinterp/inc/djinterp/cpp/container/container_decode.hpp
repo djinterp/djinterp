@@ -344,8 +344,8 @@ DDecodeResult<clean_t<Container>> decode_container(
     using value_type     = clean_t<element_type_of_t<container_type>>;
 
     // 1. the length prefix |c| - fail the whole decode if it cannot be read
-    DDecodeResult<decode_length_type> _length =
-        decode<decode_length_type>(_reader);
+    DDecodeResult<DDecodeLengthType> _length =
+        decode<DDecodeLengthType>(_reader);
 
     if (!_length.ok)
     {
@@ -387,11 +387,11 @@ DDecodeResult<clean_t<Container>> decode_container(
 // ===========================================================================
 
 // decode_container
-//   function: convenience over a whole `byte_string` - wraps it in a reader
+//   function: convenience over a whole `DByteString` - wraps it in a reader
 // and reads one container of type `Container` from the front.
 template<typename Container>
 DDecodeResult<clean_t<Container>> decode_container(
-    const byte_string& _bytes
+    const DByteString& _bytes
 )
 {
     DByteReader _reader(_bytes);

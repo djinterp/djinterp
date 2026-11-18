@@ -95,9 +95,9 @@ bool tests_registry_add()
     string_registry       r;
     std::vector<delivery> log;
 
-    r.add("a", subscription_token(1), recorder(&log), flag());
-    r.add("a", subscription_token(2), recorder(&log), flag());
-    r.add("b", subscription_token(3), recorder(&log), flag());
+    r.add("a", DSubscriptionToken(1), recorder(&log), flag());
+    r.add("a", DSubscriptionToken(2), recorder(&log), flag());
+    r.add("b", DSubscriptionToken(3), recorder(&log), flag());
 
     bool ok = true;
 
@@ -125,8 +125,8 @@ bool tests_registry_dispatch()
     std::vector<delivery> first;
     std::vector<delivery> second;
 
-    r.add("a", subscription_token(1), recorder(&first), flag());
-    r.add("a", subscription_token(2), recorder(&second), flag());
+    r.add("a", DSubscriptionToken(1), recorder(&first), flag());
+    r.add("a", DSubscriptionToken(2), recorder(&second), flag());
 
     std::size_t visited = r.dispatch("a", deliver_to{ "a", 5 });
 
@@ -150,7 +150,7 @@ bool tests_registry_dispatch_unknown_topic()
     string_registry       r;
     std::vector<delivery> log;
 
-    r.add("a", subscription_token(1), recorder(&log), flag());
+    r.add("a", DSubscriptionToken(1), recorder(&log), flag());
 
     std::size_t visited = r.dispatch("nonexistent", deliver_to{ "nonexistent", 1 });
 
@@ -177,8 +177,8 @@ bool tests_registry_dispatch_skips_dead()
 
     std::shared_ptr<bool> dead = flag();
 
-    r.add("a", subscription_token(1), recorder(&dead_log), dead);
-    r.add("a", subscription_token(2), recorder(&live_log), flag());
+    r.add("a", DSubscriptionToken(1), recorder(&dead_log), dead);
+    r.add("a", DSubscriptionToken(2), recorder(&live_log), flag());
 
     *dead = false;                          // lazy revoke, behind the registry's back
 
@@ -208,10 +208,10 @@ bool tests_registry_remove()
 
     std::shared_ptr<bool> alive = flag();
 
-    r.add("a", subscription_token(1), recorder(&log), alive);
-    r.add("a", subscription_token(2), recorder(&log), flag());
+    r.add("a", DSubscriptionToken(1), recorder(&log), alive);
+    r.add("a", DSubscriptionToken(2), recorder(&log), flag());
 
-    bool removed = r.remove(subscription_token(1));
+    bool removed = r.remove(DSubscriptionToken(1));
 
     bool ok = true;
 
@@ -233,9 +233,9 @@ bool tests_registry_remove_absent()
     string_registry       r;
     std::vector<delivery> log;
 
-    r.add("a", subscription_token(1), recorder(&log), flag());
+    r.add("a", DSubscriptionToken(1), recorder(&log), flag());
 
-    bool removed = r.remove(subscription_token(99));
+    bool removed = r.remove(DSubscriptionToken(99));
 
     bool ok = true;
 
@@ -257,12 +257,12 @@ bool tests_registry_remove_drops_empty_bucket()
     string_registry       r;
     std::vector<delivery> log;
 
-    r.add("solo",  subscription_token(1), recorder(&log), flag());
-    r.add("other", subscription_token(2), recorder(&log), flag());
+    r.add("solo",  DSubscriptionToken(1), recorder(&log), flag());
+    r.add("other", DSubscriptionToken(2), recorder(&log), flag());
 
     bool ok = (r.topic_count() == 2);
 
-    r.remove(subscription_token(1));
+    r.remove(DSubscriptionToken(1));
 
     ok = ok && (r.topic_count() == 1);              // "solo" gone entirely
     ok = ok && (!r.has_subscribers("solo"));
@@ -287,9 +287,9 @@ bool tests_registry_remove_topic()
     std::shared_ptr<bool> a1 = flag();
     std::shared_ptr<bool> a2 = flag();
 
-    r.add("a", subscription_token(1), recorder(&log), a1);
-    r.add("a", subscription_token(2), recorder(&log), a2);
-    r.add("b", subscription_token(3), recorder(&log), flag());
+    r.add("a", DSubscriptionToken(1), recorder(&log), a1);
+    r.add("a", DSubscriptionToken(2), recorder(&log), a2);
+    r.add("b", DSubscriptionToken(3), recorder(&log), flag());
 
     std::size_t removed = r.remove_topic("a");
 
@@ -315,7 +315,7 @@ bool tests_registry_remove_topic_absent()
     string_registry       r;
     std::vector<delivery> log;
 
-    r.add("a", subscription_token(1), recorder(&log), flag());
+    r.add("a", DSubscriptionToken(1), recorder(&log), flag());
 
     std::size_t removed = r.remove_topic("nonexistent");
 
@@ -342,8 +342,8 @@ bool tests_registry_clear()
     std::shared_ptr<bool> a = flag();
     std::shared_ptr<bool> b = flag();
 
-    r.add("a", subscription_token(1), recorder(&log), a);
-    r.add("b", subscription_token(2), recorder(&log), b);
+    r.add("a", DSubscriptionToken(1), recorder(&log), a);
+    r.add("b", DSubscriptionToken(2), recorder(&log), b);
 
     r.clear();
 
@@ -371,8 +371,8 @@ bool tests_registry_compact()
 
     std::shared_ptr<bool> dead = flag();
 
-    r.add("a", subscription_token(1), recorder(&dead_log), dead);
-    r.add("a", subscription_token(2), recorder(&live_log), flag());
+    r.add("a", DSubscriptionToken(1), recorder(&dead_log), dead);
+    r.add("a", DSubscriptionToken(2), recorder(&live_log), flag());
 
     *dead = false;                          // lazy revoke
 
@@ -406,9 +406,9 @@ bool tests_registry_compact_drops_dead_bucket()
     std::shared_ptr<bool> d1 = flag();
     std::shared_ptr<bool> d2 = flag();
 
-    r.add("dead", subscription_token(1), recorder(&log), d1);
-    r.add("dead", subscription_token(2), recorder(&log), d2);
-    r.add("live", subscription_token(3), recorder(&log), flag());
+    r.add("dead", DSubscriptionToken(1), recorder(&log), d1);
+    r.add("dead", DSubscriptionToken(2), recorder(&log), d2);
+    r.add("live", DSubscriptionToken(3), recorder(&log), flag());
 
     *d1 = false;
     *d2 = false;                            // the whole bucket is dead
@@ -441,9 +441,9 @@ bool tests_registry_subscriber_count()
     string_registry       r;
     std::vector<delivery> log;
 
-    r.add("a", subscription_token(1), recorder(&log), flag());
-    r.add("a", subscription_token(2), recorder(&log), flag());
-    r.add("b", subscription_token(3), recorder(&log), flag());
+    r.add("a", DSubscriptionToken(1), recorder(&log), flag());
+    r.add("a", DSubscriptionToken(2), recorder(&log), flag());
+    r.add("b", DSubscriptionToken(3), recorder(&log), flag());
 
     bool ok = true;
 
@@ -470,7 +470,7 @@ bool tests_registry_has_subscribers()
 
     std::shared_ptr<bool> alive = flag();
 
-    r.add("a", subscription_token(1), recorder(&log), alive);
+    r.add("a", DSubscriptionToken(1), recorder(&log), alive);
 
     bool ok = true;
 
@@ -497,9 +497,9 @@ bool tests_registry_topic_count()
 
     std::shared_ptr<bool> dead = flag();
 
-    r.add("a", subscription_token(1), recorder(&log), flag());
-    r.add("a", subscription_token(2), recorder(&log), flag());   // same topic
-    r.add("b", subscription_token(3), recorder(&log), dead);
+    r.add("a", DSubscriptionToken(1), recorder(&log), flag());
+    r.add("a", DSubscriptionToken(2), recorder(&log), flag());   // same topic
+    r.add("b", DSubscriptionToken(3), recorder(&log), dead);
 
     bool ok = (r.topic_count() == 2);       // "a" counted once, plus "b"
 
@@ -525,7 +525,7 @@ bool tests_registry_empty()
     bool ok = (r.empty());
 
     std::shared_ptr<bool> alive = flag();
-    r.add("a", subscription_token(1), recorder(&log), alive);
+    r.add("a", DSubscriptionToken(1), recorder(&log), alive);
     ok = ok && (!r.empty());
 
     *alive = false;
@@ -550,7 +550,7 @@ bool tests_registry_reserve_topics()
 
     bool ok = (r.empty() && r.topic_count() == 0);
 
-    r.add("a", subscription_token(1), recorder(&log), flag());
+    r.add("a", DSubscriptionToken(1), recorder(&log), flag());
 
     std::size_t visited = r.dispatch("a", deliver_to{ "a", 2 });
 

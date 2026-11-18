@@ -39,7 +39,7 @@ bool rt_len(
     re_std::uint64_t _c
 )
 {
-    byte_string _o;
+    DByteString _o;
     djinterp::internal::put_length<_L, _E>(_o, _c);
 
     DByteReader   _r(_o);

@@ -335,7 +335,7 @@ struct tree_child_iterator_end_tag
 {};
 
 
-// tree_child_iterator
+// DTreeChildIterator
 //   class: a forward iterator over the children of one node, in sibling order.
 // It is the descent relation |> of the spec made traversable, and the sibling
 // enumeration that a scanning resolution consumes.
@@ -346,7 +346,7 @@ struct tree_child_iterator_end_tag
 // through the policy and the container respectively.
 template<typename Policy,
          typename Container>
-class tree_child_iterator
+class DTreeChildIterator
 {
 public:
     using policy_type       = Policy;
@@ -367,7 +367,7 @@ public:
     // tree_child_iterator (default)
     //   a singular iterator addressing nothing. It compares equal only to
     // another singular iterator, never to a traversal's end.
-    tree_child_iterator()
+    DTreeChildIterator()
         : m_policy(),
           m_container(nullptr),
           m_node()
@@ -376,7 +376,7 @@ public:
     // tree_child_iterator (begin)
     //   an iterator at the first child of _parent.
     D_CONSTEXPR_CPP14
-    tree_child_iterator(
+    DTreeChildIterator(
         Policy            _policy,
         const Container& _container,
         index_type        _parent
@@ -389,7 +389,7 @@ public:
     // tree_child_iterator (end)
     //   the past-the-end iterator of the children of any node of _container.
     D_CONSTEXPR_CPP14
-    tree_child_iterator(
+    DTreeChildIterator(
         Policy            _policy,
         const Container& _container,
         tree_child_iterator_end_tag
@@ -449,7 +449,7 @@ public:
     // operator++ (pre)
     //   advances to the next sibling.
     D_CONSTEXPR_CPP14
-    tree_child_iterator& operator++()
+    DTreeChildIterator& operator++()
     {
         m_node = m_policy.next_sibling(*m_container, m_node);
 
@@ -458,11 +458,11 @@ public:
 
     // operator++ (post)
     D_CONSTEXPR_CPP14
-    tree_child_iterator operator++(
+    DTreeChildIterator operator++(
         int
     )
     {
-        tree_child_iterator tmp(*this);
+        DTreeChildIterator tmp(*this);
 
         ++(*this);
 
@@ -479,7 +479,7 @@ public:
     // iterator (which holds none) from ever comparing equal to a real end.
     D_CONSTEXPR
     bool operator==(
-        const tree_child_iterator& _other
+        const DTreeChildIterator& _other
     ) const
     {
         return ( (m_container == _other.m_container) &&
@@ -489,7 +489,7 @@ public:
     // operator!=
     D_CONSTEXPR
     bool operator!=(
-        const tree_child_iterator& _other
+        const DTreeChildIterator& _other
     ) const
     {
         return !(*this == _other);
@@ -500,6 +500,11 @@ private:
     const Container* m_container;
     index_type        m_node;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Policy,
+         typename Container>
+using tree_child_iterator = DTreeChildIterator<Policy, Container>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -512,7 +517,7 @@ struct tree_iterator_end_tag
 {};
 
 
-// tree_iterator
+// DTreeIterator
 //   class: a forward iterator over every node of the subtree rooted at a given
 // node, in one of the three orders of DTreeOrder.
 //
@@ -531,7 +536,7 @@ struct tree_iterator_end_tag
 template<typename   Policy,
          typename   Container,
          DTreeOrder Order = DTreeOrder::pre>
-class tree_iterator
+class DTreeIterator
 {
 public:
     using policy_type       = Policy;
@@ -564,7 +569,7 @@ public:
     // tree_iterator (default)
     //   a singular iterator addressing nothing. It compares equal only to
     // another singular iterator, never to a traversal's end.
-    tree_iterator()
+    DTreeIterator()
         : m_policy(),
           m_container(nullptr),
           m_node(),
@@ -577,7 +582,7 @@ public:
     // at _root: _root itself in pre-order, its leftmost leaf otherwise. A null
     // root yields an iterator already at its end.
     D_CONSTEXPR_CPP14
-    tree_iterator(
+    DTreeIterator(
         Policy            _policy,
         const Container& _container,
         index_type        _root
@@ -594,7 +599,7 @@ public:
     // tree_iterator (end)
     //   the past-the-end iterator of the traversal rooted at _root.
     D_CONSTEXPR_CPP14
-    tree_iterator(
+    DTreeIterator(
         Policy            _policy,
         const Container& _container,
         index_type        _root,
@@ -682,7 +687,7 @@ public:
     // operator++ (pre)
     //   advances to the next node of the order.
     D_CONSTEXPR_CPP14
-    tree_iterator&
+    DTreeIterator&
     operator++()
     {
         advance();
@@ -692,10 +697,10 @@ public:
 
     // operator++ (post)
     D_CONSTEXPR_CPP14
-    tree_iterator
+    DTreeIterator
     operator++(int)
     {
-        tree_iterator tmp(*this);
+        DTreeIterator tmp(*this);
 
         ++(*this);
 
@@ -711,7 +716,7 @@ public:
     // container. The level is a function of the node and so is not compared.
     D_CONSTEXPR
     bool
-    operator==(const tree_iterator& _other) const
+    operator==(const DTreeIterator& _other) const
     {
         return ( (m_container == _other.m_container) &&
                  (m_node      == _other.m_node) );
@@ -720,7 +725,7 @@ public:
     // operator!=
     D_CONSTEXPR
     bool
-    operator!=(const tree_iterator& _other) const
+    operator!=(const DTreeIterator& _other) const
     {
         return !(*this == _other);
     }
@@ -939,26 +944,32 @@ private:
     std::size_t       m_level;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename   Policy,
+         typename   Container,
+         DTreeOrder Order = DTreeOrder::pre>
+using tree_iterator = DTreeIterator<Policy, Container, Order>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             V.    VIEWS AND FACTORIES                                   ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// tree_child_view
+// DTreeChildView
 //   class: a range over the children of one node, so the descent relation may
 // drive a range-for. Holds a policy, a container pointer, and the parent; it
 // owns nothing.
 template<typename Policy,
          typename Container>
-class tree_child_view
+class DTreeChildView
 {
 public:
-    using iterator     = tree_child_iterator<Policy, Container>;
+    using iterator     = DTreeChildIterator<Policy, Container>;
     using index_type   = typename Policy::index_type;
 
     // tree_child_view
     //   constructs a view of the children of _parent.
-    tree_child_view(
+    DTreeChildView(
         Policy            _policy,
         const Container& _container,
         index_type        _parent
@@ -1006,18 +1017,23 @@ private:
     index_type        m_parent;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Policy,
+         typename Container>
+using tree_child_view = DTreeChildView<Policy, Container>;
 
-// tree_view
+
+// DTreeView
 //   class: a range over the subtree rooted at a node, in one of the three
 // orders, so a traversal may drive a range-for. Holds a policy, a container
 // pointer, and the root; it owns nothing.
 template<typename   Policy,
          typename   Container,
          DTreeOrder Order = DTreeOrder::pre>
-class tree_view
+class DTreeView
 {
 public:
-    using iterator     = tree_iterator<Policy, Container, Order>;
+    using iterator     = DTreeIterator<Policy, Container, Order>;
     using index_type   = typename Policy::index_type;
 
     // order
@@ -1031,7 +1047,7 @@ public:
 
     // tree_view
     //   constructs a view of the subtree rooted at _root.
-    tree_view(
+    DTreeView(
         Policy            _policy,
         const Container& _container,
         index_type        _root
@@ -1077,6 +1093,12 @@ private:
     index_type        m_root;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename   Policy,
+         typename   Container,
+         DTreeOrder Order = DTreeOrder::pre>
+using tree_view = DTreeView<Policy, Container, Order>;
+
 
 // make_tree_iterator
 //   factory: an iterator at the first node of the traversal of the subtree
@@ -1089,13 +1111,13 @@ template<DTreeOrder Order,
          typename   Container,
          typename   Index>
 D_CONSTEXPR_CPP14
-tree_iterator<Policy, Container, Order> make_tree_iterator(
+DTreeIterator<Policy, Container, Order> make_tree_iterator(
     Policy           _policy,
     const Container& _container,
     Index            _root
 )
 {
-    return tree_iterator<Policy, Container, Order>(
+    return DTreeIterator<Policy, Container, Order>(
         _policy,
         _container,
         _root);
@@ -1114,13 +1136,13 @@ template<DTreeOrder Order,
          typename   Policy,
          typename   Container,
          typename   Index>
-tree_view<Policy, Container, Order> make_tree_view(
+DTreeView<Policy, Container, Order> make_tree_view(
     Policy           _policy,
     const Container& _container,
     Index            _root
 )
 {
-    return tree_view<Policy, Container, Order>(
+    return DTreeView<Policy, Container, Order>(
         _policy,
         _container,
         _root);
@@ -1133,13 +1155,13 @@ tree_view<Policy, Container, Order> make_tree_view(
 template<typename Policy,
          typename Container,
          typename Index>
-tree_view<Policy, Container, DTreeOrder::pre> make_preorder_view(
+DTreeView<Policy, Container, DTreeOrder::pre> make_preorder_view(
     Policy           _policy,
     const Container& _container,
     Index            _root
 )
 {
-    return tree_view<Policy, Container, DTreeOrder::pre>(
+    return DTreeView<Policy, Container, DTreeOrder::pre>(
         _policy,
         _container,
         _root);
@@ -1152,13 +1174,13 @@ tree_view<Policy, Container, DTreeOrder::pre> make_preorder_view(
 template<typename Policy,
          typename Container,
          typename Index>
-tree_view<Policy, Container, DTreeOrder::post> make_postorder_view(
+DTreeView<Policy, Container, DTreeOrder::post> make_postorder_view(
     Policy           _policy,
     const Container& _container,
     Index            _root
 )
 {
-    return tree_view<Policy, Container, DTreeOrder::post>(
+    return DTreeView<Policy, Container, DTreeOrder::post>(
         _policy,
         _container,
         _root);
@@ -1172,13 +1194,13 @@ tree_view<Policy, Container, DTreeOrder::post> make_postorder_view(
 template<typename Policy,
          typename Container,
          typename Index>
-tree_view<Policy, Container, DTreeOrder::leaf> make_leaf_view(
+DTreeView<Policy, Container, DTreeOrder::leaf> make_leaf_view(
     Policy           _policy,
     const Container& _container,
     Index            _root
 )
 {
-    return tree_view<Policy, Container, DTreeOrder::leaf>(
+    return DTreeView<Policy, Container, DTreeOrder::leaf>(
         _policy,
         _container,
         _root);
@@ -1191,13 +1213,13 @@ tree_view<Policy, Container, DTreeOrder::leaf> make_leaf_view(
 template<typename Policy,
          typename Container,
          typename Index>
-tree_child_view<Policy, Container> make_child_view(
+DTreeChildView<Policy, Container> make_child_view(
     Policy           _policy,
     const Container& _container,
     Index            _parent
 )
 {
-    return tree_child_view<Policy, Container>(
+    return DTreeChildView<Policy, Container>(
         _policy,
         _container,
         _parent);

@@ -27,7 +27,7 @@
 *                          carrier, whose values are distinct by construction
 *                        -
 *                          UNIQUE (m = 1), matching the spec's interval row.
-*     4. opt-in bound a static `multiplicity` constant states the numeric m
+*     4. opt-in bound a static `DMultiplicity` constant states the numeric m
 *                          directly, the authoritative override - the way to
 *                          express a BOUNDED multiset (1 < m < inf), which has
 *                        no
@@ -125,7 +125,7 @@ D_TYPE_TRAIT_VALUE_BOOL(has_unique_insert)
 NS_INTERNAL
 
     // DMultiplicityMemberHelper
-    //   helper: read the opt-in static `multiplicity` bound, reporting
+    //   helper: read the opt-in static `DMultiplicity` bound, reporting
     // presence separately so an absent member is distinguishable from a
     // declared inf.
     template<typename Type,
@@ -138,7 +138,7 @@ NS_INTERNAL
 
     // DMultiplicityMemberHelper specialization
     //   helper: the detected case -- selected when the type declares the
-    // static member `multiplicity`.
+    // static member `DMultiplicity`.
     template<typename Type>
     struct DMultiplicityMemberHelper<Type,
         D_VOID_T<decltype(clean_t<Type>::multiplicity)>>
@@ -151,7 +151,7 @@ NS_INTERNAL
 NS_END  // internal
 
 // has_multiplicity_bound
-//   trait: detects the opt-in static `multiplicity` constant.
+//   trait: detects the opt-in static `DMultiplicity` constant.
 template<typename Type>
 struct has_multiplicity_bound
     : std::integral_constant<bool,
@@ -177,21 +177,21 @@ private:
     using clean_type = clean_t<Type>;
 
 public:
-    static constexpr multiplicity_kind::value value =
+    static constexpr DMultiplicityKind::value value =
         ( !is_countable_container<clean_type>::value )
-              ? multiplicity_kind::unknown
+              ? DMultiplicityKind::unknown
       : (  internal::DMultiplicityMemberHelper<clean_type>::present )
               ? make_multiplicity_kind(
                     true, internal::DMultiplicityMemberHelper<clean_type>::value )
       : (  has_interval_bounds_signal<clean_type>::value )
-              ? multiplicity_kind::unique
+              ? DMultiplicityKind::unique
       : ( !has_key_type<clean_type>::value )
-              ? multiplicity_kind::sequence
+              ? DMultiplicityKind::sequence
       : (  has_unique_insert<clean_type>::value )
-              ? multiplicity_kind::unique
-      :         multiplicity_kind::unbounded_multiset;
+              ? DMultiplicityKind::unique
+      :         DMultiplicityKind::unbounded_multiset;
 
-    using type = std::integral_constant<multiplicity_kind::value, value>;
+    using type = std::integral_constant<DMultiplicityKind::value, value>;
 };
 
 // multiplicity_kind_of_t / multiplicity_kind_of_v
@@ -298,7 +298,7 @@ public:
         has_multiplicity_bound<clean_type>::value;
 
     // verdict
-    static constexpr multiplicity_kind::value kind =
+    static constexpr DMultiplicityKind::value kind =
         multiplicity_kind_of<clean_type>::value;
     static constexpr std::size_t       bound =
         multiplicity_bound_of<clean_type>::value;

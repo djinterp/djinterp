@@ -31,7 +31,7 @@ namespace
 
     // button : a static colleague that records the pings it is handed and can
     // originate a ping through the mediator via the protected send().
-    struct button : static_colleague<button, ui_mediator>
+    struct button : DStaticColleague<button, ui_mediator>
     {
         std::vector<int> got;
 
@@ -41,7 +41,7 @@ namespace
     };
 
     // label : a second, structurally-identical static colleague.
-    struct label : static_colleague<label, ui_mediator>
+    struct label : DStaticColleague<label, ui_mediator>
     {
         std::vector<int> got;
 
@@ -53,7 +53,7 @@ namespace
     // ui_mediator : the concrete mediator over the fixed {button, label} set.
     // route() is the required hook that static_colleague::send() calls; here it
     // fans the event out to every colleague except the originator.
-    class ui_mediator : public static_mediator<ui_mediator, button, label>
+    class ui_mediator : public DStaticMediator<ui_mediator, button, label>
     {
     public:
         template<typename _Sender,

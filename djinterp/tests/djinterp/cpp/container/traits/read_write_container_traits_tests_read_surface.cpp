@@ -287,7 +287,7 @@ bool tests_read_surface_excludes_metadata()
     // metadata alone is not observation
     D_RW_CHECK(internal::has_read_surface<DRwMetadataOnly>::value == false);
     D_RW_CHECK(access_capability_of<DRwMetadataOnly>::value
-                   == access_capability::none);
+                   == DAccessCapability::none);
 
     // no probe is satisfied by it
     D_RW_CHECK(internal::has_const_index_helper<DRwMetadataOnly>::value
@@ -303,9 +303,9 @@ bool tests_read_surface_excludes_metadata()
     D_RW_CHECK(internal::has_read_surface<DRwSink>::value  == false);
     D_RW_CHECK(internal::has_write_surface<DRwSink>::value == true);
     D_RW_CHECK(access_capability_of<DRwSink>::value
-                   == access_capability::write_only);
+                   == DAccessCapability::write_only);
     D_RW_CHECK(access_capability_of<DRwSink>::value
-                   != access_capability::read_write);
+                   != DAccessCapability::read_write);
 
     // and the exclusion is invisible on a standard container, which has both
     D_RW_CHECK(   ( internal::has_read_surface<DRwVector>::value == true )

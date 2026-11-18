@@ -52,7 +52,7 @@ NS_DJINTERP
 //  arena_path_policy
 // ================================================================
 
-// arena_path_policy
+// DArenaPathPolicy
 //   class: accessor policy satisfying the container_path_policy concept for
 // arena<Payload>.
 //
@@ -67,10 +67,10 @@ NS_DJINTERP
 template<typename Payload,
          typename ComponentAccessor,
          typename ComponentType>
-class arena_path_policy
+class DArenaPathPolicy
 {
 public:
-    using container_type = arena<Payload>;
+    using container_type = DNodeArena<Payload>;
     using index_type     = node_id;
     using component_type = ComponentType;
 
@@ -80,7 +80,7 @@ public:
 
     // arena_path_policy
     //   constructs a policy bound to a component accessor.
-    explicit arena_path_policy(
+    explicit DArenaPathPolicy(
             ComponentAccessor _accessor
         )
             : m_accessor(_accessor)
@@ -150,12 +150,18 @@ private:
     ComponentAccessor m_accessor;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Payload,
+         typename ComponentAccessor,
+         typename ComponentType>
+using arena_path_policy = DArenaPathPolicy<Payload, ComponentAccessor, ComponentType>;
+
 
 // ================================================================
 //  tree_path
 // ================================================================
 
-// tree_path
+// DTreePath
 //   class: convenience wrapper that binds an arena to a
 // component accessor and provides path operations without requiring the caller
 // to specify the policy or pass it manually. Usage (string components):
@@ -186,12 +192,12 @@ private:
 template<typename Payload,
          typename ComponentAccessor,
          typename ComponentType>
-class tree_path
+class DTreePath
 {
 public:
-    using policy_type    = arena_path_policy<
+    using policy_type    = DArenaPathPolicy<
         Payload, ComponentAccessor, ComponentType>;
-    using container_type = arena<Payload>;
+    using container_type = DNodeArena<Payload>;
     using component_type = ComponentType;
 
     // --------------------------------------------------------
@@ -200,7 +206,7 @@ public:
 
     // tree_path
     //   constructs a tree_path bound to an arena and a component accessor.
-    tree_path(
+    DTreePath(
             const container_type& _arena,
             ComponentAccessor     _accessor
         )
@@ -395,7 +401,7 @@ public:
 
     // relative
     //   computes the relative path from _from to _to as a path_address.
-    path_address<component_type> relative(
+    DPathAddress<component_type> relative(
         node_id _from,
         node_id _to
     ) const
@@ -465,6 +471,12 @@ private:
     policy_type           m_policy;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Payload,
+         typename ComponentAccessor,
+         typename ComponentType>
+using tree_path = DTreePath<Payload, ComponentAccessor, ComponentType>;
+
 
 // ================================================================
 //  make_tree_path
@@ -481,12 +493,12 @@ private:
 template<typename ComponentType,
          typename Payload,
          typename ComponentAccessor>
-tree_path<Payload, ComponentAccessor, ComponentType> make_tree_path(
-    const arena<Payload>& _arena,
+DTreePath<Payload, ComponentAccessor, ComponentType> make_tree_path(
+    const DNodeArena<Payload>& _arena,
     ComponentAccessor     _accessor
 )
 {
-    return tree_path<Payload, ComponentAccessor, ComponentType>(
+    return DTreePath<Payload, ComponentAccessor, ComponentType>(
         _arena,
         _accessor);
 }

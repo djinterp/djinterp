@@ -4,7 +4,7 @@
 * djinterp rcu_array.hpp
 *
 * RCU (Read-Copy-Update) protected concurrent array.
-*   Composes the canonical `array<Options...>` inside an
+*   Composes the canonical `DArray<Options...>` inside an
 * DRcuProtected, exposing reader-side critical sections backed by
 * epoch tracking and deferred reclamation.
 *
@@ -14,9 +14,9 @@
 * swap the published pointer, and retire the old copy for deferred
 * reclamation once all in-flight readers have departed.
 *
-*   `rcu_array<Options...>` follows the framework options-container
+*   `DRcuArray<Options...>` follows the framework options-container
 * contract: a single template parameter pack consumed by the
-* wrapped `array<>`.  No lock policy is read from the pack - RCU
+* wrapped `DArray<>`.  No lock policy is read from the pack - RCU
 * has its own internal synchronization protocol; if
 * a lock-policy option appears in the pack, it is silently ignored.
 *
@@ -124,10 +124,10 @@ NS_DJINTERP
 // =============================================================================
 
 template<typename... Options>
-class rcu_array
+class DRcuArray
 {
 private:
-    using array_type     = array<Options...>;
+    using array_type     = DArray<Options...>;
     using protected_type = DRcuProtected<array_type>;
 
 public:
@@ -169,35 +169,35 @@ public:
     // -------------------------------------------------------------
     // default: publishes a value-initialized array (DRcuProtected has no
     // default constructor; it always holds a published value).
-    rcu_array()
+    DRcuArray()
         : m_protected(array_type())
     {}
 
-    explicit rcu_array(const array_type& _initial)
+    explicit DRcuArray(const array_type& _initial)
         : m_protected(_initial)
     {}
 
-    explicit rcu_array(array_type&& _initial)
+    explicit DRcuArray(array_type&& _initial)
         : m_protected(std::move(_initial))
     {}
 
     // non-copyable / non-movable: contains an DRcuProtected which owns
     // reclamation infrastructure that must not move.
-    rcu_array(
-        const rcu_array&
+    DRcuArray(
+        const DRcuArray&
     ) = delete;
-    rcu_array& operator=(
-        const rcu_array&
-    ) = delete;
-
-    rcu_array(
-        rcu_array&&
-    ) = delete;
-    rcu_array& operator=(
-        rcu_array&&
+    DRcuArray& operator=(
+        const DRcuArray&
     ) = delete;
 
-    ~rcu_array() = default;
+    DRcuArray(
+        DRcuArray&&
+    ) = delete;
+    DRcuArray& operator=(
+        DRcuArray&&
+    ) = delete;
+
+    ~DRcuArray() = default;
 
     // -------------------------------------------------------------
     // d. Read Access (epoch-guarded)
@@ -304,6 +304,10 @@ private:
     mutable protected_type m_protected;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename... Options>
+using rcu_array = DRcuArray<Options...>;
+
 
 // =============================================================================
 // II.  Trait Specializations (axis preservation)
@@ -321,23 +325,23 @@ private:
 // specs in `djinterp::`.)
 
 template<typename... Options>
-struct is_contiguous_array<rcu_array<Options...>>
-    : is_contiguous_array<array<Options...>>
+struct is_contiguous_array<DRcuArray<Options...>>
+    : is_contiguous_array<DArray<Options...>>
 {};
 
 template<typename... Options>
-struct is_iterable_array<rcu_array<Options...>>
-    : is_iterable_array<array<Options...>>
+struct is_iterable_array<DRcuArray<Options...>>
+    : is_iterable_array<DArray<Options...>>
 {};
 
 template<typename... Options>
-struct has_static_extent<rcu_array<Options...>>
-    : has_static_extent<array<Options...>>
+struct has_static_extent<DRcuArray<Options...>>
+    : has_static_extent<DArray<Options...>>
 {};
 
 template<typename... Options>
-struct array_lifetime_of<rcu_array<Options...>>
-    : array_lifetime_of<array<Options...>>
+struct array_lifetime_of<DRcuArray<Options...>>
+    : array_lifetime_of<DArray<Options...>>
 {};
 
 NS_END  // djinterp
@@ -351,8 +355,8 @@ NS_END  // djinterp
 
 NS_DJINTERP namespace internal { namespace rcu_array_verify {
 
-    using base = array<array_opt_type<int>, DArrayOptExtent<16>>;
-    using rcu  = rcu_array<array_opt_type<int>, DArrayOptExtent<16>>;
+    using base = DArray<DArrayOptType<int>, DArrayOptExtent<16>>;
+    using rcu  = DRcuArray<DArrayOptType<int>, DArrayOptExtent<16>>;
 
     static_assert(
         is_contiguous_array_v<rcu> ==

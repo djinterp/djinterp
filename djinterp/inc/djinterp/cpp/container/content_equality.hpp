@@ -433,7 +433,7 @@ NS_INTERNAL
     bool content_equal_helper(
         const Left&  _left,
         const Right& _right,
-        std::integral_constant<content_level, content_level::str>
+        std::integral_constant<DContentLevel, DContentLevel::str>
     )
     {
         return structural_content_equal(_left, _right);
@@ -443,7 +443,7 @@ NS_INTERNAL
     bool content_equal_helper(
         const Left&  _left,
         const Right& _right,
-        std::integral_constant<content_level, content_level::seq>
+        std::integral_constant<DContentLevel, DContentLevel::seq>
     )
     {
         return sequential_content_equal(_left, _right);
@@ -453,7 +453,7 @@ NS_INTERNAL
     bool content_equal_helper(
         const Left&  _left,
         const Right& _right,
-        std::integral_constant<content_level, content_level::bag>
+        std::integral_constant<DContentLevel, DContentLevel::bag>
     )
     {
         return multiset_content_equal(_left, _right);
@@ -463,7 +463,7 @@ NS_INTERNAL
     bool content_equal_helper(
         const Left&  _left,
         const Right& _right,
-        std::integral_constant<content_level, content_level::set>
+        std::integral_constant<DContentLevel, DContentLevel::set>
     )
     {
         return set_content_equal(_left, _right);
@@ -474,7 +474,7 @@ NS_INTERNAL
     bool content_equal_helper(
         const Left&,
         const Right&,
-        std::integral_constant<content_level, content_level::none>
+        std::integral_constant<DContentLevel, DContentLevel::none>
     )
     {
         return false;
@@ -495,7 +495,7 @@ bool content_equal(
 )
 {
     return internal::content_equal_helper(_left, _right,
-        std::integral_constant<content_level,
+        std::integral_constant<DContentLevel,
             content_level_coarser(
                 native_content_level_of<clean_t<Left>>::value,
                 native_content_level_of<clean_t<Right>>::value)>{});

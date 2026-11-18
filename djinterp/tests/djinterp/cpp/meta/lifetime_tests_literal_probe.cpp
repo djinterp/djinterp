@@ -35,7 +35,7 @@ bool tests_literal_probe_scalars_are_literal()
     D_LT_CHECK(is_literal_type<an_enum>::value);
 
     // the module's own lifetime enum is scalar too
-    D_LT_CHECK(is_literal_type<lifetime::value>::value);
+    D_LT_CHECK(is_literal_type<DLifetime::value>::value);
 
     return true;
 }

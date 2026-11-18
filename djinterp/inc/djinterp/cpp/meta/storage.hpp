@@ -95,12 +95,12 @@ NS_DJINTERP
 // I.   The storage-duration lattice
 // ===========================================================================
 
-// storage_duration
+// DStorageDuration
 //   enum: a container's cell SITING - static (inline) or dynamic (out of line)
 // - with one bit per siting so the four values form a lattice.  static storage
 // aligns with the compile-time stage (cells reserved, trivially, at stage c);
 // dynamic storage with the runtime stage (cells acquired at stage r).
-struct storage_duration
+struct DStorageDuration
 {
     enum value
     {
@@ -110,6 +110,9 @@ struct storage_duration
         hybrid_storage  = (static_storage | dynamic_storage)  // both: small-storage / SBO (top)
     };
 };
+
+// old name, until 0.9.0-rc.1
+using storage_duration = DStorageDuration;
 
 
 // ===========================================================================
@@ -128,12 +131,12 @@ struct storage_duration
 // part yields hybrid.  This is the canonical COMPOSITION operator for storage,
 // the DUAL of lifetime_meet.
 constexpr
-storage_duration::value storage_join(
-    storage_duration::value _a,
-    storage_duration::value _b
+DStorageDuration::value storage_join(
+    DStorageDuration::value _a,
+    DStorageDuration::value _b
 ) noexcept
 {
-    return static_cast<storage_duration::value>(
+    return static_cast<DStorageDuration::value>(
         static_cast<unsigned>(_a) | static_cast<unsigned>(_b) );
 }
 
@@ -142,12 +145,12 @@ storage_duration::value storage_join(
 // completeness and cross-axis intersection; storage composition itself uses the
 // join.
 constexpr
-storage_duration::value storage_meet(
-    storage_duration::value _a,
-    storage_duration::value _b
+DStorageDuration::value storage_meet(
+    DStorageDuration::value _a,
+    DStorageDuration::value _b
 ) noexcept
 {
-    return static_cast<storage_duration::value>(
+    return static_cast<DStorageDuration::value>(
         static_cast<unsigned>(_a) & static_cast<unsigned>(_b) );
 }
 
@@ -156,14 +159,14 @@ storage_duration::value storage_meet(
 // the container site any cells inline? any cells out of line?).  Both true
 // yields hybrid; neither yields unknown.
 constexpr
-storage_duration::value make_storage_duration(
+DStorageDuration::value make_storage_duration(
     bool _has_static_cells,
     bool _has_dynamic_cells
 ) noexcept
 {
-    return static_cast<storage_duration::value>(
-        ( _has_static_cells  ? static_cast<unsigned>(storage_duration::static_storage)  : 0u ) |
-        ( _has_dynamic_cells ? static_cast<unsigned>(storage_duration::dynamic_storage) : 0u ) );
+    return static_cast<DStorageDuration::value>(
+        ( _has_static_cells  ? static_cast<unsigned>(DStorageDuration::static_storage)  : 0u ) |
+        ( _has_dynamic_cells ? static_cast<unsigned>(DStorageDuration::dynamic_storage) : 0u ) );
 }
 
 // has_static_storage_component
@@ -171,11 +174,11 @@ storage_duration::value make_storage_duration(
 // cells are inline (static_storage or hybrid_storage).
 constexpr
 bool has_static_storage_component(
-    storage_duration::value _dur
+    DStorageDuration::value _dur
 ) noexcept
 {
     return ( ( static_cast<unsigned>(_dur) &
-               static_cast<unsigned>(storage_duration::static_storage) ) != 0u );
+               static_cast<unsigned>(DStorageDuration::static_storage) ) != 0u );
 }
 
 // has_dynamic_storage_component
@@ -183,11 +186,11 @@ bool has_static_storage_component(
 // (dynamic_storage or hybrid_storage).
 constexpr
 bool has_dynamic_storage_component(
-    storage_duration::value _dur
+    DStorageDuration::value _dur
 ) noexcept
 {
     return ( ( static_cast<unsigned>(_dur) &
-               static_cast<unsigned>(storage_duration::dynamic_storage) ) != 0u );
+               static_cast<unsigned>(DStorageDuration::dynamic_storage) ) != 0u );
 }
 
 // is_static_storage
@@ -195,10 +198,10 @@ bool has_dynamic_storage_component(
 // are wholly in-object.
 constexpr
 bool is_static_storage(
-    storage_duration::value _dur
+    DStorageDuration::value _dur
 ) noexcept
 {
-    return ( _dur == storage_duration::static_storage );
+    return ( _dur == DStorageDuration::static_storage );
 }
 
 // is_dynamic_storage
@@ -206,10 +209,10 @@ bool is_static_storage(
 // cells wholly live in an acquired region.
 constexpr
 bool is_dynamic_storage(
-    storage_duration::value _dur
+    DStorageDuration::value _dur
 ) noexcept
 {
-    return ( _dur == storage_duration::dynamic_storage );
+    return ( _dur == DStorageDuration::dynamic_storage );
 }
 
 // is_hybrid_storage
@@ -217,20 +220,20 @@ bool is_dynamic_storage(
 // an out-of-line region (small-storage / SBO).
 constexpr
 bool is_hybrid_storage(
-    storage_duration::value _dur
+    DStorageDuration::value _dur
 ) noexcept
 {
-    return ( _dur == storage_duration::hybrid_storage );
+    return ( _dur == DStorageDuration::hybrid_storage );
 }
 
 // is_unknown_storage
 //   function: true iff the siting could not be determined (the bottom).
 constexpr
 bool is_unknown_storage(
-    storage_duration::value _dur
+    DStorageDuration::value _dur
 ) noexcept
 {
-    return ( _dur == storage_duration::unknown );
+    return ( _dur == DStorageDuration::unknown );
 }
 
 // storage_duration_name
@@ -238,12 +241,12 @@ bool is_unknown_storage(
 // diagnostics and agent-facing summaries.
 constexpr
 const char* storage_duration_name(
-    storage_duration::value _dur
+    DStorageDuration::value _dur
 ) noexcept
 {
-    return ( _dur == storage_duration::hybrid_storage  ? "hybrid_storage"
-           : _dur == storage_duration::static_storage  ? "static_storage"
-           : _dur == storage_duration::dynamic_storage ? "dynamic_storage"
+    return ( _dur == DStorageDuration::hybrid_storage  ? "hybrid_storage"
+           : _dur == DStorageDuration::static_storage  ? "static_storage"
+           : _dur == DStorageDuration::dynamic_storage ? "dynamic_storage"
            :                                             "unknown" );
 }
 
@@ -257,16 +260,16 @@ const char* storage_duration_name(
 // DStorageDurationConstant
 //   type: an integral_constant specialized to a storage_duration value (the
 // storage analogue of std::bool_constant).
-template<storage_duration::value Dur>
+template<DStorageDuration::value Dur>
 using DStorageDurationConstant =
-    std::integral_constant<storage_duration::value, Dur>;
+    std::integral_constant<DStorageDuration::value, Dur>;
 
 // DUnknownStorageDuration / DStaticStorageDuration / ...
 //   type: named carriers for the four lattice values, for tag dispatch.
-using DUnknownStorageDuration = DStorageDurationConstant<storage_duration::unknown>;
-using DStaticStorageDuration  = DStorageDurationConstant<storage_duration::static_storage>;
-using DDynamicStorageDuration = DStorageDurationConstant<storage_duration::dynamic_storage>;
-using DHybridStorageDuration  = DStorageDurationConstant<storage_duration::hybrid_storage>;
+using DUnknownStorageDuration = DStorageDurationConstant<DStorageDuration::unknown>;
+using DStaticStorageDuration  = DStorageDurationConstant<DStorageDuration::static_storage>;
+using DDynamicStorageDuration = DStorageDurationConstant<DStorageDuration::dynamic_storage>;
+using DHybridStorageDuration  = DStorageDurationConstant<DStorageDuration::hybrid_storage>;
 
 
 // ===========================================================================
@@ -283,7 +286,7 @@ using DHybridStorageDuration  = DStorageDurationConstant<storage_duration::hybri
 // be fixed at compile time.
 constexpr
 bool storage_forces_compile_time_size(
-    storage_duration::value _dur
+    DStorageDuration::value _dur
 ) noexcept
 {
     return has_static_storage_component(_dur);
@@ -296,8 +299,8 @@ bool storage_forces_compile_time_size(
 // false; every other combination is consistent.
 constexpr
 bool storage_lifetime_consistent(
-    storage_duration::value _dur,
-    lifetime::value         _size_life
+    DStorageDuration::value _dur,
+    DLifetime::value         _size_life
 ) noexcept
 {
     return ( ( !storage_forces_compile_time_size(_dur) ) ||
@@ -332,8 +335,8 @@ NS_INTERNAL
              typename = void>
     struct storage_duration_category_member
     {
-        static constexpr storage_duration::value value =
-            storage_duration::unknown;
+        static constexpr DStorageDuration::value value =
+            DStorageDuration::unknown;
     };
 
     // storage_duration_category_member (opt-in present)
@@ -342,7 +345,7 @@ NS_INTERNAL
     struct storage_duration_category_member<Type,
         D_VOID_T<decltype(clean_t<Type>::storage_duration_category)>>
     {
-        static constexpr storage_duration::value value =
+        static constexpr DStorageDuration::value value =
             clean_t<Type>::storage_duration_category;
     };
 
@@ -367,10 +370,10 @@ private:
     using clean_type = clean_t<Type>;
 
 public:
-    static constexpr storage_duration::value value =
+    static constexpr DStorageDuration::value value =
         ( has_storage_duration_category<clean_type>::value
               ? internal::storage_duration_category_member<clean_type>::value
-              : storage_duration::unknown );
+              : DStorageDuration::unknown );
 
     using type = DStorageDurationConstant<value>;
 };
@@ -386,11 +389,11 @@ using storage_of_t = typename storage_of<Type>::type;
 // degradation).
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename Type>
-    inline constexpr storage_duration::value storage_of_v =
+    inline constexpr DStorageDuration::value storage_of_v =
         storage_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    constexpr storage_duration::value storage_of_v = storage_of<Type>::value;
+    constexpr DStorageDuration::value storage_of_v = storage_of<Type>::value;
 #endif
 
 

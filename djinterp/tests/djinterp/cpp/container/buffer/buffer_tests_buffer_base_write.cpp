@@ -52,8 +52,8 @@ bool tests_buffer_base_write()
 
     // --- null source short-circuit ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         std::size_t n = b.write(nullptr, 5);
 
@@ -68,8 +68,8 @@ bool tests_buffer_base_write()
 
     // --- zero-length short-circuit ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         std::size_t n = b.write(src, 0);
 
@@ -84,8 +84,8 @@ bool tests_buffer_base_write()
 
     // --- normal write fits in current capacity (no grow) ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         std::size_t n = b.write(src, n_src);
 
@@ -108,8 +108,8 @@ bool tests_buffer_base_write()
 
     // --- write exactly fills capacity (boundary case) ---
     {
-        mock_buffer<fixed_growth_policy,
-                    write_only_cursor_policy> b(n_src);
+        mock_buffer<DFixedGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(n_src);
 
         std::size_t n = b.write(src, n_src);
 
@@ -128,8 +128,8 @@ bool tests_buffer_base_write()
 
     // --- write triggers grow on growable buffer ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(4);  // smaller than n_src
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(4);  // smaller than n_src
 
         std::size_t n = b.write(src, n_src);
 
@@ -154,8 +154,8 @@ bool tests_buffer_base_write()
     // --- write overflows fixed buffer: truncated partial write ---
     {
         const std::size_t cap = 5;
-        mock_buffer<fixed_growth_policy,
-                    write_only_cursor_policy> b(cap);
+        mock_buffer<DFixedGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(cap);
 
         std::size_t n = b.write(src, n_src);
 
@@ -176,8 +176,8 @@ bool tests_buffer_base_write()
 
     // --- write to an already-full fixed buffer returns 0 ---
     {
-        mock_buffer<fixed_growth_policy,
-                    write_only_cursor_policy> b(4);
+        mock_buffer<DFixedGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(4);
 
         b.write_fill('x', 4);
 
@@ -194,8 +194,8 @@ bool tests_buffer_base_write()
 
     // --- write where grow() fails: partial write up to remaining ---
     {
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> b(8);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(8);
 
         // write 4 bytes first; 4 bytes remain
         b.write_fill('A', 4);
@@ -218,8 +218,8 @@ bool tests_buffer_base_write()
 
     // --- write where grow() fails AND writable() is zero: returns 0 ---
     {
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> b(4);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(4);
 
         b.write_fill('B', 4);          // fill it
         b.force_next_grow_failure();   // next grow will fail
@@ -259,8 +259,8 @@ bool tests_buffer_base_write_byte()
 
     // --- normal sequence of write_byte calls ---
     {
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(64);
 
         bool ok_a = b.write_byte('A');
         bool ok_b = b.write_byte('B');
@@ -283,8 +283,8 @@ bool tests_buffer_base_write_byte()
 
     // --- edge byte values: 0x00 and 0xFF ---
     {
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(64);
 
         b.write_byte('\0');
         b.write_byte(static_cast<char>(0xFF));
@@ -300,8 +300,8 @@ bool tests_buffer_base_write_byte()
 
     // --- write_byte triggers grow on growable buffer ---
     {
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> b(1);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(1);
 
         b.write_byte('X');  // fills it
         bool ok = b.write_byte('Y');
@@ -322,8 +322,8 @@ bool tests_buffer_base_write_byte()
 
     // --- write_byte on a full fixed buffer fails ---
     {
-        mock_buffer<fixed_growth_policy,
-                    write_only_cursor_policy> b(2);
+        mock_buffer<DFixedGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(2);
 
         b.write_byte('1');
         b.write_byte('2');
@@ -368,8 +368,8 @@ bool tests_buffer_base_write_fill()
 
     // --- zero-length is a no-op ---
     {
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(64);
 
         std::size_t n = b.write_fill('Z', 0);
 
@@ -384,8 +384,8 @@ bool tests_buffer_base_write_fill()
 
     // --- normal fill ---
     {
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(64);
 
         std::size_t n = b.write_fill('K', 10);
 
@@ -416,8 +416,8 @@ bool tests_buffer_base_write_fill()
 
     // --- fill triggers grow ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(4);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(4);
 
         std::size_t n = b.write_fill('q', 20);
 
@@ -436,8 +436,8 @@ bool tests_buffer_base_write_fill()
 
     // --- fill overflows fixed buffer: truncated ---
     {
-        mock_buffer<fixed_growth_policy,
-                    write_only_cursor_policy> b(5);
+        mock_buffer<DFixedGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(5);
 
         std::size_t n = b.write_fill('!', 10);
 
@@ -468,8 +468,8 @@ bool tests_buffer_base_write_fill()
 
     // --- fill on full fixed buffer returns 0 ---
     {
-        mock_buffer<fixed_growth_policy,
-                    write_only_cursor_policy> b(4);
+        mock_buffer<DFixedGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(4);
 
         b.write_fill('a', 4);
 
@@ -502,8 +502,8 @@ bool tests_buffer_base_write_fill()
 
     // --- fill where grow fails: partial fallback ---
     {
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> b(8);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(8);
 
         b.write_fill('A', 4);
         b.force_next_grow_failure();
@@ -526,8 +526,8 @@ bool tests_buffer_base_write_fill()
 
     // --- fill where grow fails AND writable is zero: returns 0 ---
     {
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> b(4);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(4);
 
         b.write_fill('X', 4);
         b.force_next_grow_failure();
@@ -545,8 +545,8 @@ bool tests_buffer_base_write_fill()
 
     // --- fill of 0x00 is preserved (memset edge) ---
     {
-        mock_buffer<exponential_growth_policy,
-                    write_only_cursor_policy> b(8);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DWriteOnlyCursorPolicy> b(8);
 
         b.write_fill(static_cast<char>(0x00), 3);
 
@@ -584,8 +584,8 @@ bool tests_buffer_base_write_head_commit()
 
     // --- write_head returns the right pointer ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         record_assertion(ok,
             b.write_head() == b.storage(),
@@ -615,8 +615,8 @@ bool tests_buffer_base_write_head_commit()
 
     // --- commit(0) is a no-op ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         b.write_byte('1');
         b.commit(0);
@@ -628,8 +628,8 @@ bool tests_buffer_base_write_head_commit()
 
     // --- chained write_head/commit cycles ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         std::memcpy(b.write_head(), "AAA", 3);
         b.commit(3);
@@ -651,8 +651,8 @@ bool tests_buffer_base_write_head_commit()
 
     // --- write_head followed by read() proves the round-trip ---
     {
-        mock_buffer<exponential_growth_policy,
-                    dual_cursor_policy> b(64);
+        mock_buffer<DExponentialGrowthPolicy,
+                    DDualCursorPolicy> b(64);
 
         std::memcpy(b.write_head(), "ROUNDTRIP", 9);
         b.commit(9);

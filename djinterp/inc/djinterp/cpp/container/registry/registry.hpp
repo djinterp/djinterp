@@ -117,7 +117,7 @@ NS_DJINTERP
 // I.   is_registry (detection trait)
 // ===========================================================================
 
-// registry (fwd)
+// DRegistry (fwd)
 template<typename    Record,
          typename    KeyProj,
          typename    ValueProj,
@@ -128,7 +128,7 @@ template<typename    Record,
          typename    SizeType,
          typename    DifferenceType,
          typename... Options>
-class registry;
+class DRegistry;
 
 // is_registry
 //   trait: true when Type (after stripping cv/ref) is a specialization of
@@ -150,7 +150,7 @@ NS_INTERNAL
              typename    D,
              typename... O>
     struct is_registry_impl<
-        registry<R, KP, VP, KC, U, KD, RP, S, D, O...>>
+        DRegistry<R, KP, VP, KC, U, KD, RP, S, D, O...>>
         : std::true_type
     {};
 
@@ -170,7 +170,7 @@ inline constexpr bool is_registry_v = is_registry<Type>::value;
 // II.  registry (class)
 // ===========================================================================
 
-// registry
+// DRegistry
 //   class: a sorted map (unique keys) or multimap (repeated keys) of Record,
 // keyed by KeyProj and ordered by KeyCompare, with an immutable key column.
 // Records are stored contiguously in key order; lookup is O(log n); the value
@@ -185,8 +185,8 @@ template<typename    Record,
          typename    SizeType        = std::size_t,
          typename    DifferenceType = std::ptrdiff_t,
          typename... Options>
-class registry
-    : public options_container_base<Options...>
+class DRegistry
+    : public DOptionsContainerBase<Options...>
 {
 private:
     using storage_type = std::vector<Record>;
@@ -226,32 +226,32 @@ public:
     static constexpr bool value_disjoint   = KeyDisjoint;  // value region misses the key
 
     // axis positions.
-    static constexpr container_lifetime      lifetime      =
-        container_lifetime::mutable_storage;
+    static constexpr DContainerLifetime      lifetime      =
+        DContainerLifetime::mutable_storage;
     static constexpr DContainerStorageKind  storage_kind  =
         DContainerStorageKind::dynamic_storage;
     static constexpr DContainerOrdering      ordering      =
         DContainerOrdering::sorted;
     static constexpr DContainerBounds        bounds        =
         DContainerBounds::unbounded;
-    static constexpr container_iterability   iterability   =
-        container_iterability::iterable;
+    static constexpr DContainerIterability   iterability   =
+        DContainerIterability::iterable;
     static constexpr DContainerMultiplicity  multiplicity_grade =
         UniqueKeys ? DContainerMultiplicity::unique
                     : DContainerMultiplicity::multi;
-    static constexpr container_structure     structure     =
-        container_structure::flat;           // a flat (depth-1) registry of records
+    static constexpr DContainerStructure     structure     =
+        DContainerStructure::flat;           // a flat (depth-1) registry of records
 
     // --- 2. construction ---
 
-    registry()
+    DRegistry()
         : m_records(),
           m_kproj(),
           m_vproj(),
           m_cmp()
     {}
 
-    explicit registry(
+    explicit DRegistry(
         KeyProj     _kproj,
         ValueProj   _vproj,
         KeyCompare _cmp = KeyCompare()
@@ -264,7 +264,7 @@ public:
 
     // record list: each record is inserted at its sorted key position, so any
     // input order yields the keyed, sorted invariant.
-    registry(
+    DRegistry(
         std::initializer_list<Record> _records,
         KeyProj                        _kproj = KeyProj(),
         ValueProj                      _vproj = ValueProj(),
@@ -282,11 +282,11 @@ public:
         }
     }
 
-    registry(const registry&)            = default;
-    registry(registry&&)                 = default;
-    registry& operator=(const registry&) = default;
-    registry& operator=(registry&&)      = default;
-    ~registry()                          = default;
+    DRegistry(const DRegistry&)            = default;
+    DRegistry(DRegistry&&)                 = default;
+    DRegistry& operator=(const DRegistry&) = default;
+    DRegistry& operator=(DRegistry&&)      = default;
+    ~DRegistry()                          = default;
 
     // --- 3. record access (delegated, const) ---
 
@@ -457,7 +457,7 @@ public:
     // write); returns whether the key was present (models A/B).
     template<bool KD = KeyDisjoint,
              typename std::enable_if<KD, int>::type = 0>
-    bool set(
+    bool DSet(
         const key_type&    _k,
         const mapped_type& _v
     )
@@ -549,7 +549,7 @@ public:
     // npos}.
     template<typename Policy = RekeyPolicy,
              typename Mutate>
-    update_result update(
+    DUpdateResult update(
         const key_type& _k,
         Mutate          _mutate
     )
@@ -560,7 +560,7 @@ public:
         // no such key -- nothing to edit
         if (pos >= m_records.size())
         {
-            return update_result{ update_status::rejected,
+            return DUpdateResult{ DUpdateStatus::rejected,
                                   static_cast<std::size_t>(npos) };
         }
 
@@ -570,7 +570,7 @@ public:
 
     // try_update -- update guarded: a key move is refused, the entry untouched.
     template<typename Mutate>
-    update_result try_update(
+    DUpdateResult try_update(
         const key_type& _k,
         Mutate          _mutate
     )
@@ -582,7 +582,7 @@ public:
     // update_or_move -- update relaxed: a key move relocates the entry to its
     // new sorted position.
     template<typename Mutate>
-    update_result update_or_move(
+    DUpdateResult update_or_move(
         const key_type& _k,
         Mutate          _mutate
     )
@@ -598,16 +598,29 @@ private:
     KeyCompare   m_cmp;       // strict-weak order on keys
 };
 
+// old name, until 0.9.0-rc.1
+template<typename    Record,
+         typename    KeyProj,
+         typename    ValueProj,
+         typename    KeyCompare      = std::less<>,
+         bool        UniqueKeys      = true,
+         bool        KeyDisjoint     = false,
+         typename    RekeyPolicy     = reject_rekey,
+         typename    SizeType        = std::size_t,
+         typename    DifferenceType = std::ptrdiff_t,
+         typename... Options>
+using registry = DRegistry<Record, KeyProj, ValueProj, KeyCompare, UniqueKeys, KeyDisjoint, RekeyPolicy, SizeType, DifferenceType, Options...>;
+
 
 // ===========================================================================
 // III. kv projections + kv_registry
 // ===========================================================================
 
-// kv_key / kv_value
+// DKvKey / kv_value
 //   projections: the canonical Key x Val projections for a DKvPair record --
 // the key (.key, read only) and the value (.value, writable). Forwarding
 // call operators keep const-ness, so one functor serves reads and writes.
-struct kv_key
+struct DKvKey
 {
     template<typename Pair>
     D_CONSTEXPR
@@ -619,7 +632,10 @@ struct kv_key
     }
 };
 
-struct kv_value
+// old name, until 0.9.0-rc.1
+using kv_key = DKvKey;
+
+struct DKvValue
 {
     template<typename Pair>
     D_CONSTEXPR
@@ -631,7 +647,10 @@ struct kv_value
     }
 };
 
-// kv_registry
+// old name, until 0.9.0-rc.1
+using kv_value = DKvValue;
+
+// DKvRegistry
 //   alias: the common registry -- a map/multimap of DKvPair<Key, Value> keyed
 // on the pair's key, its value region disjoint from the key (KeyDisjoint =
 // true, so the direct value setters are available and edits skip the re-key
@@ -641,13 +660,21 @@ template<typename Key,
          typename KeyCompare   = std::less<>,
          bool     UniqueKeys   = true,
          typename RekeyPolicy = reject_rekey>
-using kv_registry = registry<DKvPair<Key, Value>,
-                             kv_key,
-                             kv_value,
+using DKvRegistry = DRegistry<DKvPair<Key, Value>,
+                             DKvKey,
+                             DKvValue,
                              KeyCompare,
                              UniqueKeys,
                              /*KeyDisjoint=*/true,
                              RekeyPolicy>;
+
+// old name, until 0.9.0-rc.1
+template<typename Key,
+         typename Value,
+         typename KeyCompare   = std::less<>,
+         bool     UniqueKeys   = true,
+         typename RekeyPolicy = reject_rekey>
+using kv_registry = DKvRegistry<Key, Value, KeyCompare, UniqueKeys, RekeyPolicy>;
 
 
 // ===========================================================================
@@ -659,11 +686,11 @@ using kv_registry = registry<DKvPair<Key, Value>,
 // key and value types.
 template<typename Key,
          typename Value>
-D_NODISCARD kv_registry<Key, Value> make_registry(
+D_NODISCARD DKvRegistry<Key, Value> make_registry(
     std::initializer_list<DKvPair<Key, Value>> _entries
 )
 {
-    return kv_registry<Key, Value>(_entries);
+    return DKvRegistry<Key, Value>(_entries);
 }
 
 // make_registry (general)
@@ -676,14 +703,14 @@ template<bool     KeyDisjoint = false,
          typename Record,
          typename KeyProj,
          typename ValueProj>
-D_NODISCARD registry<Record, KeyProj, ValueProj, std::less<>,
+D_NODISCARD DRegistry<Record, KeyProj, ValueProj, std::less<>,
                      UniqueKeys, KeyDisjoint>
 make_registry(
     std::initializer_list<Record> _records,
     KeyProj                        _kproj,
     ValueProj                      _vproj)
 {
-    return registry<Record, KeyProj, ValueProj, std::less<>,
+    return DRegistry<Record, KeyProj, ValueProj, std::less<>,
                     UniqueKeys, KeyDisjoint>(_records, _kproj, _vproj);
 }
 

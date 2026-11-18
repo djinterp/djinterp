@@ -361,11 +361,11 @@ encode_leaf_into(Sink& _sink, const Type& _value)
 // parameterised counterpart to encode.hpp's `encode(value)`.
 template<DSerialEndian E,
          typename       Type>
-byte_string encode_leaf(
+DByteString encode_leaf(
     const Type& _value
 )
 {
-    byte_string _out;
+    DByteString _out;
     encode_leaf_into<E>(_out, _value);
 
     return _out;

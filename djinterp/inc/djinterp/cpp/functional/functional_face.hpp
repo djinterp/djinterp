@@ -25,8 +25,8 @@
 *      single member. Nothing is restated; the C declaration is the only one.
 *      `sizeof(wrapper) == sizeof(the C struct)` is asserted for each.
 *
-*   2. A C type whose layout depends on an element type -- the `maybe` and
-*      `result` cells -- cannot be held that way, because C spells it with a
+*   2. A C type whose layout depends on an element type -- the `DMaybe` and
+*      `DResult` cells -- cannot be held that way, because C spells it with a
 *      macro that names the struct. So the FIELDS were factored out in maybe.h
 *      and result.h, and the C++ template below expands THE SAME MACRO. One
 *      declaration of the layout, two languages consuming it. `D_MAYBE_FIELDS`
@@ -87,38 +87,38 @@ namespace face
 // I.   Pattern 1 -- hold the C struct, restate nothing
 // ---------------------------------------------------------------------------
 
-// reducer
+// DReducer
 //   Wraps `dj_reducer`. Every method forwards; the class adds no member beyond
 // the C struct it holds, which the Cost law assertion below pins.
-class reducer
+class DReducer
 {
 public:
-    reducer() : core_(d_reducer_make(nullptr, nullptr)) {}
+    DReducer() : core_(d_reducer_make(nullptr, nullptr)) {}
 
-    explicit reducer(const dj_reducer& _core) : core_(_core) {}
+    explicit DReducer(const dj_reducer& _core) : core_(_core) {}
 
     static
-    reducer from_fold(
+    DReducer from_fold(
         dj_fold_binding& _binding
     )
     {
-        return reducer(d_reducer_from_fold(&_binding));
+        return DReducer(d_reducer_from_fold(&_binding));
     }
 
     static
-    reducer from_consumer(
+    DReducer from_consumer(
         dj_consumer_binding& _binding
     )
     {
-        return reducer(d_reducer_from_consumer(&_binding));
+        return DReducer(d_reducer_from_consumer(&_binding));
     }
 
     static
-    reducer from_quantifier(
+    DReducer from_quantifier(
         dj_quantifier& _quantifier
     )
     {
-        return reducer(d_reducer_from_quantifier(&_quantifier));
+        return DReducer(d_reducer_from_quantifier(&_quantifier));
     }
 
     bool is_valid() const { return d_reducer_is_valid(&core_); }
@@ -141,29 +141,32 @@ private:
     dj_reducer core_;
 };
 
-// semigroup
+// old name, until 0.9.0-rc.1
+using reducer = DReducer;
+
+// DSemigroup
 //   Wraps `dj_semigroup`. `mappend` forwards to `d_mappend`, so associativity is
 // whatever the C instance says it is -- there is no second combine here to
 // disagree with it.
-class semigroup
+class DSemigroup
 {
 public:
-    explicit semigroup(const dj_semigroup& _core) : core_(_core) {}
+    explicit DSemigroup(const dj_semigroup& _core) : core_(_core) {}
 
     static
-    semigroup first(
+    DSemigroup first(
         std::size_t _width
     )
     {
-        return semigroup(d_semigroup_first(_width));
+        return DSemigroup(d_semigroup_first(_width));
     }
 
     static
-    semigroup last(
+    DSemigroup last(
         std::size_t _width
     )
     {
-        return semigroup(d_semigroup_last(_width));
+        return DSemigroup(d_semigroup_last(_width));
     }
 
     bool is_valid() const { return d_semigroup_is_valid(&core_); }
@@ -186,9 +189,9 @@ public:
         return d_semigroup_reduce(&core_, _elements, _count, _accumulator);
     }
 
-    reducer as_reducer() const
+    DReducer as_reducer() const
     {
-        return reducer(d_semigroup_reducer(&core_));
+        return DReducer(d_semigroup_reducer(&core_));
     }
 
     const dj_semigroup& core() const { return core_; }
@@ -197,21 +200,24 @@ private:
     dj_semigroup core_;
 };
 
-// monoid
+// old name, until 0.9.0-rc.1
+using semigroup = DSemigroup;
+
+// DMonoid
 //   Wraps `dj_monoid`. The forgetful map to the semigroup is the C one, so the
 // Conservativity law holds for the same reason it holds in C.
-class monoid
+class DMonoid
 {
 public:
-    explicit monoid(const dj_monoid& _core) : core_(_core) {}
+    explicit DMonoid(const dj_monoid& _core) : core_(_core) {}
 
-    static monoid sum_intmax()     { return monoid(d_monoid_sum_intmax()); }
-    static monoid product_intmax() { return monoid(d_monoid_product_intmax()); }
-    static monoid min_intmax()     { return monoid(d_monoid_min_intmax()); }
-    static monoid max_intmax()     { return monoid(d_monoid_max_intmax()); }
-    static monoid sum_double()     { return monoid(d_monoid_sum_double()); }
-    static monoid all_of()         { return monoid(d_monoid_all()); }
-    static monoid any_of()         { return monoid(d_monoid_any()); }
+    static DMonoid sum_intmax()     { return DMonoid(d_monoid_sum_intmax()); }
+    static DMonoid product_intmax() { return DMonoid(d_monoid_product_intmax()); }
+    static DMonoid min_intmax()     { return DMonoid(d_monoid_min_intmax()); }
+    static DMonoid max_intmax()     { return DMonoid(d_monoid_max_intmax()); }
+    static DMonoid sum_double()     { return DMonoid(d_monoid_sum_double()); }
+    static DMonoid all_of()         { return DMonoid(d_monoid_all()); }
+    static DMonoid any_of()         { return DMonoid(d_monoid_any()); }
 
     bool is_valid() const { return d_monoid_is_valid(&core_); }
 
@@ -226,12 +232,12 @@ public:
         return d_mconcat(&core_, _elements, _count, _out);
     }
 
-    semigroup forget() const
+    DSemigroup forget() const
     {
-        return semigroup(*d_monoid_semigroup(&core_));
+        return DSemigroup(*d_monoid_semigroup(&core_));
     }
 
-    reducer as_reducer() const { return reducer(d_monoid_reducer(&core_)); }
+    DReducer as_reducer() const { return DReducer(d_monoid_reducer(&core_)); }
 
     const dj_monoid& core() const { return core_; }
 
@@ -239,15 +245,18 @@ private:
     dj_monoid core_;
 };
 
-// producer
+// old name, until 0.9.0-rc.1
+using monoid = DMonoid;
+
+// DProducer
 //   Wraps `dj_producer`. Pulling is destructive on both sides, because it is the
 // same state being advanced.
-class producer
+class DProducer
 {
 public:
-    producer() : core_(d_producer_empty(0)) {}
+    DProducer() : core_(d_producer_empty(0)) {}
 
-    explicit producer(const dj_producer& _core) : core_(_core) {}
+    explicit DProducer(const dj_producer& _core) : core_(_core) {}
 
     bool is_valid() const { return d_producer_is_valid(&core_); }
 
@@ -262,7 +271,7 @@ public:
     }
 
     std::size_t drive(
-        const reducer&     _reducer,
+        const DReducer&     _reducer,
         dj_reducing_state& _state,
         void*              _scratch
     )
@@ -277,22 +286,25 @@ private:
     dj_producer core_;
 };
 
+// old name, until 0.9.0-rc.1
+using producer = DProducer;
+
 // ---------------------------------------------------------------------------
 // II.  Pattern 2 -- expand the SHARED layout macro, restate nothing
 // ---------------------------------------------------------------------------
 
-// maybe<T>
+// DMaybe<T>
 //   The cell's members come from `D_MAYBE_FIELDS`, the same macro
 // `D_MAYBE_DECLARE` expands in C. This class therefore does not declare a
 // layout; it instantiates the one C declares.
 template<typename T>
-class maybe
+class DMaybe
 {
 public:
-    maybe() { view_ = make_view(); d_maybe_nothing(&view_); }
+    DMaybe() { view_ = make_view(); d_maybe_nothing(&view_); }
 
     explicit
-    maybe(
+    DMaybe(
         const T& _value
     )
     {
@@ -319,7 +331,7 @@ public:
 
     template<typename U>
     bool map(
-        maybe<U>&      _out,
+        DMaybe<U>&      _out,
         fn_transformer _transform,
         void*          _context = 0
     )
@@ -329,7 +341,7 @@ public:
 
     template<typename U>
     bool bind(
-        maybe<U>&  _out,
+        DMaybe<U>&  _out,
         fn_kleisli _arrow,
         void*      _context = 0
     )
@@ -338,15 +350,15 @@ public:
     }
 
     bool alt(
-        const maybe<T>& _second,
-        maybe<T>&       _out
+        const DMaybe<T>& _second,
+        DMaybe<T>&       _out
     ) const
     {
         return d_maybe_alt(&view_, &_second.view(), &_out.view());
     }
 
     std::size_t drive(
-        const reducer&     _reducer,
+        const DReducer&     _reducer,
         dj_reducing_state& _state
     ) const
     {
@@ -376,13 +388,17 @@ private:
     dj_maybe view_;
 };
 
-// result<T, E>
+// old name, until 0.9.0-rc.1
+template<typename T>
+using maybe = DMaybe<T>;
+
+// DResult<T, E>
 //   Likewise: the members come from `D_RESULT_FIELDS`, shared with C.
 template<typename T, typename E>
-class result
+class DResult
 {
 public:
-    result() { view_ = make_view(); }
+    DResult() { view_ = make_view(); }
 
     bool is_ok()  const { return d_result_is_ok(&view_); }
     bool is_err() const { return d_result_is_err(&view_); }
@@ -405,7 +421,7 @@ public:
 
     template<typename U>
     bool map(
-        result<U, E>&  _out,
+        DResult<U, E>&  _out,
         fn_transformer _transform,
         void*          _ctx = 0
     )
@@ -414,14 +430,14 @@ public:
     }
 
     bool to_maybe(
-        maybe<T>& _out
+        DMaybe<T>& _out
     ) const
     {
         return d_result_to_maybe(&view_, &_out.view());
     }
 
     std::size_t drive(
-        const reducer&     _reducer,
+        const DReducer&     _reducer,
         dj_reducing_state& _state
     ) const
     {
@@ -452,6 +468,11 @@ private:
     dj_result view_;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename T,
+         typename E>
+using result = DResult<T, E>;
+
 // ---------------------------------------------------------------------------
 // III. Cost law -- a wrapper adds no members and no indirection
 // ---------------------------------------------------------------------------
@@ -461,13 +482,13 @@ private:
 // a view, which is two objects rather than a decorated one, so the cell's own
 // size is what must match -- and it does, because it IS the C layout.
 
-D_STATIC_ASSERT(sizeof(reducer)   == sizeof(dj_reducer),   "reducer wrapper cost");
-D_STATIC_ASSERT(sizeof(semigroup) == sizeof(dj_semigroup), "semigroup wrapper cost");
-D_STATIC_ASSERT(sizeof(monoid)    == sizeof(dj_monoid),    "monoid wrapper cost");
-D_STATIC_ASSERT(sizeof(producer)  == sizeof(dj_producer),  "producer wrapper cost");
+D_STATIC_ASSERT(sizeof(DReducer)   == sizeof(dj_reducer),   "reducer wrapper cost");
+D_STATIC_ASSERT(sizeof(DSemigroup) == sizeof(dj_semigroup), "semigroup wrapper cost");
+D_STATIC_ASSERT(sizeof(DMonoid)    == sizeof(dj_monoid),    "monoid wrapper cost");
+D_STATIC_ASSERT(sizeof(DProducer)  == sizeof(dj_producer),  "producer wrapper cost");
 
 // no virtual functions in core types, ever (goal 3)
-D_STATIC_ASSERT(sizeof(reducer) == (sizeof(fn_reducer_step) + sizeof(void*)),
+D_STATIC_ASSERT(sizeof(DReducer) == (sizeof(fn_reducer_step) + sizeof(void*)),
                 "a reducer wrapper must carry no vtable pointer");
 
 }   // namespace face

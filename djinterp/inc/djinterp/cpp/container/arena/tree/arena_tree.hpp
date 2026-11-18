@@ -67,13 +67,13 @@ NS_DJINTERP
 //   Allocator - STL allocator for the backing storage
 
 template<typename Payload,
-         typename LinkPolicy = full_nary_link_policy,
+         typename LinkPolicy = DFullNaryLinkPolicy,
          typename Allocator   = std::allocator<
-             arena_node<Payload, LinkPolicy>>>
-class arena_tree : public arena<Payload, LinkPolicy, Allocator>
+             DArenaNode<Payload, LinkPolicy>>>
+class DArenaTree : public DNodeArena<Payload, LinkPolicy, Allocator>
 {
 private:
-    using base_type = arena<Payload, LinkPolicy, Allocator>;
+    using base_type = DNodeArena<Payload, LinkPolicy, Allocator>;
 
 public:
     using typename base_type::payload_type;
@@ -89,38 +89,38 @@ public:
 
     // arena_tree (default)
     //   constructor: creates an empty tree with no root.
-    arena_tree()
+    DArenaTree()
         : base_type()
         , m_root(null_node)
     {};
 
     // arena_tree (with capacity)
     explicit
-    arena_tree(size_type _reserve)
+    DArenaTree(size_type _reserve)
         : base_type(_reserve)
         , m_root(null_node)
     {};
 
     // arena_tree (allocator-extended)
     explicit
-    arena_tree(const allocator_type& _alloc)
+    DArenaTree(const allocator_type& _alloc)
         : base_type(_alloc)
         , m_root(null_node)
     {};
 
     // arena_tree (capacity + allocator)
-    arena_tree(size_type             _reserve,
+    DArenaTree(size_type             _reserve,
                const allocator_type& _alloc)
         : base_type(_reserve, _alloc)
         , m_root(null_node)
     {};
 
     // rule-of-five: default.
-    arena_tree(const arena_tree&)            = default;
-    arena_tree(arena_tree&&) noexcept        = default;
-    arena_tree& operator=(const arena_tree&) = default;
-    arena_tree& operator=(arena_tree&&) noexcept = default;
-    ~arena_tree()                            = default;
+    DArenaTree(const DArenaTree&)            = default;
+    DArenaTree(DArenaTree&&) noexcept        = default;
+    DArenaTree& operator=(const DArenaTree&) = default;
+    DArenaTree& operator=(DArenaTree&&) noexcept = default;
+    ~DArenaTree()                            = default;
 
 
     // =================================================================
@@ -359,7 +359,7 @@ public:
     // swap
     //   method: exchanges contents with another arena_tree.
     void
-    swap(arena_tree& _other) noexcept
+    swap(DArenaTree& _other) noexcept
     {
         base_type::swap(_other);
 
@@ -376,8 +376,8 @@ public:
     // =================================================================
 
     friend bool
-    operator==(const arena_tree& _a,
-               const arena_tree& _b) noexcept
+    operator==(const DArenaTree& _a,
+               const DArenaTree& _b) noexcept
     {
         return ( _a.m_root == _b.m_root &&
                  static_cast<const base_type&>(_a) ==
@@ -385,8 +385,8 @@ public:
     }
 
     friend bool
-    operator!=(const arena_tree& _a,
-               const arena_tree& _b) noexcept
+    operator!=(const DArenaTree& _a,
+               const DArenaTree& _b) noexcept
     {
         return !(_a == _b);
     }
@@ -396,6 +396,12 @@ private:
     node_id m_root;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Payload,
+         typename LinkPolicy = DFullNaryLinkPolicy,
+         typename Allocator   = std::allocator< DArenaNode<Payload, LinkPolicy>>>
+using arena_tree = DArenaTree<Payload, LinkPolicy, Allocator>;
+
 
 // ===========================================================================
 // II.  Convenience Aliases
@@ -403,28 +409,44 @@ private:
 //   Each carries the arena_ prefix: nary_tree is tree/nary/nary_tree.hpp's
 // node-based tree, and the arena forms are named apart from it.
 
-// arena_nary_tree
+// DArenaNaryTree
 //   alias: arena tree with full n-ary links. O(1) everything. The default
 // general-purpose arena tree.
 template<typename Payload>
-using arena_nary_tree = arena_tree<Payload, full_nary_link_policy>;
+using DArenaNaryTree = DArenaTree<Payload, DFullNaryLinkPolicy>;
 
-// arena_lcrs_tree
+// old name, until 0.9.0-rc.1
+template<typename Payload>
+using arena_nary_tree = DArenaNaryTree<Payload>;
+
+// DArenaLcrsTree
 //   alias: minimal 2-link arena tree. Smallest node footprint.
 template<typename Payload>
-using arena_lcrs_tree = arena_tree<Payload, lcrs_link_policy>;
+using DArenaLcrsTree = DArenaTree<Payload, DLcrsLinkPolicy>;
 
-// arena_parented_tree
+// old name, until 0.9.0-rc.1
+template<typename Payload>
+using arena_lcrs_tree = DArenaLcrsTree<Payload>;
+
+// DArenaParentedTree
 //   alias: 3-link arena tree with parent back-pointer.
 template<typename Payload>
-using arena_parented_tree = arena_tree<Payload,
-                                       parented_lcrs_link_policy>;
+using DArenaParentedTree = DArenaTree<Payload,
+                                       DParentedLcrsLinkPolicy>;
 
-// arena_binary_tree
+// old name, until 0.9.0-rc.1
+template<typename Payload>
+using arena_parented_tree = DArenaParentedTree<Payload>;
+
+// DArenaBinaryTree
 //   alias: arena tree with left/right/parent links.
 template<typename Payload>
-using arena_binary_tree = arena_tree<Payload,
-                                     parented_binary_link_policy>;
+using DArenaBinaryTree = DArenaTree<Payload,
+                                     DParentedBinaryLinkPolicy>;
+
+// old name, until 0.9.0-rc.1
+template<typename Payload>
+using arena_binary_tree = DArenaBinaryTree<Payload>;
 
 
 NS_END  // djinterp

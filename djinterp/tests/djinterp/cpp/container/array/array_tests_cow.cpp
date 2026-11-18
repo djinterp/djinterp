@@ -33,12 +33,12 @@ using cow4_array = cow4::underlying_type;
 //   alias: DCowArrays naming exclusive_lock_policy, and null_lock_policy
 // (single-threaded use).
 using cow4_exclusive = DCowArray<
-    array_opt_type<int>,
+    DArrayOptType<int>,
     DArrayOptExtent<4>,
     DContainerOptLockPolicy<exclusive_lock_policy>>;
 
 using cow4_single = DCowArray<
-    array_opt_type<int>,
+    DArrayOptType<int>,
     DArrayOptExtent<4>,
     DContainerOptLockPolicy<null_lock_policy>>;
 
@@ -68,7 +68,7 @@ bool tests_cow_construction()
     D_AY_CHECK(cow4::iterable && !cow4_ni::iterable);
 
     D_AY_CHECK((std::is_same<cow4_array,
-                             array<array_opt_type<int>,
+                             DArray<DArrayOptType<int>,
                                    DArrayOptExtent<4>>>::value));
     D_AY_CHECK(!std::is_copy_constructible<cow4>::value);
     D_AY_CHECK(!std::is_move_constructible<cow4>::value);

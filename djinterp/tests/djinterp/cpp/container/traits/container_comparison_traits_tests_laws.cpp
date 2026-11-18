@@ -31,22 +31,22 @@ NS_TESTING
 
 // reflexivity: nothing can refine itself more than equally
 D_TEST_STATIC(refinement_of<DRuntimeSeq, DRuntimeSeq>::value ==
-              order_relation::equivalent);
+              DOrderRelation::equivalent);
 
 // the meet's unit
-D_TEST_STATIC(order_relation_meet(order_relation::equivalent,
-                                  order_relation::greater) ==
-              order_relation::greater);
+D_TEST_STATIC(order_relation_meet(DOrderRelation::equivalent,
+                                  DOrderRelation::greater) ==
+              DOrderRelation::greater);
 
 // the meet's zero
-D_TEST_STATIC(order_relation_meet(order_relation::incomparable,
-                                  order_relation::greater) ==
-              order_relation::incomparable);
+D_TEST_STATIC(order_relation_meet(DOrderRelation::incomparable,
+                                  DOrderRelation::greater) ==
+              DOrderRelation::incomparable);
 
 // opposing directions do NOT average out
-D_TEST_STATIC(order_relation_meet(order_relation::less,
-                                  order_relation::greater) ==
-              order_relation::incomparable);
+D_TEST_STATIC(order_relation_meet(DOrderRelation::less,
+                                  DOrderRelation::greater) ==
+              DOrderRelation::incomparable);
 
 
 /*
@@ -72,15 +72,15 @@ bool tests_law_reflexivity()
     bool ok = true;
 
     #define D_CCM_REFLEXIVE(...)                                              \
-        D_CCM_REL(order_relation::equivalent,                                 \
+        D_CCM_REL(DOrderRelation::equivalent,                                 \
                   (discipline_relation<__VA_ARGS__, __VA_ARGS__>::value));                  \
-        D_CCM_REL(order_relation::equivalent,                                 \
+        D_CCM_REL(DOrderRelation::equivalent,                                 \
                   (lifetime_relation<__VA_ARGS__, __VA_ARGS__>::value));                    \
-        D_CCM_REL(order_relation::equivalent,                                 \
+        D_CCM_REL(DOrderRelation::equivalent,                                 \
                   (DIterabilityRelation<__VA_ARGS__, __VA_ARGS__>::value));                 \
-        D_CCM_REL(order_relation::equivalent,                                 \
+        D_CCM_REL(DOrderRelation::equivalent,                                 \
                   (storage_relation<__VA_ARGS__, __VA_ARGS__>::value));                     \
-        D_CCM_REL(order_relation::equivalent,                                 \
+        D_CCM_REL(DOrderRelation::equivalent,                                 \
                   (refinement_of<__VA_ARGS__, __VA_ARGS__>::value));                        \
         D_CCM_CHECK((realization_equal<__VA_ARGS__, __VA_ARGS__>::value));                  \
         D_CCM_CHECK((realization_comparable<__VA_ARGS__, __VA_ARGS__>::value))
@@ -185,14 +185,14 @@ bool tests_law_direction()
 
     // ccm_dual is itself an involution, which is what makes the above a law and
     // not a coincidence
-    D_CCM_CHECK(ccm_dual(ccm_dual(order_relation::greater)) ==
-                order_relation::greater);
-    D_CCM_CHECK(ccm_dual(ccm_dual(order_relation::less)) ==
-                order_relation::less);
-    D_CCM_CHECK(ccm_dual(order_relation::equivalent) ==
-                order_relation::equivalent);
-    D_CCM_CHECK(ccm_dual(order_relation::incomparable) ==
-                order_relation::incomparable);
+    D_CCM_CHECK(ccm_dual(ccm_dual(DOrderRelation::greater)) ==
+                DOrderRelation::greater);
+    D_CCM_CHECK(ccm_dual(ccm_dual(DOrderRelation::less)) ==
+                DOrderRelation::less);
+    D_CCM_CHECK(ccm_dual(DOrderRelation::equivalent) ==
+                DOrderRelation::equivalent);
+    D_CCM_CHECK(ccm_dual(DOrderRelation::incomparable) ==
+                DOrderRelation::incomparable);
 
     return ok;
 }
@@ -224,46 +224,46 @@ bool tests_law_transitivity()
     bool ok = true;
 
     // the discipline chain, link by link
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (refinement_of<DUniqueSeq, DBoundedBag>::value));
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (refinement_of<DBoundedBag, DRuntimeSeq>::value));
 
     // ...and the composite
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (refinement_of<DUniqueSeq, DRuntimeSeq>::value));
 
     // stated as the law
     D_CCM_CHECK(!((refinement_of<DUniqueSeq, DBoundedBag>::value ==
-                   order_relation::greater) &&
+                   DOrderRelation::greater) &&
                   (refinement_of<DBoundedBag, DRuntimeSeq>::value ==
-                   order_relation::greater)) ||
+                   DOrderRelation::greater)) ||
                 (refinement_of<DUniqueSeq, DRuntimeSeq>::value ==
-                 order_relation::greater));
+                 DOrderRelation::greater));
 
     // a longer chain, adding a flag at the top: DCapacitySeq bears a restriction
     // DRuntimeSeq does not, and DUniqueSeq's multiplicity is tighter than both -
     // but DUniqueSeq does NOT bear the capacity flag, so it does not subsume
     // DCapacitySeq.  Transitivity holds; totality does not, and must not
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (refinement_of<DCapacitySeq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (refinement_of<DUniqueSeq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::incomparable,
+    D_CCM_REL(DOrderRelation::incomparable,
               (refinement_of<DUniqueSeq, DCapacitySeq>::value));
 
     // transitivity of the ORDER, on the iterability lattice: (T,T) > (F,T) > (F,F)
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (DIterabilityRelation<DCompileSeq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (DIterabilityRelation<DRuntimeSeq, DConstSeq>::value));
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (DIterabilityRelation<DCompileSeq, DConstSeq>::value));
 
     // ...and through the bottom: (T,T) > (F,T) > bottom
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (DIterabilityRelation<DRuntimeSeq, DNotIterable>::value));
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (DIterabilityRelation<DCompileSeq, DNotIterable>::value));
 
     // transitivity of EQUIVALENCE
@@ -307,52 +307,52 @@ bool tests_law_content_excluded()
     bool ok = true;
 
     // the content rungs differ
-    D_CCM_LEVEL(content_level::str, native_content_level_of<DNestedSeq>::value);
-    D_CCM_LEVEL(content_level::seq, native_content_level_of<DRuntimeSeq>::value);
+    D_CCM_LEVEL(DContentLevel::str, native_content_level_of<DNestedSeq>::value);
+    D_CCM_LEVEL(DContentLevel::seq, native_content_level_of<DRuntimeSeq>::value);
     D_CCM_CHECK((native_content_level_of<DNestedSeq>::value !=
                  native_content_level_of<DRuntimeSeq>::value));
 
     // every FOLD axis agrees
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (discipline_relation<DNestedSeq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (lifetime_relation<DNestedSeq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (DIterabilityRelation<DNestedSeq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (storage_relation<DNestedSeq, DRuntimeSeq>::value));
 
     // ...so the verdict is EQUIVALENT
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (refinement_of<DNestedSeq, DRuntimeSeq>::value));
     D_CCM_CHECK((realization_equal<DNestedSeq, DRuntimeSeq>::value));
 
     // and the information is REPORTED, not lost
     using p = DComparisonProfile<DNestedSeq, DRuntimeSeq>;
 
-    D_CCM_LEVEL(content_level::str, p::content_left);
-    D_CCM_LEVEL(content_level::seq, p::content_right);
-    D_CCM_LEVEL(content_level::seq, p::content_shared);   // the coarser
-    D_CCM_REL(order_relation::equivalent, p::refinement);
+    D_CCM_LEVEL(DContentLevel::str, p::content_left);
+    D_CCM_LEVEL(DContentLevel::seq, p::content_right);
+    D_CCM_LEVEL(DContentLevel::seq, p::content_shared);   // the coarser
+    D_CCM_REL(DOrderRelation::equivalent, p::refinement);
 
     // the same, one rung further apart: str against set
-    D_CCM_LEVEL(content_level::str,
+    D_CCM_LEVEL(DContentLevel::str,
                 native_content_level_of<DHierarchicalUnique>::value);
-    D_CCM_LEVEL(content_level::set,
+    D_CCM_LEVEL(DContentLevel::set,
                 native_content_level_of<DUniqueSeq>::value);
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (refinement_of<DHierarchicalUnique, DUniqueSeq>::value));
     D_CCM_CHECK((realization_equal<DHierarchicalUnique, DUniqueSeq>::value));
 
     using q = DComparisonProfile<DHierarchicalUnique, DUniqueSeq>;
 
-    D_CCM_LEVEL(content_level::set, q::content_shared);
-    D_CCM_REL(order_relation::equivalent, q::refinement);
+    D_CCM_LEVEL(DContentLevel::set, q::content_shared);
+    D_CCM_REL(DOrderRelation::equivalent, q::refinement);
 
     // and the real thing: a vector of vectors is realization-equal to a vector
-    D_CCM_LEVEL(content_level::str,
+    D_CCM_LEVEL(DContentLevel::str,
                 native_content_level_of<std_vec_vec>::value);
-    D_CCM_LEVEL(content_level::seq,
+    D_CCM_LEVEL(DContentLevel::seq,
                 native_content_level_of<std_vector>::value);
     D_CCM_CHECK((realization_equal<std_vec_vec,
                                    std_vector>::value));
@@ -420,13 +420,13 @@ bool tests_axis_coupling()
     // orders the other
     #define D_CCM_NO_STAGE_CONFLICT(LEFT, RIGHT)                              \
         D_CCM_CHECK(!((lifetime_relation<LEFT, RIGHT>::value ==               \
-                       order_relation::greater) &&                            \
+                       DOrderRelation::greater) &&                            \
                       (DIterabilityRelation<LEFT, RIGHT>::value ==            \
-                       order_relation::less)));                               \
+                       DOrderRelation::less)));                               \
         D_CCM_CHECK(!((lifetime_relation<LEFT, RIGHT>::value ==               \
-                       order_relation::less) &&                               \
+                       DOrderRelation::less) &&                               \
                       (DIterabilityRelation<LEFT, RIGHT>::value ==            \
-                       order_relation::greater)))
+                       DOrderRelation::greater)))
 
     D_CCM_NO_STAGE_CONFLICT(DCompileSeq,       DRuntimeSeq);
     D_CCM_NO_STAGE_CONFLICT(DCompileConstSeq, DRuntimeSeq);
@@ -440,23 +440,23 @@ bool tests_axis_coupling()
 
     // the ONE way iterability vetoes a lifetime ordering: through the MODE bit,
     // and the verdict is `incomparable`
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (lifetime_relation<DCompileConstSeq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::incomparable,
+    D_CCM_REL(DOrderRelation::incomparable,
               (DIterabilityRelation<DCompileConstSeq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::incomparable,
+    D_CCM_REL(DOrderRelation::incomparable,
               (refinement_of<DCompileConstSeq, DRuntimeSeq>::value));
 
     // ...and when the mode bits AGREE, the two axes agree too, and the meet is a
     // no-op
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (lifetime_relation<DCompileSeq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (DIterabilityRelation<DCompileSeq, DRuntimeSeq>::value));
     D_CCM_CHECK(order_relation_meet(
                     lifetime_relation<DCompileSeq, DRuntimeSeq>::value,
                     DIterabilityRelation<DCompileSeq, DRuntimeSeq>::value) ==
-                order_relation::greater);
+                DOrderRelation::greater);
 
     return ok;
 }

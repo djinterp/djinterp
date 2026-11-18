@@ -24,7 +24,7 @@ NS_DJINTERP
 NS_TESTING
 
 
-using ri = result<int, std::string>;
+using ri = DResult<int, std::string>;
 
 
 bool test_conversions()
@@ -35,30 +35,30 @@ bool test_conversions()
     ri errv = err<int, std::string>("bad");
 
     // ok(): ok -> just(value), err -> nothing
-    maybe<int> ok_just = okv.ok();
+    DMaybe<int> ok_just = okv.ok();
     record_assertion(verdict, ok_just.has_value() && ok_just.value() == 5,
         "convert: ok().ok() yields just(value)");
 
-    maybe<int> ok_none = errv.ok();
+    DMaybe<int> ok_none = errv.ok();
     record_assertion(verdict, !ok_none.has_value(),
         "convert: err().ok() yields nothing");
 
     // err(): err -> just(error), ok -> nothing
-    maybe<std::string> err_just = errv.err();
+    DMaybe<std::string> err_just = errv.err();
     record_assertion(verdict,
         err_just.has_value() && err_just.value() == "bad",
         "convert: err().err() yields just(error)");
 
-    maybe<std::string> err_none = okv.err();
+    DMaybe<std::string> err_none = okv.err();
     record_assertion(verdict, !err_none.has_value(),
         "convert: ok().err() yields nothing");
 
     // free to_maybe: discards the error, mirrors result::ok()
-    maybe<int> tm_ok = to_maybe(okv);
+    DMaybe<int> tm_ok = to_maybe(okv);
     record_assertion(verdict, tm_ok.has_value() && tm_ok.value() == 5,
         "convert: to_maybe(ok) yields just(value)");
 
-    maybe<int> tm_err = to_maybe(errv);
+    DMaybe<int> tm_err = to_maybe(errv);
     record_assertion(verdict, !tm_err.has_value(),
         "convert: to_maybe(err) yields nothing");
 

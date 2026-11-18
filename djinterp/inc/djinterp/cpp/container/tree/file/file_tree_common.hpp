@@ -188,7 +188,7 @@ V.    file_tree_core
 #include "../../../djinterp.hpp"
 #include "../../../../config/cpp/container/tree/file/cfg_filesys.h"
 #include "./fs_os.hpp"
-#include "../../../memory/pool.hpp"               // pool, raw_pool: the node pool
+#include "../../../memory/pool.hpp"               // DPool, DRawPool: the node pool
 #include "../../container_options.hpp"  // the nine axes
 #include "../../../meta/hierarchical.hpp"          // structure_category
 #include "../../../meta/type_traits.hpp"           // clean_t, void_t
@@ -214,9 +214,9 @@ NS_DJINTERP
 // I.   file_type
 // ================================================================
 
-// file_type
+// DFileType
 //   enum: the kind of filesystem entry a node represents.
-enum file_type : re_std::uint8_t
+enum DFileType : re_std::uint8_t
 {
     file_type_unknown   = 0,
     file_type_regular   = 1,
@@ -225,12 +225,15 @@ enum file_type : re_std::uint8_t
     file_type_other     = 4
 };
 
+// old name, until 0.9.0-rc.1
+using file_type = DFileType;
+
 
 // ================================================================
 // II.  file_entry
 // ================================================================
 
-// file_entry
+// DFileEntry
 //   struct: payload stored in each arena node. Names live in a separate string
 // pool, referenced by offset + length, keeping the node fixed-size and
 // cache-dense. NOTE. A file_entry does NOT carry its name; it carries a
@@ -238,16 +241,16 @@ enum file_type : re_std::uint8_t
 // and size but cannot see the name -- which is why the useful predicate shape
 // here is bool(file_node_id), taking the tree along. filter() accepts both (see
 // section 6).
-struct file_entry
+struct DFileEntry
 {
     re_std::uint32_t name_offset;
     re_std::uint16_t name_length;
-    file_type        type;
+    DFileType        type;
     re_std::uint8_t  _pad0;
     re_std::uint64_t size;
 
     // file_entry (default)
-    file_entry()
+    DFileEntry()
         : name_offset (0),
           name_length (0),
           type        (file_type_unknown),
@@ -256,10 +259,10 @@ struct file_entry
     {}
 
     // file_entry (parameterized)
-    file_entry(
+    DFileEntry(
         re_std::uint32_t _name_offset,
         re_std::uint16_t _name_length,
-        file_type        _type,
+        DFileType        _type,
         re_std::uint64_t _size
     )
         : name_offset (_name_offset),
@@ -269,6 +272,9 @@ struct file_entry
           size        (_size)
     {}
 };
+
+// old name, until 0.9.0-rc.1
+using file_entry = DFileEntry;
 
 
 // ================================================================
@@ -291,20 +297,20 @@ struct file_entry
 //   AND ONE THING THAT MATTERS FAR MORE THAN EITHER  ->  see the static_assert
 // in file_tree_core.  A pool is only pointer-stable under SOME block policies.
 
-// file_node
+// DFileNode
 //   struct: a node of the tree. Lives in the pool; linked to its neighbours by
 // pointer. Was arena_node<file_entry>, whose links were dense indices.
-struct file_node
+struct DFileNode
 {
-    file_entry data;
+    DFileEntry data;
 
-    file_node* parent;
-    file_node* first_child;
-    file_node* last_child;
-    file_node* next_sibling;
-    file_node* prev_sibling;
+    DFileNode* parent;
+    DFileNode* first_child;
+    DFileNode* last_child;
+    DFileNode* next_sibling;
+    DFileNode* prev_sibling;
 
-    file_node()
+    DFileNode()
         : data         (),
           parent       (nullptr),
           first_child  (nullptr),
@@ -314,11 +320,17 @@ struct file_node
     {}
 };
 
-// file_node_id / null_file_node
-//   the node HANDLE. A pointer into the pool, not an index.
-using file_node_id = file_node*;
+// old name, until 0.9.0-rc.1
+using file_node = DFileNode;
 
-D_STATIC_CONSTEXPR file_node_id null_file_node = nullptr;
+// DFileNodeId / null_file_node
+//   the node HANDLE. A pointer into the pool, not an index.
+using DFileNodeId = DFileNode*;
+
+// old name, until 0.9.0-rc.1
+using file_node_id = DFileNodeId;
+
+D_STATIC_CONSTEXPR DFileNodeId null_file_node = nullptr;
 
 
 // ================================================================
@@ -332,9 +344,9 @@ D_STATIC_CONSTEXPR file_node_id null_file_node = nullptr;
 template<typename Scanner,
          typename Pool,
          typename... Options>
-class file_tree_core;
+class DFileTreeCore;
 
-// scan_context
+// DScanContext
 //   class: the narrow interface a scanner policy uses to build the tree. It
 // owns no state of its own - it is a thin, non-owning view onto a
 // file_tree_core that exposes exactly two operations: intern_child(parent,
@@ -347,13 +359,13 @@ class file_tree_core;
 // the scanner is read back off it. Every scanner takes its context as a
 // deduced template parameter, so no backend needs to change.
 template<typename Core>
-class scan_context
+class DScanContext
 {
 public:
     using core_type    = Core;
     using scanner_type = typename Core::scanner_type;
 
-    explicit scan_context(core_type& _core)
+    explicit DScanContext(core_type& _core)
         : m_core(_core)
     {}
 
@@ -363,11 +375,11 @@ public:
     // and NO second node is made. A directory cannot hold two entries of one
     // name; permitting it here would create a node that every traversal walks
     // and no address reaches.
-    file_node_id intern_child(
-        file_node_id     _parent,
+    DFileNodeId intern_child(
+        DFileNodeId     _parent,
         const char*      _name,
         std::size_t      _len,
-        file_type        _type,
+        DFileType        _type,
         re_std::uint64_t _size
     )
     {
@@ -378,7 +390,7 @@ public:
     //   descends into a child directory via the active scanner.
     void recurse(
         const std::string& _dir_path,
-        file_node_id       _node
+        DFileNodeId       _node
     )
     {
         scanner_type::scan(*this, _dir_path, _node);
@@ -388,16 +400,20 @@ private:
     core_type& m_core;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Core>
+using scan_context = DScanContext<Core>;
+
 
 // ================================================================
 // IV.  null_scanner
 // ================================================================
 
-// null_scanner
+// DNullScanner
 //   policy: the fallback scanner. Compiles everywhere and scans nothing.
 // Selected when a requested operating_system has no backend compiled into the
 // current build, so that file_tree<operating_system::X> always instantiates.
-struct null_scanner
+struct DNullScanner
 {
     // scan
     //   no-op. A null scanner produces a root-only tree.
@@ -406,19 +422,22 @@ struct null_scanner
     scan(
         Ctx&              /*_ctx*/,
         const std::string& /*_dir_path*/,
-        file_node_id            /*_parent*/
+        DFileNodeId            /*_parent*/
     )
     {
         return;
     }
 };
 
+// old name, until 0.9.0-rc.1
+using null_scanner = DNullScanner;
+
 
 // ================================================================
 // V.   file_tree_core
 // ================================================================
 
-// file_tree_core
+// DFileTreeCore
 //   class: the OS-independent file tree. Holds the arena, the string pool, the
 // scan root, and the (parent, name) hash index, and implements everything that
 // does not require an OS call: ADDRESSING, name access, traversal, filtering,
@@ -429,19 +448,19 @@ struct null_scanner
 // (container_options.hpp), so every existing instantiation keeps compiling
 // untouched.
 template<typename Scanner,
-         typename Pool = ::djinterp::pool<file_node>,
+         typename Pool = ::djinterp::DPool<DFileNode>,
          typename... Options>
-class file_tree_core
-    : public options_container_base<Options...>
+class DFileTreeCore
+    : public DOptionsContainerBase<Options...>
 {
 private:
-    using option_base = options_container_base<Options...>;
+    using option_base = DOptionsContainerBase<Options...>;
 
 public:
     using scanner_type = Scanner;
     using pool_type    = clean_t<Pool>;
-    using node_type    = file_node;
-    using context_type = scan_context<file_tree_core>;
+    using node_type    = DFileNode;
+    using context_type = DScanContext<DFileTreeCore>;
 
     // ------------------------------------------------------------------
     //   THE GUARD.  Read this one.
@@ -459,7 +478,7 @@ public:
     // and the root itself into dangling pointers, and would usually appear to
     // work while it did.
     static_assert(
-        std::is_base_of<raw_pool, pool_type>::value,
+        std::is_base_of<DRawPool, pool_type>::value,
         "file_tree stores every node link and every file_node_id as a raw pointer "
         "into the pool, so the pool must never move a slot. Use a djinterp pool "
         "(memory/pool.hpp): it grows by taking another block and never moves a "
@@ -470,7 +489,7 @@ public:
     // has_native_filter / has_native_transform can form their probe
     // expressions; see section 6 for why a payload predicate can see a node's
     // type and size but not its NAME.
-    using value_type = file_entry;
+    using value_type = DFileEntry;
 
     // level_type
     //   the LEVEL (lambda) of a node: its distance from the root, which is the
@@ -481,9 +500,9 @@ public:
     // keep_set
     //   the set filter() marks its ancestor-closure into. It was a vector
     // indexed by file_node_id; a file_node_id is a pointer now and indexes nothing.
-    using keep_set = std::unordered_set<file_node_id>;
+    using keep_set = std::unordered_set<DFileNodeId>;
 
-    friend class scan_context<file_tree_core>;
+    friend class DScanContext<DFileTreeCore>;
 
     // --------------------------------------------------------
     //  1.  axes and options surface
@@ -493,23 +512,23 @@ public:
     //   the OPT-IN structure tag (structure/hierarchical.hpp) that
     // hierarchical_container_traits consults. A file tree is the hierarchical
     // container; this states it outright so no heuristic has to infer it.
-    using structure_category = hierarchical;
+    using structure_category = DHierarchical;
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
     using typename option_base::options_type;
 
-    static constexpr container_structure axis_structure =
-        container_structure::hierarchical;   // not configurable
+    static constexpr DContainerStructure axis_structure =
+        DContainerStructure::hierarchical;   // not configurable
 
     static constexpr DContainerOrdering axis_ordering =
         container_axis_value_v<options_type,
-                               container_axis::ordering,
+                               DContainerAxis::ordering,
                                DContainerOrdering::ordered>;
 
     static constexpr DContainerBounds axis_bounds =
         container_axis_value_v<options_type,
-                               container_axis::bounds,
+                               DContainerAxis::bounds,
                                DContainerBounds::unbounded>;
 
     // MULTIPLICITY. Unique, and this is the axis that matters most here: a
@@ -518,34 +537,34 @@ public:
     // and it is enforced on insertion rather than hoped for.
     static constexpr DContainerMultiplicity axis_multiplicity =
         container_axis_value_v<options_type,
-                               container_axis::multiplicity,
+                               DContainerAxis::multiplicity,
                                DContainerMultiplicity::unique>;
 
     static constexpr DContainerStorageKind axis_storage_kind =
         container_axis_value_v<options_type,
-                               container_axis::storage_kind,
+                               DContainerAxis::storage_kind,
                                DContainerStorageKind::dynamic_storage>;
 
     static constexpr DContainerThreadSafety axis_thread_safety =
         container_axis_value_v<options_type,
-                               container_axis::thread_safety,
+                               DContainerAxis::thread_safety,
                                DContainerThreadSafety::none>;
 
     static constexpr DContainerBacking axis_backing =
         container_axis_value_v<options_type,
-                               container_axis::backing,
+                               DContainerAxis::backing,
                                DContainerBacking::fundamental>;
 
-    static constexpr container_iterability axis_iterability =
+    static constexpr DContainerIterability axis_iterability =
         container_axis_value_v<options_type,
-                               container_axis::iterability,
-                               container_iterability::iterable>;
+                               DContainerAxis::iterability,
+                               DContainerIterability::iterable>;
 
     static_assert(
         container_axis_value_v<options_type,
-                               container_axis::structure,
-                               container_structure::hierarchical>
-            == container_structure::hierarchical,
+                               DContainerAxis::structure,
+                               DContainerStructure::hierarchical>
+            == DContainerStructure::hierarchical,
         "file_tree is hierarchical by construction: "
         "container_opt_structure<flat> cannot be honoured.");
 
@@ -556,7 +575,7 @@ public:
     //  2.  construction / scanning
     // --------------------------------------------------------
 
-    file_tree_core()
+    DFileTreeCore()
         : m_pool       (),
           m_root       (nullptr),
           m_size       (0),
@@ -573,7 +592,7 @@ public:
     //   The SCANNED PATH IS RETAINED (m_root_path). It used to be thrown away
     // -- only the leaf survived, as the root's name -- which left full_path()
     // unable to name a file on disk.
-    file_node_id
+    DFileNodeId
     scan(
         const char* _path
     )
@@ -582,12 +601,12 @@ public:
 
         m_root_path = std::string(_path);
 
-        file_entry root_entry = make_entry(
+        DFileEntry root_entry = make_entry(
             _path, file_type_directory, 0);
 
         m_root = new_node(root_entry);
 
-        file_node_id root = m_root;
+        DFileNodeId root = m_root;
 
         context_type ctx(*this);
         Scanner::scan(ctx, m_root_path, root);
@@ -596,7 +615,7 @@ public:
     }
 
     // scan (std::string overload)
-    file_node_id
+    DFileNodeId
     scan(
         const std::string& _path
     )
@@ -620,7 +639,7 @@ public:
     // root
     //   the scan root, or null_file_node when the tree is empty. It is always arena
     // index 0: clear() empties the arena and scan() allocates the root first.
-    file_node_id
+    DFileNodeId
     root() const
     {
         return m_root;
@@ -640,9 +659,9 @@ public:
     // false positive. PUBLIC. It used to be private, which left a caller with
     // no way to take a single step - and no way to descend on a host whose
     // name comparison is not ours (see the case-folding note in the banner).
-    file_node_id
+    DFileNodeId
     find_child(
-        file_node_id     _parent,
+        DFileNodeId     _parent,
         const char* _name,
         std::size_t _len
     ) const
@@ -661,7 +680,7 @@ public:
             return null_file_node;
         }
 
-        const file_entry& e = it->second->data;
+        const DFileEntry& e = it->second->data;
 
         if (e.name_length != static_cast<re_std::uint16_t>(_len))
         {
@@ -678,9 +697,9 @@ public:
     }
 
     // find_child (std::string overload)
-    file_node_id
+    DFileNodeId
     find_child(
-        file_node_id            _parent,
+        DFileNodeId            _parent,
         const std::string& _name
     ) const
     {
@@ -692,7 +711,7 @@ public:
     // at one directory, which is what add_child consults.
     bool
     contains_child(
-        file_node_id            _parent,
+        DFileNodeId            _parent,
         const std::string& _name
     ) const
     {
@@ -705,13 +724,13 @@ public:
     // components are skipped, so a leading, trailing, or doubled separator is
     // harmless. resolve(address(n)) == n. That is the contract, and
     // round_trips() checks it.
-    file_node_id
+    DFileNodeId
     resolve(
         const char* _path,
-        file_node_id     _root = null_file_node
+        DFileNodeId     _root = null_file_node
     ) const
     {
-        file_node_id current = ( (_root == null_file_node) ? root() : _root );
+        DFileNodeId current = ( (_root == null_file_node) ? root() : _root );
 
         if (current == null_file_node)
         {
@@ -755,10 +774,10 @@ public:
     }
 
     // resolve (std::string overload)
-    file_node_id
+    DFileNodeId
     resolve(
         const std::string& _path,
-        file_node_id            _root = null_file_node
+        DFileNodeId            _root = null_file_node
     ) const
     {
         return resolve(_path.c_str(), _root);
@@ -774,11 +793,11 @@ public:
     // the base of the induction, and the thing the old full_path() got wrong.
     std::string
     address(
-        file_node_id _id,
+        DFileNodeId _id,
         char    _sep = '/'
     ) const
     {
-        std::vector<file_node_id> chain;
+        std::vector<DFileNodeId> chain;
 
         collect_labels(_id, chain);
 
@@ -786,7 +805,7 @@ public:
 
         for (std::size_t i = chain.size(); i > 0; --i)
         {
-            const file_entry& e = chain[i - 1]->data;
+            const DFileEntry& e = chain[i - 1]->data;
 
             if (!result.empty())
             {
@@ -812,7 +831,7 @@ public:
     // file.
     std::string
     full_path(
-        file_node_id _id,
+        DFileNodeId _id,
         char    _sep = '/'
     ) const
     {
@@ -850,7 +869,7 @@ public:
     // because a contract you cannot check is a hope.
     bool
     round_trips(
-        file_node_id _id
+        DFileNodeId _id
     ) const
     {
         if (_id == null_file_node)
@@ -868,7 +887,7 @@ public:
     bool
     is_addressable() const
     {
-        file_node_id r = root();
+        DFileNodeId r = root();
 
         if (r == null_file_node)
         {
@@ -881,7 +900,7 @@ public:
 
         visit_depth_first(
             r,
-            [&](file_node_id _id, level_type)
+            [&](DFileNodeId _id, level_type)
             {
                 if (!round_trips(_id))
                 {
@@ -898,11 +917,11 @@ public:
     // the number visit_depth_first / visit_breadth_first report. O(level).
     level_type
     level(
-        file_node_id _id
+        DFileNodeId _id
     ) const
     {
         level_type n = 0;
-        file_node_id    c = _id;
+        DFileNodeId    c = _id;
 
         if (c == null_file_node)
         {
@@ -924,7 +943,7 @@ public:
     // and the tree had no way to ask for it. O(subtree).
     level_type
     height(
-        file_node_id _id
+        DFileNodeId _id
     ) const
     {
         if (_id == null_file_node)
@@ -934,7 +953,7 @@ public:
 
         level_type best = 0;
 
-        for (file_node_id c = _id->first_child;
+        for (DFileNodeId c = _id->first_child;
              c != null_file_node;
              c = c->next_sibling)
         {
@@ -959,9 +978,9 @@ public:
 
     // parent
     //   the parent of _id, or null_file_node at the root.
-    file_node_id
+    DFileNodeId
     parent(
-        file_node_id _id
+        DFileNodeId _id
     ) const
     {
         return ( (_id == null_file_node) ? null_file_node : _id->parent );
@@ -972,8 +991,8 @@ public:
     // addr(_descendant).
     bool
     is_ancestor(
-        file_node_id _ancestor,
-        file_node_id _descendant
+        DFileNodeId _ancestor,
+        DFileNodeId _descendant
     ) const
     {
         if (_ancestor   == null_file_node ||
@@ -983,7 +1002,7 @@ public:
             return false;
         }
 
-        file_node_id c = _descendant->parent;
+        DFileNodeId c = _descendant->parent;
 
         while (c != null_file_node)
         {
@@ -1002,10 +1021,10 @@ public:
     // addresses in the prefix order, the longest common prefix of the two
     // words. In a single-rooted tree the meet ALWAYS exists (at worst the
     // empty word, the root), so this cannot fail for two nodes of one tree.
-    file_node_id
+    DFileNodeId
     lca(
-        file_node_id _a,
-        file_node_id _b
+        DFileNodeId _a,
+        DFileNodeId _b
     ) const
     {
         if (_a == null_file_node || _b == null_file_node)
@@ -1016,8 +1035,8 @@ public:
         level_type la = level(_a);
         level_type lb = level(_b);
 
-        file_node_id ca = _a;
-        file_node_id cb = _b;
+        DFileNodeId ca = _a;
+        DFileNodeId cb = _b;
 
         // equalise levels: a common prefix is no longer than the shorter word
         while (la > lb) { ca = ca->parent; --la; }
@@ -1047,11 +1066,11 @@ public:
     // Optionally writes the length to _length.
     const char*
     name(
-        file_node_id      _id,
+        DFileNodeId      _id,
         std::size_t* _length = nullptr
     ) const
     {
-        const file_entry& e = _id->data;
+        const DFileEntry& e = _id->data;
 
         if (_length != nullptr)
         {
@@ -1065,10 +1084,10 @@ public:
     //   the name of _id as a std::string.
     std::string
     name_str(
-        file_node_id _id
+        DFileNodeId _id
     ) const
     {
-        const file_entry& e = _id->data;
+        const DFileEntry& e = _id->data;
 
         return m_names.substr(e.name_offset, e.name_length);
     }
@@ -1092,8 +1111,8 @@ public:
     // file_tree_filter.hpp read a node the same way they always did; a file_node_id
     // is simply a pointer now, so this is the indirection the arena used to
     // do.
-    node_type&       operator[](file_node_id _id)       { return *_id; }
-    const node_type& operator[](file_node_id _id) const { return *_id; }
+    node_type&       operator[](DFileNodeId _id)       { return *_id; }
+    const node_type& operator[](DFileNodeId _id) const { return *_id; }
 
     std::size_t size()  const { return m_size;              }
     bool        empty() const { return (m_root == nullptr); }
@@ -1114,7 +1133,7 @@ public:
     template<typename Fn>
     void
     visit_depth_first(
-        file_node_id _root,
+        DFileNodeId _root,
         Fn      _fn
     ) const
     {
@@ -1123,7 +1142,7 @@ public:
             return;
         }
 
-        struct frame { file_node_id id; level_type level; };
+        struct frame { DFileNodeId id; level_type level; };
 
         std::vector<frame> stack;
         stack.push_back({ _root, 0 });
@@ -1136,7 +1155,7 @@ public:
             _fn(f.id, f.level);
 
             // push right-to-left so the leftmost child is popped first
-            file_node_id c = f.id->last_child;
+            DFileNodeId c = f.id->last_child;
 
             while (c != null_file_node)
             {
@@ -1153,7 +1172,7 @@ public:
     template<typename Fn>
     void
     visit_breadth_first(
-        file_node_id _root,
+        DFileNodeId _root,
         Fn      _fn
     ) const
     {
@@ -1162,7 +1181,7 @@ public:
             return;
         }
 
-        struct frame { file_node_id id; level_type level; };
+        struct frame { DFileNodeId id; level_type level; };
 
         std::vector<frame> queue;
         queue.push_back({ _root, 0 });
@@ -1176,7 +1195,7 @@ public:
 
             _fn(f.id, f.level);
 
-            file_node_id c = f.id->first_child;
+            DFileNodeId c = f.id->first_child;
 
             while (c != null_file_node)
             {
@@ -1229,16 +1248,16 @@ public:
     // the closure is empty and so is the result.
     template<typename Pred,
              typename std::enable_if<
-                 is_invocable_with<Pred, file_node_id>::value,
+                 is_invocable_with<Pred, DFileNodeId>::value,
                  int>::type = 0>
-    file_tree_core
+    DFileTreeCore
     filter(
         Pred _pred
     ) const
     {
-        file_tree_core out;
+        DFileTreeCore out;
 
-        file_node_id r = root();
+        DFileNodeId r = root();
 
         if (r == null_file_node)
         {
@@ -1264,15 +1283,15 @@ public:
         // its children are interned under it.
         out.m_root_path = m_root_path;
 
-        const file_entry& re = r->data;
+        const DFileEntry& re = r->data;
 
-        file_entry root_entry = out.pool_entry(
+        DFileEntry root_entry = out.pool_entry(
             m_names.data() + re.name_offset,
             re.name_length, re.type, re.size);
 
         out.m_root = out.new_node(root_entry);
 
-        file_node_id nr = out.m_root;
+        DFileNodeId nr = out.m_root;
 
         copy_kept(r, nr, out, keep);
 
@@ -1289,16 +1308,16 @@ public:
     // bool(file_node_id) form above.
     template<typename Pred,
              typename std::enable_if<
-                 !is_invocable_with<Pred, file_node_id>::value &&
-                 is_invocable_with<Pred, const file_entry&>::value,
+                 !is_invocable_with<Pred, DFileNodeId>::value &&
+                 is_invocable_with<Pred, const DFileEntry&>::value,
                  int>::type = 0>
-    file_tree_core
+    DFileTreeCore
     filter(
         Pred _pred
     ) const
     {
         return filter(
-            [&_pred](file_node_id _id) -> bool
+            [&_pred](DFileNodeId _id) -> bool
             {
                 return _pred(_id->data);
             });
@@ -1310,18 +1329,18 @@ public:
     // reading.
     template<typename Pred,
              typename std::enable_if<
-                 is_invocable_with<Pred, file_node_id>::value,
+                 is_invocable_with<Pred, DFileNodeId>::value,
                  int>::type = 0>
-    std::vector<file_node_id>
+    std::vector<DFileNodeId>
     select(
         Pred _pred
     ) const
     {
-        std::vector<file_node_id> out;
+        std::vector<DFileNodeId> out;
 
         visit_depth_first(
             root(),
-            [&](file_node_id _id, level_type)
+            [&](DFileNodeId _id, level_type)
             {
                 if (_pred(_id))
                 {
@@ -1336,7 +1355,7 @@ public:
     //   how many nodes satisfy _pred. A read.
     template<typename Pred,
              typename std::enable_if<
-                 is_invocable_with<Pred, file_node_id>::value,
+                 is_invocable_with<Pred, DFileNodeId>::value,
                  int>::type = 0>
     std::size_t
     count_if(
@@ -1347,7 +1366,7 @@ public:
 
         visit_depth_first(
             root(),
-            [&](file_node_id _id, level_type)
+            [&](DFileNodeId _id, level_type)
             {
                 if (_pred(_id))
                 {
@@ -1381,7 +1400,7 @@ public:
         Fn _fn
     ) const
     {
-        file_node_id r = root();
+        DFileNodeId r = root();
 
         if (r == null_file_node)
         {
@@ -1392,7 +1411,7 @@ public:
 
         visit_depth_first(
             r,
-            [&](file_node_id _id, level_type)
+            [&](DFileNodeId _id, level_type)
             {
                 if (!ok)
                 {
@@ -1402,7 +1421,7 @@ public:
                 // would this directory's children still bear distinct names?
                 std::vector<std::string> seen;
 
-                for (file_node_id c = _id->first_child;
+                for (DFileNodeId c = _id->first_child;
                      c != null_file_node;
                      c = c->next_sibling)
                 {
@@ -1437,14 +1456,14 @@ public:
              typename std::enable_if<
                  is_invocable_with<Fn, const std::string&>::value,
                  int>::type = 0>
-    file_tree_core
+    DFileTreeCore
     rename(
         Fn _fn
     ) const
     {
-        file_tree_core out;
+        DFileTreeCore out;
 
-        file_node_id r = root();
+        DFileNodeId r = root();
 
         if (r == null_file_node)
         {
@@ -1453,15 +1472,15 @@ public:
 
         out.m_root_path = m_root_path;
 
-        const file_entry& re = r->data;
+        const DFileEntry& re = r->data;
 
         std::string  rn = _fn(name_str(r));
-        file_entry   root_entry =
+        DFileEntry   root_entry =
             out.pool_entry(rn.c_str(), rn.size(), re.type, re.size);
 
         out.m_root = out.new_node(root_entry);
 
-        file_node_id nr = out.m_root;
+        DFileNodeId nr = out.m_root;
 
         copy_renamed(r, nr, out, _fn);
 
@@ -1477,16 +1496,16 @@ public:
     //   This is the shape has_native_transform probes for.
     template<typename Fn,
              typename std::enable_if<
-                 is_invocable_with<Fn, const file_entry&>::value,
+                 is_invocable_with<Fn, const DFileEntry&>::value,
                  int>::type = 0>
-    file_tree_core
+    DFileTreeCore
     transform(
         Fn _fn
     ) const
     {
-        file_tree_core out;
+        DFileTreeCore out;
 
-        file_node_id r = root();
+        DFileNodeId r = root();
 
         if (r == null_file_node)
         {
@@ -1495,17 +1514,17 @@ public:
 
         out.m_root_path = m_root_path;
 
-        const file_entry& re = r->data;
+        const DFileEntry& re = r->data;
 
-        file_entry mapped = _fn(re);
+        DFileEntry mapped = _fn(re);
 
-        file_entry root_entry = out.pool_entry(
+        DFileEntry root_entry = out.pool_entry(
             m_names.data() + re.name_offset, re.name_length,
             mapped.type, mapped.size);
 
         out.m_root = out.new_node(root_entry);
 
-        file_node_id nr = out.m_root;
+        DFileNodeId nr = out.m_root;
 
         copy_transformed(r, nr, out, _fn);
 
@@ -1544,11 +1563,11 @@ public:
     // create a node that every traversal walked and no address could reach.
     // Use contains_child() first if you need to tell "created" from "already
     // there".
-    file_node_id
+    DFileNodeId
     add_child(
-        file_node_id       _parent,
+        DFileNodeId       _parent,
         const char*      _name,
-        file_type        _type,
+        DFileType        _type,
         re_std::uint64_t _size = 0
     )
     {
@@ -1570,12 +1589,12 @@ private:
     //   The separation check costs ONE index probe, which is the same probe
     // the registration would have done anyway. In exchange, the tree cannot
     // hold an unaddressable node. That trade is not close.
-    file_node_id
+    DFileNodeId
     intern_child(
-        file_node_id       _parent,
+        DFileNodeId       _parent,
         const char*      _name,
         std::size_t      _len,
-        file_type        _type,
+        DFileType        _type,
         re_std::uint64_t _size
     )
     {
@@ -1586,16 +1605,16 @@ private:
 
         // SEPARATION. A second child of this name would be unreachable by
         // address; it is not created.
-        file_node_id existing = find_child(_parent, _name, _len);
+        DFileNodeId existing = find_child(_parent, _name, _len);
 
         if (existing != null_file_node)
         {
             return existing;
         }
 
-        file_entry entry = pool_entry(_name, _len, _type, _size);
+        DFileEntry entry = pool_entry(_name, _len, _type, _size);
 
-        file_node_id id = new_node(entry);
+        DFileNodeId id = new_node(entry);
 
         link_child(_parent, id);
         m_lookup.emplace(lookup_key(_parent, _name, _len), id);
@@ -1610,9 +1629,9 @@ private:
     // new_node
     //   acquires a slot from the pool, constructs a file_node in it, returns
     // the handle. The one place a node comes into being.
-    file_node_id
+    DFileNodeId
     new_node(
-        const file_entry& _entry
+        const DFileEntry& _entry
     )
     {
         void* slot = m_pool.acquire();
@@ -1622,7 +1641,7 @@ private:
             throw std::bad_alloc();
         }
 
-        file_node_id n = ::new (slot) file_node();
+        DFileNodeId n = ::new (slot) DFileNode();
 
         n->data = _entry;
 
@@ -1635,8 +1654,8 @@ private:
     //   appends _child to _parent's sibling list. Was arena.append_child.
     void
     link_child(
-        file_node_id _parent,
-        file_node_id _child
+        DFileNodeId _parent,
+        DFileNodeId _child
     )
     {
         _child->parent = _parent;
@@ -1648,7 +1667,7 @@ private:
         }
         else
         {
-            file_node_id last = _parent->last_child;
+            DFileNodeId last = _parent->last_child;
 
             last->next_sibling   = _child;
             _child->prev_sibling = last;
@@ -1665,11 +1684,11 @@ private:
     // pool_entry
     //   appends _name to the pool and returns a file_entry referencing it. The
     // one place a name enters the pool.
-    file_entry
+    DFileEntry
     pool_entry(
         const char*      _name,
         std::size_t      _len,
-        file_type        _type,
+        DFileType        _type,
         re_std::uint64_t _size
     )
     {
@@ -1678,7 +1697,7 @@ private:
 
         m_names.append(_name, _len);
 
-        return file_entry(
+        return DFileEntry(
             offset, static_cast<re_std::uint16_t>(_len), _type, _size);
     }
 
@@ -1687,10 +1706,10 @@ private:
     // own name: "project" out of "/home/me/project") and pools that leaf. The
     // rest of the scanned path is not a label -- it is where the tree begins
     // -- and is kept in m_root_path.
-    file_entry
+    DFileEntry
     make_entry(
         const char*      _name,
-        file_type        _type,
+        DFileType        _type,
         re_std::uint64_t _size
     )
     {
@@ -1748,12 +1767,12 @@ private:
     // tripped.
     void
     collect_labels(
-        file_node_id               _id,
-        std::vector<file_node_id>& _out
+        DFileNodeId               _id,
+        std::vector<DFileNodeId>& _out
     ) const
     {
-        file_node_id r = root();
-        file_node_id c = _id;
+        DFileNodeId r = root();
+        DFileNodeId c = _id;
 
         while (c != null_file_node && c != r)
         {
@@ -1782,14 +1801,14 @@ private:
     template<typename Pred>
     bool
     mark_closure(
-        file_node_id   _id,
+        DFileNodeId   _id,
         Pred&    _pred,
         keep_set& _keep
     ) const
     {
         bool any = false;
 
-        for (file_node_id c = _id->first_child;
+        for (DFileNodeId c = _id->first_child;
              c != null_file_node;
              c = c->next_sibling)
         {
@@ -1814,13 +1833,13 @@ private:
     // Root-first, so a parent always exists before its children.
     void
     copy_kept(
-        file_node_id         _src,
-        file_node_id         _dst,
-        file_tree_core& _out,
+        DFileNodeId         _src,
+        DFileNodeId         _dst,
+        DFileTreeCore& _out,
         const keep_set& _keep
     ) const
     {
-        for (file_node_id c = _src->first_child;
+        for (DFileNodeId c = _src->first_child;
              c != null_file_node;
              c = c->next_sibling)
         {
@@ -1829,9 +1848,9 @@ private:
                 continue;
             }
 
-            const file_entry& e = c->data;
+            const DFileEntry& e = c->data;
 
-            file_node_id d = _out.intern_child(
+            DFileNodeId d = _out.intern_child(
                 _dst,
                 m_names.data() + e.name_offset,
                 e.name_length,
@@ -1852,21 +1871,21 @@ private:
     template<typename Fn>
     void
     copy_renamed(
-        file_node_id         _src,
-        file_node_id         _dst,
-        file_tree_core& _out,
+        DFileNodeId         _src,
+        DFileNodeId         _dst,
+        DFileTreeCore& _out,
         Fn&            _fn
     ) const
     {
-        for (file_node_id c = _src->first_child;
+        for (DFileNodeId c = _src->first_child;
              c != null_file_node;
              c = c->next_sibling)
         {
-            const file_entry& e = c->data;
+            const DFileEntry& e = c->data;
 
             std::string rn = _fn(name_str(c));
 
-            file_node_id d = _out.intern_child(
+            DFileNodeId d = _out.intern_child(
                 _dst, rn.c_str(), rn.size(), e.type, e.size);
 
             copy_renamed(c, d, _out, _fn);
@@ -1882,21 +1901,21 @@ private:
     template<typename Fn>
     void
     copy_transformed(
-        file_node_id         _src,
-        file_node_id         _dst,
-        file_tree_core& _out,
+        DFileNodeId         _src,
+        DFileNodeId         _dst,
+        DFileTreeCore& _out,
         Fn&            _fn
     ) const
     {
-        for (file_node_id c = _src->first_child;
+        for (DFileNodeId c = _src->first_child;
              c != null_file_node;
              c = c->next_sibling)
         {
-            const file_entry& e = c->data;
+            const DFileEntry& e = c->data;
 
-            file_entry mapped = _fn(e);
+            DFileEntry mapped = _fn(e);
 
-            file_node_id d = _out.intern_child(
+            DFileNodeId d = _out.intern_child(
                 _dst,
                 m_names.data() + e.name_offset,
                 e.name_length,
@@ -1918,7 +1937,7 @@ private:
     D_STATIC_INLINE
     re_std::uint64_t
     lookup_key(
-        file_node_id     _parent,
+        DFileNodeId     _parent,
         const char* _name,
         std::size_t _len
     )
@@ -1947,12 +1966,18 @@ private:
     // --------------------------------------------------------
 
     pool_type                                  m_pool;
-    file_node_id                                    m_root;
+    DFileNodeId                                    m_root;
     std::size_t                                m_size;
     std::string                                m_names;
-    std::unordered_map<re_std::uint64_t, file_node_id> m_lookup;
+    std::unordered_map<re_std::uint64_t, DFileNodeId> m_lookup;
     std::string                                m_root_path;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Scanner,
+         typename Pool = ::djinterp::DPool<DFileNode>,
+         typename... Options>
+using file_tree_core = DFileTreeCore<Scanner, Pool, Options...>;
 
 
 NS_END  // djinterp

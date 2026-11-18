@@ -148,14 +148,14 @@ private:
     using clean_type = clean_t<Type>;
 
 public:
-    static constexpr lifetime::value value =
+    static constexpr DLifetime::value value =
         ( ( has_constexpr_container_tag<clean_type>::value   ||
             has_constexpr_extent<clean_type>::value          ||
             has_tuple_size<clean_type>::value                ||
             has_constexpr_size_expression<clean_type>::value ||
             has_constexpr_iteration<clean_type>::value )
-              ? lifetime::both
-              : lifetime::runtime );
+              ? DLifetime::both
+              : DLifetime::runtime );
 };
 
 // container_lifetime_of
@@ -172,9 +172,9 @@ private:
     using clean_type = clean_t<Type>;
 
 public:
-    static constexpr lifetime::value value =
+    static constexpr DLifetime::value value =
         ( has_constexpr_container_tag<clean_type>::value
-              ? lifetime::both
+              ? DLifetime::both
               : lifetime_meet( DSizeLifetime<clean_type>::value,
                                lifetime_of<clean_type>::value ) );
 
@@ -248,7 +248,7 @@ public:
         has_constexpr_size_expression<clean_type>::value;
     static constexpr bool has_iteration =
         has_constexpr_iteration<clean_type>::value;
-    static constexpr lifetime::value life =
+    static constexpr DLifetime::value life =
         container_lifetime_of<clean_type>::value;
     static constexpr bool is_constexpr =
         is_constexpr_container<clean_type>::value;

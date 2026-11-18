@@ -43,7 +43,7 @@ bool tests_conversion_class()
     D_CCV_CHECK( (DConversionClass<std::vector<int>, std::vector<int>>::has_path) );
     D_CCV_CHECK( (DConversionClass<std::vector<int>, std::vector<int>>::lossless) );
     D_CCV_CHECK( (DConversionClass<std::vector<int>, std::vector<int>>::shared_content_level
-                      == content_level::seq) );
+                      == DContentLevel::seq) );
 
     // -- constructive: vector -> list --
     D_CCV_CHECK( (DConversionClass<std::vector<int>, std::list<int>>::tier
@@ -52,7 +52,7 @@ bool tests_conversion_class()
     D_CCV_CHECK( (DConversionClass<std::vector<int>, std::list<int>>::has_path) );
     D_CCV_CHECK( (DConversionClass<std::vector<int>, std::list<int>>::lossless) );
     D_CCV_CHECK( (DConversionClass<std::vector<int>, std::list<int>>::shared_content_level
-                      == content_level::seq) );
+                      == DContentLevel::seq) );
 
     // -- lossy: vector -> set (shared level is the coarser: set) --
     D_CCV_CHECK( (DConversionClass<std::vector<int>, std::set<int>>::tier
@@ -61,19 +61,19 @@ bool tests_conversion_class()
     D_CCV_CHECK( (DConversionClass<std::vector<int>, std::set<int>>::has_path) );
     D_CCV_CHECK( (!DConversionClass<std::vector<int>, std::set<int>>::lossless) );
     D_CCV_CHECK( (DConversionClass<std::vector<int>, std::set<int>>::shared_content_level
-                      == content_level::set) );
+                      == DContentLevel::set) );
 
     // -- lossy: multiset -> set (shared level set) --
     D_CCV_CHECK( (DConversionClass<std::multiset<int>, std::set<int>>::tier
                       == DConversionTier::lossy) );
     D_CCV_CHECK( (DConversionClass<std::multiset<int>, std::set<int>>::shared_content_level
-                      == content_level::set) );
+                      == DContentLevel::set) );
 
     // -- constructive: set -> vector (shared level still set) --
     D_CCV_CHECK( (DConversionClass<std::set<int>, std::vector<int>>::tier
                       == DConversionTier::constructive) );
     D_CCV_CHECK( (DConversionClass<std::set<int>, std::vector<int>>::shared_content_level
-                      == content_level::set) );
+                      == DContentLevel::set) );
 
     // -- structural: vector -> vector<vector<int>> (elements NOT ok, but the
     //    range ctor is signature-viable so has_path is true; shared level seq) --
@@ -83,7 +83,7 @@ bool tests_conversion_class()
     D_CCV_CHECK( (DConversionClass<std::vector<int>, std::vector<std::vector<int>>>::has_path) );
     D_CCV_CHECK( (!DConversionClass<std::vector<int>, std::vector<std::vector<int>>>::lossless) );
     D_CCV_CHECK( (DConversionClass<std::vector<int>, std::vector<std::vector<int>>>::shared_content_level
-                      == content_level::seq) );
+                      == DContentLevel::seq) );
 
     // -- none via INCOMPATIBLE elements: has_path is STILL true (the target owns
     //    a range constructor; its body is never instantiated) --

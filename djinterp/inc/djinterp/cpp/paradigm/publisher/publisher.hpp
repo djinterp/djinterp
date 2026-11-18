@@ -122,11 +122,11 @@ constexpr pubsub_status DPubSubStatusUserBase       = 64;
 ///                II.  SUBSCRIPTION TOKEN                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// subscription_token
+// DSubscriptionToken
 //   struct: an opaque, copyable identifier for a single registration.
 // Tokens are unique within the broker that issued them.  The id 0 is
 // reserved to mean "no subscription" (a default-constructed token).
-struct subscription_token
+struct DSubscriptionToken
 {
     using id_type = re_std::uint64_t;
 
@@ -134,13 +134,13 @@ struct subscription_token
 
     // subscription_token (default)
     //   constructs a null token (id == 0).
-    subscription_token() D_NOEXCEPT
+    DSubscriptionToken() D_NOEXCEPT
         : id(0)
     {}
 
     // subscription_token (id)
     //   constructs a token wrapping an explicit id.
-    explicit subscription_token(
+    explicit DSubscriptionToken(
         id_type _id
     ) D_NOEXCEPT
         : id(_id)
@@ -158,8 +158,8 @@ struct subscription_token
     //   returns true if both tokens carry the same id.
     friend
     bool operator==(
-        const subscription_token& _a,
-        const subscription_token& _b
+        const DSubscriptionToken& _a,
+        const DSubscriptionToken& _b
     ) D_NOEXCEPT
     {
         return (_a.id == _b.id);
@@ -169,13 +169,16 @@ struct subscription_token
     //   returns true if the tokens differ.
     friend
     bool operator!=(
-        const subscription_token& _a,
-        const subscription_token& _b
+        const DSubscriptionToken& _a,
+        const DSubscriptionToken& _b
     ) D_NOEXCEPT
     {
         return !(_a == _b);
     }
 };
+
+// old name, until 0.9.0-rc.1
+using subscription_token = DSubscriptionToken;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -195,18 +198,18 @@ struct subscription_token
 //   removal can instead call broker::unsubscribe(token).
 //
 
-// subscription
+// DSubscription
 //   class: a movable, copyable handle to one registration.  Copies
 // share the same underlying flag, so revoking through any copy
 // deactivates the registration for all of them.
-class subscription
+class DSubscription
 {
 public:
-    using token_type = subscription_token;
+    using token_type = DSubscriptionToken;
 
     // subscription (default)
     //   constructs an inactive handle bound to no registration.
-    subscription() D_NOEXCEPT
+    DSubscription() D_NOEXCEPT
         : m_alive(),
           m_token()
     {}
@@ -214,7 +217,7 @@ public:
     // subscription (flag + token)
     //   constructs a handle from a shared flag and its token.  Used by
     // broker::subscribe; not normally called directly.
-    subscription(
+    DSubscription(
         std::shared_ptr<bool> _alive,
         token_type            _token
     ) D_NOEXCEPT
@@ -269,16 +272,19 @@ private:
     token_type            m_token;
 };
 
+// old name, until 0.9.0-rc.1
+using subscription = DSubscription;
 
-// scoped_subscription
+
+// DScopedSubscription
 //   class: RAII guard that revokes its subscription on destruction.
 // Move-only - moving transfers the obligation to revoke.
-class scoped_subscription
+class DScopedSubscription
 {
 public:
     // scoped_subscription (default)
     //   constructs an empty guard.
-    scoped_subscription() D_NOEXCEPT
+    DScopedSubscription() D_NOEXCEPT
         : m_sub()
     {}
 
@@ -286,23 +292,23 @@ public:
     //   adopts a subscription, taking responsibility for revoking it.
     // Implicit by design, so a subscription can be assigned directly to
     // a scoped guard.
-    scoped_subscription(
-        subscription _sub
+    DScopedSubscription(
+        DSubscription _sub
     ) D_NOEXCEPT
         : m_sub(std::move(_sub))
     {}
 
     // ~scoped_subscription
     //   revokes the held subscription.
-    ~scoped_subscription()
+    ~DScopedSubscription()
     {
         m_sub.unsubscribe();
     }
 
     // scoped_subscription (move)
     //   transfers the revoke obligation from another guard.
-    scoped_subscription(
-        scoped_subscription&& _other
+    DScopedSubscription(
+        DScopedSubscription&& _other
     ) D_NOEXCEPT
         : m_sub(std::move(_other.m_sub))
     {
@@ -312,9 +318,9 @@ public:
 
     // operator= (move)
     //   revokes any current subscription, then adopts _other's.
-    scoped_subscription&
+    DScopedSubscription&
     operator=(
-        scoped_subscription&& _other
+        DScopedSubscription&& _other
     ) D_NOEXCEPT
     {
         // guard against self-move.
@@ -329,11 +335,11 @@ public:
     }
 
     // no copying - a registration may be revoked by exactly one guard.
-    scoped_subscription(
-        const scoped_subscription&
+    DScopedSubscription(
+        const DScopedSubscription&
     ) = delete;
-    scoped_subscription& operator=(
-        const scoped_subscription&
+    DScopedSubscription& operator=(
+        const DScopedSubscription&
     ) = delete;
 
     // active
@@ -358,36 +364,39 @@ public:
     // subscription.  The registration stays live; this guard will no
     // longer revoke it on destruction.
     D_NODISCARD
-    subscription release() D_NOEXCEPT
+    DSubscription release() D_NOEXCEPT
     {
-        subscription out = std::move(m_sub);
+        DSubscription out = std::move(m_sub);
         m_sub.release();
 
         return out;
     }
 
 private:
-    subscription m_sub;
+    DSubscription m_sub;
 };
 
+// old name, until 0.9.0-rc.1
+using scoped_subscription = DScopedSubscription;
 
-// scoped_subscriptions
+
+// DScopedSubscriptions
 //   class: holds any number of subscriptions and revokes them all on
 // destruction.  Useful when one owner manages many registrations.
-class scoped_subscriptions
+class DScopedSubscriptions
 {
 public:
     using size_type = std::size_t;
 
     // scoped_subscriptions (default)
     //   constructs an empty collection.
-    scoped_subscriptions()
+    DScopedSubscriptions()
         : m_subs()
     {}
 
     // ~scoped_subscriptions
     //   revokes every held subscription.
-    ~scoped_subscriptions()
+    ~DScopedSubscriptions()
     {
         unsubscribe_all();
     }
@@ -395,7 +404,7 @@ public:
     // add
     //   adds a subscription to the collection.
     void add(
-        subscription _sub
+        DSubscription _sub
     )
     {
         m_subs.push_back(std::move(_sub));
@@ -405,8 +414,8 @@ public:
 
     // operator+=
     //   shorthand for add().
-    scoped_subscriptions& operator+=(
-        subscription _sub
+    DScopedSubscriptions& operator+=(
+        DSubscription _sub
     )
     {
         m_subs.push_back(std::move(_sub));
@@ -419,7 +428,7 @@ public:
     void unsubscribe_all() D_NOEXCEPT
     {
         // revoke each registration in turn.
-        for (subscription& s : m_subs)
+        for (DSubscription& s : m_subs)
         {
             s.unsubscribe();
         }
@@ -446,21 +455,24 @@ public:
     }
 
 private:
-    std::vector<subscription> m_subs;
+    std::vector<DSubscription> m_subs;
 };
+
+// old name, until 0.9.0-rc.1
+using scoped_subscriptions = DScopedSubscriptions;
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                IV.  MESSAGE ENVELOPE                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// pubsub_message
+// DPubsubMessage
 //   struct: a self-describing message pairing a topic with its payload.
 // Convenient for queued or asynchronous brokers that need to store
 // messages between publication and delivery.
 template<typename Topic,
          typename Payload>
-struct pubsub_message
+struct DPubsubMessage
 {
     using topic_type   = Topic;
     using payload_type = Payload;
@@ -470,14 +482,14 @@ struct pubsub_message
 
     // pubsub_message (default)
     //   constructs a value-initialized message.
-    pubsub_message()
+    DPubsubMessage()
         : topic  (),
           payload()
     {}
 
     // pubsub_message (copy fields)
     //   constructs a message from a topic and payload.
-    pubsub_message(
+    DPubsubMessage(
         const Topic&   _topic,
         const Payload& _payload
     )
@@ -487,7 +499,7 @@ struct pubsub_message
 
     // pubsub_message (move fields)
     //   constructs a message by moving a topic and payload.
-    pubsub_message(
+    DPubsubMessage(
         Topic&&   _topic,
         Payload&& _payload
     )
@@ -496,12 +508,17 @@ struct pubsub_message
     {}
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Topic,
+         typename Payload>
+using pubsub_message = DPubsubMessage<Topic, Payload>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                V.   SUBSCRIBER REGISTRY                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// subscriber_registry
+// DSubscriberRegistry
 //   class: the shared storage core of every broker.  Maps each topic to
 // an ordered list of (token, handler, alive-flag) entries and provides
 // registration, revocation, bookkeeping, and a generic dispatch loop.
@@ -515,12 +532,12 @@ struct pubsub_message
 // every delivery policy a derived broker might implement.
 template<typename Topic,
          typename Handler>
-class subscriber_registry
+class DSubscriberRegistry
 {
 public:
     using topic_type   = Topic;
     using handler_type = Handler;
-    using token_type   = subscription_token;
+    using token_type   = DSubscriptionToken;
     using size_type    = std::size_t;
 
 private:
@@ -561,7 +578,7 @@ private:
 public:
     // subscriber_registry (default)
     //   constructs an empty registry.
-    subscriber_registry()
+    DSubscriberRegistry()
         : m_buckets()
     {}
 
@@ -919,12 +936,17 @@ private:
     std::vector<bucket> m_buckets;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Topic,
+         typename Handler>
+using subscriber_registry = DSubscriberRegistry<Topic, Handler>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                VI.  BROKER (CRTP BASE)                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// broker
+// DBroker
 //   class: generic CRTP base for every publish-subscribe broker.  Owns
 // the subscriber registry and implements the full subscribe / publish /
 // unsubscribe surface, leaving only the delivery policy to the derived
@@ -965,17 +987,17 @@ template<typename Derived,
          typename Topic,
          typename Payload,
          typename Handler = std::function<void(const Topic&, const Payload&)>>
-class broker
+class DBroker
 {
 public:
     using derived_type      = Derived;
     using topic_type        = Topic;
     using payload_type      = Payload;
     using handler_type      = Handler;
-    using token_type        = subscription_token;
-    using subscription_type = subscription;
-    using message_type      = pubsub_message<Topic, Payload>;
-    using registry_type     = subscriber_registry<Topic, Handler>;
+    using token_type        = DSubscriptionToken;
+    using subscription_type = DSubscription;
+    using message_type      = DPubsubMessage<Topic, Payload>;
+    using registry_type     = DSubscriberRegistry<Topic, Handler>;
     using status_type       = pubsub_status;
     using size_type         = std::size_t;
 
@@ -989,7 +1011,7 @@ public:
     // copy of it) revokes it, or until unsubscribe / unsubscribe_topic /
     // unsubscribe_all is called on the broker.
     D_NODISCARD
-    subscription
+    DSubscription
     subscribe(
         const topic_type& _topic,
         handler_type      _handler
@@ -1001,7 +1023,7 @@ public:
 
         m_registry.add(_topic, tok, std::move(_handler), alive);
 
-        return subscription(std::move(alive), tok);
+        return DSubscription(std::move(alive), tok);
     }
 
     // unsubscribe
@@ -1215,7 +1237,7 @@ protected:
     // broker (default)
     //   constructs an empty broker.  Protected so that broker cannot be
     // instantiated directly; only derived types may construct it.
-    broker()
+    DBroker()
         : m_registry(),
           m_next_id (1)
     {}
@@ -1223,7 +1245,7 @@ protected:
     // ~broker
     //   protected, non-virtual: brokers are used through their concrete
     // (derived) type, not through broker* base pointers.
-    ~broker() = default;
+    ~DBroker() = default;
 
     // registry
     //   accessor for derived overrides that need direct registry access.
@@ -1266,12 +1288,19 @@ private:
     token_type::id_type m_next_id;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Derived,
+         typename Topic,
+         typename Payload,
+         typename Handler = std::function<void(const Topic&, const Payload&)>>
+using broker = DBroker<Derived, Topic, Payload, Handler>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                VII. BUS (DEFAULT CONCRETE BROKER)                       ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// bus
+// DBus
 //   class: the batteries-included broker.  Synchronous, immediate,
 // single-threaded, in-process delivery with unlimited subscribers per
 // topic.  Inherits every customization point's default, so it needs no
@@ -1281,14 +1310,14 @@ private:
 template<typename Topic,
          typename Payload,
          typename Handler = std::function<void(const Topic&, const Payload&)>>
-class bus
-    : public broker<bus<Topic, Payload, Handler>,
+class DBus
+    : public DBroker<DBus<Topic, Payload, Handler>,
                     Topic,
                     Payload,
                     Handler>
 {
 public:
-    using base_type = broker<bus<Topic, Payload, Handler>,
+    using base_type = DBroker<DBus<Topic, Payload, Handler>,
                              Topic,
                              Payload,
                              Handler>;
@@ -1304,10 +1333,16 @@ public:
 
     // bus (default)
     //   constructs an empty synchronous bus.
-    bus()
+    DBus()
         : base_type()
     {}
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Topic,
+         typename Payload,
+         typename Handler = std::function<void(const Topic&, const Payload&)>>
+using bus = DBus<Topic, Payload, Handler>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1457,9 +1492,9 @@ template<typename Topic,
          typename Payload,
          typename Handler = std::function<void(const Topic&, const Payload&)>>
 D_NODISCARD
-bus<Topic, Payload, Handler> make_bus()
+DBus<Topic, Payload, Handler> make_bus()
 {
-    return bus<Topic, Payload, Handler>();
+    return DBus<Topic, Payload, Handler>();
 }
 
 // make_message
@@ -1467,12 +1502,12 @@ bus<Topic, Payload, Handler> make_bus()
 template<typename Topic,
          typename Payload>
 D_NODISCARD
-pubsub_message<Topic, Payload> make_message(
+DPubsubMessage<Topic, Payload> make_message(
     const Topic&   _topic,
     const Payload& _payload
 )
 {
-    return pubsub_message<Topic, Payload>(_topic, _payload);
+    return DPubsubMessage<Topic, Payload>(_topic, _payload);
 }
 
 

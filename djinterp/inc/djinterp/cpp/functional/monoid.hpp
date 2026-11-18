@@ -107,120 +107,142 @@ NS_DJINTERP
 // alone. These newtypes name the intended one. Each wraps a public `value`;
 // the namespace keeps them clear of the flat accumulator factories.
 
-// sum
+// DSum
 //   struct: the additive monoid over Type -- combine is +, identity 0.
 template<typename Type>
-struct sum
+struct DSum
 {
     Type value;
 
     D_CONSTEXPR
-    sum()
+    DSum()
         : value(Type())
     {}
 
     D_CONSTEXPR
-    explicit sum(
+    explicit DSum(
         Type _value
     )
         : value(_value)
     {}
 };
 
-// product
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using sum = DSum<Type>;
+
+// DProduct
 //   struct: the multiplicative monoid over Type -- combine is *,
 // identity 1.
 template<typename Type>
-struct product
+struct DProduct
 {
     Type value;
 
     D_CONSTEXPR
-    product()
+    DProduct()
         : value(Type(1))
     {}
 
     D_CONSTEXPR
-    explicit product(
+    explicit DProduct(
         Type _value
     )
         : value(_value)
     {}
 };
 
-// all
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using product = DProduct<Type>;
+
+// DAll
 //   struct: the conjunctive monoid over bool -- combine is &&,
 // identity true.
-struct all
+struct DAll
 {
     bool value;
 
     D_CONSTEXPR
-    all()
+    DAll()
         : value(true)
     {}
 
     D_CONSTEXPR
-    explicit all(
+    explicit DAll(
         bool _value
     )
         : value(_value)
     {}
 };
 
-// any
+// old name, until 0.9.0-rc.1
+using all = DAll;
+
+// DAny
 //   struct: the disjunctive monoid over bool -- combine is ||,
 // identity false.
-struct any
+struct DAny
 {
     bool value;
 
     D_CONSTEXPR
-    any()
+    DAny()
         : value(false)
     {}
 
     D_CONSTEXPR
-    explicit any(
+    explicit DAny(
         bool _value
     )
         : value(_value)
     {}
 };
 
-// min
+// old name, until 0.9.0-rc.1
+using any = DAny;
+
+// DMin
 //   struct: the minimum monoid over Type -- combine keeps the smaller,
 // identity is the largest representable Type. Intended for numeric
 // Type (the identity is std::numeric_limits<Type>::max()).
 template<typename Type>
-struct min
+struct DMin
 {
     Type value;
 
     D_CONSTEXPR
-    explicit min(
+    explicit DMin(
         Type _value
     )
         : value(_value)
     {}
 };
 
-// max
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using min = DMin<Type>;
+
+// DMax
 //   struct: the maximum monoid over Type -- combine keeps the larger,
 // identity is the smallest representable Type. Intended for numeric
 // Type (the identity is std::numeric_limits<Type>::lowest()).
 template<typename Type>
-struct max
+struct DMax
 {
     Type value;
 
     D_CONSTEXPR
-    explicit max(
+    explicit DMax(
         Type _value
     )
         : value(_value)
     {}
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using max = DMax<Type>;
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             II.   MONOID PROTOCOL                                       ///
@@ -384,29 +406,29 @@ struct monoid_traits<std::vector<Type>, void>
 // -- sum<T> : addition ---------------------------------------------
 
 template<typename Type>
-struct semigroup_traits<sum<Type>, void>
+struct semigroup_traits<DSum<Type>, void>
 {
     using is_specialized = std::true_type;
 
     static D_CONSTEXPR
-    sum<Type> combine(
-        const sum<Type>& _a,
-        const sum<Type>& _b
+    DSum<Type> combine(
+        const DSum<Type>& _a,
+        const DSum<Type>& _b
     )
     {
-        return sum<Type>(_a.value + _b.value);
+        return DSum<Type>(_a.value + _b.value);
     }
 };
 
 template<typename Type>
-struct monoid_traits<sum<Type>, void>
+struct monoid_traits<DSum<Type>, void>
 {
     using is_specialized = std::true_type;
 
     static D_CONSTEXPR
-    sum<Type> empty()
+    DSum<Type> empty()
     {
-        return sum<Type>();
+        return DSum<Type>();
     }
 };
 
@@ -414,29 +436,29 @@ struct monoid_traits<sum<Type>, void>
 // -- product<T> : multiplication -----------------------------------
 
 template<typename Type>
-struct semigroup_traits<product<Type>, void>
+struct semigroup_traits<DProduct<Type>, void>
 {
     using is_specialized = std::true_type;
 
     static D_CONSTEXPR
-    product<Type> combine(
-        const product<Type>& _a,
-        const product<Type>& _b
+    DProduct<Type> combine(
+        const DProduct<Type>& _a,
+        const DProduct<Type>& _b
     )
     {
-        return product<Type>(_a.value * _b.value);
+        return DProduct<Type>(_a.value * _b.value);
     }
 };
 
 template<typename Type>
-struct monoid_traits<product<Type>, void>
+struct monoid_traits<DProduct<Type>, void>
 {
     using is_specialized = std::true_type;
 
     static D_CONSTEXPR
-    product<Type> empty()
+    DProduct<Type> empty()
     {
-        return product<Type>();
+        return DProduct<Type>();
     }
 };
 
@@ -444,29 +466,29 @@ struct monoid_traits<product<Type>, void>
 // -- all : logical AND ---------------------------------------------
 
 template<>
-struct semigroup_traits<all, void>
+struct semigroup_traits<DAll, void>
 {
     using is_specialized = std::true_type;
 
     static D_CONSTEXPR
-    all combine(
-        const all& _a,
-        const all& _b
+    DAll combine(
+        const DAll& _a,
+        const DAll& _b
     )
     {
-        return all(_a.value && _b.value);
+        return DAll(_a.value && _b.value);
     }
 };
 
 template<>
-struct monoid_traits<all, void>
+struct monoid_traits<DAll, void>
 {
     using is_specialized = std::true_type;
 
     static D_CONSTEXPR
-    all empty()
+    DAll empty()
     {
-        return all();
+        return DAll();
     }
 };
 
@@ -474,29 +496,29 @@ struct monoid_traits<all, void>
 // -- any : logical OR ----------------------------------------------
 
 template<>
-struct semigroup_traits<any, void>
+struct semigroup_traits<DAny, void>
 {
     using is_specialized = std::true_type;
 
     static D_CONSTEXPR
-    any combine(
-        const any& _a,
-        const any& _b
+    DAny combine(
+        const DAny& _a,
+        const DAny& _b
     )
     {
-        return any(_a.value || _b.value);
+        return DAny(_a.value || _b.value);
     }
 };
 
 template<>
-struct monoid_traits<any, void>
+struct monoid_traits<DAny, void>
 {
     using is_specialized = std::true_type;
 
     static D_CONSTEXPR
-    any empty()
+    DAny empty()
     {
-        return any();
+        return DAny();
     }
 };
 
@@ -504,14 +526,14 @@ struct monoid_traits<any, void>
 // -- min<T> : minimum ----------------------------------------------
 
 template<typename Type>
-struct semigroup_traits<min<Type>, void>
+struct semigroup_traits<DMin<Type>, void>
 {
     using is_specialized = std::true_type;
 
     static D_CONSTEXPR
-    min<Type> combine(
-        const min<Type>& _a,
-        const min<Type>& _b
+    DMin<Type> combine(
+        const DMin<Type>& _a,
+        const DMin<Type>& _b
     )
     {
         return (_b.value < _a.value) ? _b : _a;
@@ -519,14 +541,14 @@ struct semigroup_traits<min<Type>, void>
 };
 
 template<typename Type>
-struct monoid_traits<min<Type>, void>
+struct monoid_traits<DMin<Type>, void>
 {
     using is_specialized = std::true_type;
 
     static D_CONSTEXPR
-    min<Type> empty()
+    DMin<Type> empty()
     {
-        return min<Type>((std::numeric_limits<Type>::max)());
+        return DMin<Type>((std::numeric_limits<Type>::max)());
     }
 };
 
@@ -534,14 +556,14 @@ struct monoid_traits<min<Type>, void>
 // -- max<T> : maximum ----------------------------------------------
 
 template<typename Type>
-struct semigroup_traits<max<Type>, void>
+struct semigroup_traits<DMax<Type>, void>
 {
     using is_specialized = std::true_type;
 
     static D_CONSTEXPR
-    max<Type> combine(
-        const max<Type>& _a,
-        const max<Type>& _b
+    DMax<Type> combine(
+        const DMax<Type>& _a,
+        const DMax<Type>& _b
     )
     {
         return (_a.value < _b.value) ? _b : _a;
@@ -549,14 +571,14 @@ struct semigroup_traits<max<Type>, void>
 };
 
 template<typename Type>
-struct monoid_traits<max<Type>, void>
+struct monoid_traits<DMax<Type>, void>
 {
     using is_specialized = std::true_type;
 
     static D_CONSTEXPR
-    max<Type> empty()
+    DMax<Type> empty()
     {
-        return max<Type>((std::numeric_limits<Type>::lowest)());
+        return DMax<Type>((std::numeric_limits<Type>::lowest)());
     }
 };
 

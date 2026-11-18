@@ -33,21 +33,21 @@ bool tests_is_functor_poly()
 {
     bool ok = true;
 
-    ok = ok && (is_functor<poly_var<int> >::value);
-    ok = ok && (is_functor<poly_unit<int> >::value);
-    ok = ok && (is_functor<poly_const<char, int> >::value);
-    ok = ok && (is_functor<poly_sum<poly_var<int>, poly_unit<int> > >::value);
+    ok = ok && (is_functor<DPolyVar<int> >::value);
+    ok = ok && (is_functor<DPolyUnit<int> >::value);
+    ok = ok && (is_functor<DPolyConst<char, int> >::value);
+    ok = ok && (is_functor<DPolySum<DPolyVar<int>, DPolyUnit<int> > >::value);
     ok = ok && (is_functor<
-                    poly_product<poly_var<int>,
-                                 poly_const<char, int> > >::value);
+                    DPolyProduct<DPolyVar<int>,
+                                 DPolyConst<char, int> > >::value);
 
     // cv / ref decay.
-    ok = ok && (is_functor<const poly_var<int>& >::value);
+    ok = ok && (is_functor<const DPolyVar<int>& >::value);
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    ok = ok && (is_functor_v<poly_var<int> > ==
-                is_functor<poly_var<int> >::value);
-    ok = ok && (is_functor_v<poly_unit<int> > == true);
+    ok = ok && (is_functor_v<DPolyVar<int> > ==
+                is_functor<DPolyVar<int> >::value);
+    ok = ok && (is_functor_v<DPolyUnit<int> > == true);
 #endif
 
     return ok;
@@ -82,20 +82,20 @@ tests_functor_value_type
 */
 bool tests_functor_value_type()
 {
-    static_assert(std::is_same<functor_value_type_t<poly_var<int> >,
+    static_assert(std::is_same<functor_value_type_t<DPolyVar<int> >,
                                int>::value, "var");
-    static_assert(std::is_same<functor_value_type_t<poly_unit<int> >,
+    static_assert(std::is_same<functor_value_type_t<DPolyUnit<int> >,
                                int>::value, "unit");
-    static_assert(std::is_same<functor_value_type_t<poly_const<char, int> >,
+    static_assert(std::is_same<functor_value_type_t<DPolyConst<char, int> >,
                                int>::value, "const");
     static_assert(
         std::is_same<functor_value_type_t<
-                         poly_sum<poly_var<int>, poly_unit<int> > >,
+                         DPolySum<DPolyVar<int>, DPolyUnit<int> > >,
                      int>::value, "sum");
     static_assert(
         std::is_same<functor_value_type_t<
-                         poly_product<poly_var<int>,
-                                      poly_const<char, int> > >,
+                         DPolyProduct<DPolyVar<int>,
+                                      DPolyConst<char, int> > >,
                      int>::value, "product");
 
     return true;
@@ -113,26 +113,26 @@ tests_functor_rebind
 bool tests_functor_rebind()
 {
     static_assert(
-        std::is_same<functor_traits<poly_var<int> >::rebind<double>,
-                     poly_var<double> >::value, "var rebind");
+        std::is_same<functor_traits<DPolyVar<int> >::rebind<double>,
+                     DPolyVar<double> >::value, "var rebind");
     static_assert(
-        std::is_same<functor_traits<poly_unit<int> >::rebind<double>,
-                     poly_unit<double> >::value, "unit rebind");
+        std::is_same<functor_traits<DPolyUnit<int> >::rebind<double>,
+                     DPolyUnit<double> >::value, "unit rebind");
     static_assert(
-        std::is_same<functor_traits<poly_const<char, int> >::rebind<double>,
-                     poly_const<char, double> >::value, "const rebind");
+        std::is_same<functor_traits<DPolyConst<char, int> >::rebind<double>,
+                     DPolyConst<char, double> >::value, "const rebind");
     static_assert(
         std::is_same<
-            functor_traits<poly_sum<poly_var<int>, poly_unit<int> > >
+            functor_traits<DPolySum<DPolyVar<int>, DPolyUnit<int> > >
                 ::rebind<double>,
-            poly_sum<poly_var<double>, poly_unit<double> > >::value,
+            DPolySum<DPolyVar<double>, DPolyUnit<double> > >::value,
         "sum rebind");
     static_assert(
         std::is_same<
-            functor_traits<poly_product<poly_var<int>,
-                                        poly_const<char, int> > >
+            functor_traits<DPolyProduct<DPolyVar<int>,
+                                        DPolyConst<char, int> > >
                 ::rebind<double>,
-            poly_product<poly_var<double>, poly_const<char, double> > >::value,
+            DPolyProduct<DPolyVar<double>, DPolyConst<char, double> > >::value,
         "product rebind");
 
     return true;
@@ -152,20 +152,20 @@ bool tests_functor_map_poly_var()
     bool ok = true;
 
     // same-type map.
-    poly_var<int> v(5);
+    DPolyVar<int> v(5);
     auto r = functor_map(v, [](int _x){ return _x * 2; });
-    ok = ok && (std::is_same<decltype(r), poly_var<int> >::value);
+    ok = ok && (std::is_same<decltype(r), DPolyVar<int> >::value);
     ok = ok && (r.content == 10);
 
     // type-changing map.
-    auto r2 = functor_map(poly_var<int>(3),
+    auto r2 = functor_map(DPolyVar<int>(3),
                           [](int _x){ return static_cast<double>(_x) + 0.5; });
-    ok = ok && (std::is_same<decltype(r2), poly_var<double> >::value);
+    ok = ok && (std::is_same<decltype(r2), DPolyVar<double> >::value);
     ok = ok && close_enough(r2.content, 3.5);
 
     // trait map == free function.
-    auto r3 = functor_traits<poly_var<int> >::map(
-        poly_var<int>(4), [](int _x){ return _x + 1; });
+    auto r3 = functor_traits<DPolyVar<int> >::map(
+        DPolyVar<int>(4), [](int _x){ return _x + 1; });
     ok = ok && (r3.content == 5);
 
     return ok;
@@ -184,18 +184,18 @@ bool tests_functor_map_poly_unit()
     bool ok = true;
 
     bool called = false;
-    auto r = functor_map(poly_unit<int>(),
+    auto r = functor_map(DPolyUnit<int>(),
                          [&called](int _x){
                              called = true;
                              return static_cast<double>(_x);
                          });
-    ok = ok && (std::is_same<decltype(r), poly_unit<double> >::value);
+    ok = ok && (std::is_same<decltype(r), DPolyUnit<double> >::value);
     ok = ok && (called == false);
     (void)r;
 
     // same-type map keeps poly_unit<int>.
-    auto r2 = functor_map(poly_unit<int>(), [](int _x){ return _x; });
-    ok = ok && (std::is_same<decltype(r2), poly_unit<int> >::value);
+    auto r2 = functor_map(DPolyUnit<int>(), [](int _x){ return _x; });
+    ok = ok && (std::is_same<decltype(r2), DPolyUnit<int> >::value);
 
     return ok;
 }
@@ -214,12 +214,12 @@ bool tests_functor_map_poly_const()
     bool ok = true;
 
     bool called = false;
-    auto r = functor_map(poly_const<char, int>('a'),
+    auto r = functor_map(DPolyConst<char, int>('a'),
                          [&called](int _x){
                              called = true;
                              return static_cast<double>(_x);
                          });
-    ok = ok && (std::is_same<decltype(r), poly_const<char, double> >::value);
+    ok = ok && (std::is_same<decltype(r), DPolyConst<char, double> >::value);
     ok = ok && (r.content == 'a');
     ok = ok && (called == false);
 
@@ -239,10 +239,10 @@ bool tests_functor_map_poly_sum()
 {
     bool ok = true;
 
-    typedef poly_var<int>        arm_l;
-    typedef poly_const<char, int> arm_r;
-    typedef poly_sum<arm_l, arm_r> sum_t;
-    typedef poly_sum<poly_var<double>, poly_const<char, double> > out_t;
+    typedef DPolyVar<int>        arm_l;
+    typedef DPolyConst<char, int> arm_r;
+    typedef DPolySum<arm_l, arm_r> sum_t;
+    typedef DPolySum<DPolyVar<double>, DPolyConst<char, double> > out_t;
 
     // left-active.
     sum_t sl = sum_t::inj_left(arm_l(5));
@@ -273,10 +273,10 @@ bool tests_functor_map_poly_product()
 {
     bool ok = true;
 
-    typedef poly_var<int>        comp_a;
-    typedef poly_const<char, int> comp_b;
-    typedef poly_product<comp_a, comp_b> prod_t;
-    typedef poly_product<poly_var<double>, poly_const<char, double> > out_t;
+    typedef DPolyVar<int>        comp_a;
+    typedef DPolyConst<char, int> comp_b;
+    typedef DPolyProduct<comp_a, comp_b> prod_t;
+    typedef DPolyProduct<DPolyVar<double>, DPolyConst<char, double> > out_t;
 
     prod_t p(comp_a(4), comp_b('m'));
     auto r = functor_map(p, [](int _x){ return static_cast<double>(_x); });
@@ -299,23 +299,23 @@ bool tests_functor_law_identity()
     bool ok = true;
 
     // poly_var.
-    auto rv = functor_map(poly_var<int>(7), [](int _x){ return _x; });
-    ok = ok && (std::is_same<decltype(rv), poly_var<int> >::value);
+    auto rv = functor_map(DPolyVar<int>(7), [](int _x){ return _x; });
+    ok = ok && (std::is_same<decltype(rv), DPolyVar<int> >::value);
     ok = ok && (rv.content == 7);
 
     // poly_const (payload preserved, X unchanged).
-    auto rc = functor_map(poly_const<char, int>('a'), [](int _x){ return _x; });
+    auto rc = functor_map(DPolyConst<char, int>('a'), [](int _x){ return _x; });
     ok = ok && (rc.content == 'a');
 
     // poly_sum.
-    typedef poly_sum<poly_var<int>, poly_unit<int> > sum_t;
-    sum_t s = sum_t::inj_left(poly_var<int>(3));
+    typedef DPolySum<DPolyVar<int>, DPolyUnit<int> > sum_t;
+    sum_t s = sum_t::inj_left(DPolyVar<int>(3));
     auto rs = functor_map(s, [](int _x){ return _x; });
     ok = ok && (rs.is_left && (rs.left.content == 3));
 
     // poly_product.
-    poly_product<poly_var<int>, poly_var<int> > p(
-        poly_var<int>(1), poly_var<int>(2));
+    DPolyProduct<DPolyVar<int>, DPolyVar<int> > p(
+        DPolyVar<int>(1), DPolyVar<int>(2));
     auto rp = functor_map(p, [](int _x){ return _x; });
     ok = ok && ((rp.first.content == 1) && (rp.second.content == 2));
 
@@ -337,15 +337,15 @@ bool tests_functor_law_composition()
     auto g = [](int _x){ return _x * 2; };
 
     // poly_var: (5+1)*2 == 12 both ways.
-    poly_var<int> v(5);
+    DPolyVar<int> v(5);
     auto lhs = functor_map(v, [f, g](int _x){ return g(f(_x)); });
     auto rhs = functor_map(functor_map(v, f), g);
     ok = ok && (lhs.content == rhs.content);
     ok = ok && (lhs.content == 12);
 
     // poly_product.
-    poly_product<poly_var<int>, poly_var<int> > p(
-        poly_var<int>(3), poly_var<int>(4));
+    DPolyProduct<DPolyVar<int>, DPolyVar<int> > p(
+        DPolyVar<int>(3), DPolyVar<int>(4));
     auto plhs = functor_map(p, [f, g](int _x){ return g(f(_x)); });
     auto prhs = functor_map(functor_map(p, f), g);
     ok = ok && (plhs.first.content  == prhs.first.content);
@@ -370,13 +370,13 @@ bool tests_functor_cata_integration()
 {
     bool ok = true;
 
-    typedef mu<nat_f> Nat;
+    typedef DMu<nat_f> Nat;
 
     // hand-build 0, 1, 3.
-    Nat zero  = Nat::In(nat_f<Nat>::inj_left(poly_unit<Nat>()));
-    Nat one   = Nat::In(nat_f<Nat>::inj_right(poly_var<Nat>(zero)));
-    Nat three = Nat::In(nat_f<Nat>::inj_right(poly_var<Nat>(
-                    Nat::In(nat_f<Nat>::inj_right(poly_var<Nat>(one))))));
+    Nat zero  = Nat::In(nat_f<Nat>::inj_left(DPolyUnit<Nat>()));
+    Nat one   = Nat::In(nat_f<Nat>::inj_right(DPolyVar<Nat>(zero)));
+    Nat three = Nat::In(nat_f<Nat>::inj_right(DPolyVar<Nat>(
+                    Nat::In(nat_f<Nat>::inj_right(DPolyVar<Nat>(one))))));
 
     // the depth algebra phi : nat_f<int> -> int.
     auto depth = [](const nat_f<int>& _layer) -> int
@@ -392,8 +392,8 @@ bool tests_functor_cata_integration()
     auto build = [](int _n) -> nat_f<int>
     {
         return (_n == 0)
-                   ? nat_f<int>::inj_left(poly_unit<int>())
-                   : nat_f<int>::inj_right(poly_var<int>(_n - 1));
+                   ? nat_f<int>::inj_left(DPolyUnit<int>())
+                   : nat_f<int>::inj_right(DPolyVar<int>(_n - 1));
     };
 
     // ana then cata roundtrips the count.

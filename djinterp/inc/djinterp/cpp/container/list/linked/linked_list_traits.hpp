@@ -728,7 +728,7 @@ struct is_linked_list
 // Combined with DContainerOption, these together describe a fully
 // qualified linked_list configuration.
 
-// linked_list_option
+// DLinkedListOption
 //   enum: linked-list-specific axis bits.
 //
 //   Axis layout:
@@ -738,7 +738,7 @@ struct is_linked_list
 //     sentinel (bits 7-9): head_sentinel / tail_sentinel / both_sentinels
 //     ownership (bit 10 ): intrusive (owning is default)
 //     structure (bit 11 ): hierarchical (flat is default)
-enum class linked_list_option : unsigned
+enum class DLinkedListOption : unsigned
 {
     none           = 0x000u,
 
@@ -767,15 +767,18 @@ enum class linked_list_option : unsigned
     hierarchical   = 0x800u
 };
 
+// old name, until 0.9.0-rc.1
+using linked_list_option = DLinkedListOption;
+
 // operator|
 //   operator: bitwise OR of linked_list_option flags.
 inline constexpr
-linked_list_option operator|(
-    linked_list_option _lhs,
-    linked_list_option _rhs
+DLinkedListOption operator|(
+    DLinkedListOption _lhs,
+    DLinkedListOption _rhs
 ) noexcept
 {
-    return static_cast<linked_list_option>(
+    return static_cast<DLinkedListOption>(
         static_cast<unsigned>(_lhs) | static_cast<unsigned>(_rhs)
     );
 }
@@ -783,31 +786,31 @@ linked_list_option operator|(
 // operator&
 //   operator: bitwise AND of linked_list_option flags.
 inline constexpr
-linked_list_option operator&(
-    linked_list_option _lhs,
-    linked_list_option _rhs
+DLinkedListOption operator&(
+    DLinkedListOption _lhs,
+    DLinkedListOption _rhs
 ) noexcept
 {
-    return static_cast<linked_list_option>(
+    return static_cast<DLinkedListOption>(
         static_cast<unsigned>(_lhs) & static_cast<unsigned>(_rhs));
 }
 
 // operator~
 //   operator: bitwise NOT of a linked_list_option flag.
 inline constexpr
-linked_list_option operator~(
-    linked_list_option _v
+DLinkedListOption operator~(
+    DLinkedListOption _v
 ) noexcept
 {
-    return static_cast<linked_list_option>(~static_cast<unsigned>(_v));
+    return static_cast<DLinkedListOption>(~static_cast<unsigned>(_v));
 }
 
 // linked_list_option_has
 //   function: returns true when _flags has all bits of _bit set.
 inline constexpr
 bool linked_list_option_has(
-    linked_list_option _flags,
-    linked_list_option _bit
+    DLinkedListOption _flags,
+    DLinkedListOption _bit
 ) noexcept
 {
     return ( (_flags & _bit) == _bit);
@@ -816,29 +819,29 @@ bool linked_list_option_has(
 // D_LINKED_LIST_OPTION_DIRECTION_MASK
 //   constant: covers the link-direction axis bits.
 #define D_LINKED_LIST_OPTION_DIRECTION_MASK          \
-    ( djinterp::linked_list_option::singly         | \
-      djinterp::linked_list_option::doubly         | \
-      djinterp::linked_list_option::xor_linked )
+    ( djinterp::DLinkedListOption::singly         | \
+      djinterp::DLinkedListOption::doubly         | \
+      djinterp::DLinkedListOption::xor_linked )
 
 // D_LINKED_LIST_OPTION_ENDS_MASK
 //   constant: covers the end-pointer axis bits.
 #define D_LINKED_LIST_OPTION_ENDS_MASK               \
-    ( djinterp::linked_list_option::head_only      | \
-      djinterp::linked_list_option::tail_only      | \
-      djinterp::linked_list_option::head_and_tail )
+    ( djinterp::DLinkedListOption::head_only      | \
+      djinterp::DLinkedListOption::tail_only      | \
+      djinterp::DLinkedListOption::head_and_tail )
 
 // D_LINKED_LIST_OPTION_SENTINEL_MASK
 //   constant: covers the sentinel axis bits.
 #define D_LINKED_LIST_OPTION_SENTINEL_MASK           \
-    ( djinterp::linked_list_option::head_sentinel  | \
-      djinterp::linked_list_option::tail_sentinel  | \
-      djinterp::linked_list_option::both_sentinels )
+    ( djinterp::DLinkedListOption::head_sentinel  | \
+      djinterp::DLinkedListOption::tail_sentinel  | \
+      djinterp::DLinkedListOption::both_sentinels )
 
 // linked_list_option_direction
 //   function: isolates the direction axis bits.
 inline constexpr
-linked_list_option linked_list_option_direction(
-    linked_list_option _flags
+DLinkedListOption linked_list_option_direction(
+    DLinkedListOption _flags
 ) noexcept
 {
     return (_flags & D_LINKED_LIST_OPTION_DIRECTION_MASK);
@@ -847,8 +850,8 @@ linked_list_option linked_list_option_direction(
 // linked_list_option_ends
 //   function: isolates the end-pointer axis bits.
 inline constexpr
-linked_list_option linked_list_option_ends(
-    linked_list_option _flags
+DLinkedListOption linked_list_option_ends(
+    DLinkedListOption _flags
 ) noexcept
 {
     return (_flags & D_LINKED_LIST_OPTION_ENDS_MASK);
@@ -857,8 +860,8 @@ linked_list_option linked_list_option_ends(
 // linked_list_option_sentinel
 //   function: isolates the sentinel axis bits.
 inline constexpr
-linked_list_option linked_list_option_sentinel(
-    linked_list_option _flags
+DLinkedListOption linked_list_option_sentinel(
+    DLinkedListOption _flags
 ) noexcept
 {
     return (_flags & D_LINKED_LIST_OPTION_SENTINEL_MASK);
@@ -886,7 +889,7 @@ NS_END  // internal
 // direction, end-pointer, and sentinel axes.
 inline constexpr
 bool linked_list_option_axis_valid(
-    linked_list_option _flags
+    DLinkedListOption _flags
 ) noexcept
 {
     return (
@@ -906,11 +909,11 @@ bool linked_list_option_axis_valid(
 // 9.  AGGREGATE CLASSIFICATION STRUCT
 // ===========================================================================
 
-// linked_list_class
+// DLinkedListClass
 //   struct: comprehensive aggregation of a list type's classification. Mirrors
 // radix_tree_class<T> / tree_container_class<T>.
 template<typename Type>
-struct linked_list_class
+struct DLinkedListClass
 {
     // identity
     static constexpr bool is_list       = is_linked_list<Type>::value;
@@ -937,6 +940,10 @@ struct linked_list_class
     static constexpr bool is_intrusive  = is_intrusive_list<Type>::value;
     static constexpr bool is_owning     = !is_intrusive;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using linked_list_class = DLinkedListClass<Type>;
 
 
 // ===========================================================================

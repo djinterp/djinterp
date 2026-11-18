@@ -151,7 +151,7 @@ bool tests_has_at_index()
 
     // ... and it does not disturb the level, the map being iterable anyway
     D_OC_CHECK(observational_level_of<DOctMapInt>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
     D_OC_CHECK(observational_level_of<DOctMapInt>::value
                    == observational_level_of<DOctMapString>::value);
 
@@ -316,10 +316,10 @@ bool tests_has_contains_member()
     // whatever the dialect answers for a std::set, its level is seq, reached
     // through iteration - so the probe's dialect-dependence cannot move it
     D_OC_CHECK(observational_level_of<DOctSet>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
     D_OC_CHECK(   ( is_iterable_container<DOctSet>::value == true )
                && ( observational_level_of<DOctSet>::value
-                        == observational_level::seq ));
+                        == DObservationalLevel::seq ));
 
     return ok;
 }
@@ -359,21 +359,21 @@ bool tests_probe_method_shapes()
 
     // and every admitted shape carries through to the level
     D_OC_CHECK(observational_level_of<DOctVoidSize>::value
-                   == observational_level::size);
+                   == DObservationalLevel::size);
     D_OC_CHECK(observational_level_of<DOctDefaultArgSize>::value
-                   == observational_level::size);
+                   == DObservationalLevel::size);
     D_OC_CHECK(observational_level_of<DOctStaticSizeMember>::value
-                   == observational_level::size);
+                   == DObservationalLevel::size);
 
     // ... while every rejected one leaves the type at none
     D_OC_CHECK(observational_level_of<DOctPrivateSize>::value
-                   == observational_level::none);
+                   == DObservationalLevel::none);
     D_OC_CHECK(observational_level_of<DOctArgSize>::value
-                   == observational_level::none);
+                   == DObservationalLevel::none);
     D_OC_CHECK(observational_level_of<DOctDataSize>::value
-                   == observational_level::none);
+                   == DObservationalLevel::none);
     D_OC_CHECK(observational_level_of<DOctNonconstSize>::value
-                   == observational_level::none);
+                   == DObservationalLevel::none);
 
     return ok;
 }
@@ -409,11 +409,11 @@ bool tests_probe_const_observation()
 
     // an interface that is entirely non-const observes nothing
     D_OC_CHECK(observational_level_of<DOctNonconstSubscript>::value
-                   == observational_level::none);
+                   == DObservationalLevel::none);
     D_OC_CHECK(observational_level_of<DOctCountNonconst>::value
-                   == observational_level::none);
+                   == DObservationalLevel::none);
     D_OC_CHECK(observational_level_of<DOctContainsNonconst>::value
-                   == observational_level::none);
+                   == DObservationalLevel::none);
 
     return ok;
 }
@@ -464,7 +464,7 @@ bool tests_probe_void_element_safety()
     // the members are declared and callable - it is only the ELEMENT that is
     // missing, which is what makes this fixture the right witness
     D_OC_CHECK(observational_level_of<oct_count_no_value_type>::value
-                   == observational_level::none);
+                   == DObservationalLevel::none);
 
     // a type WITH a value_type is detected, all else equal
     D_OC_CHECK(   ( has_count_member<DOctCountOnly>::value == true )

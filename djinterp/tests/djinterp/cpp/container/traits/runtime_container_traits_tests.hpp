@@ -172,17 +172,17 @@ static const int rt_lifetime_count = 4;
 //   function: the _i-th lifetime, in increasing bit order.  Out-of-range
 // indices clamp to none so a loop bug cannot read past the enum.
 inline
-lifetime::value rt_lifetime_at(
+DLifetime::value rt_lifetime_at(
     int _i
 )
 {
     switch (_i)
     {
-        case 0:  return lifetime::none;
-        case 1:  return lifetime::compile_time;
-        case 2:  return lifetime::runtime;
-        case 3:  return lifetime::both;
-        default: return lifetime::none;
+        case 0:  return DLifetime::none;
+        case 1:  return DLifetime::compile_time;
+        case 2:  return DLifetime::runtime;
+        case 3:  return DLifetime::both;
+        default: return DLifetime::none;
     }
 }
 
@@ -190,7 +190,7 @@ lifetime::value rt_lifetime_at(
 //   function: compares a lifetime's spelling against an expected literal.
 inline
 bool rt_life_is(
-    lifetime::value _life,
+    DLifetime::value _life,
     const char* _expected
 )
 {
@@ -415,7 +415,7 @@ struct DRtConstexprSize
 // BOTTOM - and is_runtime_only, being exact equality, reads false.
 struct DRtCategoryCompileTime
 {
-    static constexpr lifetime::value lifetime_category = lifetime::compile_time;
+    static constexpr DLifetime::value lifetime_category = DLifetime::compile_time;
 
     std::size_t size() const;
 };
@@ -426,7 +426,7 @@ struct DRtCategoryCompileTime
 // for a reason other than carrying the runtime bit.
 struct DRtCategoryCompileTimeSized
 {
-    static constexpr lifetime::value lifetime_category = lifetime::compile_time;
+    static constexpr DLifetime::value lifetime_category = DLifetime::compile_time;
 
     constexpr std::size_t size() const { return 2; }
 };
@@ -435,7 +435,7 @@ struct DRtCategoryCompileTimeSized
 //   struct: opts in to the bottom lifetime directly.
 struct DRtCategoryNone
 {
-    static constexpr lifetime::value lifetime_category = lifetime::none;
+    static constexpr DLifetime::value lifetime_category = DLifetime::none;
 
     std::size_t size() const;
 };
@@ -445,7 +445,7 @@ struct DRtCategoryNone
 // same verdict a plain non-literal type reaches structurally.
 struct DRtCategoryRuntime
 {
-    static constexpr lifetime::value lifetime_category = lifetime::runtime;
+    static constexpr DLifetime::value lifetime_category = DLifetime::runtime;
 
     std::size_t size() const;
 };

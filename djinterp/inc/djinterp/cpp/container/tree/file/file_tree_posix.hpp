@@ -57,17 +57,17 @@ NS_DJINTERP
 //  posix_scanner
 // ================================================================
 
-// posix_scanner
+// DPosixScanner
 //   policy: portable POSIX directory walk. Uses a per-directory fd plus
 // fstatat for child metadata. fstatat resolves names relative
 // to the open directory, so neither a full path string nor a kernel path
 // re-walk is needed per entry, and PATH_MAX is never a concern.
-struct posix_scanner
+struct DPosixScanner
 {
     // classify
     //   maps a struct stat mode onto a file_type.
     static
-    file_type classify(
+    DFileType classify(
         mode_t _mode
     )
     {
@@ -106,7 +106,7 @@ struct posix_scanner
     void scan(
         Ctx&               _ctx,
         const std::string& _dir_path,
-        file_node_id       _parent
+        DFileNodeId       _parent
     )
     {
         DIR* dir = ::opendir(_dir_path.c_str());
@@ -141,11 +141,11 @@ struct posix_scanner
                 continue;
             }
 
-            file_type        type = classify(st.st_mode);
+            DFileType        type = classify(st.st_mode);
             re_std::uint64_t sz    =
                 static_cast<re_std::uint64_t>(st.st_size);
 
-            file_node_id id = _ctx.intern_child(
+            DFileNodeId id = _ctx.intern_child(
                 _parent, child_name, child_len, type, sz);
 
             if (type == file_type_directory)
@@ -159,6 +159,9 @@ struct posix_scanner
         return;
     }
 };
+
+// old name, until 0.9.0-rc.1
+using posix_scanner = DPosixScanner;
 
 
 NS_END  // djinterp

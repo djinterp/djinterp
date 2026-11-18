@@ -145,21 +145,21 @@ bool tests_access_restriction_enum()
     bool ok = true;
 
     // an enumeration, and scoped
-    D_MC_STATIC_CHECK(std::is_enum<access_restriction>::value == true);
+    D_MC_STATIC_CHECK(std::is_enum<DAccessRestriction>::value == true);
     D_MC_STATIC_CHECK(
-        std::is_convertible<access_restriction, int>::value == false);
+        std::is_convertible<DAccessRestriction, int>::value == false);
 
     // pairwise distinct
-    D_MC_CHECK(access_restriction::none != access_restriction::element_const);
-    D_MC_CHECK(access_restriction::none != access_restriction::key_const);
-    D_MC_CHECK(access_restriction::element_const
-                   != access_restriction::key_const);
+    D_MC_CHECK(DAccessRestriction::none != DAccessRestriction::element_const);
+    D_MC_CHECK(DAccessRestriction::none != DAccessRestriction::key_const);
+    D_MC_CHECK(DAccessRestriction::element_const
+                   != DAccessRestriction::key_const);
 
     // usable as a non-type template argument
     D_MC_STATIC_CHECK(
-        std::integral_constant<access_restriction,
-                               access_restriction::key_const>::value
-            == access_restriction::key_const);
+        std::integral_constant<DAccessRestriction,
+                               DAccessRestriction::key_const>::value
+            == DAccessRestriction::key_const);
 
     return ok;
 }
@@ -180,30 +180,30 @@ bool tests_access_restriction_name()
 
     // constant-expression usability, and first-character distinctness
     D_MC_STATIC_CHECK(
-        access_restriction_name(access_restriction::none)[0] == 'n');
+        access_restriction_name(DAccessRestriction::none)[0] == 'n');
     D_MC_STATIC_CHECK(
-        access_restriction_name(access_restriction::element_const)[0] == 'e');
+        access_restriction_name(DAccessRestriction::element_const)[0] == 'e');
     D_MC_STATIC_CHECK(
-        access_restriction_name(access_restriction::key_const)[0] == 'k');
+        access_restriction_name(DAccessRestriction::key_const)[0] == 'k');
 
     // exact spellings
-    D_MC_CHECK(std::strcmp(access_restriction_name(access_restriction::none),
+    D_MC_CHECK(std::strcmp(access_restriction_name(DAccessRestriction::none),
                            "none") == 0);
     D_MC_CHECK(std::strcmp(
-                   access_restriction_name(access_restriction::element_const),
+                   access_restriction_name(DAccessRestriction::element_const),
                    "element_const") == 0);
     D_MC_CHECK(std::strcmp(
-                   access_restriction_name(access_restriction::key_const),
+                   access_restriction_name(DAccessRestriction::key_const),
                    "key_const") == 0);
 
     // pairwise distinct spellings
     D_MC_CHECK(std::strcmp(
-                   access_restriction_name(access_restriction::none),
-                   access_restriction_name(access_restriction::element_const))
+                   access_restriction_name(DAccessRestriction::none),
+                   access_restriction_name(DAccessRestriction::element_const))
                    != 0);
     D_MC_CHECK(std::strcmp(
-                   access_restriction_name(access_restriction::element_const),
-                   access_restriction_name(access_restriction::key_const))
+                   access_restriction_name(DAccessRestriction::element_const),
+                   access_restriction_name(DAccessRestriction::key_const))
                    != 0);
 
     return ok;
@@ -231,91 +231,91 @@ bool tests_access_restriction_of()
 
     // keyed disciplines freeze the key
     D_MC_CHECK(access_restriction_of<DMcMapIi>::value
-                   == access_restriction::key_const);
+                   == DAccessRestriction::key_const);
     D_MC_CHECK(access_restriction_of<DMcMultimapIi>::value
-                   == access_restriction::key_const);
+                   == DAccessRestriction::key_const);
     D_MC_CHECK(access_restriction_of<DMcUmapIi>::value
-                   == access_restriction::key_const);
+                   == DAccessRestriction::key_const);
     D_MC_CHECK(access_restriction_of<DMcMapSi>::value
-                   == access_restriction::key_const);
+                   == DAccessRestriction::key_const);
 
     // equivalence disciplines freeze the element
     D_MC_CHECK(access_restriction_of<DMcSetInt>::value
-                   == access_restriction::element_const);
+                   == DAccessRestriction::element_const);
     D_MC_CHECK(access_restriction_of<DMcMultisetInt>::value
-                   == access_restriction::element_const);
+                   == DAccessRestriction::element_const);
     D_MC_CHECK(access_restriction_of<DMcUsetInt>::value
-                   == access_restriction::element_const);
+                   == DAccessRestriction::element_const);
 
     // sequences freeze nothing
     D_MC_CHECK(access_restriction_of<DMcVectorInt>::value
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
     D_MC_CHECK(access_restriction_of<DMcDequeInt>::value
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
     D_MC_CHECK(access_restriction_of<DMcListInt>::value
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
     D_MC_CHECK(access_restriction_of<DMcFlistInt>::value
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
     D_MC_CHECK(access_restriction_of<DMcString>::value
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
     D_MC_CHECK(access_restriction_of<DMcArray4>::value
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
     D_MC_CHECK(access_restriction_of<DMcInitList>::value
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
 
     // and neither do non-containers
     D_MC_CHECK(access_restriction_of<int>::value
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
     D_MC_CHECK(access_restriction_of<void>::value
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
     D_MC_CHECK(access_restriction_of<DMcBare>::value
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
     D_MC_CHECK(access_restriction_of<DMcIntPtr>::value
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
     D_MC_CHECK(access_restriction_of<DMcTupleI>::value
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
 
     // a bare pair carries first_type and second_type but no value_type, so the
     // keyed probe - which looks INSIDE value_type - does not fire
     D_MC_CHECK(access_restriction_of<DMcPairIi>::value
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
 
     // the marks in isolation
     D_MC_CHECK(access_restriction_of<DMcKeyTypeOnly>::value
-                   == access_restriction::element_const);
+                   == DAccessRestriction::element_const);
     D_MC_CHECK(access_restriction_of<mc_pair_value_only>::value
-                   == access_restriction::key_const);
+                   == DAccessRestriction::key_const);
     D_MC_CHECK(access_restriction_of<mc_plain_value_only>::value
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
 
     // precedence: keyed wins when both marks are present
     D_MC_CHECK(access_restriction_of<DMcKeyAndPair>::value
-                   == access_restriction::key_const);
+                   == DAccessRestriction::key_const);
 
     // the keyed probe needs BOTH halves of the pair protocol
     D_MC_CHECK(access_restriction_of<mc_half_pair_first>::value
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
     D_MC_CHECK(access_restriction_of<mc_half_pair_second>::value
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
 
     // structural, not intentional: a sequence of pairs presents the keyed mark
     D_MC_CHECK(access_restriction_of<DMcVectorPair>::value
-                   == access_restriction::key_const);
+                   == DAccessRestriction::key_const);
 
     // the discipline-shaped probes
     D_MC_CHECK(access_restriction_of<DMcSetShaped>::value
-                   == access_restriction::element_const);
+                   == DAccessRestriction::element_const);
     D_MC_CHECK(access_restriction_of<DMcMapShaped>::value
-                   == access_restriction::key_const);
+                   == DAccessRestriction::key_const);
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
     D_MC_CHECK(access_restriction_of<DMcStringView>::value
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
 #endif
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
     D_MC_CHECK(access_restriction_of<DMcSpanInt>::value
-                   == access_restriction::none);
+                   == DAccessRestriction::none);
 #endif
 
     return ok;
@@ -341,18 +341,18 @@ bool tests_access_restriction_of_companions()
     D_MC_STATIC_CHECK(
         std::is_same<access_restriction_of<DMcMapIi>::type,
                      std::integral_constant<
-                         access_restriction,
-                         access_restriction::key_const>>::value);
+                         DAccessRestriction,
+                         DAccessRestriction::key_const>>::value);
     D_MC_STATIC_CHECK(
         std::is_same<access_restriction_of<DMcSetInt>::type,
                      std::integral_constant<
-                         access_restriction,
-                         access_restriction::element_const>>::value);
+                         DAccessRestriction,
+                         DAccessRestriction::element_const>>::value);
     D_MC_STATIC_CHECK(
         std::is_same<access_restriction_of<DMcVectorInt>::type,
                      std::integral_constant<
-                         access_restriction,
-                         access_restriction::none>>::value);
+                         DAccessRestriction,
+                         DAccessRestriction::none>>::value);
 
     // the _t alias names the same type
     D_MC_STATIC_CHECK(
@@ -373,7 +373,7 @@ bool tests_access_restriction_of_companions()
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
     D_MC_STATIC_CHECK(access_restriction_of_v<DMcMapIi>
-                          == access_restriction::key_const);
+                          == DAccessRestriction::key_const);
 
     D_MC_CHECK(access_restriction_of_v<DMcMapIi>
                    == access_restriction_of<DMcMapIi>::value);
@@ -446,10 +446,10 @@ bool tests_constrains_element()
     // agreement with the definition
     D_MC_CHECK(constrains_element<DMcSetInt>::value
                    == ( access_restriction_of<DMcSetInt>::value
-                            == access_restriction::element_const ));
+                            == DAccessRestriction::element_const ));
     D_MC_CHECK(constrains_element<DMcMapIi>::value
                    == ( access_restriction_of<DMcMapIi>::value
-                            == access_restriction::element_const ));
+                            == DAccessRestriction::element_const ));
 
     return ok;
 }
@@ -497,10 +497,10 @@ bool tests_constrains_key()
     // agreement with the definition
     D_MC_CHECK(constrains_key<DMcMapIi>::value
                    == ( access_restriction_of<DMcMapIi>::value
-                            == access_restriction::key_const ));
+                            == DAccessRestriction::key_const ));
     D_MC_CHECK(constrains_key<DMcSetInt>::value
                    == ( access_restriction_of<DMcSetInt>::value
-                            == access_restriction::key_const ));
+                            == DAccessRestriction::key_const ));
 
     // mutually exclusive, and jointly exhaustive of the non-none case
     D_MC_CHECK(!(   constrains_element<DMcMapIi>::value
@@ -512,11 +512,11 @@ bool tests_constrains_key()
     D_MC_CHECK(   (    !constrains_element<DMcVectorInt>::value
                     && !constrains_key<DMcVectorInt>::value )
                == ( access_restriction_of<DMcVectorInt>::value
-                        == access_restriction::none ));
+                        == DAccessRestriction::none ));
     D_MC_CHECK(   (    !constrains_element<DMcMapIi>::value
                     && !constrains_key<DMcMapIi>::value )
                == ( access_restriction_of<DMcMapIi>::value
-                        == access_restriction::none ));
+                        == DAccessRestriction::none ));
 
     return ok;
 }
@@ -534,13 +534,13 @@ bool tests_access_restriction_cv_ref_invariance()
     bool ok = true;
 
     D_MC_CV_REF_VALUE(access_restriction_of, DMcMapIi,
-                      access_restriction::key_const);
+                      DAccessRestriction::key_const);
     D_MC_CV_REF_VALUE(access_restriction_of, DMcSetInt,
-                      access_restriction::element_const);
+                      DAccessRestriction::element_const);
     D_MC_CV_REF_VALUE(access_restriction_of, DMcVectorInt,
-                      access_restriction::none);
+                      DAccessRestriction::none);
     D_MC_CV_REF_VALUE(access_restriction_of, DMcBare,
-                      access_restriction::none);
+                      DAccessRestriction::none);
 
     D_MC_CV_REF_AGREE(constrains_element, DMcSetInt,    true);
     D_MC_CV_REF_AGREE(constrains_element, DMcMapIi,     false);
@@ -575,59 +575,59 @@ bool tests_access_grade_orthogonality()
 
     // --- immutable grade, all three restrictions ---
     D_MC_CHECK(   ( mutability_of<DMcSizedOnly>::value
-                        == mutability::immutable )
+                        == DMutability::immutable )
                && ( access_restriction_of<DMcSizedOnly>::value
-                        == access_restriction::none ));
+                        == DAccessRestriction::none ));
     D_MC_CHECK(   ( mutability_of<DMcKeyTypeOnly>::value
-                        == mutability::immutable )
+                        == DMutability::immutable )
                && ( access_restriction_of<DMcKeyTypeOnly>::value
-                        == access_restriction::element_const ));
+                        == DAccessRestriction::element_const ));
     D_MC_CHECK(   ( mutability_of<mc_pair_value_only>::value
-                        == mutability::immutable )
+                        == DMutability::immutable )
                && ( access_restriction_of<mc_pair_value_only>::value
-                        == access_restriction::key_const ));
+                        == DAccessRestriction::key_const ));
 
     // --- element_mutable grade, all three restrictions ---
     D_MC_CHECK(   ( mutability_of<DMcArray4>::value
-                        == mutability::element_mutable )
+                        == DMutability::element_mutable )
                && ( access_restriction_of<DMcArray4>::value
-                        == access_restriction::none ));
+                        == DAccessRestriction::none ));
     D_MC_CHECK(   ( mutability_of<DMcElementAndElementConst>::value
-                        == mutability::element_mutable )
+                        == DMutability::element_mutable )
                && ( access_restriction_of<DMcElementAndElementConst>::value
-                        == access_restriction::element_const ));
+                        == DAccessRestriction::element_const ));
     D_MC_CHECK(   ( mutability_of<DMcElementAndKeyConst>::value
-                        == mutability::element_mutable )
+                        == DMutability::element_mutable )
                && ( access_restriction_of<DMcElementAndKeyConst>::value
-                        == access_restriction::key_const ));
+                        == DAccessRestriction::key_const ));
 
     // --- structural_mutable grade, all three restrictions ---
     D_MC_CHECK(   ( mutability_of<DMcListInt>::value
-                        == mutability::structural_mutable )
+                        == DMutability::structural_mutable )
                && ( access_restriction_of<DMcListInt>::value
-                        == access_restriction::none ));
+                        == DAccessRestriction::none ));
     D_MC_CHECK(   ( mutability_of<DMcSetInt>::value
-                        == mutability::structural_mutable )
+                        == DMutability::structural_mutable )
                && ( access_restriction_of<DMcSetInt>::value
-                        == access_restriction::element_const ));
+                        == DAccessRestriction::element_const ));
     D_MC_CHECK(   ( mutability_of<DMcMapIi>::value
-                        == mutability::structural_mutable )
+                        == DMutability::structural_mutable )
                && ( access_restriction_of<DMcMapIi>::value
-                        == access_restriction::key_const ));
+                        == DAccessRestriction::key_const ));
 
     // --- fully_mutable grade, all three restrictions ---
     D_MC_CHECK(   ( mutability_of<DMcVectorInt>::value
-                        == mutability::fully_mutable )
+                        == DMutability::fully_mutable )
                && ( access_restriction_of<DMcVectorInt>::value
-                        == access_restriction::none ));
+                        == DAccessRestriction::none ));
     D_MC_CHECK(   ( mutability_of<DMcFullAndElementConst>::value
-                        == mutability::fully_mutable )
+                        == DMutability::fully_mutable )
                && ( access_restriction_of<DMcFullAndElementConst>::value
-                        == access_restriction::element_const ));
+                        == DAccessRestriction::element_const ));
     D_MC_CHECK(   ( mutability_of<DMcVectorPair>::value
-                        == mutability::fully_mutable )
+                        == DMutability::fully_mutable )
                && ( access_restriction_of<DMcVectorPair>::value
-                        == access_restriction::key_const ));
+                        == DAccessRestriction::key_const ));
 
     // the access dimension is not a function of the grade: one grade spans
     // three restrictions, and one restriction spans four grades

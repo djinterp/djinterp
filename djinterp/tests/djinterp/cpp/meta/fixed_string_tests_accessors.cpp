@@ -86,8 +86,8 @@ bool tests_fixed_string_size()
     // _N - 1 at every length
     D_FS_CHECK(ok, fs_abc.size() == 3);
     D_FS_CHECK(ok, fs_long.size() == 31);
-    D_FS_CHECK(ok, fixed_string{"a"}.size() == 1);
-    D_FS_CHECK(ok, fixed_string{"hello"}.size() == 5);
+    D_FS_CHECK(ok, DFixedString{"a"}.size() == 1);
+    D_FS_CHECK(ok, DFixedString{"hello"}.size() == 5);
 
     // the floor: the empty literal reports zero, and _N was 1
     D_FS_CHECK(ok, fs_empty.size() == 0);
@@ -174,12 +174,12 @@ bool tests_fixed_string_view()
 
     // comparison goes through view(): the carrier ships no operator==,
     // the view it hands back does
-    D_FS_CHECK(ok, !(fs_is_equality_comparable<fixed_string<4>,
-                                               fixed_string<4>>::value));
+    D_FS_CHECK(ok, !(fs_is_equality_comparable<DFixedString<4>,
+                                               DFixedString<4>>::value));
     D_FS_CHECK(ok, (fs_is_equality_comparable<std::string_view,
                                               std::string_view>::value));
     D_FS_CHECK(ok, fs_abc.view() != fs_embedded.view());
-    D_FS_CHECK(ok, fs_abc.view() == fixed_string{"abc"}.view());
+    D_FS_CHECK(ok, fs_abc.view() == DFixedString{"abc"}.view());
 
     return ok;
 }

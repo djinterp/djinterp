@@ -100,75 +100,88 @@ NS_DJINTERP
 // `compose = cata[φ]` and `functional::free<F, A>` work over them
 // without per-carrier glue.
 
-// poly_var
+// DPolyVar
 //   struct: the recursive position.  F(X) = X.  When F is applied
 // to μF, an inhabitant of poly_var<μF> *is* the recursive subtree.
 template<typename X>
-struct poly_var
+struct DPolyVar
 {
     using value_type = X;
 
     X content;
 
-    poly_var()
+    DPolyVar()
         : content()
     {}
 
-    explicit poly_var(
+    explicit DPolyVar(
         const X& _content
     )
         : content(_content)
     {}
 };
 
+// old name, until 0.9.0-rc.1
+template<typename X>
+using poly_var = DPolyVar<X>;
 
-// poly_unit
+
+// DPolyUnit
 //   struct: the unit variant.  F(X) = 1.  Carries no payload; the
 // X parameter is phantom and exists only to satisfy the functor
 // protocol's X-parameterisation.  Used to mark ε-productions or
 // nullary constructors.
 template<typename X>
-struct poly_unit
+struct DPolyUnit
 {
     using value_type = X;
 
-    poly_unit()
+    DPolyUnit()
     {}
 };
 
+// old name, until 0.9.0-rc.1
+template<typename X>
+using poly_unit = DPolyUnit<X>;
 
-// poly_const
+
+// DPolyConst
 //   struct: a constant variant.  F(X) = K_C, a fixed value of type
 // C with X phantom.  Used to embed terminal payloads (string
 // fragments, token kinds, numeric literals) into F.
 template<typename C,
          typename X>
-struct poly_const
+struct DPolyConst
 {
     using constant_type = C;
     using value_type    = X;
 
     C content;
 
-    poly_const()
+    DPolyConst()
         : content()
     {}
 
-    explicit poly_const(
+    explicit DPolyConst(
         const C& _content
     )
         : content(_content)
     {}
 };
 
+// old name, until 0.9.0-rc.1
+template<typename C,
+         typename X>
+using poly_const = DPolyConst<C, X>;
 
-// poly_sum
+
+// DPolySum
 //   struct: a binary sum.  F(X) = L(X) + R(X).  Tagged union of two
 // value-level polynomial functors evaluated at the same X.  Used to
 // fold a multi-production nonterminal's alternatives into one F.
 template<typename Left,
          typename Right>
-struct poly_sum
+struct DPolySum
 {
     // value_type
     //   alias: the shared X variable of the two arms.  Compile
@@ -185,37 +198,42 @@ struct poly_sum
     Left   left;
     Right right;
 
-    poly_sum()
+    DPolySum()
         : is_left(true),
           left   (),
           right  ()
     {}
 
     static
-    poly_sum inj_left(
+    DPolySum inj_left(
         const Left& _l
     )
     {
-        poly_sum _r;
+        DPolySum _r;
         _r.is_left = true;
         _r.left    = _l;
         return _r;
     }
 
     static
-    poly_sum inj_right(
+    DPolySum inj_right(
         const Right& _r
     )
     {
-        poly_sum _x;
+        DPolySum _x;
         _x.is_left = false;
         _x.right   = _r;
         return _x;
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Left,
+         typename Right>
+using poly_sum = DPolySum<Left, Right>;
 
-// poly_product
+
+// DPolyProduct
 //   struct: a binary product.  F(X) = First(X) × Second(X).
 // Encodes a production's RHS string (or a constructor's argument
 // list) when that string has two components; n-ary products
@@ -223,7 +241,7 @@ struct poly_sum
 // presentation in `production`.
 template<typename First,
          typename Second>
-struct poly_product
+struct DPolyProduct
 {
     using value_type = typename First::value_type;
 
@@ -237,12 +255,12 @@ struct poly_product
     First   first;
     Second second;
 
-    poly_product()
+    DPolyProduct()
         : first (),
           second()
     {}
 
-    poly_product(
+    DPolyProduct(
         const First&  _first,
         const Second& _second
     )
@@ -250,6 +268,11 @@ struct poly_product
           second(_second)
     {}
 };
+
+// old name, until 0.9.0-rc.1
+template<typename First,
+         typename Second>
+using poly_product = DPolyProduct<First, Second>;
 
 
 // ================================================================
@@ -337,25 +360,25 @@ struct poly_mu_t
 //   specialisation: the identity functor.  map applies f to the
 // stored value.
 template<typename X>
-struct functor_traits<poly_var<X>, void>
+struct functor_traits<DPolyVar<X>, void>
 {
     using is_specialized = std::true_type;
     using value_type     = X;
 
     template<typename U>
-    using rebind = poly_var<U>;
+    using rebind = DPolyVar<U>;
 
     template<typename Function>
     static
     auto map(
-        const poly_var<X>& _fa,
+        const DPolyVar<X>& _fa,
         Function           _f
-    ) -> poly_var< typename std::decay<decltype(_f(_fa.content))>::type>
+    ) -> DPolyVar< typename std::decay<decltype(_f(_fa.content))>::type>
     {
         using out_t =
             typename std::decay<decltype(_f(_fa.content))>::type;
 
-        return poly_var<out_t>(_f(_fa.content));
+        return DPolyVar<out_t>(_f(_fa.content));
     }
 };
 
@@ -364,7 +387,7 @@ struct functor_traits<poly_var<X>, void>
 //   specialisation: the identity functor as a Traversable.
 // traverse(fa, f) runs f on the single value and rebuilds.
 template<typename X>
-struct traversable_traits<poly_var<X>, void>
+struct traversable_traits<DPolyVar<X>, void>
 {
     using is_specialized = std::true_type;
     using value_type     = X;
@@ -372,15 +395,15 @@ struct traversable_traits<poly_var<X>, void>
     template<typename Function>
     static
     auto traverse(
-        const poly_var<X>& _fa,
+        const DPolyVar<X>& _fa,
         Function           _function
-    ) -> typename monad_rebind< decltype(_function(_fa.content)), poly_var<applicative_value_type_t< decltype(_function(_fa.content))>> >::type
+    ) -> typename monad_rebind< decltype(_function(_fa.content)), DPolyVar<applicative_value_type_t< decltype(_function(_fa.content))>> >::type
     {
         using effect_t =
             decltype(_function(_fa.content));        // F<B>
         using inner_t  =
             applicative_value_type_t<effect_t>;      // B
-        using shape_t  = poly_var<inner_t>;
+        using shape_t  = DPolyVar<inner_t>;
 
         return ::djinterp::functor_map(
             _function(_fa.content),
@@ -398,21 +421,21 @@ struct traversable_traits<poly_var<X>, void>
 //   specialisation: the constant-at-1 functor.  map probes f for
 // its return type and returns the unit at the new X.
 template<typename X>
-struct functor_traits<poly_unit<X>, void>
+struct functor_traits<DPolyUnit<X>, void>
 {
     using is_specialized = std::true_type;
     using value_type     = X;
 
     template<typename U>
-    using rebind = poly_unit<U>;
+    using rebind = DPolyUnit<U>;
 
     template<typename Function>
     static
     auto map(
-        const poly_unit<X>& /*_fa*/,
+        const DPolyUnit<X>& /*_fa*/,
         Function                    _f
     )
-    -> poly_unit<
+    -> DPolyUnit<
            typename std::decay<decltype(
                _f(std::declval<X>()))>::type>
     {
@@ -420,7 +443,7 @@ struct functor_traits<poly_unit<X>, void>
             typename std::decay<decltype(
                 _f(std::declval<X>()))>::type;
 
-        return poly_unit<out_t>();
+        return DPolyUnit<out_t>();
     }
 };
 
@@ -430,7 +453,7 @@ struct functor_traits<poly_unit<X>, void>
 // inhabitants); the effect is recovered from the function's
 // declared return shape and the empty unit lifted via pure.
 template<typename X>
-struct traversable_traits<poly_unit<X>, void>
+struct traversable_traits<DPolyUnit<X>, void>
 {
     using is_specialized = std::true_type;
     using value_type     = X;
@@ -438,13 +461,13 @@ struct traversable_traits<poly_unit<X>, void>
     template<typename Function>
     static
     auto traverse(
-        const poly_unit<X>& /*_fa*/,
+        const DPolyUnit<X>& /*_fa*/,
         Function                    /*_function*/
     )
     -> typename monad_rebind<
            decltype(std::declval<Function&>()(
                                 std::declval<const X&>())),
-           poly_unit<applicative_value_type_t<decltype(
+           DPolyUnit<applicative_value_type_t<decltype(
                std::declval<Function&>()(
                    std::declval<const X&>()))>>
        >::type
@@ -453,7 +476,7 @@ struct traversable_traits<poly_unit<X>, void>
             std::declval<Function&>()(
                 std::declval<const X&>()));
         using inner_t  = applicative_value_type_t<effect_t>;
-        using shape_t  = poly_unit<inner_t>;
+        using shape_t  = DPolyUnit<inner_t>;
         using result_t =
             typename monad_rebind<effect_t, shape_t>::type;
 
@@ -469,26 +492,26 @@ struct traversable_traits<poly_unit<X>, void>
 // constant payload; X is phantom.
 template<typename C,
          typename X>
-struct functor_traits<poly_const<C, X>, void>
+struct functor_traits<DPolyConst<C, X>, void>
 {
     using is_specialized = std::true_type;
     using value_type     = X;
 
     template<typename U>
-    using rebind = poly_const<C, U>;
+    using rebind = DPolyConst<C, U>;
 
     template<typename Function>
     static
     auto map(
-        const poly_const<C, X>& _fa,
+        const DPolyConst<C, X>& _fa,
         Function                _f
-    ) -> poly_const<C, typename std::decay<decltype( _f(std::declval<X>()))>::type>
+    ) -> DPolyConst<C, typename std::decay<decltype( _f(std::declval<X>()))>::type>
     {
         using out_t =
             typename std::decay<decltype(
                 _f(std::declval<X>()))>::type;
 
-        return poly_const<C, out_t>(_fa.content);
+        return DPolyConst<C, out_t>(_fa.content);
     }
 };
 
@@ -498,7 +521,7 @@ struct functor_traits<poly_const<C, X>, void>
 // phantom); the constant payload threads through unchanged.
 template<typename C,
          typename X>
-struct traversable_traits<poly_const<C, X>, void>
+struct traversable_traits<DPolyConst<C, X>, void>
 {
     using is_specialized = std::true_type;
     using value_type     = X;
@@ -506,13 +529,13 @@ struct traversable_traits<poly_const<C, X>, void>
     template<typename Function>
     static
     auto traverse(
-        const poly_const<C, X>& _fa,
+        const DPolyConst<C, X>& _fa,
         Function                         /*_function*/
     )
     -> typename monad_rebind<
            decltype(std::declval<Function&>()(
                                 std::declval<const X&>())),
-           poly_const<C, applicative_value_type_t<decltype(
+           DPolyConst<C, applicative_value_type_t<decltype(
                std::declval<Function&>()(
                    std::declval<const X&>()))>>
        >::type
@@ -521,7 +544,7 @@ struct traversable_traits<poly_const<C, X>, void>
             std::declval<Function&>()(
                 std::declval<const X&>()));
         using inner_t  = applicative_value_type_t<effect_t>;
-        using shape_t  = poly_const<C, inner_t>;
+        using shape_t  = DPolyConst<C, inner_t>;
         using result_t =
             typename monad_rebind<effect_t, shape_t>::type;
 
@@ -538,28 +561,28 @@ struct traversable_traits<poly_const<C, X>, void>
 // arms to be Functors (asserted by the rebind requirements).
 template<typename L,
          typename R>
-struct functor_traits<poly_sum<L, R>, void>
+struct functor_traits<DPolySum<L, R>, void>
 {
     using is_specialized = std::true_type;
     using value_type     = typename L::value_type;
 
     template<typename U>
-    using rebind = poly_sum<
+    using rebind = DPolySum<
         typename functor_traits<L>::template rebind<U>,
         typename functor_traits<R>::template rebind<U>>;
 
     template<typename Function>
     static
     auto map(
-        const poly_sum<L, R>& _fa,
+        const DPolySum<L, R>& _fa,
         Function              _f
-    ) -> poly_sum< decltype(functor_traits<L>::map(_fa.left, _f)), decltype(functor_traits<R>::map(_fa.right, _f))>
+    ) -> DPolySum< decltype(functor_traits<L>::map(_fa.left, _f)), decltype(functor_traits<R>::map(_fa.right, _f))>
     {
         using new_l =
             decltype(functor_traits<L>::map(_fa.left,  _f));
         using new_r =
             decltype(functor_traits<R>::map(_fa.right, _f));
-        using out_t = poly_sum<new_l, new_r>;
+        using out_t = DPolySum<new_l, new_r>;
 
         if (_fa.is_left)
         {
@@ -579,29 +602,29 @@ struct functor_traits<poly_sum<L, R>, void>
 //   specialisation: maps both components.
 template<typename F,
          typename G>
-struct functor_traits<poly_product<F, G>, void>
+struct functor_traits<DPolyProduct<F, G>, void>
 {
     using is_specialized = std::true_type;
     using value_type     = typename F::value_type;
 
     template<typename U>
-    using rebind = poly_product<
+    using rebind = DPolyProduct<
         typename functor_traits<F>::template rebind<U>,
         typename functor_traits<G>::template rebind<U>>;
 
     template<typename Function>
     static
     auto map(
-        const poly_product<F, G>& _fa,
+        const DPolyProduct<F, G>& _fa,
         Function                  _f
-    ) -> poly_product< decltype(functor_traits<F>::map(_fa.first, _f)), decltype(functor_traits<G>::map(_fa.second, _f))>
+    ) -> DPolyProduct< decltype(functor_traits<F>::map(_fa.first, _f)), decltype(functor_traits<G>::map(_fa.second, _f))>
     {
         using new_f =
             decltype(functor_traits<F>::map(_fa.first,  _f));
         using new_g =
             decltype(functor_traits<G>::map(_fa.second, _f));
 
-        return poly_product<new_f, new_g>(
+        return DPolyProduct<new_f, new_g>(
             functor_traits<F>::map(_fa.first,  _f),
             functor_traits<G>::map(_fa.second, _f));
     }

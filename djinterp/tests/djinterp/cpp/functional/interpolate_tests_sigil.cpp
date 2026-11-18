@@ -162,7 +162,7 @@ bool test_sigil_typedefs()
 {
     static_assert(std::is_same<sigil_t::input_type, char>::value, "input_type");
     static_assert(std::is_same<sigil_t::result_type,
-                               ::djinterp::piece<char>>::value, "result_type");
+                               ::djinterp::DPiece<char>>::value, "result_type");
 
     return true;
 }
@@ -174,7 +174,7 @@ bool test_sigil_constexpr()
     constexpr auto _scan = []() -> bool
     {
         sigil_t                 _s("$name");
-        ::djinterp::piece<char> _p;
+        ::djinterp::DPiece<char> _p;
 
         return _s.next(_p) && _p.is_key() && (_p.m_key == "name") &&
                !_s.next(_p);

@@ -26,7 +26,7 @@ tests_read_only_exposes_no_mutator
 */
 bool tests_read_only_exposes_no_mutator()
 {
-    typedef dj::read_only_container<std::vector<int> > handle;
+    typedef dj::DReadOnlyContainer<std::vector<int> > handle;
 
     const ro_caps c = ro_probe<handle>();
 
@@ -75,23 +75,23 @@ bool tests_read_only_seal_holds_for_every_container()
     // a vector offers push_back, pop_back, insert, erase, clear, resize
     // and reserve; none of them survives the wrapping
     D_RO_CHECK(!ro_any_mutator(
-                   ro_probe<dj::read_only_container<std::vector<int> > >()));
+                   ro_probe<dj::DReadOnlyContainer<std::vector<int> > >()));
 
     // a list adds push_front and pop_front
     D_RO_CHECK(!ro_any_mutator(
-                   ro_probe<dj::read_only_container<std::list<int> > >()));
+                   ro_probe<dj::DReadOnlyContainer<std::list<int> > >()));
 
     // a deque offers both ends and random access
     D_RO_CHECK(!ro_any_mutator(
-                   ro_probe<dj::read_only_container<std::deque<int> > >()));
+                   ro_probe<dj::DReadOnlyContainer<std::deque<int> > >()));
 
     // a string is a full sequence container too
     D_RO_CHECK(!ro_any_mutator(
-                   ro_probe<dj::read_only_container<std::string> >()));
+                   ro_probe<dj::DReadOnlyContainer<std::string> >()));
 
     // an array has almost no mutators to begin with
     D_RO_CHECK(!ro_any_mutator(
-                   ro_probe<dj::read_only_container<std::array<int, 3> > >()));
+                   ro_probe<dj::DReadOnlyContainer<std::array<int, 3> > >()));
 
     // the underlying containers really do have those mutators, which is
     // what makes the assertions above meaningful
@@ -115,7 +115,7 @@ tests_read_only_subscript_returns_const_reference
 */
 bool tests_read_only_subscript_returns_const_reference()
 {
-    dj::read_only_container<std::vector<int> > h(std::size_t(3), 5);
+    dj::DReadOnlyContainer<std::vector<int> > h(std::size_t(3), 5);
 
     // a non-const handle still yields a const reference
     typedef decltype(h[0]) sub_result;
@@ -128,20 +128,20 @@ bool tests_read_only_subscript_returns_const_reference()
     D_RO_CHECK(!std::is_assignable<sub_result, int>::value);
 
     // through a const handle, likewise
-    const dj::read_only_container<std::vector<int> >& ch = h;
+    const dj::DReadOnlyContainer<std::vector<int> >& ch = h;
 
     D_RO_CHECK(ro_const_result<decltype(ch[0])>::value);
     D_RO_CHECK((std::is_same<decltype(ch[0]), const int&>::value));
 
     // and for a character container
-    dj::read_only_container<std::string> s(std::size_t(2), 'a');
+    dj::DReadOnlyContainer<std::string> s(std::size_t(2), 'a');
 
     D_RO_CHECK(ro_const_result<decltype(s[0])>::value);
     D_RO_CHECK(!std::is_assignable<decltype(s[0]), char>::value);
 
     // the sibling overlay does NOT behave this way, which is what makes the
     // restriction observable rather than incidental
-    dj::read_write_container<std::vector<int> > rw(std::size_t(3), 5);
+    dj::DReadWriteContainer<std::vector<int> > rw(std::size_t(3), 5);
 
     D_RO_CHECK(!ro_const_result<decltype(rw[0])>::value);
     D_RO_CHECK(std::is_assignable<decltype(rw[0]), int>::value);
@@ -159,7 +159,7 @@ tests_read_only_front_and_back_return_const
 */
 bool tests_read_only_front_and_back_return_const()
 {
-    dj::read_only_container<std::vector<int> > h(std::size_t(3), 5);
+    dj::DReadOnlyContainer<std::vector<int> > h(std::size_t(3), 5);
 
     D_RO_CHECK(ro_const_result<decltype(h.front())>::value);
     D_RO_CHECK(ro_const_result<decltype(h.back())>::value);
@@ -170,20 +170,20 @@ bool tests_read_only_front_and_back_return_const()
     D_RO_CHECK(!std::is_assignable<decltype(h.back()), int>::value);
 
     // a node container
-    dj::read_only_container<std::list<int> > l(std::size_t(2), 1);
+    dj::DReadOnlyContainer<std::list<int> > l(std::size_t(2), 1);
 
     D_RO_CHECK(ro_const_result<decltype(l.front())>::value);
     D_RO_CHECK(ro_const_result<decltype(l.back())>::value);
     D_RO_CHECK(!std::is_assignable<decltype(l.front()), int>::value);
 
     // a fixed-size container
-    dj::read_only_container<std::array<int, 2> > a;
+    dj::DReadOnlyContainer<std::array<int, 2> > a;
 
     D_RO_CHECK(ro_const_result<decltype(a.front())>::value);
     D_RO_CHECK(ro_const_result<decltype(a.back())>::value);
 
     // again, the read_write sibling differs
-    dj::read_write_container<std::list<int> > rw(std::size_t(2), 1);
+    dj::DReadWriteContainer<std::list<int> > rw(std::size_t(2), 1);
 
     D_RO_CHECK(!ro_const_result<decltype(rw.front())>::value);
     D_RO_CHECK(std::is_assignable<decltype(rw.front()), int>::value);
@@ -202,7 +202,7 @@ tests_read_only_data_returns_pointer_to_const
 */
 bool tests_read_only_data_returns_pointer_to_const()
 {
-    dj::read_only_container<std::vector<int> > h(std::size_t(3), 5);
+    dj::DReadOnlyContainer<std::vector<int> > h(std::size_t(3), 5);
 
     typedef decltype(h.data()) data_result;
 
@@ -214,17 +214,17 @@ bool tests_read_only_data_returns_pointer_to_const()
     D_RO_CHECK(!std::is_assignable<decltype(*h.data()), int>::value);
 
     // a character container
-    dj::read_only_container<std::string> s(std::size_t(2), 'a');
+    dj::DReadOnlyContainer<std::string> s(std::size_t(2), 'a');
 
     D_RO_CHECK(ro_const_pointee<decltype(s.data())>::value);
 
     // a fixed-size container
-    dj::read_only_container<std::array<int, 2> > a;
+    dj::DReadOnlyContainer<std::array<int, 2> > a;
 
     D_RO_CHECK(ro_const_pointee<decltype(a.data())>::value);
 
     // the read_write sibling over the same container does not qualify it
-    dj::read_write_container<std::vector<int> > rw(std::size_t(3), 5);
+    dj::DReadWriteContainer<std::vector<int> > rw(std::size_t(3), 5);
 
     D_RO_CHECK(!ro_const_pointee<decltype(rw.data())>::value);
     D_RO_CHECK((std::is_same<decltype(rw.data()), int*>::value));
@@ -244,7 +244,7 @@ tests_read_only_iterators_are_const_iterators
 */
 bool tests_read_only_iterators_are_const_iterators()
 {
-    dj::read_only_container<std::vector<int> > h(std::size_t(3), 5);
+    dj::DReadOnlyContainer<std::vector<int> > h(std::size_t(3), 5);
 
     D_RO_CHECK((std::is_same<decltype(h.begin()),
                              std::vector<int>::const_iterator>::value));
@@ -264,14 +264,14 @@ bool tests_read_only_iterators_are_const_iterators()
     D_RO_CHECK(!std::is_assignable<decltype(*h.begin()), int>::value);
 
     // a node container behaves the same way
-    dj::read_only_container<std::list<int> > l(std::size_t(2), 1);
+    dj::DReadOnlyContainer<std::list<int> > l(std::size_t(2), 1);
 
     D_RO_CHECK((std::is_same<decltype(l.begin()),
                              std::list<int>::const_iterator>::value));
     D_RO_CHECK(!std::is_assignable<decltype(*l.begin()), int>::value);
 
     // while the read_write sibling hands out a mutable iterator
-    dj::read_write_container<std::vector<int> > rw(std::size_t(3), 5);
+    dj::DReadWriteContainer<std::vector<int> > rw(std::size_t(3), 5);
 
     D_RO_CHECK((std::is_same<decltype(rw.begin()),
                              std::vector<int>::iterator>::value));
@@ -291,10 +291,10 @@ tests_read_only_never_yields_the_container
 */
 bool tests_read_only_never_yields_the_container()
 {
-    typedef dj::read_only_container<std::vector<int> > handle;
+    typedef dj::DReadOnlyContainer<std::vector<int> > handle;
     typedef std::vector<int>                           held;
 
-    dj::read_only_container<std::vector<int> > h(std::size_t(2), 1);
+    dj::DReadOnlyContainer<std::vector<int> > h(std::size_t(2), 1);
 
     // none of the observers returns the container in any form
     D_RO_CHECK(!(std::is_same<decltype(h[0]), held&>::value));
@@ -338,8 +338,8 @@ bool tests_read_only_seal_is_independent_of_container()
     typedef std::vector<int> held;
 
     const ro_caps raw = ro_probe<held>();
-    const ro_caps ro  = ro_probe<dj::read_only_container<held> >();
-    const ro_caps rw  = ro_probe<dj::read_write_container<held> >();
+    const ro_caps ro  = ro_probe<dj::DReadOnlyContainer<held> >();
+    const ro_caps rw  = ro_probe<dj::DReadWriteContainer<held> >();
 
     // the container itself is fully mutable
     D_RO_CHECK(ro_any_mutator(raw));
@@ -358,8 +358,8 @@ bool tests_read_only_seal_is_independent_of_container()
 
     // both overlays hold the identical type
     D_RO_CHECK((std::is_same<
-                    dj::read_only_container<held>::container_type,
-                    dj::read_write_container<held>::container_type>::value));
+                    dj::DReadOnlyContainer<held>::container_type,
+                    dj::DReadWriteContainer<held>::container_type>::value));
 
     // and both observe the same surface; only the write side differs
     D_RO_CHECK(ro_observers_match(ro, rw));
@@ -380,7 +380,7 @@ tests_read_only_value_type_is_not_itself_const
 */
 bool tests_read_only_value_type_is_not_itself_const()
 {
-    typedef dj::read_only_container<std::vector<int> > handle;
+    typedef dj::DReadOnlyContainer<std::vector<int> > handle;
 
     // the element type is plain
     D_RO_CHECK(!std::is_const<handle::value_type>::value);
@@ -390,7 +390,7 @@ bool tests_read_only_value_type_is_not_itself_const()
                              std::vector<int>::value_type>::value));
 
     // yet the references handed out are const
-    dj::read_only_container<std::vector<int> > h(std::size_t(2), 1);
+    dj::DReadOnlyContainer<std::vector<int> > h(std::size_t(2), 1);
 
     D_RO_CHECK(ro_const_result<decltype(h[0])>::value);
     D_RO_CHECK(ro_const_result<decltype(h.front())>::value);

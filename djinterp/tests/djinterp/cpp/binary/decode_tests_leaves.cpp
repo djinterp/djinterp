@@ -25,7 +25,7 @@ tests_decode_bool
 bool tests_decode_bool()
 {
     {
-        const byte_string _b = { 0x00 };
+        const DByteString _b = { 0x00 };
         DByteReader _r(_b);
         DDecodeResult<bool> _res = decode<bool>(_r);
         D_DE_CHECK(_res.ok);
@@ -33,14 +33,14 @@ bool tests_decode_bool()
         D_DE_CHECK(_r.exhausted());
     }
     {
-        const byte_string _b = { 0x01 };
+        const DByteString _b = { 0x01 };
         DByteReader _r(_b);
         DDecodeResult<bool> _res = decode<bool>(_r);
         D_DE_CHECK(_res.ok);
         D_DE_CHECK(_res.value == true);
     }
     {
-        const byte_string _b = { 0xFF };
+        const DByteString _b = { 0xFF };
         DByteReader _r(_b);
         DDecodeResult<bool> _res = decode<bool>(_r);
         D_DE_CHECK(_res.ok);
@@ -61,28 +61,28 @@ tests_decode_unsigned_integrals
 bool tests_decode_unsigned_integrals()
 {
     {
-        const byte_string _b = { 0xFF };
+        const DByteString _b = { 0xFF };
         DByteReader _r(_b);
         DDecodeResult<re_std::uint8_t> _res = decode<re_std::uint8_t>(_r);
         D_DE_CHECK(_res.ok);
         D_DE_CHECK(_res.value == 0xFFu);
     }
     {
-        const byte_string _b = { 0x12, 0x34 };
+        const DByteString _b = { 0x12, 0x34 };
         DByteReader _r(_b);
         DDecodeResult<re_std::uint16_t> _res = decode<re_std::uint16_t>(_r);
         D_DE_CHECK(_res.ok);
         D_DE_CHECK(_res.value == 0x1234u);
     }
     {
-        const byte_string _b = { 0xDE, 0xAD, 0xBE, 0xEF };
+        const DByteString _b = { 0xDE, 0xAD, 0xBE, 0xEF };
         DByteReader _r(_b);
         DDecodeResult<re_std::uint32_t> _res = decode<re_std::uint32_t>(_r);
         D_DE_CHECK(_res.ok);
         D_DE_CHECK(_res.value == 0xDEADBEEFu);
     }
     {
-        const byte_string _b =
+        const DByteString _b =
             { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
         DByteReader _r(_b);
         DDecodeResult<re_std::uint64_t> _res = decode<re_std::uint64_t>(_r);
@@ -105,36 +105,36 @@ tests_decode_signed_integrals
 bool tests_decode_signed_integrals()
 {
     {
-        const byte_string _b = { 0x80 };
+        const DByteString _b = { 0x80 };
         DByteReader _r(_b);
         D_DE_CHECK(decode<re_std::int8_t>(_r).value == static_cast<re_std::int8_t>(-128));
     }
     {
-        const byte_string _b = { 0x7F };
+        const DByteString _b = { 0x7F };
         DByteReader _r(_b);
         D_DE_CHECK(decode<re_std::int8_t>(_r).value == static_cast<re_std::int8_t>(127));
     }
     {
-        const byte_string _b = { 0xFF };
+        const DByteString _b = { 0xFF };
         DByteReader _r(_b);
         D_DE_CHECK(decode<re_std::int8_t>(_r).value == static_cast<re_std::int8_t>(-1));
     }
     {
-        const byte_string _b = { 0xFF, 0xFE };
+        const DByteString _b = { 0xFF, 0xFE };
         DByteReader _r(_b);
         DDecodeResult<re_std::int16_t> _res = decode<re_std::int16_t>(_r);
         D_DE_CHECK(_res.ok);
         D_DE_CHECK(_res.value == static_cast<re_std::int16_t>(-2));
     }
     {
-        const byte_string _b = { 0x80, 0x00, 0x00, 0x00 };
+        const DByteString _b = { 0x80, 0x00, 0x00, 0x00 };
         DByteReader _r(_b);
         DDecodeResult<re_std::int32_t> _res = decode<re_std::int32_t>(_r);
         D_DE_CHECK(_res.ok);
         D_DE_CHECK(_res.value == (-2147483647 - 1));
     }
     {
-        const byte_string _b =
+        const DByteString _b =
             { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
         DByteReader _r(_b);
         DDecodeResult<re_std::int64_t> _res = decode<re_std::int64_t>(_r);
@@ -156,7 +156,7 @@ tests_decode_enums
 bool tests_decode_enums()
 {
     {
-        const byte_string _b = { 0x12, 0x34 };
+        const DByteString _b = { 0x12, 0x34 };
         DByteReader _r(_b);
         DDecodeResult<DDecEnumU16> _res = decode<DDecEnumU16>(_r);
         D_DE_CHECK(_res.ok);
@@ -164,7 +164,7 @@ bool tests_decode_enums()
         D_DE_CHECK(_r.exhausted());
     }
     {
-        const byte_string _b = { 0xFF, 0xFE, 0x1D, 0xC0 };
+        const DByteString _b = { 0xFF, 0xFE, 0x1D, 0xC0 };
         DByteReader _r(_b);
         DDecodeResult<DDecEnumI32> _res = decode<DDecEnumI32>(_r);
         D_DE_CHECK(_res.ok);
@@ -185,24 +185,24 @@ tests_decode_floating
 bool tests_decode_floating()
 {
     {
-        const byte_string _b = { 0x3F, 0x80, 0x00, 0x00 };
+        const DByteString _b = { 0x3F, 0x80, 0x00, 0x00 };
         DByteReader _r(_b);
         DDecodeResult<float> _res = decode<float>(_r);
         D_DE_CHECK(_res.ok);
         D_DE_CHECK(_res.value == 1.0f);
     }
     {
-        const byte_string _b = { 0xC0, 0x00, 0x00, 0x00 };
+        const DByteString _b = { 0xC0, 0x00, 0x00, 0x00 };
         DByteReader _r(_b);
         D_DE_CHECK(decode<float>(_r).value == -2.0f);
     }
     {
-        const byte_string _b = { 0x3F, 0x00, 0x00, 0x00 };
+        const DByteString _b = { 0x3F, 0x00, 0x00, 0x00 };
         DByteReader _r(_b);
         D_DE_CHECK(decode<float>(_r).value == 0.5f);
     }
     {
-        const byte_string _b =
+        const DByteString _b =
             { 0x3F, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
         DByteReader _r(_b);
         DDecodeResult<double> _res = decode<double>(_r);
@@ -210,13 +210,13 @@ bool tests_decode_floating()
         D_DE_CHECK(_res.value == 1.0);
     }
     {
-        const byte_string _b =
+        const DByteString _b =
             { 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
         DByteReader _r(_b);
         D_DE_CHECK(decode<double>(_r).value == -2.0);
     }
     {
-        const byte_string _b =
+        const DByteString _b =
             { 0x3F, 0xE0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
         DByteReader _r(_b);
         D_DE_CHECK(decode<double>(_r).value == 0.5);
@@ -235,7 +235,7 @@ tests_decode_member_surface
 */
 bool tests_decode_member_surface()
 {
-    const byte_string _b = { 0x00, 0x00, 0x00, 0x2A };
+    const DByteString _b = { 0x00, 0x00, 0x00, 0x2A };
     DByteReader _r(_b);
     DDecodeResult<DRtLeaf> _res = decode<DRtLeaf>(_r);
     D_DE_CHECK(_res.ok);
@@ -258,7 +258,7 @@ bool tests_decode_failure_paths()
 {
     // truncated unsigned integral
     {
-        const byte_string _b = { 0x01, 0x02 };
+        const DByteString _b = { 0x01, 0x02 };
         DByteReader _r(_b);
         DDecodeResult<re_std::uint32_t> _res = decode<re_std::uint32_t>(_r);
         D_DE_CHECK(!_res.ok);
@@ -266,31 +266,31 @@ bool tests_decode_failure_paths()
     }
     // truncated floating
     {
-        const byte_string _b = { 0x3F, 0x80, 0x00, 0x00 };  // 4 bytes, need 8
+        const DByteString _b = { 0x3F, 0x80, 0x00, 0x00 };  // 4 bytes, need 8
         DByteReader _r(_b);
         D_DE_CHECK(!decode<double>(_r).ok);
     }
     // truncated enum (underlying is 4 bytes)
     {
-        const byte_string _b = { 0x12, 0x34 };
+        const DByteString _b = { 0x12, 0x34 };
         DByteReader _r(_b);
         D_DE_CHECK(!decode<DDecEnumI32>(_r).ok);
     }
     // empty bool
     {
-        const byte_string _b = {};
+        const DByteString _b = {};
         DByteReader _r(_b);
         D_DE_CHECK(!decode<bool>(_r).ok);
     }
     // truncated member decode
     {
-        const byte_string _b = { 0x00, 0x2A };  // need 4
+        const DByteString _b = { 0x00, 0x2A };  // need 4
         DByteReader _r(_b);
         D_DE_CHECK(!decode<DRtLeaf>(_r).ok);
     }
     // sticky: a second decode after a failure also fails
     {
-        const byte_string _b = { 0x01 };
+        const DByteString _b = { 0x01 };
         DByteReader _r(_b);
         D_DE_CHECK(!decode<re_std::uint32_t>(_r).ok);   // underflow, reader now bad
         D_DE_CHECK(!decode<re_std::uint8_t>(_r).ok);    // would fit, but sticky bad
@@ -310,15 +310,15 @@ tests_decode_byte_string_convenience
 bool tests_decode_byte_string_convenience()
 {
     // whole-buffer decode
-    D_DE_CHECK(decode<re_std::uint16_t>(byte_string{ 0x12, 0x34 }).value == 0x1234u);
+    D_DE_CHECK(decode<re_std::uint16_t>(DByteString{ 0x12, 0x34 }).value == 0x1234u);
 
     // leading leaf only - a trailing byte is left unread
-    DDecodeResult<re_std::uint8_t> _lead = decode<re_std::uint8_t>(byte_string{ 0xAB, 0xCD });
+    DDecodeResult<re_std::uint8_t> _lead = decode<re_std::uint8_t>(DByteString{ 0xAB, 0xCD });
     D_DE_CHECK(_lead.ok);
     D_DE_CHECK(_lead.value == 0xABu);
 
     // too short
-    D_DE_CHECK(!decode<re_std::uint16_t>(byte_string{ 0x12 }).ok);
+    D_DE_CHECK(!decode<re_std::uint16_t>(DByteString{ 0x12 }).ok);
 
     return true;
 }

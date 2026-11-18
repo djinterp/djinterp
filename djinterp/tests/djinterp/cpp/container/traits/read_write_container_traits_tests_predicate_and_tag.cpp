@@ -70,16 +70,16 @@ bool tests_is_read_write_container()
     // agreement with the classifier
     D_RW_CHECK(is_read_write_container<DRwVector>::value
                    == ( access_capability_of<DRwVector>::value
-                            == access_capability::read_write ));
+                            == DAccessCapability::read_write ));
     D_RW_CHECK(is_read_write_container<DRwSink>::value
                    == ( access_capability_of<DRwSink>::value
-                            == access_capability::read_write ));
+                            == DAccessCapability::read_write ));
     D_RW_CHECK(is_read_write_container<DRwObserver>::value
                    == ( access_capability_of<DRwObserver>::value
-                            == access_capability::read_write ));
+                            == DAccessCapability::read_write ));
     D_RW_CHECK(is_read_write_container<DRwTagOverrides>::value
                    == ( access_capability_of<DRwTagOverrides>::value
-                            == access_capability::read_write ));
+                            == DAccessCapability::read_write ));
 
     // non-containers
     D_RW_CHECK(is_read_write_container<DRwPair>::value == false);
@@ -137,11 +137,11 @@ bool tests_is_read_write_std_types()
 
     // ... and none of the other three appears in it
     D_RW_CHECK(access_capability_of<DRwString>::value
-                   != access_capability::read_only);
+                   != DAccessCapability::read_only);
     D_RW_CHECK(access_capability_of<DRwString>::value
-                   != access_capability::write_only);
+                   != DAccessCapability::write_only);
     D_RW_CHECK(access_capability_of<DRwString>::value
-                   != access_capability::none);
+                   != DAccessCapability::none);
 
     return ok;
 }
@@ -166,11 +166,11 @@ bool tests_access_tag_of()
 
     // each capability yields its tag
     D_RW_STATIC_CHECK(
-        std::is_same<access_tag_of_t<DRwObserver>, read_only>::value);
+        std::is_same<access_tag_of_t<DRwObserver>, DReadOnly>::value);
     D_RW_STATIC_CHECK(
-        std::is_same<access_tag_of_t<DRwSink>, write_only>::value);
+        std::is_same<access_tag_of_t<DRwSink>, DWriteOnly>::value);
     D_RW_STATIC_CHECK(
-        std::is_same<access_tag_of_t<DRwBoth>, read_write>::value);
+        std::is_same<access_tag_of_t<DRwBoth>, DReadWrite>::value);
 
     // the member spelling agrees with the alias
     D_RW_STATIC_CHECK(
@@ -256,10 +256,10 @@ bool tests_access_tag_of_none_is_void()
     // the sentinel tracks the capability exactly
     D_RW_CHECK(std::is_same<access_tag_of_t<DRwInert>, void>::value
                    == ( access_capability_of<DRwInert>::value
-                            == access_capability::none ));
+                            == DAccessCapability::none ));
     D_RW_CHECK(std::is_same<access_tag_of_t<DRwSink>, void>::value
                    == ( access_capability_of<DRwSink>::value
-                            == access_capability::none ));
+                            == DAccessCapability::none ));
 
     return ok;
 }
@@ -282,16 +282,16 @@ bool tests_access_tag_round_trip()
 
     // a stamped carrier re-emits its own tag
     D_RW_STATIC_CHECK(
-        std::is_same<access_tag_of_t<DRwTagReadOnly>, read_only>::value);
+        std::is_same<access_tag_of_t<DRwTagReadOnly>, DReadOnly>::value);
     D_RW_STATIC_CHECK(
-        std::is_same<access_tag_of_t<DRwTagWriteOnly>, write_only>::value);
+        std::is_same<access_tag_of_t<DRwTagWriteOnly>, DWriteOnly>::value);
     D_RW_STATIC_CHECK(
-        std::is_same<access_tag_of_t<DRwTagReadWrite>, read_write>::value);
+        std::is_same<access_tag_of_t<DRwTagReadWrite>, DReadWrite>::value);
 
     // the tags are pairwise distinct
-    D_RW_STATIC_CHECK(std::is_same<read_only, write_only>::value == false);
-    D_RW_STATIC_CHECK(std::is_same<read_only, read_write>::value == false);
-    D_RW_STATIC_CHECK(std::is_same<write_only, read_write>::value == false);
+    D_RW_STATIC_CHECK(std::is_same<DReadOnly, DWriteOnly>::value == false);
+    D_RW_STATIC_CHECK(std::is_same<DReadOnly, DReadWrite>::value == false);
+    D_RW_STATIC_CHECK(std::is_same<DWriteOnly, DReadWrite>::value == false);
 
     // classify -> tag -> bits -> classify is the identity
     D_RW_CHECK(access_capability_from_bits(
@@ -344,18 +344,18 @@ bool tests_predicate_cv_ref()
 
     // the tag type survives qualification unchanged
     D_RW_STATIC_CHECK(
-        std::is_same<access_tag_of_t<const DRwVector>, read_write>::value);
+        std::is_same<access_tag_of_t<const DRwVector>, DReadWrite>::value);
     D_RW_STATIC_CHECK(
-        std::is_same<access_tag_of_t<volatile DRwVector>, read_write>::value);
+        std::is_same<access_tag_of_t<volatile DRwVector>, DReadWrite>::value);
     D_RW_STATIC_CHECK(
         std::is_same<access_tag_of_t<const volatile DRwVector&>,
-                     read_write>::value);
+                     DReadWrite>::value);
     D_RW_STATIC_CHECK(
-        std::is_same<access_tag_of_t<DRwVector&&>, read_write>::value);
+        std::is_same<access_tag_of_t<DRwVector&&>, DReadWrite>::value);
     D_RW_STATIC_CHECK(
-        std::is_same<access_tag_of_t<const DRwObserver&>, read_only>::value);
+        std::is_same<access_tag_of_t<const DRwObserver&>, DReadOnly>::value);
     D_RW_STATIC_CHECK(
-        std::is_same<access_tag_of_t<volatile DRwSink>, write_only>::value);
+        std::is_same<access_tag_of_t<volatile DRwSink>, DWriteOnly>::value);
     D_RW_STATIC_CHECK(
         std::is_same<access_tag_of_t<const DRwInert&>, void>::value);
 

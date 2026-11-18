@@ -31,7 +31,7 @@ tests_connection_default
 */
 bool tests_connection_default()
 {
-    connection c;
+    DConnection c;
 
     return (!c.connected());
 }
@@ -46,7 +46,7 @@ tests_connection_disconnect
 bool tests_connection_disconnect()
 {
     observer<void()> o;
-    connection c = o.connect([]() {});
+    DConnection c = o.connect([]() {});
 
     bool ok = (c.connected());
 
@@ -66,7 +66,7 @@ tests_connection_reset
 bool tests_connection_reset()
 {
     observer<void()> o;
-    connection c = o.connect([]() {});
+    DConnection c = o.connect([]() {});
 
     c.reset();
 
@@ -90,7 +90,7 @@ bool tests_scoped_connection_raii()
     observer<void()> o;
 
     {
-        scoped_connection sc = o.connect([]() {});
+        DScopedConnection sc = o.connect([]() {});
         if (o.count() != 1) { return false; }
     }
 
@@ -109,8 +109,8 @@ bool tests_scoped_connection_move_ctor()
     observer<void()> o;
 
     {
-        scoped_connection a = o.connect([]() {});
-        scoped_connection b = std::move(a);   // b now owns the guard
+        DScopedConnection a = o.connect([]() {});
+        DScopedConnection b = std::move(a);   // b now owns the guard
         if (o.count() != 1) { return false; }
     }   // b disconnects; a (moved-from) is inert
 
@@ -128,11 +128,11 @@ bool tests_scoped_connection_move_assign()
 {
     observer<void()> o;
 
-    connection first = o.connect([]() {});      // tracked below
-    connection second = o.connect([]() {});
+    DConnection first = o.connect([]() {});      // tracked below
+    DConnection second = o.connect([]() {});
 
-    scoped_connection guard{ first };
-    guard = scoped_connection{ second };        // first must be disconnected
+    DScopedConnection guard{ first };
+    guard = DScopedConnection{ second };        // first must be disconnected
 
     bool ok = true;
 
@@ -153,8 +153,8 @@ bool tests_scoped_connection_release()
     observer<void()> o;
 
     {
-        scoped_connection sc = o.connect([]() {});
-        connection kept = sc.release();
+        DScopedConnection sc = o.connect([]() {});
+        DConnection kept = sc.release();
         (void)kept;
     }   // guard destroyed, but it released -> no disconnect
 
@@ -169,7 +169,7 @@ tests_scoped_connection_default
 */
 bool tests_scoped_connection_default()
 {
-    scoped_connection sc;
+    DScopedConnection sc;
 
     return (!sc.connected());
 }
@@ -183,7 +183,7 @@ tests_scoped_connections_add
 bool tests_scoped_connections_add()
 {
     observer<void()> o;
-    scoped_connections group;
+    DScopedConnections group;
 
     group.add(o.connect([]() {}));
     group.add(o.connect([]() {}));
@@ -200,7 +200,7 @@ tests_scoped_connections_plus_equals
 bool tests_scoped_connections_plus_equals()
 {
     observer<void()> o;
-    scoped_connections group;
+    DScopedConnections group;
 
     group += o.connect([]() {});
     group += o.connect([]() {});
@@ -220,7 +220,7 @@ bool tests_scoped_connections_raii()
     observer<void()> o;
 
     {
-        scoped_connections group;
+        DScopedConnections group;
         group.add(o.connect([]() {}));
         group.add(o.connect([]() {}));
         group.add(o.connect([]() {}));

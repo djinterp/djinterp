@@ -43,18 +43,18 @@ bool tests_access_capability_enum()
     bool ok = true;
 
     // scoped
-    D_RW_STATIC_CHECK(std::is_enum<access_capability>::value == true);
+    D_RW_STATIC_CHECK(std::is_enum<DAccessCapability>::value == true);
     D_RW_STATIC_CHECK(
-        std::is_convertible<access_capability, int>::value == false);
+        std::is_convertible<DAccessCapability, int>::value == false);
 
     // the implicit ordinals
-    D_RW_CHECK(static_cast<int>(access_capability::none)       == 0);
-    D_RW_CHECK(static_cast<int>(access_capability::read_only)  == 1);
-    D_RW_CHECK(static_cast<int>(access_capability::write_only) == 2);
-    D_RW_CHECK(static_cast<int>(access_capability::read_write) == 3);
+    D_RW_CHECK(static_cast<int>(DAccessCapability::none)       == 0);
+    D_RW_CHECK(static_cast<int>(DAccessCapability::read_only)  == 1);
+    D_RW_CHECK(static_cast<int>(DAccessCapability::write_only) == 2);
+    D_RW_CHECK(static_cast<int>(DAccessCapability::read_write) == 3);
 
     // a value-initialised capability grants nothing
-    D_RW_CHECK(access_capability{} == access_capability::none);
+    D_RW_CHECK(DAccessCapability{} == DAccessCapability::none);
 
     // pairwise distinct, over the whole enum
     for (int i = 0; i < rw_capability_count; ++i)
@@ -70,9 +70,9 @@ bool tests_access_capability_enum()
 
     // usable as a non-type template argument
     D_RW_STATIC_CHECK(
-        std::integral_constant<access_capability,
-                               access_capability::read_write>::value
-            == access_capability::read_write);
+        std::integral_constant<DAccessCapability,
+                               DAccessCapability::read_write>::value
+            == DAccessCapability::read_write);
 
     return ok;
 }
@@ -93,10 +93,10 @@ bool tests_access_capability_name()
     bool ok = true;
 
     // each capability's spelling
-    D_RW_CHECK(rw_name_is(access_capability::none,       "none"));
-    D_RW_CHECK(rw_name_is(access_capability::read_only,  "read_only"));
-    D_RW_CHECK(rw_name_is(access_capability::write_only, "write_only"));
-    D_RW_CHECK(rw_name_is(access_capability::read_write, "read_write"));
+    D_RW_CHECK(rw_name_is(DAccessCapability::none,       "none"));
+    D_RW_CHECK(rw_name_is(DAccessCapability::read_only,  "read_only"));
+    D_RW_CHECK(rw_name_is(DAccessCapability::write_only, "write_only"));
+    D_RW_CHECK(rw_name_is(DAccessCapability::read_write, "read_write"));
 
     // pairwise distinct spellings
     for (int i = 0; i < rw_capability_count; ++i)
@@ -114,18 +114,18 @@ bool tests_access_capability_name()
 
     // constexpr
     D_RW_STATIC_CHECK(
-        access_capability_name(access_capability::none)[0] == 'n');
+        access_capability_name(DAccessCapability::none)[0] == 'n');
 
     // the classifier and the tags agree on spelling
     D_RW_CHECK(std::strcmp(
-                   access_capability_name(access_capability::read_only),
-                   read_only::name()) == 0);
+                   access_capability_name(DAccessCapability::read_only),
+                   DReadOnly::name()) == 0);
     D_RW_CHECK(std::strcmp(
-                   access_capability_name(access_capability::write_only),
-                   write_only::name()) == 0);
+                   access_capability_name(DAccessCapability::write_only),
+                   DWriteOnly::name()) == 0);
     D_RW_CHECK(std::strcmp(
-                   access_capability_name(access_capability::read_write),
-                   read_write::name()) == 0);
+                   access_capability_name(DAccessCapability::read_write),
+                   DReadWrite::name()) == 0);
 
     return ok;
 }
@@ -160,15 +160,15 @@ bool tests_access_capability_name_total()
     bool ok = true;
 
     // every value in range names a capability, and spells its own name
-    D_RW_CHECK(rw_name_is(static_cast<access_capability>(0), "none"));
-    D_RW_CHECK(rw_name_is(static_cast<access_capability>(1), "read_only"));
-    D_RW_CHECK(rw_name_is(static_cast<access_capability>(2), "write_only"));
-    D_RW_CHECK(rw_name_is(static_cast<access_capability>(3), "read_write"));
+    D_RW_CHECK(rw_name_is(static_cast<DAccessCapability>(0), "none"));
+    D_RW_CHECK(rw_name_is(static_cast<DAccessCapability>(1), "read_only"));
+    D_RW_CHECK(rw_name_is(static_cast<DAccessCapability>(2), "write_only"));
+    D_RW_CHECK(rw_name_is(static_cast<DAccessCapability>(3), "read_write"));
 
     // ... which is to say the range is exactly the enumerator set
     for (int v = 0; v < rw_capability_count; ++v)
     {
-        const access_capability c = static_cast<access_capability>(v);
+        const DAccessCapability c = static_cast<DAccessCapability>(v);
 
         D_RW_CHECK(c == rw_capability_at(v));
         D_RW_CHECK(std::strcmp(access_capability_name(c),
@@ -177,13 +177,13 @@ bool tests_access_capability_name_total()
     }
 
     // the fall-through is reached only by the capability it names
-    D_RW_CHECK(rw_name_is(access_capability::read_write, "read_write"));
-    D_RW_CHECK(static_cast<int>(access_capability::read_write)
+    D_RW_CHECK(rw_name_is(DAccessCapability::read_write, "read_write"));
+    D_RW_CHECK(static_cast<int>(DAccessCapability::read_write)
                    == rw_capability_count - 1);
 
     // the safe default is preserved
-    D_RW_CHECK(access_capability{} == access_capability::none);
-    D_RW_CHECK(rw_name_is(access_capability{}, "none"));
+    D_RW_CHECK(DAccessCapability{} == DAccessCapability::none);
+    D_RW_CHECK(rw_name_is(DAccessCapability{}, "none"));
 
     return ok;
 }
@@ -205,28 +205,28 @@ bool tests_access_capability_from_bits()
 
     // the whole function
     D_RW_CHECK(access_capability_from_bits(false, false)
-                   == access_capability::none);
+                   == DAccessCapability::none);
     D_RW_CHECK(access_capability_from_bits(true, false)
-                   == access_capability::read_only);
+                   == DAccessCapability::read_only);
     D_RW_CHECK(access_capability_from_bits(false, true)
-                   == access_capability::write_only);
+                   == DAccessCapability::write_only);
     D_RW_CHECK(access_capability_from_bits(true, true)
-                   == access_capability::read_write);
+                   == DAccessCapability::read_write);
 
     // constexpr
     D_RW_STATIC_CHECK(access_capability_from_bits(true, true)
-                          == access_capability::read_write);
+                          == DAccessCapability::read_write);
     D_RW_STATIC_CHECK(access_capability_from_bits(false, false)
-                          == access_capability::none);
+                          == DAccessCapability::none);
 
     // injective: four inputs, four distinct outputs
     for (int i = 0; i < 4; ++i)
     {
         for (int j = 0; j < 4; ++j)
         {
-            const access_capability a =
+            const DAccessCapability a =
                 access_capability_from_bits((i & 1) != 0, (i & 2) != 0);
-            const access_capability b =
+            const DAccessCapability b =
                 access_capability_from_bits((j & 1) != 0, (j & 2) != 0);
 
             D_RW_CHECK((a == b) == (i == j));
@@ -270,37 +270,37 @@ bool tests_access_capability_of()
 
     // reached structurally
     D_RW_CHECK(access_capability_of<DRwInert>::value
-                   == access_capability::none);
+                   == DAccessCapability::none);
     D_RW_CHECK(access_capability_of<DRwMetadataOnly>::value
-                   == access_capability::none);
+                   == DAccessCapability::none);
     D_RW_CHECK(access_capability_of<DRwObserver>::value
-                   == access_capability::read_only);
+                   == DAccessCapability::read_only);
     D_RW_CHECK(access_capability_of<DRwWriteConstIndex>::value
-                   == access_capability::read_only);
+                   == DAccessCapability::read_only);
     D_RW_CHECK(access_capability_of<DRwSink>::value
-                   == access_capability::write_only);
+                   == DAccessCapability::write_only);
     D_RW_CHECK(access_capability_of<DRwWriteClear>::value
-                   == access_capability::write_only);
+                   == DAccessCapability::write_only);
     D_RW_CHECK(access_capability_of<DRwBoth>::value
-                   == access_capability::read_write);
+                   == DAccessCapability::read_write);
     D_RW_CHECK(access_capability_of<DRwVector>::value
-                   == access_capability::read_write);
+                   == DAccessCapability::read_write);
 
     // reached through a tag
     D_RW_CHECK(access_capability_of<DRwTagNoneBits>::value
-                   == access_capability::none);
+                   == DAccessCapability::none);
     D_RW_CHECK(access_capability_of<DRwTagReadOnly>::value
-                   == access_capability::read_only);
+                   == DAccessCapability::read_only);
     D_RW_CHECK(access_capability_of<DRwTagWriteOnly>::value
-                   == access_capability::write_only);
+                   == DAccessCapability::write_only);
     D_RW_CHECK(access_capability_of<DRwTagReadWrite>::value
-                   == access_capability::read_write);
+                   == DAccessCapability::read_write);
 
     // non-containers
     D_RW_CHECK(access_capability_of<DRwPair>::value
-                   == access_capability::none);
-    D_RW_CHECK(access_capability_of<int>::value  == access_capability::none);
-    D_RW_CHECK(access_capability_of<void>::value == access_capability::none);
+                   == DAccessCapability::none);
+    D_RW_CHECK(access_capability_of<int>::value  == DAccessCapability::none);
+    D_RW_CHECK(access_capability_of<void>::value == DAccessCapability::none);
 
     return ok;
 }
@@ -378,17 +378,17 @@ bool tests_access_capability_cv_ref()
     bool ok = true;
 
     D_RW_CV_REF_AGREE(access_capability_of, DRwVector,
-                      access_capability::read_write);
+                      DAccessCapability::read_write);
     D_RW_CV_REF_AGREE(access_capability_of, DRwSet,
-                      access_capability::read_write);
+                      DAccessCapability::read_write);
     D_RW_CV_REF_AGREE(access_capability_of, DRwObserver,
-                      access_capability::read_only);
+                      DAccessCapability::read_only);
     D_RW_CV_REF_AGREE(access_capability_of, DRwSink,
-                      access_capability::write_only);
+                      DAccessCapability::write_only);
     D_RW_CV_REF_AGREE(access_capability_of, DRwInert,
-                      access_capability::none);
+                      DAccessCapability::none);
     D_RW_CV_REF_AGREE(access_capability_of, DRwTagReadOnly,
-                      access_capability::read_only);
+                      DAccessCapability::read_only);
 
     // the members, spelled out
     D_RW_CHECK(access_capability_of<volatile DRwSink>::can_write
@@ -400,7 +400,7 @@ bool tests_access_capability_cv_ref()
                    == access_capability_of<
                           DRwTagReadOnly>::has_capability_tag);
     D_RW_CHECK(access_capability_of<DRwVector&&>::value
-                   == access_capability::read_write);
+                   == DAccessCapability::read_write);
 
     return ok;
 }
@@ -424,23 +424,23 @@ bool tests_access_capability_companions()
     D_RW_STATIC_CHECK(
         std::is_same<access_capability_of_t<DRwVector>,
                      std::integral_constant<
-                         access_capability,
-                         access_capability::read_write> >::value);
+                         DAccessCapability,
+                         DAccessCapability::read_write> >::value);
     D_RW_STATIC_CHECK(
         std::is_same<access_capability_of_t<DRwObserver>,
                      std::integral_constant<
-                         access_capability,
-                         access_capability::read_only> >::value);
+                         DAccessCapability,
+                         DAccessCapability::read_only> >::value);
     D_RW_STATIC_CHECK(
         std::is_same<access_capability_of_t<DRwSink>,
                      std::integral_constant<
-                         access_capability,
-                         access_capability::write_only> >::value);
+                         DAccessCapability,
+                         DAccessCapability::write_only> >::value);
     D_RW_STATIC_CHECK(
         std::is_same<access_capability_of_t<DRwInert>,
                      std::integral_constant<
-                         access_capability,
-                         access_capability::none> >::value);
+                         DAccessCapability,
+                         DAccessCapability::none> >::value);
 
     // ... and carries the value the trait reports
     D_RW_CHECK(access_capability_of_t<DRwSet>::value
@@ -450,12 +450,12 @@ bool tests_access_capability_companions()
 
     // usable in a constant expression
     D_RW_STATIC_CHECK(access_capability_of<DRwVector>::value
-                          == access_capability::read_write);
+                          == DAccessCapability::read_write);
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
     D_RW_STATIC_CHECK(access_capability_of_v<DRwSink>
-                          == access_capability::write_only);
+                          == DAccessCapability::write_only);
 
     D_RW_CHECK(access_capability_of_v<DRwVector>
                    == access_capability_of<DRwVector>::value);

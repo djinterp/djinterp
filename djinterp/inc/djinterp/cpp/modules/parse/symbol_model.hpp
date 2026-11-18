@@ -13,7 +13,7 @@
 * Contents:
 *   - source_location   a located span of source text
 *   - symbol_data       payload for the parser's symbol tree
-*   - symbol_tree       arena<symbol_data>
+*   - symbol_tree       DNodeArena<symbol_data>
 *
 * Design -- qualifier field:
 *   symbol_data carries a uint64_t `qualifiers` field whose bit positions
@@ -197,7 +197,7 @@ struct symbol_data
 //   typedef: the arena the parser allocates symbol_data into.
 //   `arena` is the flat core container template (arena/arena.hpp),
 //   reached unqualified from djinterp::parse.
-typedef arena<symbol_data>  symbol_tree;
+typedef DNodeArena<symbol_data>  symbol_tree;
 
 
 NS_END  // parse

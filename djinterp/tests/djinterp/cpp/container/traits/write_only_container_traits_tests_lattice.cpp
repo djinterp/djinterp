@@ -51,33 +51,33 @@ bool tests_write_only_delegates()
     // the predicate is the baseline's verdict, restated
     D_WO_CHECK(is_write_only_container<DWoSink>::value
                    == ( access_capability_of<DWoSink>::value
-                            == access_capability::write_only ));
+                            == DAccessCapability::write_only ));
     D_WO_CHECK(is_write_only_container<DWoObserver>::value
                    == ( access_capability_of<DWoObserver>::value
-                            == access_capability::write_only ));
+                            == DAccessCapability::write_only ));
     D_WO_CHECK(is_write_only_container<DWoBoth>::value
                    == ( access_capability_of<DWoBoth>::value
-                            == access_capability::write_only ));
+                            == DAccessCapability::write_only ));
     D_WO_CHECK(is_write_only_container<DWoInert>::value
                    == ( access_capability_of<DWoInert>::value
-                            == access_capability::write_only ));
+                            == DAccessCapability::write_only ));
     D_WO_CHECK(is_write_only_container<DWoVector>::value
                    == ( access_capability_of<DWoVector>::value
-                            == access_capability::write_only ));
+                            == DAccessCapability::write_only ));
     D_WO_CHECK(is_write_only_container<DWoSet>::value
                    == ( access_capability_of<DWoSet>::value
-                            == access_capability::write_only ));
+                            == DAccessCapability::write_only ));
     D_WO_CHECK(is_write_only_container<DWoPair>::value
                    == ( access_capability_of<DWoPair>::value
-                            == access_capability::write_only ));
+                            == DAccessCapability::write_only ));
 
     // where the two signals contradict one another
     D_WO_CHECK(is_write_only_container<DWoTaggedOverride>::value
                    == ( access_capability_of<DWoTaggedOverride>::value
-                            == access_capability::write_only ));
+                            == DAccessCapability::write_only ));
     D_WO_CHECK(is_write_only_container<DWoTaggedElsewhere>::value
                    == ( access_capability_of<DWoTaggedElsewhere>::value
-                            == access_capability::write_only ));
+                            == DAccessCapability::write_only ));
 
     // ... and the two carriers land on opposite verdicts, so the agreement
     // above is not vacuous
@@ -94,7 +94,7 @@ bool tests_write_only_delegates()
     // agreement on the non-const-accessor reading
     D_WO_CHECK(is_write_only_container<DWoNonconstObserver>::value
                    == ( access_capability_of<DWoNonconstObserver>::value
-                            == access_capability::write_only ));
+                            == DAccessCapability::write_only ));
 
     return ok;
 }
@@ -144,7 +144,7 @@ bool tests_write_only_metadata_exclusion()
     D_WO_CHECK(is_write_only_container<DWoSinkWithObserver>::value
                    == false);
     D_WO_CHECK(access_capability_of<DWoSinkWithObserver>::value
-                   == access_capability::read_write);
+                   == DAccessCapability::read_write);
     D_WO_CHECK(internal::has_read_surface<DWoSinkWithObserver>::value
                    == true);
 
@@ -162,7 +162,7 @@ bool tests_write_only_metadata_exclusion()
     D_WO_CHECK(internal::has_read_surface<DWoMetadataOnly>::value  == false);
     D_WO_CHECK(internal::has_write_surface<DWoMetadataOnly>::value == false);
     D_WO_CHECK(access_capability_of<DWoMetadataOnly>::value
-                   == access_capability::none);
+                   == DAccessCapability::none);
     D_WO_CHECK(is_write_only_container<DWoMetadataOnly>::value == false);
 
     return ok;
@@ -202,21 +202,21 @@ bool tests_write_only_lattice_exclusivity()
     // never both write_only and read_only
     D_WO_CHECK(!( is_write_only_container<DWoSink>::value
                   && ( access_capability_of<DWoSink>::value
-                           == access_capability::read_only ) ));
+                           == DAccessCapability::read_only ) ));
     D_WO_CHECK(!( is_write_only_container<DWoObserver>::value
                   && ( access_capability_of<DWoObserver>::value
-                           == access_capability::read_only ) ));
+                           == DAccessCapability::read_only ) ));
     D_WO_CHECK(!( is_write_only_container<DWoTaggedElsewhere>::value
                   && ( access_capability_of<DWoTaggedElsewhere>::value
-                           == access_capability::read_only ) ));
+                           == DAccessCapability::read_only ) ));
 
     // each verdict is reached somewhere
     D_WO_CHECK(is_write_only_container<DWoSink>::value == true);
     D_WO_CHECK(is_read_write_container<DWoBoth>::value == true);
     D_WO_CHECK(access_capability_of<DWoObserver>::value
-                   == access_capability::read_only);
+                   == DAccessCapability::read_only);
     D_WO_CHECK(access_capability_of<DWoInert>::value
-                   == access_capability::none);
+                   == DAccessCapability::none);
 
     // exactly one capability per carrier
     D_WO_CHECK(   ( static_cast<int>(
@@ -225,7 +225,7 @@ bool tests_write_only_lattice_exclusivity()
                         is_read_write_container<DWoSink>::value )
                   + static_cast<int>(
                         access_capability_of<DWoSink>::value
-                            == access_capability::read_only ) )
+                            == DAccessCapability::read_only ) )
                == 1);
     D_WO_CHECK(   ( static_cast<int>(
                         is_write_only_container<DWoInert>::value )
@@ -233,7 +233,7 @@ bool tests_write_only_lattice_exclusivity()
                         is_read_write_container<DWoInert>::value )
                   + static_cast<int>(
                         access_capability_of<DWoInert>::value
-                            == access_capability::read_only ) )
+                            == DAccessCapability::read_only ) )
                == 0);
 
     return ok;
@@ -280,10 +280,10 @@ bool tests_write_only_is_not_complement()
 
     // nor is it the negation of read_only
     D_WO_CHECK(   ( ( access_capability_of<DWoVector>::value
-                          == access_capability::read_only ) == false )
+                          == DAccessCapability::read_only ) == false )
                && ( is_write_only_container<DWoVector>::value == false ));
     D_WO_CHECK(   ( ( access_capability_of<DWoInert>::value
-                          == access_capability::read_only ) == false )
+                          == DAccessCapability::read_only ) == false )
                && ( is_write_only_container<DWoInert>::value == false ));
 
     // the implication that DOES hold, in one direction only
@@ -381,21 +381,21 @@ bool tests_write_only_tag_agreement()
     bool ok = true;
 
     // the tag is write_only exactly when the predicate holds
-    D_WO_CHECK(std::is_same<access_tag_of_t<DWoSink>, write_only>::value
+    D_WO_CHECK(std::is_same<access_tag_of_t<DWoSink>, DWriteOnly>::value
                    == is_write_only_container<DWoSink>::value);
     D_WO_CHECK(std::is_same<access_tag_of_t<DWoSinkView>,
-                            write_only>::value
+                            DWriteOnly>::value
                    == is_write_only_container<DWoSinkView>::value);
     D_WO_CHECK(std::is_same<access_tag_of_t<DWoTaggedOverride>,
-                            write_only>::value
+                            DWriteOnly>::value
                    == is_write_only_container<DWoTaggedOverride>::value);
-    D_WO_CHECK(std::is_same<access_tag_of_t<DWoObserver>, write_only>::value
+    D_WO_CHECK(std::is_same<access_tag_of_t<DWoObserver>, DWriteOnly>::value
                    == is_write_only_container<DWoObserver>::value);
-    D_WO_CHECK(std::is_same<access_tag_of_t<DWoBoth>, write_only>::value
+    D_WO_CHECK(std::is_same<access_tag_of_t<DWoBoth>, DWriteOnly>::value
                    == is_write_only_container<DWoBoth>::value);
-    D_WO_CHECK(std::is_same<access_tag_of_t<DWoInert>, write_only>::value
+    D_WO_CHECK(std::is_same<access_tag_of_t<DWoInert>, DWriteOnly>::value
                    == is_write_only_container<DWoInert>::value);
-    D_WO_CHECK(std::is_same<access_tag_of_t<DWoVector>, write_only>::value
+    D_WO_CHECK(std::is_same<access_tag_of_t<DWoVector>, DWriteOnly>::value
                    == is_write_only_container<DWoVector>::value);
 
     // the tag's bits match the classification
@@ -408,9 +408,9 @@ bool tests_write_only_tag_agreement()
 
     // the other capabilities re-emit something else
     D_WO_STATIC_CHECK(
-        std::is_same<access_tag_of_t<DWoObserver>, read_only>::value);
+        std::is_same<access_tag_of_t<DWoObserver>, DReadOnly>::value);
     D_WO_STATIC_CHECK(
-        std::is_same<access_tag_of_t<DWoBoth>, read_write>::value);
+        std::is_same<access_tag_of_t<DWoBoth>, DReadWrite>::value);
     D_WO_STATIC_CHECK(std::is_same<access_tag_of_t<DWoInert>, void>::value);
 
     return ok;

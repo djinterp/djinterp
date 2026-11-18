@@ -172,14 +172,14 @@ struct option_ct_value : internal::option_ct_value_impl<clean_t<Option>>
 // II.  apply outcome
 // ===========================================================================
 
-// option_apply_status
+// DOptionApplyStatus
 //   enum: how applying one option resolved.
 //     updated -- the key was present; its value column was written.
 //     inserted -- the key was absent; a new entry was established.
 //     located -- key-only application; the key was present (nothing written).
 //     absent -- the key was absent and could not be established (no runtime
 //                 value, or the record is not constructible from key + value).
-enum class option_apply_status
+enum class DOptionApplyStatus
 {
     updated,
     inserted,
@@ -187,14 +187,21 @@ enum class option_apply_status
     absent
 };
 
-// option_apply_result
+// old name, until 0.9.0-rc.1
+using option_apply_status = DOptionApplyStatus;
+
+// DOptionApplyResult
 //   struct: the status plus the entry's index afterwards (npos when absent).
 template<typename SizeType = std::size_t>
-struct option_apply_result
+struct DOptionApplyResult
 {
-    option_apply_status status;
+    DOptionApplyStatus status;
     SizeType            index;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename SizeType = std::size_t>
+using option_apply_result = DOptionApplyResult<SizeType>;
 
 
 // ===========================================================================
@@ -212,7 +219,7 @@ struct option_apply_result
 template<typename Reg,
          typename Key,
          typename Value>
-option_apply_result<typename Reg::size_type> apply_option(
+DOptionApplyResult<typename Reg::size_type> apply_option(
     Reg&         _reg,
     const Key&   _key,
     const Value& _value,
@@ -237,8 +244,8 @@ option_apply_result<typename Reg::size_type> apply_option(
     {
         _reg.set(k, static_cast<typename Reg::mapped_type>(_value));
 
-        return option_apply_result<size_type>{
-            option_apply_status::updated, _reg.index_of(k) };
+        return DOptionApplyResult<size_type>{
+            DOptionApplyStatus::updated, _reg.index_of(k) };
     }
 
     // absent -> establish the entry when the record is (key, value)-shaped
@@ -248,13 +255,13 @@ option_apply_result<typename Reg::size_type> apply_option(
         {
             const size_type pos = _reg.insert(k, _value);
 
-            return option_apply_result<size_type>{
-                option_apply_status::inserted, pos };
+            return DOptionApplyResult<size_type>{
+                DOptionApplyStatus::inserted, pos };
         }
     }
 
-    return option_apply_result<size_type>{
-        option_apply_status::absent, _reg.npos };
+    return DOptionApplyResult<size_type>{
+        DOptionApplyStatus::absent, _reg.npos };
 }
 
 
@@ -264,7 +271,7 @@ option_apply_result<typename Reg::size_type> apply_option(
 // record). The meaning of applying a unary / presence option.
 template<typename Reg,
          typename Key>
-option_apply_result<typename Reg::size_type> apply_key(
+DOptionApplyResult<typename Reg::size_type> apply_key(
     Reg&       _reg,
     const Key& _key,
     bool       _insert_if_absent = true
@@ -282,8 +289,8 @@ option_apply_result<typename Reg::size_type> apply_key(
 
     if (_reg.contains(k))
     {
-        return option_apply_result<size_type>{
-            option_apply_status::located, _reg.index_of(k) };
+        return DOptionApplyResult<size_type>{
+            DOptionApplyStatus::located, _reg.index_of(k) };
     }
 
     if (_insert_if_absent)
@@ -294,13 +301,13 @@ option_apply_result<typename Reg::size_type> apply_key(
         {
             const size_type pos = _reg.insert(k, mapped_type{});
 
-            return option_apply_result<size_type>{
-                option_apply_status::inserted, pos };
+            return DOptionApplyResult<size_type>{
+                DOptionApplyStatus::inserted, pos };
         }
     }
 
-    return option_apply_result<size_type>{
-        option_apply_status::absent, _reg.npos };
+    return DOptionApplyResult<size_type>{
+        DOptionApplyStatus::absent, _reg.npos };
 }
 
 
@@ -309,7 +316,7 @@ option_apply_result<typename Reg::size_type> apply_key(
 template<typename Reg,
          typename Key,
          typename Value>
-option_apply_result<typename Reg::size_type> apply_option(
+DOptionApplyResult<typename Reg::size_type> apply_option(
     Reg&                       _reg,
     const DKvPair<Key, Value>& _pair,
     bool                       _insert_if_absent = true
@@ -325,7 +332,7 @@ option_apply_result<typename Reg::size_type> apply_option(
 template<typename    Reg,
          auto        Key,
          typename... Args>
-option_apply_result<typename Reg::size_type>
+DOptionApplyResult<typename Reg::size_type>
 apply_option(
     Reg&                  _reg,
     option<Key, Args...> /*_option*/,
@@ -474,7 +481,7 @@ template<std::size_t J,
          typename    Reg,
          typename    Key,
          typename    Value>
-update_result
+DUpdateResult
 place_at(
     Reg&         _reg,
     const Key&   _key,

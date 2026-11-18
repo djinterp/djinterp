@@ -33,17 +33,17 @@ bool tests_discipline_equivalent()
 {
     bool ok = true;
 
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (discipline_relation<DRuntimeSeq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (discipline_relation<DUniqueSeq, DUniqueSeq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (discipline_relation<DSortedSeq, DSortedSeq>::value));
 
     // different types, same overlay
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (discipline_relation<DNestedSeq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (discipline_relation<DRuntimeSeq, DNestedSeq>::value));
 
     // it IS mutual subsumption, restated
@@ -54,7 +54,7 @@ bool tests_discipline_equivalent()
 
     // the two multiset kinds are NOT discipline-equal, though they share a content
     // rung: DBoundedBag's multiplicity is strictly tighter
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (discipline_relation<DBoundedBag, DUnboundedBag>::value));
 
     // A SECOND FINDING.  An UNBOUNDED MULTISET and a SEQUENCE are DISCIPLINE-EQUAL.
@@ -78,21 +78,21 @@ bool tests_discipline_equivalent()
     //   The rank is doing two jobs - ordering the bounds AND separating the kinds -
     // and it can only do one.  A second component (has_equivalence) in
     // overlay_subsumes would separate them; a rank alone cannot.
-    D_CCM_CHECK(multiplicity_kind_rank(multiplicity_kind::sequence) ==
-                multiplicity_kind_rank(multiplicity_kind::unbounded_multiset));
+    D_CCM_CHECK(multiplicity_kind_rank(DMultiplicityKind::sequence) ==
+                multiplicity_kind_rank(DMultiplicityKind::unbounded_multiset));
     D_CCM_CHECK(overlay_of<DUnboundedBag>::mult !=
                 overlay_of<DRuntimeSeq>::mult);
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (discipline_relation<DUnboundedBag, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (discipline_relation<DRuntimeSeq, DUnboundedBag>::value));
 
     // ...and their CONTENT rungs do differ, so the information is not lost - it is
     // simply not on the discipline axis
     D_CCM_CHECK((native_content_level_of<DUnboundedBag>::value ==
-                 content_level::bag));
+                 DContentLevel::bag));
     D_CCM_CHECK((native_content_level_of<DRuntimeSeq>::value ==
-                 content_level::seq));
+                 DContentLevel::seq));
 
     return ok;
 }
@@ -122,15 +122,15 @@ bool tests_discipline_ordered()
         D_CCM_REL(ccm_dual(EXPECTED), (discipline_relation<RIGHT, LEFT>::value))
 
     // a tighter multiplicity: the chain unique < bag < sequence, by rank
-    D_CCM_DISC(order_relation::greater, DUniqueSeq,   DBoundedBag);
-    D_CCM_DISC(order_relation::greater, DBoundedBag,  DRuntimeSeq);
-    D_CCM_DISC(order_relation::greater, DUniqueSeq,   DRuntimeSeq);
-    D_CCM_DISC(order_relation::greater, DUniqueSeq,   DUnboundedBag);
+    D_CCM_DISC(DOrderRelation::greater, DUniqueSeq,   DBoundedBag);
+    D_CCM_DISC(DOrderRelation::greater, DBoundedBag,  DRuntimeSeq);
+    D_CCM_DISC(DOrderRelation::greater, DUniqueSeq,   DRuntimeSeq);
+    D_CCM_DISC(DOrderRelation::greater, DUniqueSeq,   DUnboundedBag);
 
     // a superset of flags, at the same multiplicity
-    D_CCM_DISC(order_relation::greater, DSortedSeq,   DRuntimeSeq);
-    D_CCM_DISC(order_relation::greater, DCapacitySeq, DRuntimeSeq);
-    D_CCM_DISC(order_relation::greater, DKeyedSeq,    DRuntimeSeq);
+    D_CCM_DISC(DOrderRelation::greater, DSortedSeq,   DRuntimeSeq);
+    D_CCM_DISC(DOrderRelation::greater, DCapacitySeq, DRuntimeSeq);
+    D_CCM_DISC(DOrderRelation::greater, DKeyedSeq,    DRuntimeSeq);
 
     #undef D_CCM_DISC
 
@@ -174,9 +174,9 @@ bool tests_discipline_incomparable()
     bool ok = true;
 
     #define D_CCM_DISC_IC(LEFT, RIGHT)                                        \
-        D_CCM_REL(order_relation::incomparable,                               \
+        D_CCM_REL(DOrderRelation::incomparable,                               \
                   (discipline_relation<LEFT, RIGHT>::value));                 \
-        D_CCM_REL(order_relation::incomparable,                               \
+        D_CCM_REL(DOrderRelation::incomparable,                               \
                   (discipline_relation<RIGHT, LEFT>::value))
 
     // different flags, same multiplicity
@@ -257,27 +257,27 @@ bool tests_discipline_non_container()
     bool ok = true;
 
     // THE FINDING
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (discipline_relation<DNotAContainer, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (discipline_relation<int, std_set>::value));
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (discipline_relation<void, std_vector>::value));
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (discipline_relation<fixtures::empty, DUniqueSeq>::value));
 
     // ...and the same statement backwards: the CONTAINER is the weaker
-    D_CCM_REL(order_relation::less,
+    D_CCM_REL(DOrderRelation::less,
               (discipline_relation<std_set, int>::value));
-    D_CCM_REL(order_relation::less,
+    D_CCM_REL(DOrderRelation::less,
               (discipline_relation<DRuntimeSeq, DNotAContainer>::value));
 
     // THE MECHANISM, component by component
-    D_CCM_CHECK(overlay_of<DNotAContainer>::mult == multiplicity_kind::unknown);
-    D_CCM_CHECK(multiplicity_kind_rank(multiplicity_kind::unknown) == -1);
-    D_CCM_CHECK(multiplicity_kind_rank(multiplicity_kind::unique) == 0);
-    D_CCM_CHECK(multiplicity_kind_rank(multiplicity_kind::unknown) <
-                multiplicity_kind_rank(multiplicity_kind::unique));
+    D_CCM_CHECK(overlay_of<DNotAContainer>::mult == DMultiplicityKind::unknown);
+    D_CCM_CHECK(multiplicity_kind_rank(DMultiplicityKind::unknown) == -1);
+    D_CCM_CHECK(multiplicity_kind_rank(DMultiplicityKind::unique) == 0);
+    D_CCM_CHECK(multiplicity_kind_rank(DMultiplicityKind::unknown) <
+                multiplicity_kind_rank(DMultiplicityKind::unique));
 
     // the non-container bears no flags, so every flag clause is vacuous
     D_CCM_CHECK(!overlay_of<DNotAContainer>::keyed);
@@ -293,15 +293,15 @@ bool tests_discipline_non_container()
 
     // TWO non-containers are of course discipline-equal, which is the one row of
     // the finding that is not embarrassing
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (discipline_relation<int, void>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (discipline_relation<DNotAContainer, fixtures::empty>::value));
 
     // WHAT SAVES IT, usually: a non-container cannot be traversed
-    D_CCM_REL(order_relation::less,
+    D_CCM_REL(DOrderRelation::less,
               (DIterabilityRelation<DNotAContainer, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::incomparable,
+    D_CCM_REL(DOrderRelation::incomparable,
               (refinement_of<DNotAContainer, DRuntimeSeq>::value));
 
     return ok;

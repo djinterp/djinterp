@@ -22,7 +22,7 @@ template<DSerialEndian _E,
          typename       _Type>
 static
 DDecodeResult<_Type> dl(
-    const byte_string& _bytes
+    const DByteString& _bytes
 )
 {
     DByteReader _r(_bytes);
@@ -40,12 +40,12 @@ tests_decode_options_leaf_bool
 */
 bool tests_decode_options_leaf_bool()
 {
-    D_DO_CHECK((dl<DSerialEndian::big, bool>(byte_string{ 0x01 }).value == true));
-    D_DO_CHECK((dl<DSerialEndian::big, bool>(byte_string{ 0x00 }).value == false));
-    D_DO_CHECK((dl<DSerialEndian::little, bool>(byte_string{ 0x01 }).value == true));
-    D_DO_CHECK((dl<DSerialEndian::little, bool>(byte_string{ 0x00 }).value == false));
+    D_DO_CHECK((dl<DSerialEndian::big, bool>(DByteString{ 0x01 }).value == true));
+    D_DO_CHECK((dl<DSerialEndian::big, bool>(DByteString{ 0x00 }).value == false));
+    D_DO_CHECK((dl<DSerialEndian::little, bool>(DByteString{ 0x01 }).value == true));
+    D_DO_CHECK((dl<DSerialEndian::little, bool>(DByteString{ 0x00 }).value == false));
 
-    const byte_string _b = { 0x01 };
+    const DByteString _b = { 0x01 };
     DByteReader _r(_b);
     DDecodeResult<bool> _res = decode_leaf<DSerialEndian::big, bool>(_r);
     D_DO_CHECK(_res.ok);
@@ -66,20 +66,20 @@ tests_decode_options_leaf_integrals
 bool tests_decode_options_leaf_integrals()
 {
     // unsigned, both orders yield the same value
-    D_DO_CHECK((dl<DSerialEndian::big, re_std::uint16_t>(byte_string{ 0x12, 0x34 }).value == 0x1234u));
-    D_DO_CHECK((dl<DSerialEndian::little, re_std::uint16_t>(byte_string{ 0x34, 0x12 }).value == 0x1234u));
-    D_DO_CHECK((dl<DSerialEndian::big, re_std::uint32_t>(byte_string{ 0xDE, 0xAD, 0xBE, 0xEF }).value == 0xDEADBEEFu));
-    D_DO_CHECK((dl<DSerialEndian::little, re_std::uint32_t>(byte_string{ 0xEF, 0xBE, 0xAD, 0xDE }).value == 0xDEADBEEFu));
+    D_DO_CHECK((dl<DSerialEndian::big, re_std::uint16_t>(DByteString{ 0x12, 0x34 }).value == 0x1234u));
+    D_DO_CHECK((dl<DSerialEndian::little, re_std::uint16_t>(DByteString{ 0x34, 0x12 }).value == 0x1234u));
+    D_DO_CHECK((dl<DSerialEndian::big, re_std::uint32_t>(DByteString{ 0xDE, 0xAD, 0xBE, 0xEF }).value == 0xDEADBEEFu));
+    D_DO_CHECK((dl<DSerialEndian::little, re_std::uint32_t>(DByteString{ 0xEF, 0xBE, 0xAD, 0xDE }).value == 0xDEADBEEFu));
 
     // signed
-    D_DO_CHECK((dl<DSerialEndian::big, re_std::int16_t>(byte_string{ 0xFF, 0xFE }).value == static_cast<re_std::int16_t>(-2)));
-    D_DO_CHECK((dl<DSerialEndian::little, re_std::int16_t>(byte_string{ 0xFE, 0xFF }).value == static_cast<re_std::int16_t>(-2)));
-    D_DO_CHECK((dl<DSerialEndian::big, re_std::int32_t>(byte_string{ 0x80, 0x00, 0x00, 0x00 }).value == (-2147483647 - 1)));
-    D_DO_CHECK((dl<DSerialEndian::little, re_std::int32_t>(byte_string{ 0x00, 0x00, 0x00, 0x80 }).value == (-2147483647 - 1)));
+    D_DO_CHECK((dl<DSerialEndian::big, re_std::int16_t>(DByteString{ 0xFF, 0xFE }).value == static_cast<re_std::int16_t>(-2)));
+    D_DO_CHECK((dl<DSerialEndian::little, re_std::int16_t>(DByteString{ 0xFE, 0xFF }).value == static_cast<re_std::int16_t>(-2)));
+    D_DO_CHECK((dl<DSerialEndian::big, re_std::int32_t>(DByteString{ 0x80, 0x00, 0x00, 0x00 }).value == (-2147483647 - 1)));
+    D_DO_CHECK((dl<DSerialEndian::little, re_std::int32_t>(DByteString{ 0x00, 0x00, 0x00, 0x80 }).value == (-2147483647 - 1)));
 
     // one byte, order-invariant
-    D_DO_CHECK((dl<DSerialEndian::big, re_std::uint8_t>(byte_string{ 0xFF }).value == 0xFFu));
-    D_DO_CHECK((dl<DSerialEndian::little, re_std::uint8_t>(byte_string{ 0xFF }).value == 0xFFu));
+    D_DO_CHECK((dl<DSerialEndian::big, re_std::uint8_t>(DByteString{ 0xFF }).value == 0xFFu));
+    D_DO_CHECK((dl<DSerialEndian::little, re_std::uint8_t>(DByteString{ 0xFF }).value == 0xFFu));
 
     return true;
 }
@@ -93,11 +93,11 @@ tests_decode_options_leaf_enums
 */
 bool tests_decode_options_leaf_enums()
 {
-    D_DO_CHECK((dl<DSerialEndian::big, DDoEnumU16>(byte_string{ 0x12, 0x34 }).value == DDoEnumU16::value));
-    D_DO_CHECK((dl<DSerialEndian::little, DDoEnumU16>(byte_string{ 0x34, 0x12 }).value == DDoEnumU16::value));
+    D_DO_CHECK((dl<DSerialEndian::big, DDoEnumU16>(DByteString{ 0x12, 0x34 }).value == DDoEnumU16::value));
+    D_DO_CHECK((dl<DSerialEndian::little, DDoEnumU16>(DByteString{ 0x34, 0x12 }).value == DDoEnumU16::value));
 
-    D_DO_CHECK((dl<DSerialEndian::big, DDoEnumI32>(byte_string{ 0xFF, 0xFE, 0x1D, 0xC0 }).value == DDoEnumI32::value));
-    D_DO_CHECK((dl<DSerialEndian::little, DDoEnumI32>(byte_string{ 0xC0, 0x1D, 0xFE, 0xFF }).value == DDoEnumI32::value));
+    D_DO_CHECK((dl<DSerialEndian::big, DDoEnumI32>(DByteString{ 0xFF, 0xFE, 0x1D, 0xC0 }).value == DDoEnumI32::value));
+    D_DO_CHECK((dl<DSerialEndian::little, DDoEnumI32>(DByteString{ 0xC0, 0x1D, 0xFE, 0xFF }).value == DDoEnumI32::value));
 
     return true;
 }
@@ -112,11 +112,11 @@ tests_decode_options_leaf_floating
 */
 bool tests_decode_options_leaf_floating()
 {
-    D_DO_CHECK((dl<DSerialEndian::big, float>(byte_string{ 0x3F, 0x80, 0x00, 0x00 }).value == 1.0f));
-    D_DO_CHECK((dl<DSerialEndian::little, float>(byte_string{ 0x00, 0x00, 0x80, 0x3F }).value == 1.0f));
+    D_DO_CHECK((dl<DSerialEndian::big, float>(DByteString{ 0x3F, 0x80, 0x00, 0x00 }).value == 1.0f));
+    D_DO_CHECK((dl<DSerialEndian::little, float>(DByteString{ 0x00, 0x00, 0x80, 0x3F }).value == 1.0f));
 
-    D_DO_CHECK((dl<DSerialEndian::big, double>(byte_string{ 0x3F, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }).value == 1.0));
-    D_DO_CHECK((dl<DSerialEndian::little, double>(byte_string{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x3F }).value == 1.0));
+    D_DO_CHECK((dl<DSerialEndian::big, double>(DByteString{ 0x3F, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }).value == 1.0));
+    D_DO_CHECK((dl<DSerialEndian::little, double>(DByteString{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x3F }).value == 1.0));
 
     return true;
 }
@@ -131,7 +131,7 @@ tests_decode_options_leaf_member
 */
 bool tests_decode_options_leaf_member()
 {
-    const byte_string _b = { 0x00, 0x00, 0x00, 0x2A };
+    const DByteString _b = { 0x00, 0x00, 0x00, 0x2A };
 
     D_DO_CHECK((dl<DSerialEndian::big, DDoLeaf>(_b).value.payload == 0x2Au));
     D_DO_CHECK((dl<DSerialEndian::little, DDoLeaf>(_b).value.payload == 0x2Au));
@@ -156,20 +156,20 @@ bool tests_decode_options_leaf_failures()
 {
     // truncated integral, little-endian
     {
-        const byte_string _b = { 0x01, 0x02 };
+        const DByteString _b = { 0x01, 0x02 };
         DByteReader _r(_b);
         DDecodeResult<re_std::uint32_t> _res = decode_leaf<DSerialEndian::little, re_std::uint32_t>(_r);
         D_DO_CHECK(!_res.ok);
         D_DO_CHECK(!_r.good());
     }
     // truncated floating, big-endian
-    D_DO_CHECK((!dl<DSerialEndian::big, double>(byte_string{ 0x3F, 0x80, 0x00, 0x00 }).ok));
+    D_DO_CHECK((!dl<DSerialEndian::big, double>(DByteString{ 0x3F, 0x80, 0x00, 0x00 }).ok));
     // truncated enum
-    D_DO_CHECK((!dl<DSerialEndian::little, DDoEnumI32>(byte_string{ 0x12, 0x34 }).ok));
+    D_DO_CHECK((!dl<DSerialEndian::little, DDoEnumI32>(DByteString{ 0x12, 0x34 }).ok));
     // empty bool
-    D_DO_CHECK((!dl<DSerialEndian::big, bool>(byte_string{}).ok));
+    D_DO_CHECK((!dl<DSerialEndian::big, bool>(DByteString{}).ok));
     // truncated member
-    D_DO_CHECK((!dl<DSerialEndian::big, DDoLeaf>(byte_string{ 0x00, 0x2A }).ok));
+    D_DO_CHECK((!dl<DSerialEndian::big, DDoLeaf>(DByteString{ 0x00, 0x2A }).ok));
 
     return true;
 }
@@ -187,7 +187,7 @@ bool tests_decode_options_big_matches_decode()
 {
     // bool
     {
-        const byte_string _b = { 0x01 };
+        const DByteString _b = { 0x01 };
         DByteReader _r1(_b);
         DByteReader _r2(_b);
         D_DO_CHECK(decode_leaf<DSerialEndian::big, bool>(_r1).value
@@ -195,7 +195,7 @@ bool tests_decode_options_big_matches_decode()
     }
     // unsigned integral
     {
-        const byte_string _b = { 0xDE, 0xAD, 0xBE, 0xEF };
+        const DByteString _b = { 0xDE, 0xAD, 0xBE, 0xEF };
         DByteReader _r1(_b);
         DByteReader _r2(_b);
         D_DO_CHECK(decode_leaf<DSerialEndian::big, re_std::uint32_t>(_r1).value
@@ -203,7 +203,7 @@ bool tests_decode_options_big_matches_decode()
     }
     // signed integral
     {
-        const byte_string _b = { 0x80, 0x00, 0x00, 0x00 };
+        const DByteString _b = { 0x80, 0x00, 0x00, 0x00 };
         DByteReader _r1(_b);
         DByteReader _r2(_b);
         D_DO_CHECK(decode_leaf<DSerialEndian::big, re_std::int32_t>(_r1).value
@@ -211,7 +211,7 @@ bool tests_decode_options_big_matches_decode()
     }
     // enum
     {
-        const byte_string _b = { 0xFF, 0xFE, 0x1D, 0xC0 };
+        const DByteString _b = { 0xFF, 0xFE, 0x1D, 0xC0 };
         DByteReader _r1(_b);
         DByteReader _r2(_b);
         D_DO_CHECK(decode_leaf<DSerialEndian::big, DDoEnumI32>(_r1).value
@@ -219,14 +219,14 @@ bool tests_decode_options_big_matches_decode()
     }
     // float and double
     {
-        const byte_string _f = { 0x3F, 0x80, 0x00, 0x00 };
+        const DByteString _f = { 0x3F, 0x80, 0x00, 0x00 };
         DByteReader _r1(_f);
         DByteReader _r2(_f);
         D_DO_CHECK(decode_leaf<DSerialEndian::big, float>(_r1).value
                    == decode<float>(_r2).value);
     }
     {
-        const byte_string _d = { 0x3F, 0xE0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        const DByteString _d = { 0x3F, 0xE0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
         DByteReader _r1(_d);
         DByteReader _r2(_d);
         D_DO_CHECK(decode_leaf<DSerialEndian::big, double>(_r1).value

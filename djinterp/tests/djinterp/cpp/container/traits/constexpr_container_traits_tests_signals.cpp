@@ -313,7 +313,7 @@ bool tests_size_expression_constructibility()
     // noticed
     D_CCT_CHECK(!std::is_trivially_default_constructible<
                     DSizeNoDefaultCtor>::value);
-    D_CCT_LIFE(lifetime::runtime, lifetime_of<DSizeNoDefaultCtor>::value);
+    D_CCT_LIFE(DLifetime::runtime, lifetime_of<DSizeNoDefaultCtor>::value);
     D_CCT_CHECK(!is_constexpr_container<DSizeNoDefaultCtor>::value);
 
     return ok;
@@ -398,7 +398,7 @@ bool tests_tuple_size()
 tests_constexpr_iteration
   has_constexpr_iteration (constexpr_iterator_traits.hpp) - the fifth disjunct.
   Tests the following:
-  - a nested `constexpr_iterator` alias fires it
+  - a nested `DConstexprIterator` alias fires it
   - a constexpr_begin()/constexpr_end() PAIR fires it
   - either half ALONE does not: begin-without-end is not an iteration interface,
     even though has_constexpr_begin_method reports it

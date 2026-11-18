@@ -150,11 +150,11 @@ NS_DJINTERP
 // machinery so a runtime parse context can speak the same grades on any
 // standard.
 
-// table_strictness
+// DTableStrictness
 //   enum: how a supplied count must match a required count -- the shared grade
 // of the count-matching categories (a row's width against the declared
 // columns; a multi-cell placeholder against the cells it fills).
-enum class table_strictness
+enum class DTableStrictness
 {
     exact,      // counts must match one-to-one; a mismatch is an error
     truncate,   // a surplus is dropped (the required count wins)
@@ -162,69 +162,93 @@ enum class table_strictness
     lenient     // either a surplus or a shortfall is accepted silently
 };
 
-// type_policy
+// old name, until 0.9.0-rc.1
+using table_strictness = DTableStrictness;
+
+// DTypePolicy
 //   enum: whether a text cell must yield its declared column type. Governs the
 // text front end's cell-to-type step (an axis-typed table only).
-enum class type_policy
+enum class DTypePolicy
 {
     require,    // the cell text must parse to the column type, else an error
     coerce,     // parse if possible, otherwise fall back to the raw cell
     ignore      // do not type cells (a cell-homogeneous / string table)
 };
 
-// shape_policy
+// old name, until 0.9.0-rc.1
+using type_policy = DTypePolicy;
+
+// DShapePolicy
 //   enum: which domain shapes I_T a declaration admits (Rectangular, jagged,
 // and sparse tables; containers.tex). Rectangular is the strictest and the
 // shape of the existing table trio; jagged and sparse are opt-in.
-enum class shape_policy
+enum class DShapePolicy
 {
     rectangular,   // every row the same width; I_T a box
     jagged,        // rows of differing widths permitted
     sparse         // interior holes permitted (absent cells, not blank)
 };
 
-// header_policy
+// old name, until 0.9.0-rc.1
+using shape_policy = DShapePolicy;
+
+// DHeaderPolicy
 //   enum: how header rows and the header/body separator are treated.
-enum class header_policy
+enum class DHeaderPolicy
 {
     require_separator,   // a separator line is mandatory to open a header block
     optional_separator,  // headers allowed but not required
     no_headers           // reject header rows outright
 };
 
-// domain_policy
+// old name, until 0.9.0-rc.1
+using header_policy = DHeaderPolicy;
+
+// DDomainPolicy
 //   enum: whether a cell-value domain (a closed interval delta_I; Overlays) is
 // enforced. Off by default, mirroring constrained_table's optional domain.
-enum class domain_policy
+enum class DDomainPolicy
 {
     ignore,    // no value-domain restriction
     enforce    // every cell must lie in the declared interval, else an error
 };
 
-// trim_policy
+// old name, until 0.9.0-rc.1
+using domain_policy = DDomainPolicy;
+
+// DTrimPolicy
 //   enum: whether surrounding whitespace is stripped from a text cell.
-enum class trim_policy
+enum class DTrimPolicy
 {
     trim,      // strip leading and trailing whitespace from each cell
     keep       // preserve cell text verbatim
 };
 
-// pipe_policy
+// old name, until 0.9.0-rc.1
+using trim_policy = DTrimPolicy;
+
+// DPipePolicy
 //   enum: whether the leading and trailing row delimiters are mandatory.
-enum class pipe_policy
+enum class DPipePolicy
 {
     require_borders,   // a row must open and close with the delimiter
     optional_borders   // outer delimiters may be omitted
 };
 
-// anchor_policy
+// old name, until 0.9.0-rc.1
+using pipe_policy = DPipePolicy;
+
+// DAnchorPolicy
 //   enum: which position names a merged cell -- its anchor (containers.tex:
 // anchor(C) = min_lex R_C; covered positions defer to it).
-enum class anchor_policy
+enum class DAnchorPolicy
 {
     lexicographic_least,   // the formal default: the lex-least covered index
     declared               // the position at which the merge is declared
 };
+
+// old name, until 0.9.0-rc.1
+using anchor_policy = DAnchorPolicy;
 
 
 // ===========================================================================
@@ -256,24 +280,24 @@ enum class anchor_policy
 // of them build-wide (-DD_CFG_TABLE_DEFAULT_SHAPE=D_CFG_TABLE_SHAPE_JAGGED,
 // say).
 
-D_CONSTEXPR_INLINE_VAR table_strictness default_cell_count =
-    table_strictness::D_INTERNAL_TABLE_DEFAULT_CELL_COUNT;
-D_CONSTEXPR_INLINE_VAR table_strictness default_placeholder_fit =
-    table_strictness::D_INTERNAL_TABLE_DEFAULT_PLACEHOLDER_FIT;
-D_CONSTEXPR_INLINE_VAR type_policy default_type_conformance =
-    type_policy::D_INTERNAL_TABLE_DEFAULT_TYPE_CONFORMANCE;
-D_CONSTEXPR_INLINE_VAR shape_policy default_shape =
-    shape_policy::D_INTERNAL_TABLE_DEFAULT_SHAPE;
-D_CONSTEXPR_INLINE_VAR header_policy default_header =
-    header_policy::D_INTERNAL_TABLE_DEFAULT_HEADER;
-D_CONSTEXPR_INLINE_VAR domain_policy default_domain =
-    domain_policy::D_INTERNAL_TABLE_DEFAULT_DOMAIN;
-D_CONSTEXPR_INLINE_VAR trim_policy default_trim =
-    trim_policy::D_INTERNAL_TABLE_DEFAULT_TRIM;
-D_CONSTEXPR_INLINE_VAR pipe_policy default_pipe =
-    pipe_policy::D_INTERNAL_TABLE_DEFAULT_PIPE;
-D_CONSTEXPR_INLINE_VAR anchor_policy default_anchor =
-    anchor_policy::D_INTERNAL_TABLE_DEFAULT_ANCHOR;
+D_CONSTEXPR_INLINE_VAR DTableStrictness default_cell_count =
+    DTableStrictness::D_INTERNAL_TABLE_DEFAULT_CELL_COUNT;
+D_CONSTEXPR_INLINE_VAR DTableStrictness default_placeholder_fit =
+    DTableStrictness::D_INTERNAL_TABLE_DEFAULT_PLACEHOLDER_FIT;
+D_CONSTEXPR_INLINE_VAR DTypePolicy default_type_conformance =
+    DTypePolicy::D_INTERNAL_TABLE_DEFAULT_TYPE_CONFORMANCE;
+D_CONSTEXPR_INLINE_VAR DShapePolicy default_shape =
+    DShapePolicy::D_INTERNAL_TABLE_DEFAULT_SHAPE;
+D_CONSTEXPR_INLINE_VAR DHeaderPolicy default_header =
+    DHeaderPolicy::D_INTERNAL_TABLE_DEFAULT_HEADER;
+D_CONSTEXPR_INLINE_VAR DDomainPolicy default_domain =
+    DDomainPolicy::D_INTERNAL_TABLE_DEFAULT_DOMAIN;
+D_CONSTEXPR_INLINE_VAR DTrimPolicy default_trim =
+    DTrimPolicy::D_INTERNAL_TABLE_DEFAULT_TRIM;
+D_CONSTEXPR_INLINE_VAR DPipePolicy default_pipe =
+    DPipePolicy::D_INTERNAL_TABLE_DEFAULT_PIPE;
+D_CONSTEXPR_INLINE_VAR DAnchorPolicy default_anchor =
+    DAnchorPolicy::D_INTERNAL_TABLE_DEFAULT_ANCHOR;
 
 
 // ---------------------------------------------------------------------------
@@ -288,11 +312,11 @@ D_CONSTEXPR_INLINE_VAR anchor_policy default_anchor =
 // III. table_opt_key
 // ===========================================================================
 
-// table_opt_key
+// DTableOptKey
 //   enum: the single key type of every table option. option_set requires one
 // key_type across a set, so all table policies key off this one enum; the
 // value travels in the option's arg (section III).
-enum class table_opt_key
+enum class DTableOptKey
 {
     cell_count,        // table_strictness: a row's width vs the declared columns
     placeholder_fit,   // table_strictness: a multi-cell placeholder vs its cells
@@ -304,6 +328,9 @@ enum class table_opt_key
     pipe,              // pipe_policy:      row border delimiters
     anchor             // anchor_policy:    merged-cell anchor
 };
+
+// old name, until 0.9.0-rc.1
+using table_opt_key = DTableOptKey;
 
 
 // ===========================================================================
@@ -318,46 +345,82 @@ enum class table_opt_key
 template<auto V>
 using table_opt_arg = std::integral_constant<decltype(V), V>;
 
-// cell_count_opt / placeholder_fit_opt
+// DCellCountOpt / placeholder_fit_opt
 //   option: bind a table_strictness grade to a count-matching category.
-template<table_strictness S>
-using cell_count_opt =
-    option<table_opt_key::cell_count, table_opt_arg<S>>;
+template<DTableStrictness S>
+using DCellCountOpt =
+    option<DTableOptKey::cell_count, table_opt_arg<S>>;
 
-template<table_strictness S>
-using placeholder_fit_opt =
-    option<table_opt_key::placeholder_fit, table_opt_arg<S>>;
+// old name, until 0.9.0-rc.1
+template<DTableStrictness S>
+using cell_count_opt = DCellCountOpt<S>;
 
-// type_opt / shape_opt / header_opt / domain_opt / trim_opt / pipe_opt /
+template<DTableStrictness S>
+using DPlaceholderFitOpt =
+    option<DTableOptKey::placeholder_fit, table_opt_arg<S>>;
+
+// old name, until 0.9.0-rc.1
+template<DTableStrictness S>
+using placeholder_fit_opt = DPlaceholderFitOpt<S>;
+
+// DTypeOpt / shape_opt / header_opt / domain_opt / trim_opt / pipe_opt /
 // anchor_opt
 //   option: bind a policy grade to its category.
-template<type_policy P>
-using type_opt =
-    option<table_opt_key::type_conformance, table_opt_arg<P>>;
+template<DTypePolicy P>
+using DTypeOpt =
+    option<DTableOptKey::type_conformance, table_opt_arg<P>>;
 
-template<shape_policy P>
-using shape_opt =
-    option<table_opt_key::shape, table_opt_arg<P>>;
+// old name, until 0.9.0-rc.1
+template<DTypePolicy P>
+using type_opt = DTypeOpt<P>;
 
-template<header_policy P>
-using header_opt =
-    option<table_opt_key::header, table_opt_arg<P>>;
+template<DShapePolicy P>
+using DShapeOpt =
+    option<DTableOptKey::shape, table_opt_arg<P>>;
 
-template<domain_policy P>
-using domain_opt =
-    option<table_opt_key::domain, table_opt_arg<P>>;
+// old name, until 0.9.0-rc.1
+template<DShapePolicy P>
+using shape_opt = DShapeOpt<P>;
 
-template<trim_policy P>
-using trim_opt =
-    option<table_opt_key::trim, table_opt_arg<P>>;
+template<DHeaderPolicy P>
+using DHeaderOpt =
+    option<DTableOptKey::header, table_opt_arg<P>>;
 
-template<pipe_policy P>
-using pipe_opt =
-    option<table_opt_key::pipe, table_opt_arg<P>>;
+// old name, until 0.9.0-rc.1
+template<DHeaderPolicy P>
+using header_opt = DHeaderOpt<P>;
 
-template<anchor_policy P>
-using anchor_opt =
-    option<table_opt_key::anchor, table_opt_arg<P>>;
+template<DDomainPolicy P>
+using DDomainOpt =
+    option<DTableOptKey::domain, table_opt_arg<P>>;
+
+// old name, until 0.9.0-rc.1
+template<DDomainPolicy P>
+using domain_opt = DDomainOpt<P>;
+
+template<DTrimPolicy P>
+using DTrimOpt =
+    option<DTableOptKey::trim, table_opt_arg<P>>;
+
+// old name, until 0.9.0-rc.1
+template<DTrimPolicy P>
+using trim_opt = DTrimOpt<P>;
+
+template<DPipePolicy P>
+using DPipeOpt =
+    option<DTableOptKey::pipe, table_opt_arg<P>>;
+
+// old name, until 0.9.0-rc.1
+template<DPipePolicy P>
+using pipe_opt = DPipeOpt<P>;
+
+template<DAnchorPolicy P>
+using DAnchorOpt =
+    option<DTableOptKey::anchor, table_opt_arg<P>>;
+
+// old name, until 0.9.0-rc.1
+template<DAnchorPolicy P>
+using anchor_opt = DAnchorOpt<P>;
 
 
 // ===========================================================================
@@ -367,31 +430,88 @@ using anchor_opt =
 //     table_builder<columns<...>, allow_jagged, lenient_counts>
 //   Only the frequent picks are named; the section-III aliases cover the rest.
 
-using strict_counts     = cell_count_opt<table_strictness::exact>;
-using truncate_counts   = cell_count_opt<table_strictness::truncate>;
-using pad_counts        = cell_count_opt<table_strictness::pad>;
-using lenient_counts    = cell_count_opt<table_strictness::lenient>;
+using DStrictCounts     = DCellCountOpt<DTableStrictness::exact>;
 
-using strict_types      = type_opt<type_policy::require>;
-using coerce_types      = type_opt<type_policy::coerce>;
-using untyped_cells     = type_opt<type_policy::ignore>;
+// old name, until 0.9.0-rc.1
+using strict_counts = DStrictCounts;
+using DTruncateCounts   = DCellCountOpt<DTableStrictness::truncate>;
 
-using rectangular_only  = shape_opt<shape_policy::rectangular>;
-using allow_jagged      = shape_opt<shape_policy::jagged>;
-using allow_sparse      = shape_opt<shape_policy::sparse>;
+// old name, until 0.9.0-rc.1
+using truncate_counts = DTruncateCounts;
+using DPadCounts        = DCellCountOpt<DTableStrictness::pad>;
 
-using require_headers   = header_opt<header_policy::require_separator>;
-using optional_headers  = header_opt<header_policy::optional_separator>;
-using no_headers        = header_opt<header_policy::no_headers>;
+// old name, until 0.9.0-rc.1
+using pad_counts = DPadCounts;
+using DLenientCounts    = DCellCountOpt<DTableStrictness::lenient>;
 
-using enforce_domain    = domain_opt<domain_policy::enforce>;
-using ignore_domain     = domain_opt<domain_policy::ignore>;
+// old name, until 0.9.0-rc.1
+using lenient_counts = DLenientCounts;
 
-using trim_cells        = trim_opt<trim_policy::trim>;
-using keep_whitespace   = trim_opt<trim_policy::keep>;
+using DStrictTypes      = DTypeOpt<DTypePolicy::require>;
 
-using require_borders   = pipe_opt<pipe_policy::require_borders>;
-using optional_borders  = pipe_opt<pipe_policy::optional_borders>;
+// old name, until 0.9.0-rc.1
+using strict_types = DStrictTypes;
+using DCoerceTypes      = DTypeOpt<DTypePolicy::coerce>;
+
+// old name, until 0.9.0-rc.1
+using coerce_types = DCoerceTypes;
+using DUntypedCells     = DTypeOpt<DTypePolicy::ignore>;
+
+// old name, until 0.9.0-rc.1
+using untyped_cells = DUntypedCells;
+
+using DRectangularOnly  = DShapeOpt<DShapePolicy::rectangular>;
+
+// old name, until 0.9.0-rc.1
+using rectangular_only = DRectangularOnly;
+using DAllowJagged      = DShapeOpt<DShapePolicy::jagged>;
+
+// old name, until 0.9.0-rc.1
+using allow_jagged = DAllowJagged;
+using DAllowSparse      = DShapeOpt<DShapePolicy::sparse>;
+
+// old name, until 0.9.0-rc.1
+using allow_sparse = DAllowSparse;
+
+using DRequireHeaders   = DHeaderOpt<DHeaderPolicy::require_separator>;
+
+// old name, until 0.9.0-rc.1
+using require_headers = DRequireHeaders;
+using DOptionalHeaders  = DHeaderOpt<DHeaderPolicy::optional_separator>;
+
+// old name, until 0.9.0-rc.1
+using optional_headers = DOptionalHeaders;
+using DNoHeaders        = DHeaderOpt<DHeaderPolicy::no_headers>;
+
+// old name, until 0.9.0-rc.1
+using no_headers = DNoHeaders;
+
+using DEnforceDomain    = DDomainOpt<DDomainPolicy::enforce>;
+
+// old name, until 0.9.0-rc.1
+using enforce_domain = DEnforceDomain;
+using DIgnoreDomain     = DDomainOpt<DDomainPolicy::ignore>;
+
+// old name, until 0.9.0-rc.1
+using ignore_domain = DIgnoreDomain;
+
+using DTrimCells        = DTrimOpt<DTrimPolicy::trim>;
+
+// old name, until 0.9.0-rc.1
+using trim_cells = DTrimCells;
+using DKeepWhitespace   = DTrimOpt<DTrimPolicy::keep>;
+
+// old name, until 0.9.0-rc.1
+using keep_whitespace = DKeepWhitespace;
+
+using DRequireBorders   = DPipeOpt<DPipePolicy::require_borders>;
+
+// old name, until 0.9.0-rc.1
+using require_borders = DRequireBorders;
+using DOptionalBorders  = DPipeOpt<DPipePolicy::optional_borders>;
+
+// old name, until 0.9.0-rc.1
+using optional_borders = DOptionalBorders;
 
 
 // ===========================================================================
@@ -425,7 +545,7 @@ NS_INTERNAL
     // option_set_find_t.
     template<bool           Found,
              typename       Set,
-             table_opt_key  Key,
+             DTableOptKey  Key,
              auto           Default>
     struct table_opt_lookup
     {
@@ -433,7 +553,7 @@ NS_INTERNAL
     };
 
     template<typename       Set,
-             table_opt_key  Key,
+             DTableOptKey  Key,
              auto           Default>
     struct table_opt_lookup<true, Set, Key, Default>
     {
@@ -448,7 +568,7 @@ NS_END  // internal
 //   trait: the grade bound to Key in Set, or Default when Set does not
 // carry Key. The single read the front ends route every policy query through.
 template<typename       Set,
-         table_opt_key  Key,
+         DTableOptKey  Key,
          auto           Default>
 struct table_option_value
 {
@@ -462,7 +582,7 @@ struct table_option_value
 // table_option_value_v
 //   value: shorthand for table_option_value<...>::value.
 template<typename       Set,
-         table_opt_key  Key,
+         DTableOptKey  Key,
          auto           Default>
 D_CONSTEXPR auto table_option_value_v =
     table_option_value<Set, Key, Default>::value;
@@ -473,44 +593,44 @@ D_CONSTEXPR auto table_option_value_v =
 // the set: cell_count_of<Opts>, shape_of<Opts>, and so on.
 
 template<typename Set>
-D_CONSTEXPR table_strictness cell_count_of =
-    table_option_value_v<Set, table_opt_key::cell_count, default_cell_count>;
+D_CONSTEXPR DTableStrictness cell_count_of =
+    table_option_value_v<Set, DTableOptKey::cell_count, default_cell_count>;
 
 template<typename Set>
-D_CONSTEXPR table_strictness placeholder_fit_of =
+D_CONSTEXPR DTableStrictness placeholder_fit_of =
     table_option_value_v<Set,
-                         table_opt_key::placeholder_fit,
+                         DTableOptKey::placeholder_fit,
                          default_placeholder_fit>;
 
 template<typename Set>
-D_CONSTEXPR type_policy type_conformance_of =
+D_CONSTEXPR DTypePolicy type_conformance_of =
     table_option_value_v<Set,
-                         table_opt_key::type_conformance,
+                         DTableOptKey::type_conformance,
                          default_type_conformance>;
 
 template<typename Set>
-D_CONSTEXPR shape_policy shape_of =
-    table_option_value_v<Set, table_opt_key::shape, default_shape>;
+D_CONSTEXPR DShapePolicy shape_of =
+    table_option_value_v<Set, DTableOptKey::shape, default_shape>;
 
 template<typename Set>
-D_CONSTEXPR header_policy header_of =
-    table_option_value_v<Set, table_opt_key::header, default_header>;
+D_CONSTEXPR DHeaderPolicy header_of =
+    table_option_value_v<Set, DTableOptKey::header, default_header>;
 
 template<typename Set>
-D_CONSTEXPR domain_policy domain_of =
-    table_option_value_v<Set, table_opt_key::domain, default_domain>;
+D_CONSTEXPR DDomainPolicy domain_of =
+    table_option_value_v<Set, DTableOptKey::domain, default_domain>;
 
 template<typename Set>
-D_CONSTEXPR trim_policy trim_of =
-    table_option_value_v<Set, table_opt_key::trim, default_trim>;
+D_CONSTEXPR DTrimPolicy trim_of =
+    table_option_value_v<Set, DTableOptKey::trim, default_trim>;
 
 template<typename Set>
-D_CONSTEXPR pipe_policy pipe_of =
-    table_option_value_v<Set, table_opt_key::pipe, default_pipe>;
+D_CONSTEXPR DPipePolicy pipe_of =
+    table_option_value_v<Set, DTableOptKey::pipe, default_pipe>;
 
 template<typename Set>
-D_CONSTEXPR anchor_policy anchor_of =
-    table_option_value_v<Set, table_opt_key::anchor, default_anchor>;
+D_CONSTEXPR DAnchorPolicy anchor_of =
+    table_option_value_v<Set, DTableOptKey::anchor, default_anchor>;
 
 
 // ===========================================================================
@@ -534,7 +654,7 @@ NS_INTERNAL
     template<typename Type>
     struct is_table_option_helper<Type, true>
         : std::integral_constant<bool,
-            std::is_same<typename Type::key_type, table_opt_key>::value>
+            std::is_same<typename Type::key_type, DTableOptKey>::value>
     {};
 
 NS_END  // internal
@@ -594,7 +714,7 @@ template<typename... Options>
 D_CONSTEXPR bool is_table_option_pack_v =
     is_table_option_pack<Options...>::value;
 
-// table_option_set
+// DTableOptionSet
 //   type: the set of table options. A plain alias over option_set<> --
 // IDENTITY, not a subclass -- so the section-VI readers (which pattern-match
 // option_set<>) consume it directly. Every entry shares key_type
@@ -607,7 +727,11 @@ D_CONSTEXPR bool is_table_option_pack_v =
 //   static_assert(shape_of<opts> == shape_policy::jagged);
 //   static_assert(cell_count_of<opts> == table_strictness::lenient);
 template<typename... Options>
-using table_option_set = option_set<Options...>;
+using DTableOptionSet = option_set<Options...>;
+
+// old name, until 0.9.0-rc.1
+template<typename... Options>
+using table_option_set = DTableOptionSet<Options...>;
 
 
 // ===========================================================================
@@ -655,7 +779,7 @@ NS_INTERNAL
     template<typename Type>
     struct is_axis_option_helper<Type, true>
         : std::integral_constant<bool,
-            std::is_same<typename Type::key_type, container_axis>::value>
+            std::is_same<typename Type::key_type, DContainerAxis>::value>
     {};
 
 NS_END  // internal

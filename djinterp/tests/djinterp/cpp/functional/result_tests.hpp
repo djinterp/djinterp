@@ -217,7 +217,7 @@ struct DFnErrPrefix
 // otherwise. An and_then / bind arrow on the success side.
 struct DFnSafeHalve
 {
-    result<int, std::string> operator()(
+    DResult<int, std::string> operator()(
         const int& _v
     ) const
     {
@@ -235,7 +235,7 @@ struct DFnSafeHalve
 // ok(0). An or_else recovery that succeeds.
 struct DFnRecoverZero
 {
-    result<int, std::string> operator()(
+    DResult<int, std::string> operator()(
         const std::string&
     ) const
     {
@@ -248,7 +248,7 @@ struct DFnRecoverZero
 // that maps to a different error.
 struct DFnRewrapErr
 {
-    result<int, std::string> operator()(
+    DResult<int, std::string> operator()(
         const std::string& _e
     ) const
     {

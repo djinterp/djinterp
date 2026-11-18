@@ -100,7 +100,7 @@ test_combinators_filtered_pass
 bool test_combinators_filtered_pass()
 {
     DPerson adult = { 1, 30, 10 };
-    maybe<int> m = djinterp::filtered(get_age(), is_adult())(adult);
+    DMaybe<int> m = djinterp::filtered(get_age(), is_adult())(adult);
 
     D_INTERNAL_EXT_CHECK(m.has_value());
     D_INTERNAL_EXT_CHECK(m.value() == 30);
@@ -118,7 +118,7 @@ test_combinators_filtered_fail
 bool test_combinators_filtered_fail()
 {
     DPerson minor = { 2, 15, 20 };
-    maybe<int> m = djinterp::filtered(get_age(), is_adult())(minor);
+    DMaybe<int> m = djinterp::filtered(get_age(), is_adult())(minor);
 
     D_INTERNAL_EXT_CHECK(m.is_nothing());
     D_INTERNAL_EXT_CHECK(m.value_or(-1) == -1);
@@ -140,11 +140,11 @@ bool test_combinators_guarded()
     DPerson ok  = { 1, 30, 10 };   // dept != 0 -> guard passes
     DPerson bad = { 2, 40,  0 };   // dept == 0 -> guard fails
 
-    maybe<int> m_ok = djinterp::guarded(get_age(), dept_nonzero())(ok);
+    DMaybe<int> m_ok = djinterp::guarded(get_age(), dept_nonzero())(ok);
     D_INTERNAL_EXT_CHECK(m_ok.has_value());
     D_INTERNAL_EXT_CHECK(m_ok.value() == 30);
 
-    maybe<int> m_bad = djinterp::guarded(get_age(), dept_nonzero())(bad);
+    DMaybe<int> m_bad = djinterp::guarded(get_age(), dept_nonzero())(bad);
     D_INTERNAL_EXT_CHECK(m_bad.is_nothing());
 
     return true;
@@ -197,7 +197,7 @@ test_combinators_try_extract_success
 bool test_combinators_try_extract_success()
 {
     DPerson p = { 1, 30, 10 };
-    maybe<int> m = djinterp::try_extract(checked_age())(p);
+    DMaybe<int> m = djinterp::try_extract(checked_age())(p);
 
     D_INTERNAL_EXT_CHECK(m.has_value());
     D_INTERNAL_EXT_CHECK(m.value() == 30);
@@ -216,7 +216,7 @@ test_combinators_try_extract_throws
 bool test_combinators_try_extract_throws()
 {
     DPerson bad = { 1, -5, 10 };   // negative age -> checked_age throws
-    maybe<int> m = djinterp::try_extract(checked_age())(bad);
+    DMaybe<int> m = djinterp::try_extract(checked_age())(bad);
 
     D_INTERNAL_EXT_CHECK(m.is_nothing());
 

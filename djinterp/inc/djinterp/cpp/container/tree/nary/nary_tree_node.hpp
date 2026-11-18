@@ -88,7 +88,7 @@ NS_DJINTERP
              typename    LockPolicy,
              typename    OwnershipPolicy,
              typename... Options>
-    class nary_tree;
+    class DNaryTree;
 
 
     NS_INTERNAL
@@ -136,7 +136,7 @@ NS_DJINTERP
         // pack matches nary_tree's option parameters; without it this names a
         // DIFFERENT template and befriends nothing.
         template<typename, typename, typename, typename, typename...>
-        friend class nary_tree;
+        friend class DNaryTree;
 
     public:
         // -----------------------------------------------------------------

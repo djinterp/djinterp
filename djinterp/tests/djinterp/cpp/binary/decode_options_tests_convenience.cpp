@@ -26,21 +26,21 @@ tests_decode_options_convenience
 bool tests_decode_options_convenience()
 {
     // whole-buffer decode, big-endian
-    D_DO_CHECK((decode_leaf<DSerialEndian::big, re_std::uint16_t>(byte_string{ 0x12, 0x34 }).value == 0x1234u));
+    D_DO_CHECK((decode_leaf<DSerialEndian::big, re_std::uint16_t>(DByteString{ 0x12, 0x34 }).value == 0x1234u));
     // whole-buffer decode, little-endian
-    D_DO_CHECK((decode_leaf<DSerialEndian::little, re_std::uint16_t>(byte_string{ 0x34, 0x12 }).value == 0x1234u));
+    D_DO_CHECK((decode_leaf<DSerialEndian::little, re_std::uint16_t>(DByteString{ 0x34, 0x12 }).value == 0x1234u));
 
     // leading leaf only - a trailing byte is left unread
     DDecodeResult<re_std::uint8_t> _lead =
-        decode_leaf<DSerialEndian::big, re_std::uint8_t>(byte_string{ 0xAB, 0xCD });
+        decode_leaf<DSerialEndian::big, re_std::uint8_t>(DByteString{ 0xAB, 0xCD });
     D_DO_CHECK(_lead.ok);
     D_DO_CHECK(_lead.value == 0xABu);
 
     // too short
-    D_DO_CHECK((!decode_leaf<DSerialEndian::little, re_std::uint32_t>(byte_string{ 0x01, 0x02 }).ok));
+    D_DO_CHECK((!decode_leaf<DSerialEndian::little, re_std::uint32_t>(DByteString{ 0x01, 0x02 }).ok));
 
     // the same two bytes decode to different values under the two orders
-    const byte_string _b = { 0x12, 0x34 };
+    const DByteString _b = { 0x12, 0x34 };
     D_DO_CHECK(decode_leaf<DSerialEndian::big, re_std::uint16_t>(_b).value
                != decode_leaf<DSerialEndian::little, re_std::uint16_t>(_b).value);
 

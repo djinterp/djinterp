@@ -27,7 +27,7 @@ test_primitive_construct_and_state
 */
 bool test_primitive_construct_and_state()
 {
-    accumulator<int, int, int,
+    DAccumulator<int, int, int,
                 internal::DSumStep<int>,
                 internal::DIdentityFinal<int> > acc = accumulate_sum<int>();
 

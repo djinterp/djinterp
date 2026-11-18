@@ -2,13 +2,13 @@
 * djinterp [cpp]                                                        pool.hpp
 *
 * C++ face of the fixed-slot pool.
-*   `raw_pool` DERIVES from dj_pool and adds no data members. `pool<T>` derives
-* from raw_pool and adds no data members either -- it supplies sizeof(T) and
+*   `DRawPool` DERIVES from dj_pool and adds no data members. `DPool<T>` derives
+* from DRawPool and adds no data members either -- it supplies sizeof(T) and
 * alignof(T) as compile-time constants and layers object lifetime on top of
 * the kernel's raw slots. Both sizes are asserted equal to sizeof(dj_pool)
 * below.
 *
-*   THE TEMPLATE IS NOTATION, NOT SEMANTICS. pool<T> computes its slot
+*   THE TEMPLATE IS NOTATION, NOT SEMANTICS. DPool<T> computes its slot
 * geometry at translation time; dj_pool computes the same geometry at run time
 * from the same functions. That is the framework's phase distinction working
 * as designed (AGENT_README.md section 8): C++ computes EARLIER, never
@@ -18,7 +18,7 @@
 * WHAT THE TYPED FACE ADDS THAT THE KERNEL CANNOT:
 *   Object lifetime. The kernel deals in raw aligned storage and will never
 * run a constructor or a destructor, because it does not know what a slot
-* holds. pool<T> does, so create() placement-news and destroy() calls the
+* holds. DPool<T> does, so create() placement-news and destroy() calls the
 * destructor before returning the slot. That is the one genuine capability
 * difference between the two faces, and it is why this file exists at all.
 *
@@ -41,14 +41,14 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    raw_pool
+I.    DRawPool
       --------
       a. construction / move / destruction
       b. acquire / release_slot / reset / release
       c. queries
 II.   DPoolHandle<T>
       --------------
-III.  pool<T>
+III.  DPool<T>
       -------
       a. typed acquire / release
       b. create / destroy       (object lifetime)
@@ -79,26 +79,26 @@ NS_DJINTERP
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                        I.   raw_pool                                    ///
+///                        I.   DRawPool                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// raw_pool
+// DRawPool
 //   class: an untyped fixed-slot allocator. Derives from dj_pool and adds no
 // state; every operation forwards to the C kernel.
 //   Use this directly when the slot size is not known until run time -- a
-// pool of records whose width comes from a schema, say. Use pool<T> when the
+// pool of records whose width comes from a schema, say. Use DPool<T> when the
 // type is known, which is most of the time.
-class raw_pool : public ::dj_pool
+class DRawPool : public ::dj_pool
 {
 public:
 
     using size_type  = DMemSize;
     using index_type = ::dj_pool_index;
 
-    // raw_pool (configured)
+    // DRawPool (configured)
     //   constructor: a pool of _slot_size-byte slots at _slot_align.
     explicit D_INLINE
-    raw_pool(
+    DRawPool(
         size_type        _slot_size,
         size_type        _slot_align = 0,
         ::dj_pool_policy _release = D_POOL_POLICY_FREE_LIST
@@ -112,52 +112,52 @@ public:
         ::d_pool_init(this, &config);
     }
 
-    // raw_pool (full config)
+    // DRawPool (full config)
     //   constructor: every knob at once, for the caller who needs a source, a
     // block size, or a ceiling.
     explicit D_INLINE
-    raw_pool(
+    DRawPool(
         const ::dj_pool_config& _config
     )
     {
         ::d_pool_init(this, &_config);
     }
 
-    // ~raw_pool
+    // ~DRawPool
     //   destructor: returns every block to the source. Runs NO destructors on
-    // anything the pool held -- the kernel deals in raw storage. pool<T> is
+    // anything the pool held -- the kernel deals in raw storage. DPool<T> is
     // the face that knows better.
     D_INLINE
-    ~raw_pool()
+    ~DRawPool()
     {
         ::d_pool_release(this);
     }
 
-    raw_pool(
-        const raw_pool&
+    DRawPool(
+        const DRawPool&
     ) = delete;
-    raw_pool& operator=(
-        const raw_pool&
+    DRawPool& operator=(
+        const DRawPool&
     ) = delete;
 
-    // raw_pool (move)
+    // DRawPool (move)
     //   constructor: takes over another pool's blocks, leaving it empty.
     //   A byte-wise steal is correct here for the same reason it is for the
     // arena: the kernel struct holds no pointers back to itself. Its blocks
     // point at each other and the block table points at them, and none of
     // that changes when the struct moves.
     D_INLINE
-    raw_pool(
-        raw_pool&& _other
+    DRawPool(
+        DRawPool&& _other
     ) noexcept
     {
         static_cast< ::dj_pool& >(*this) = static_cast< ::dj_pool& >(_other);
         d_internal_clear(_other);
     }
 
-    D_INLINE raw_pool&
+    D_INLINE DRawPool&
     operator=(
-        raw_pool&& _other
+        DRawPool&& _other
     ) noexcept
     {
         if (this != &_other)
@@ -308,7 +308,7 @@ private:
     // empty state is, which is the kernel's business.
     static D_INLINE
     void d_internal_clear(
-        raw_pool& _pool
+        DRawPool& _pool
     )
     {
         ::dj_pool_config config = ::d_pool_config_default(_pool.payload,
@@ -387,12 +387,12 @@ struct DPoolHandle : ::dj_pool_handle
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                        III.   pool<T>                                   ///
+///                        III.   DPool<T>                                   ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// pool
+// DPool
 //   class: a fixed-slot allocator for objects of Type under release policy
-// Policy. Derives from raw_pool and adds no state; it supplies the geometry
+// Policy. Derives from DRawPool and adds no state; it supplies the geometry
 // and the policy at translation time and layers object lifetime on the
 // kernel's raw slots.
 //
@@ -408,7 +408,7 @@ struct DPoolHandle : ::dj_pool_handle
 // simply arrives EARLIER.
 template<typename Type,
          ::dj_pool_policy Policy = D_POOL_POLICY_FREE_LIST>
-class pool : public raw_pool
+class DPool : public DRawPool
 {
 public:
 
@@ -434,20 +434,20 @@ public:
     // pool (default)
     //   constructor: a pool of Type over the configured default source.
     D_INLINE
-    pool()
-        : raw_pool(slot_bytes, slot_alignment, Policy)
+    DPool()
+        : DRawPool(slot_bytes, slot_alignment, Policy)
     {}
 
     // pool (sourced)
     //   constructor: a pool of Type over a named source, with an optional
     // block size and slot ceiling.
     explicit D_INLINE
-    pool(
+    DPool(
         const ::dj_mem_source& _source,
         ::dj_pool_index        _slots_per_block = 0,
         ::dj_pool_index        _max_slots       = 0
     )
-        : raw_pool(make_config(_source,
+        : DRawPool(make_config(_source,
                                _slots_per_block,
                                _max_slots,
                                Policy))
@@ -462,7 +462,7 @@ public:
     D_INLINE pointer
     acquire()
     {
-        return static_cast<pointer>(raw_pool::acquire());
+        return static_cast<pointer>(DRawPool::acquire());
     }
 
     // ---------------------------------------------------------------
@@ -479,7 +479,7 @@ public:
         Args&&... _args
     )
     {
-        void* storage = raw_pool::acquire();
+        void* storage = DRawPool::acquire();
 
         if (!storage)
         {
@@ -507,7 +507,7 @@ public:
 
         _object->~Type();
 
-        return raw_pool::release_slot(static_cast<void*>(_object));
+        return DRawPool::release_slot(static_cast<void*>(_object));
     }
 
 #if (D_INTERNAL_POOL_GENERATIONAL == 1)
@@ -622,10 +622,10 @@ private:
 // these assertions rather than conventions: a wrapper that silently stopped
 // deriving from its kernel once shipped, and only a test would have caught it.
 
-D_STATIC_ASSERT(sizeof(raw_pool) == sizeof(::dj_pool),
+D_STATIC_ASSERT(sizeof(DRawPool) == sizeof(::dj_pool),
                 "raw_pool must add nothing to dj_pool");
 
-D_STATIC_ASSERT((std::is_base_of< ::dj_pool, raw_pool>::value),
+D_STATIC_ASSERT((std::is_base_of< ::dj_pool, DRawPool>::value),
                 "raw_pool must derive from the C kernel, not mirror it");
 
 D_STATIC_ASSERT(std::is_standard_layout< ::dj_pool>::value,
@@ -635,21 +635,21 @@ D_STATIC_ASSERT(std::is_standard_layout< ::dj_pool>::value,
 //   The typed face is checked over several unrelated element types, because a
 // template that added a member would do so per instantiation and a single
 // witness could miss it.
-D_STATIC_ASSERT(sizeof(pool<char>) == sizeof(::dj_pool),
+D_STATIC_ASSERT(sizeof(DPool<char>) == sizeof(::dj_pool),
                 "pool<char> must add nothing to dj_pool");
-D_STATIC_ASSERT(sizeof(pool<double>) == sizeof(::dj_pool),
+D_STATIC_ASSERT(sizeof(DPool<double>) == sizeof(::dj_pool),
                 "pool<double> must add nothing to dj_pool");
-D_STATIC_ASSERT(sizeof(pool<void*>) == sizeof(::dj_pool),
+D_STATIC_ASSERT(sizeof(DPool<void*>) == sizeof(::dj_pool),
                 "pool<void*> must add nothing to dj_pool");
 
 //   The policy parameter must not cost bytes either: it selects behaviour at
 // translation time and is written into the kernel's existing field, never
 // stored a second time.
-D_STATIC_ASSERT((sizeof(pool<char, D_POOL_POLICY_MONOTONIC>) ==
+D_STATIC_ASSERT((sizeof(DPool<char, D_POOL_POLICY_MONOTONIC>) ==
                  sizeof(::dj_pool)),
                 "the policy parameter must not add a member");
 #if (D_INTERNAL_POOL_GENERATIONAL == 1)
-D_STATIC_ASSERT((sizeof(pool<char, D_POOL_POLICY_GENERATIONAL>) ==
+D_STATIC_ASSERT((sizeof(DPool<char, D_POOL_POLICY_GENERATIONAL>) ==
                  sizeof(::dj_pool)),
                 "the policy parameter must not add a member");
 #endif

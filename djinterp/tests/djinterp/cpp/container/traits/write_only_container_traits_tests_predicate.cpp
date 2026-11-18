@@ -51,10 +51,10 @@ bool tests_is_write_only_container()
 
     // `none` is not a weaker write_only
     D_WO_CHECK(   ( access_capability_of<DWoInert>::value
-                        == access_capability::none )
+                        == DAccessCapability::none )
                && ( is_write_only_container<DWoInert>::value == false ));
     D_WO_CHECK(   ( access_capability_of<DWoMetadataOnly>::value
-                        == access_capability::none )
+                        == DAccessCapability::none )
                && ( is_write_only_container<DWoMetadataOnly>::value
                         == false ));
 
@@ -148,16 +148,16 @@ bool tests_is_write_only_tagged()
     D_WO_CHECK(access_capability_from_bits(
                    internal::has_read_surface<DWoTaggedOverride>::value,
                    internal::has_write_surface<DWoTaggedOverride>::value)
-                   == access_capability::read_write);
+                   == DAccessCapability::read_write);
 
     // the mirror: a tag takes a sink-looking type off the corner
     D_WO_CHECK(is_write_only_container<DWoTaggedElsewhere>::value == false);
     D_WO_CHECK(access_capability_of<DWoTaggedElsewhere>::value
-                   == access_capability::read_only);
+                   == DAccessCapability::read_only);
     D_WO_CHECK(access_capability_from_bits(
                    internal::has_read_surface<DWoTaggedElsewhere>::value,
                    internal::has_write_surface<DWoTaggedElsewhere>::value)
-                   == access_capability::write_only);
+                   == DAccessCapability::write_only);
 
     // the routes agree in the verdict and differ only in the flag
     D_WO_CHECK(   ( is_write_only_container<DWoTagged>::value
@@ -201,13 +201,13 @@ bool tests_is_write_only_std_types()
 
     // ... because they are all read_write
     D_WO_CHECK(access_capability_of<DWoVector>::value
-                   == access_capability::read_write);
+                   == DAccessCapability::read_write);
     D_WO_CHECK(access_capability_of<DWoMap>::value
-                   == access_capability::read_write);
+                   == DAccessCapability::read_write);
 
     // a pair is `none`, not write_only
     D_WO_CHECK(   ( access_capability_of<DWoPair>::value
-                        == access_capability::none )
+                        == DAccessCapability::none )
                && ( is_write_only_container<DWoPair>::value == false ));
 
     // but a restricting handle over one of them is write_only

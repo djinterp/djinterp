@@ -92,7 +92,7 @@ NS_DJINTERP
 //  file_tree_path_policy
 // ================================================================
 
-// file_tree_path_policy
+// DFileTreePathPolicy
 //   class: a concrete container_path policy for file_tree's arena. Reads
 // element names directly from the file_tree's string pool via a bound pointer
 // stored as an instance member. Returns component_view values for efficient
@@ -101,12 +101,12 @@ NS_DJINTERP
 // is no arena now, and a file_node_id dereferences directly, so the container is
 // the TREE and the link accessors just follow pointers.
 template<typename Tree>
-class file_tree_path_policy
+class DFileTreePathPolicy
 {
 public:
     using container_type = Tree;
-    using index_type     = file_node_id;
-    using component_type = component_view;
+    using index_type     = DFileNodeId;
+    using component_type = DComponentView;
 
     // --------------------------------------------------------
     //  construction
@@ -114,7 +114,7 @@ public:
 
     // file_tree_path_policy
     //   constructs a policy bound to a string pool.
-    explicit file_tree_path_policy(
+    explicit DFileTreePathPolicy(
             const std::string& _names
         )
             : m_names(&_names)
@@ -186,9 +186,9 @@ public:
     {
         (void)_arena;  // the node handle reaches its entry itself
 
-        const file_entry& e = _id->data;
+        const DFileEntry& e = _id->data;
 
-        return component_view{
+        return DComponentView{
             m_names->data() + e.name_offset,
             e.name_length
         };
@@ -198,12 +198,16 @@ private:
     const std::string* m_names;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Tree>
+using file_tree_path_policy = DFileTreePathPolicy<Tree>;
+
 
 // ================================================================
 //  file_tree_path
 // ================================================================
 
-// file_tree_path
+// DFileTreePath
 //   class: provides path operations over a file_tree. Wraps the container_path
 // free functions with the file_tree- specific policy, constructed once and
 // passed through all operations.
@@ -213,13 +217,13 @@ private:
 // Every one of these three sites was a hard error; the header simply was never
 // instantiated, and a header that is never instantiated is never checked.
 // Templating on the tree also means an option-carrying tree works unchanged.
-template<typename Tree = file_tree_default>
-class file_tree_path
+template<typename Tree = DFileTreeDefault>
+class DFileTreePath
 {
 public:
     using tree_type      = Tree;
-    using policy_type    = file_tree_path_policy<Tree>;
-    using component_type = component_view;
+    using policy_type    = DFileTreePathPolicy<Tree>;
+    using component_type = DComponentView;
 
     // --------------------------------------------------------
     //  construction
@@ -227,7 +231,7 @@ public:
 
     // file_tree_path
     //   constructs a path helper bound to _tree.
-    explicit file_tree_path(
+    explicit DFileTreePath(
             const tree_type& _tree
         )
             : m_tree(_tree),
@@ -241,11 +245,11 @@ public:
     // resolve
     //   walks a path string from _root through the tree. Both '/' and '\\' are
     // accepted as separators. Returns null_file_node if any component is not found.
-    file_node_id
+    DFileNodeId
     resolve
     (
         const char* _path,
-        file_node_id     _root = 0
+        DFileNodeId     _root = 0
     ) const
     {
         if (m_tree.empty())
@@ -263,11 +267,11 @@ public:
 
     // resolve (std::string overload)
     //   function: resolves a path given as std::string.
-    file_node_id
+    DFileNodeId
     resolve
     (
         const std::string& _path,
-        file_node_id            _root = 0
+        DFileNodeId            _root = 0
     ) const
     {
         return resolve(_path.c_str(), _root);
@@ -276,14 +280,14 @@ public:
     // resolve_many
     //   resolves multiple paths and returns the results. Each entry is
     // null_file_node if not found.
-    std::vector<file_node_id>
+    std::vector<DFileNodeId>
     resolve_many
     (
         const std::vector<std::string>& _paths,
-        file_node_id                         _root = 0
+        DFileNodeId                         _root = 0
     ) const
     {
-        std::vector<file_node_id> result;
+        std::vector<DFileNodeId> result;
         result.reserve(_paths.size());
 
         // resolve each path individually.
@@ -305,7 +309,7 @@ public:
     std::vector<component_type>
     collect
     (
-        file_node_id _id
+        DFileNodeId _id
     ) const
     {
         return container_path_collect(
@@ -324,7 +328,7 @@ public:
     std::string
     build
     (
-        file_node_id _id,
+        DFileNodeId _id,
         char    _sep = '/'
     ) const
     {
@@ -340,7 +344,7 @@ public:
     std::string
     build_normalized
     (
-        file_node_id _id,
+        DFileNodeId _id,
         char    _sep = '/'
     ) const
     {
@@ -353,7 +357,7 @@ public:
     std::string
     build_posix
     (
-        file_node_id _id
+        DFileNodeId _id
     ) const
     {
         return build(_id, '/');
@@ -364,7 +368,7 @@ public:
     std::string
     build_windows
     (
-        file_node_id _id
+        DFileNodeId _id
     ) const
     {
         return build(_id, '\\');
@@ -375,7 +379,7 @@ public:
     std::string
     build_platform
     (
-        file_node_id _id
+        DFileNodeId _id
     ) const
     {
         return build(_id, path_separator);
@@ -395,7 +399,7 @@ public:
     std::size_t
     level
     (
-        file_node_id _id
+        DFileNodeId _id
     ) const
     {
         return container_path_level(
@@ -411,7 +415,7 @@ public:
     std::size_t
     depth
     (
-        file_node_id _id
+        DFileNodeId _id
     ) const
     {
         return level(_id);
@@ -424,7 +428,7 @@ public:
     std::size_t
     height
     (
-        file_node_id _id
+        DFileNodeId _id
     ) const
     {
         return m_tree.height(_id);
@@ -437,10 +441,10 @@ public:
 
     // ancestors
     //   returns all ancestors of _id (parent first, root last).
-    std::vector<file_node_id>
+    std::vector<DFileNodeId>
     ancestors
     (
-        file_node_id _id
+        DFileNodeId _id
     ) const
     {
         return container_path_ancestors(
@@ -451,10 +455,10 @@ public:
 
     // ancestor_chain
     //   returns the full chain from root to _id (root first).
-    std::vector<file_node_id>
+    std::vector<DFileNodeId>
     ancestor_chain
     (
-        file_node_id _id
+        DFileNodeId _id
     ) const
     {
         return container_path_ancestor_chain(
@@ -470,11 +474,11 @@ public:
 
     // lca
     //   computes the lowest common ancestor of _a and _b.
-    file_node_id
+    DFileNodeId
     lca
     (
-        file_node_id _a,
-        file_node_id _b
+        DFileNodeId _a,
+        DFileNodeId _b
     ) const
     {
         return container_path_lca(
@@ -491,11 +495,11 @@ public:
 
     // relative
     //   computes the relative path from _from to _to as a path_address.
-    path_address<component_type>
+    DPathAddress<component_type>
     relative
     (
-        file_node_id _from,
-        file_node_id _to
+        DFileNodeId _from,
+        DFileNodeId _to
     ) const
     {
         return container_path_relative(
@@ -510,8 +514,8 @@ public:
     std::string
     relative_string
     (
-        file_node_id _from,
-        file_node_id _to,
+        DFileNodeId _from,
+        DFileNodeId _to,
         char    _sep = '/'
     ) const
     {
@@ -533,8 +537,8 @@ public:
     bool
     is_ancestor
     (
-        file_node_id _ancestor,
-        file_node_id _descendant
+        DFileNodeId _ancestor,
+        DFileNodeId _descendant
     ) const
     {
         return container_path_is_ancestor(
@@ -549,8 +553,8 @@ public:
     bool
     is_descendant
     (
-        file_node_id _descendant,
-        file_node_id _ancestor
+        DFileNodeId _descendant,
+        DFileNodeId _ancestor
     ) const
     {
         return is_ancestor(_ancestor, _descendant);
@@ -567,7 +571,7 @@ public:
     std::vector<std::string>
     all_paths
     (
-        file_node_id _root = 0,
+        DFileNodeId _root = 0,
         char    _sep  = '/'
     ) const
     {
@@ -579,7 +583,7 @@ public:
         }
 
         m_tree.visit_breadth_first(_root,
-            [&](file_node_id _id, std::size_t)
+            [&](DFileNodeId _id, std::size_t)
             {
                 result.push_back(build(_id, _sep));
             });
@@ -592,7 +596,7 @@ public:
     std::string
     extension
     (
-        file_node_id _id
+        DFileNodeId _id
     ) const
     {
         return path_extension(m_tree.name_str(_id));
@@ -603,7 +607,7 @@ public:
     std::string
     stem
     (
-        file_node_id _id
+        DFileNodeId _id
     ) const
     {
         return path_stem(m_tree.name_str(_id));
@@ -614,12 +618,12 @@ public:
     std::string
     common_ancestor_path
     (
-        file_node_id _a,
-        file_node_id _b,
+        DFileNodeId _a,
+        DFileNodeId _b,
         char    _sep = '/'
     ) const
     {
-        file_node_id ancestor = lca(_a, _b);
+        DFileNodeId ancestor = lca(_a, _b);
 
         if (ancestor == null_file_node)
         {
@@ -631,14 +635,14 @@ public:
 
     // nodes_at_depth
     //   returns all node_ids at a specific depth from _root.
-    std::vector<file_node_id>
+    std::vector<DFileNodeId>
     nodes_at_depth
     (
         std::size_t _depth,
-        file_node_id     _root = 0
+        DFileNodeId     _root = 0
     ) const
     {
-        std::vector<file_node_id> result;
+        std::vector<DFileNodeId> result;
 
         if (m_tree.empty())
         {
@@ -646,7 +650,7 @@ public:
         }
 
         m_tree.visit_breadth_first(_root,
-            [&](file_node_id _id, std::size_t _d)
+            [&](DFileNodeId _id, std::size_t _d)
             {
                 if (_d == _depth)
                 {
@@ -659,22 +663,22 @@ public:
 
     // siblings
     //   returns all siblings of _id (excluding _id itself).
-    std::vector<file_node_id>
+    std::vector<DFileNodeId>
     siblings
     (
-        file_node_id _id
+        DFileNodeId _id
     ) const
     {
-        std::vector<file_node_id> result;
+        std::vector<DFileNodeId> result;
 
-        file_node_id par = m_tree[_id].parent;
+        DFileNodeId par = m_tree[_id].parent;
 
         if (par == null_file_node)
         {
             return result;
         }
 
-        file_node_id c = m_tree[par].first_child;
+        DFileNodeId c = m_tree[par].first_child;
 
         // walk the sibling chain, collecting all except _id.
         while (c != null_file_node)
@@ -717,17 +721,21 @@ private:
     policy_type      m_policy;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Tree = DFileTreeDefault>
+using file_tree_path = DFileTreePath<Tree>;
+
 
 // make_file_tree_path
 //   factory: deduces the tree type. Class-template argument deduction only
 // arrived in C++17, so pre-C++17 callers need this to avoid spelling the
 // backend out.
 template<typename Tree>
-file_tree_path<Tree> make_file_tree_path(
+DFileTreePath<Tree> make_file_tree_path(
     const Tree& _tree
 )
 {
-    return file_tree_path<Tree>(_tree);
+    return DFileTreePath<Tree>(_tree);
 }
 
 

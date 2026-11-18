@@ -37,7 +37,7 @@ bool tests_container_storage_class()
         using C = DContainerStorageClass<std::vector<int>>;
         D_STG_CHECK( (!C::has_static_signal) );
         D_STG_CHECK( (C::has_dynamic_signal) );
-        D_STG_CHECK( (C::duration == storage_duration::dynamic_storage) );
+        D_STG_CHECK( (C::duration == DStorageDuration::dynamic_storage) );
         D_STG_CHECK( (stg_cstr_eq(C::duration_name, "dynamic_storage")) );
         D_STG_CHECK( (!C::is_static && C::is_dynamic && !C::is_hybrid && !C::is_unknown) );
         D_STG_CHECK( (!C::has_static_component && C::has_dynamic_component) );
@@ -49,7 +49,7 @@ bool tests_container_storage_class()
         using C = DContainerStorageClass<std::array<int, 4>>;
         D_STG_CHECK( (C::has_static_signal) );
         D_STG_CHECK( (!C::has_dynamic_signal) );
-        D_STG_CHECK( (C::duration == storage_duration::static_storage) );
+        D_STG_CHECK( (C::duration == DStorageDuration::static_storage) );
         D_STG_CHECK( (stg_cstr_eq(C::duration_name, "static_storage")) );
         D_STG_CHECK( (C::is_static && !C::is_dynamic && !C::is_hybrid && !C::is_unknown) );
         D_STG_CHECK( (C::has_static_component && !C::has_dynamic_component) );
@@ -60,7 +60,7 @@ bool tests_container_storage_class()
     {
         using C = DContainerStorageClass<DHybridShape>;
         D_STG_CHECK( (C::has_static_signal && C::has_dynamic_signal) );
-        D_STG_CHECK( (C::duration == storage_duration::hybrid_storage) );
+        D_STG_CHECK( (C::duration == DStorageDuration::hybrid_storage) );
         D_STG_CHECK( (stg_cstr_eq(C::duration_name, "hybrid_storage")) );
         D_STG_CHECK( (!C::is_static && !C::is_dynamic && C::is_hybrid && !C::is_unknown) );
         D_STG_CHECK( (C::has_static_component && C::has_dynamic_component) );
@@ -71,7 +71,7 @@ bool tests_container_storage_class()
     {
         using C = DContainerStorageClass<int>;
         D_STG_CHECK( (!C::has_static_signal && !C::has_dynamic_signal) );
-        D_STG_CHECK( (C::duration == storage_duration::unknown) );
+        D_STG_CHECK( (C::duration == DStorageDuration::unknown) );
         D_STG_CHECK( (stg_cstr_eq(C::duration_name, "unknown")) );
         D_STG_CHECK( (!C::is_static && !C::is_dynamic && !C::is_hybrid && C::is_unknown) );
         D_STG_CHECK( (!C::has_static_component && !C::has_dynamic_component) );
@@ -84,7 +84,7 @@ bool tests_container_storage_class()
         using C = DContainerStorageClass<DOptinDynamicOverride>;
         D_STG_CHECK( (C::has_static_signal) );             // the raw extent signal
         D_STG_CHECK( (!C::has_dynamic_signal) );
-        D_STG_CHECK( (C::duration == storage_duration::dynamic_storage) );  // ... but the opt-in wins
+        D_STG_CHECK( (C::duration == DStorageDuration::dynamic_storage) );  // ... but the opt-in wins
         D_STG_CHECK( (C::is_dynamic) );
         D_STG_CHECK( (!C::has_static_component) );          // resolved siting has no static part
         D_STG_CHECK( (C::has_dynamic_component) );
@@ -94,7 +94,7 @@ bool tests_container_storage_class()
     // -- DOptinStaticNoSize: the aggregate surfaces the coherence violation --
     {
         using C = DContainerStorageClass<DOptinStaticNoSize>;
-        D_STG_CHECK( (C::duration == storage_duration::static_storage) );
+        D_STG_CHECK( (C::duration == DStorageDuration::static_storage) );
         D_STG_CHECK( (C::is_static) );
         D_STG_CHECK( (C::has_static_component) );
         D_STG_CHECK( (!C::size_lifetime_consistent) );     // static siting, runtime-only size
@@ -141,7 +141,7 @@ bool tests_storage_variable_templates()
     D_STG_CHECK( (!static_storage_implies_constexpr_size_v<DOptinStaticNoSize>) );
 
     // section-II enum companion
-    D_STG_CHECK( (storage_duration_of_v<DHybridShape> == storage_duration::hybrid_storage) );
+    D_STG_CHECK( (storage_duration_of_v<DHybridShape> == DStorageDuration::hybrid_storage) );
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 

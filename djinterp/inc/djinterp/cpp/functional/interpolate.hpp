@@ -8,7 +8,7 @@
 *
 *     scanner   -- WHERE the placeholders are (owns the syntax: braces vs
 *                  sigils; owns runtime-scan vs pre-parsed).  Drives a pull
-*                  cursor that yields one `piece` (a literal run or a key) per
+*                  cursor that yields one `DPiece` (a literal run or a key) per
 *                  step, so output is written segment-by-segment with no
 *                  intermediate structure.  Speaks the framework scanner/token
 *                  vocabulary (input_type / item_type / result_type; a piece is
@@ -153,13 +153,13 @@ enum class DPieceKind
     key
 };
 
-// piece
+// DPiece
 //   struct: one scan event -- the framework token specialized to interpolation.
 // A `literal` carries the (escape-collapsed, contiguous) span to emit verbatim;
 // a `key` carries the trimmed name to resolve plus the full delimited slice, so
 // an unresolved key can be re-emitted untouched for a later resolver frame.
 template<typename Type = char>
-struct piece
+struct DPiece
 {
     using char_type  = Type;
     using view_type  = std::basic_string_view<Type>;
@@ -177,6 +177,10 @@ struct piece
         return (m_kind == DPieceKind::key);
     }
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Type = char>
+using piece = DPiece<Type>;
 
 
 // ===========================================================================
@@ -208,12 +212,12 @@ public:
 
     // item_type
     //   type: scanner contract -- a discovered element (one scan event).
-    using item_type   = piece<Type>;
-    using piece_type  = piece<Type>;
+    using item_type   = DPiece<Type>;
+    using piece_type  = DPiece<Type>;
 
     // result_type
     //   type: scanner contract -- what a successful scan step yields.
-    using result_type = piece<Type>;
+    using result_type = DPiece<Type>;
 
     D_CONSTEXPR explicit DBraceScanner(
         view_type _source
@@ -394,9 +398,9 @@ public:
     using view_type   = std::basic_string_view<Type>;
     using size_type   = std::size_t;
     using input_type  = char_type;
-    using item_type   = piece<Type>;
-    using piece_type  = piece<Type>;
-    using result_type = piece<Type>;
+    using item_type   = DPiece<Type>;
+    using piece_type  = DPiece<Type>;
+    using result_type = DPiece<Type>;
 
     D_CONSTEXPR DSigilScanner(
         view_type _source,
@@ -535,16 +539,16 @@ private:
 // must outlive the cache.  Cache is any forward-iterable sequence of
 // piece<Type> (std::vector by default).
 template<typename Type,
-         typename Cache = std::vector<piece<Type>>>
+         typename Cache = std::vector<DPiece<Type>>>
 class DReplayScanner
 {
 public:
     using char_type   = Type;
     using view_type   = std::basic_string_view<Type>;
     using input_type  = Type;
-    using item_type   = piece<Type>;
-    using piece_type  = piece<Type>;
-    using result_type = piece<Type>;
+    using item_type   = DPiece<Type>;
+    using piece_type  = DPiece<Type>;
+    using result_type = DPiece<Type>;
 
     explicit DReplayScanner(
         const Cache& _cache
@@ -581,18 +585,18 @@ private:
 // ===========================================================================
 // III. RESOLUTION & RESOLVERS
 // ===========================================================================
-//   A resolver maps a key to a `resolution<value>`: a hit replaces, a miss
+//   A resolver maps a key to a `DResolution<value>`: a hit replaces, a miss
 // leaves the placeholder.  This is the upgrade over a bare (key) -> value
 // lookup (which cannot distinguish "absent" from "empty"); the explicit miss is
 // what lets a key survive one frame to be filled by the next.  resolution is a
 // minimal maybe -- swap in djinterp::maybe<Value> wherever richer is wanted.
 
-// resolution
+// DResolution
 //   struct: a resolver's answer -- a found flag and (when found) a value.  As
 // the minimal maybe it carries the lazy `or_else` combinator that chaining is
 // expressed in terms of (see DChainResolver).
 template<typename Value>
-struct resolution
+struct DResolution
 {
     using value_type = Value;
 
@@ -616,7 +620,7 @@ struct resolution
     // pays for a fallback frame's lookup solely when the earlier frame does not
     // hit.  This is the "try this, else that" step DChainResolver routes through.
     template<typename Alt>
-    D_NODISCARD D_CONSTEXPR_CPP14 resolution or_else(
+    D_NODISCARD D_CONSTEXPR_CPP14 DResolution or_else(
         Alt _alt
     ) const
     {
@@ -629,20 +633,24 @@ struct resolution
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Value>
+using resolution = DResolution<Value>;
+
 // resolved / unresolved
 //   function: build a hit / a miss.
 template<typename Value>
-D_NODISCARD D_CONSTEXPR resolution<clean_t<Value>> resolved(
+D_NODISCARD D_CONSTEXPR DResolution<clean_t<Value>> resolved(
     Value&& _value
 )
 {
-    return resolution<clean_t<Value>>{true, static_cast<Value&&>(_value)};
+    return DResolution<clean_t<Value>>{true, static_cast<Value&&>(_value)};
 }
 
 template<typename Value>
-D_NODISCARD D_CONSTEXPR resolution<Value> unresolved()
+D_NODISCARD D_CONSTEXPR DResolution<Value> unresolved()
 {
-    return resolution<Value>{false, Value{}};
+    return DResolution<Value>{false, Value{}};
 }
 
 
@@ -654,7 +662,7 @@ struct DEmptyResolver
 {
     using view_type = std::basic_string_view<Type>;
 
-    D_NODISCARD D_CONSTEXPR resolution<view_type>
+    D_NODISCARD D_CONSTEXPR DResolution<view_type>
     operator()(
         view_type
     ) const
@@ -684,7 +692,7 @@ public:
         : m_bindings(_bindings)
     {}
 
-    D_NODISCARD resolution<view_type>
+    D_NODISCARD DResolution<view_type>
     operator()(
         view_type _key
     ) const
@@ -727,7 +735,7 @@ public:
         : m_fn(_fn)
     {}
 
-    D_NODISCARD resolution<string_type> operator()(
+    D_NODISCARD DResolution<string_type> operator()(
         view_type _key
     ) const
     {
@@ -1008,7 +1016,7 @@ public:
           m_max_depth(_max_depth)
     {}
 
-    D_NODISCARD resolution<string_type>
+    D_NODISCARD DResolution<string_type>
     operator()(
         view_type _key
     ) const
@@ -1020,7 +1028,7 @@ private:
     // m_expand -- resolve _key through the inner resolver; on a hit, re-scan
     // the value with one less budget so a nested key expands in turn.  A miss
     // stays a miss; a spent budget emits the value without expanding further.
-    D_NODISCARD resolution<string_type>
+    D_NODISCARD DResolution<string_type>
     m_expand(
         view_type   _key,
         std::size_t _budget
@@ -1085,7 +1093,7 @@ recursive(
 template<typename Type,
          typename Resolver,
          typename Scanner = DBraceScanner<Type>,
-         typename Cache    = std::vector<piece<Type>>>
+         typename Cache    = std::vector<DPiece<Type>>>
 class DPreparedInterpolation;
 
 
@@ -1210,14 +1218,14 @@ public:
     // shared cache makes the result cheap to copy.  The cache holds views into
     // the template, so the template must outlive the result.
     D_NODISCARD
-    DPreparedInterpolation<Type, Resolver, Scanner, std::vector<piece<Type>>>
+    DPreparedInterpolation<Type, Resolver, Scanner, std::vector<DPiece<Type>>>
     prepare() const
     {
-        using cache_type = std::vector<piece<Type>>;
+        using cache_type = std::vector<DPiece<Type>>;
 
         auto         _cache = std::make_shared<cache_type>();
         Scanner      _scanner(m_template);
-        piece<Type> _p;
+        DPiece<Type> _p;
         while (_scanner.next(_p)) { _cache->push_back(_p); }
 
         return DPreparedInterpolation<Type, Resolver, Scanner, cache_type>(
@@ -1483,7 +1491,7 @@ private:
 // views into _template, so _template must outlive the result.
 template<typename Type     = char,
          typename Scanner = DBraceScanner<Type>,
-         typename Cache    = std::vector<piece<Type>>>
+         typename Cache    = std::vector<DPiece<Type>>>
 D_NODISCARD
 DPreparedInterpolation<Type, DEmptyResolver<Type>, Scanner, Cache> prepare(
     std::basic_string_view<Type> _template
@@ -1491,7 +1499,7 @@ DPreparedInterpolation<Type, DEmptyResolver<Type>, Scanner, Cache> prepare(
 {
     auto         _cache = std::make_shared<Cache>();
     Scanner      _scanner(_template);
-    piece<Type> _p;
+    DPiece<Type> _p;
     while (_scanner.next(_p)) { _cache->push_back(_p); }
 
     return DPreparedInterpolation<Type, DEmptyResolver<Type>, Scanner, Cache>(
@@ -1504,7 +1512,7 @@ DPreparedInterpolation<Type, DEmptyResolver<Type>, Scanner, Cache> prepare(
 template<typename Type,
          typename Resolver,
          typename Scanner = DBraceScanner<Type>,
-         typename Cache    = std::vector<piece<Type>>>
+         typename Cache    = std::vector<DPiece<Type>>>
 D_NODISCARD
 DPreparedInterpolation<Type, clean_t<Resolver>, Scanner, Cache> make_prepared(
     std::basic_string_view<Type> _template,
@@ -1513,7 +1521,7 @@ DPreparedInterpolation<Type, clean_t<Resolver>, Scanner, Cache> make_prepared(
 {
     auto         _cache = std::make_shared<Cache>();
     Scanner      _scanner(_template);
-    piece<Type> _p;
+    DPiece<Type> _p;
     while (_scanner.next(_p)) { _cache->push_back(_p); }
 
     return DPreparedInterpolation<Type, clean_t<Resolver>, Scanner, Cache>(
@@ -1538,7 +1546,7 @@ prepare_into(
 )
 {
     Scanner      _scanner(_template);
-    piece<Type> _p;
+    DPiece<Type> _p;
     while (_scanner.next(_p)) { _cache.push_back(_p); }
 
     return;

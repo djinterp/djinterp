@@ -452,10 +452,10 @@ struct arenas_cross_referenceable
 // VI.  Combined Classification
 // ===========================================================================
 
-// arena_class
+// DArenaClass
 //   struct: aggregate classification of an arena type.
 template<typename Type>
-struct arena_class
+struct DArenaClass
 {
     // identity
     static D_CONSTEXPR bool is_arena_type =
@@ -478,25 +478,25 @@ struct arena_class
     // link capabilities (safe defaults when no policy)
     static D_CONSTEXPR bool has_first_child =
         has_link_flag<policy_type,
-                      tree_link::first_child>::value;
+                      DTreeLink::first_child>::value;
     static D_CONSTEXPR bool has_next_sibling =
         has_link_flag<policy_type,
-                      tree_link::next_sibling>::value;
+                      DTreeLink::next_sibling>::value;
     static D_CONSTEXPR bool has_parent =
         has_link_flag<policy_type,
-                      tree_link::parent>::value;
+                      DTreeLink::parent>::value;
     static D_CONSTEXPR bool has_prev_sibling =
         has_link_flag<policy_type,
-                      tree_link::prev_sibling>::value;
+                      DTreeLink::prev_sibling>::value;
     static D_CONSTEXPR bool has_last_child =
         has_link_flag<policy_type,
-                      tree_link::last_child>::value;
+                      DTreeLink::last_child>::value;
     static D_CONSTEXPR bool has_left =
         has_link_flag<policy_type,
-                      tree_link::left>::value;
+                      DTreeLink::left>::value;
     static D_CONSTEXPR bool has_right =
         has_link_flag<policy_type,
-                      tree_link::right>::value;
+                      DTreeLink::right>::value;
 
     // derived capabilities
     static D_CONSTEXPR bool o1_detach =
@@ -510,6 +510,10 @@ struct arena_class
     static D_CONSTEXPR bool is_nary =
         ( has_first_child && has_next_sibling );
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using arena_class = DArenaClass<Type>;
 
 
 NS_END  // djinterp

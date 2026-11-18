@@ -86,7 +86,7 @@ tests_adapter_for
 bool tests_adapter_for()
 {
 #if D_ADAPTER_HAS_CONCEPTS
-    using oa = object_adapter<legacy_seq, legacy_policy, by_pointer>;
+    using oa = DObjectAdapter<legacy_seq, legacy_policy, DByPointer>;
 
     static_assert(adapter_for<oa>,   "object_adapter models adapter_for");
     static_assert(!adapter_for<int>, "int does not model adapter_for");

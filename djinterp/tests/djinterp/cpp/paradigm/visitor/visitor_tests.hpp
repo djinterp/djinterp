@@ -119,7 +119,7 @@ class classic_tri;
 //   fixture: the element root.  accept() is pure virtual and takes the visitor
 // type-erased as visitor_base<std::string>& -- which is the whole difficulty the
 // classic form has to solve, since that type declares no visit() at all.
-class classic_shape : public visitable_base<std::string>
+class classic_shape : public DVisitableBase<std::string>
 {
 public:
     virtual ~classic_shape()
@@ -264,7 +264,7 @@ class dot;
 //   fixture: element root with the DEFAULT return type, i.e. void.  void is the
 // return type most visitors actually use, and it is the one most likely to break
 // a return-type-generic implementation, so it gets its own hierarchy.
-class dot_base : public visitable_base<>
+class dot_base : public DVisitableBase<>
 {
 public:
     virtual ~dot_base()
@@ -316,7 +316,7 @@ class acyclic_tri;
 // acyclic_visitable<> and, crucially, the VISITOR base knows nothing about them --
 // that is the acyclicity.  acyclic_tri exists to be the element the partial
 // visitor below does not handle.
-class acyclic_circle : public acyclic_visitable<>
+class acyclic_circle : public DAcyclicVisitable<>
 {
 public:
     int seen;
@@ -328,7 +328,7 @@ public:
     D_ACYCLIC_VISITABLE(acyclic_circle, void)
 };
 
-class acyclic_rect : public acyclic_visitable<>
+class acyclic_rect : public DAcyclicVisitable<>
 {
 public:
     int seen;
@@ -340,7 +340,7 @@ public:
     D_ACYCLIC_VISITABLE(acyclic_rect, void)
 };
 
-class acyclic_tri : public acyclic_visitable<>
+class acyclic_tri : public DAcyclicVisitable<>
 {
 public:
     int seen;
@@ -358,8 +358,8 @@ public:
 // the suite has to pin, since under the classic form the same shape of visitor is
 // a bug.
 class round_visitor : public acyclic_visitor,
-                      public visitor_of<acyclic_circle>,
-                      public visitor_of<acyclic_rect>
+                      public DVisitorOf<acyclic_circle>,
+                      public DVisitorOf<acyclic_rect>
 {
 public:
     int circles;
@@ -398,7 +398,7 @@ class blind_visitor : public acyclic_visitor
 // VALUE here, not just do nothing, so it exercises a different line of the macro.
 class scored_node;
 
-class scored_node : public acyclic_visitable<int>
+class scored_node : public DAcyclicVisitable<int>
 {
 public:
     D_ACYCLIC_VISITABLE(scored_node, int)
@@ -408,7 +408,7 @@ public:
 //   fixture: handles scored_node and returns a distinctive value, so a default
 // return is impossible to confuse with a real one.
 class scorer : public acyclic_visitor,
-               public visitor_of<scored_node, int>
+               public DVisitorOf<scored_node, int>
 {
 public:
     int visit(
@@ -427,7 +427,7 @@ public:
 //   fixture: elements that accept static visitors.  static_tri is handled by no
 // visitor here -- under this strategy that is a COMPILE-time fact, so the suite
 // observes it through visit_result rather than by calling anything.
-class static_circle : public static_visitable<static_circle>
+class static_circle : public DStaticVisitable<static_circle>
 {
 public:
     int id;
@@ -437,7 +437,7 @@ public:
     {}
 };
 
-class static_rect : public static_visitable<static_rect>
+class static_rect : public DStaticVisitable<static_rect>
 {
 public:
     int id;
@@ -447,7 +447,7 @@ public:
     {}
 };
 
-class static_tri : public static_visitable<static_tri>
+class static_tri : public DStaticVisitable<static_tri>
 {
 public:
     int id;
@@ -462,7 +462,7 @@ public:
 // overloads return four DIFFERENT strings on purpose: a visitor whose overloads
 // returned the same thing would pass a dispatch test even if apply() selected the
 // wrong one every time.
-class tag_visitor : public static_visitor<tag_visitor>
+class tag_visitor : public DStaticVisitor<tag_visitor>
 {
 public:
     std::string visit(
@@ -497,7 +497,7 @@ public:
 // const_tag_visitor
 //   fixture: only const-callable.  Selects static_visitor::apply's third overload
 // -- the one taking `this` by const -- and nothing else can.
-class const_tag_visitor : public static_visitor<const_tag_visitor>
+class const_tag_visitor : public DStaticVisitor<const_tag_visitor>
 {
 public:
     std::string visit(
@@ -518,7 +518,7 @@ public:
 // id_visitor
 //   fixture: a static visitor with a non-string return type, to show the return
 // type is deduced from the visitor rather than fixed by the base.
-class id_visitor : public static_visitor<id_visitor>
+class id_visitor : public DStaticVisitor<id_visitor>
 {
 public:
     int visit(

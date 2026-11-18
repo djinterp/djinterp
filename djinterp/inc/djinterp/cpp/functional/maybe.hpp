@@ -139,7 +139,7 @@ struct nothing_t
 #endif
 
 
-// maybe
+// DMaybe
 //   class: holds either a value of type Type or nothing. Storage is
 // raw bytes (aligned_storage) with a boolean discriminator; the
 // value is constructed in place when needed and destroyed when
@@ -149,26 +149,26 @@ struct nothing_t
 // move of the contained value. Comparison operators are provided
 // when Type supports them.
 template<typename Type>
-class maybe
+class DMaybe
 {
 public:
     using value_type = Type;
 
     // constructor (empty)
     D_CONSTEXPR
-    maybe() noexcept
+    DMaybe() noexcept
         : m_has_value(false)
     {}
 
     // constructor (nothing tag)
     D_CONSTEXPR
-    maybe(nothing_t) noexcept
+    DMaybe(nothing_t) noexcept
         : m_has_value(false)
     {}
 
     // constructor (value, copy)
     D_CONSTEXPR_CPP14
-    maybe(
+    DMaybe(
         const Type& _value
     )
         : m_has_value(true)
@@ -178,7 +178,7 @@ public:
 
     // constructor (value, move)
     D_CONSTEXPR_CPP14
-    maybe(
+    DMaybe(
         Type&& _value
     )
         : m_has_value(true)
@@ -188,8 +188,8 @@ public:
 
     // constructor (copy)
     D_CONSTEXPR_CPP14
-    maybe(
-        const maybe& _other
+    DMaybe(
+        const DMaybe& _other
     )
         : m_has_value(_other.m_has_value)
     {
@@ -201,8 +201,8 @@ public:
 
     // constructor (move)
     D_CONSTEXPR_CPP14
-    maybe(
-        maybe&& _other
+    DMaybe(
+        DMaybe&& _other
     ) noexcept(std::is_nothrow_move_constructible<Type>::value)
         : m_has_value(_other.m_has_value)
     {
@@ -214,15 +214,15 @@ public:
 
     // destructor
     D_CONSTEXPR_CPP20
-    ~maybe()
+    ~DMaybe()
     {
         reset();
     }
 
     // assignment (copy)
     D_CONSTEXPR_CPP14
-    maybe& operator=(
-        const maybe& _other
+    DMaybe& operator=(
+        const DMaybe& _other
     )
     {
         if (this == &_other)
@@ -252,8 +252,8 @@ public:
 
     // assignment (move)
     D_CONSTEXPR_CPP14
-    maybe& operator=(
-        maybe&& _other
+    DMaybe& operator=(
+        DMaybe&& _other
     ) noexcept(std::is_nothrow_move_assignable<Type>::value &&
                std::is_nothrow_move_constructible<Type>::value)
     {
@@ -284,7 +284,7 @@ public:
 
     // assignment (nothing)
     D_CONSTEXPR_CPP14
-    maybe& operator=(
+    DMaybe& operator=(
         nothing_t
     ) noexcept
     {
@@ -295,7 +295,7 @@ public:
 
     // assignment (value)
     D_CONSTEXPR_CPP14
-    maybe& operator=(
+    DMaybe& operator=(
         const Type& _value
     )
     {
@@ -313,7 +313,7 @@ public:
     }
 
     D_CONSTEXPR_CPP14
-    maybe& operator=(
+    DMaybe& operator=(
         Type&& _value
     )
     {
@@ -447,17 +447,17 @@ public:
     D_CONSTEXPR_CPP14
     auto map(
         Function _function
-    ) const -> maybe<typename std::decay<decltype( _function(std::declval<const Type&>()))>::type>
+    ) const -> DMaybe<typename std::decay<decltype( _function(std::declval<const Type&>()))>::type>
     {
         using result_t = typename std::decay<decltype(
             _function(std::declval<const Type&>()))>::type;
 
         if (m_has_value)
         {
-            return maybe<result_t>(_function(*pointer()));
+            return DMaybe<result_t>(_function(*pointer()));
         }
 
-        return maybe<result_t>();
+        return DMaybe<result_t>();
     }
 
     // and_then
@@ -490,7 +490,7 @@ public:
     template<typename Function>
     D_NODISCARD
     D_CONSTEXPR_CPP14
-    maybe or_else(
+    DMaybe or_else(
         Function _function
     ) const
     {
@@ -509,7 +509,7 @@ public:
     template<typename Predicate>
     D_NODISCARD
     D_CONSTEXPR_CPP14
-    maybe filter(
+    DMaybe filter(
         Predicate _predicate
     ) const
     {
@@ -518,7 +518,7 @@ public:
             return *this;
         }
 
-        return maybe{};
+        return DMaybe{};
     }
 
     // match
@@ -668,6 +668,10 @@ private:
     bool m_has_value;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using maybe = DMaybe<Type>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //                            EQUALITY OPERATORS                             //
@@ -678,8 +682,8 @@ private:
 template<typename Type>
 D_NODISCARD
 bool operator==(
-    const maybe<Type>& _a,
-    const maybe<Type>& _b
+    const DMaybe<Type>& _a,
+    const DMaybe<Type>& _b
 )
 {
     if (_a.has_value() != _b.has_value())
@@ -698,8 +702,8 @@ bool operator==(
 template<typename Type>
 D_NODISCARD
 bool operator!=(
-    const maybe<Type>& _a,
-    const maybe<Type>& _b
+    const DMaybe<Type>& _a,
+    const DMaybe<Type>& _b
 )
 {
     return !(_a == _b);
@@ -709,7 +713,7 @@ template<typename Type>
 D_NODISCARD
 D_CONSTEXPR
 bool operator==(
-    const maybe<Type>&,
+    const DMaybe<Type>&,
     nothing_t
 )
 {
@@ -721,7 +725,7 @@ D_NODISCARD
 D_CONSTEXPR
 bool operator==(
     nothing_t,
-    const maybe<Type>& _m
+    const DMaybe<Type>& _m
 )
 {
     return !_m.has_value();
@@ -744,7 +748,7 @@ NS_INTERNAL
     {};
 
     template<typename Type>
-    struct is_maybe_helper<maybe<Type>>
+    struct is_maybe_helper<DMaybe<Type>>
         : std::true_type
     {};
 
@@ -853,11 +857,11 @@ concept maybe_predicate_for = is_maybe_predicate<Pred, Type>::value;
 template<typename Type>
 D_NODISCARD
 D_CONSTEXPR
-maybe<typename std::decay<Type>::type> just(
+DMaybe<typename std::decay<Type>::type> just(
     Type&& _value
 )
 {
-    return maybe<typename std::decay<Type>::type>(std::forward<Type>(_value));
+    return DMaybe<typename std::decay<Type>::type>(std::forward<Type>(_value));
 }
 
 
@@ -868,9 +872,9 @@ maybe<typename std::decay<Type>::type> just(
 template<typename Type>
 D_NODISCARD
 D_CONSTEXPR
-maybe<Type> nothing()
+DMaybe<Type> nothing()
 {
-    return maybe<Type>{};
+    return DMaybe<Type>{};
 }
 
 
@@ -880,16 +884,16 @@ maybe<Type> nothing()
 // copied; the pointer itself is not stored.
 template<typename Type>
 D_NODISCARD
-maybe<typename std::decay<Type>::type> from_pointer(
+DMaybe<typename std::decay<Type>::type> from_pointer(
     const Type* _ptr
 )
 {
     if (_ptr == nullptr)
     {
-        return maybe<typename std::decay<Type>::type>{};
+        return DMaybe<typename std::decay<Type>::type>{};
     }
 
-    return maybe<typename std::decay<Type>::type>(*_ptr);
+    return DMaybe<typename std::decay<Type>::type>(*_ptr);
 }
 
 
@@ -900,7 +904,7 @@ maybe<typename std::decay<Type>::type> from_pointer(
 template<typename Type,
          typename Predicate>
 D_NODISCARD
-maybe<typename std::decay<Type>::type> from_predicate(
+DMaybe<typename std::decay<Type>::type> from_predicate(
     Type&&    _value,
     Predicate _predicate
 )
@@ -909,10 +913,10 @@ maybe<typename std::decay<Type>::type> from_predicate(
 
     if (_predicate(_value))
     {
-        return maybe<value_t>(std::forward<Type>(_value));
+        return DMaybe<value_t>(std::forward<Type>(_value));
     }
 
-    return maybe<value_t>{};
+    return DMaybe<value_t>{};
 }
 
 
@@ -940,7 +944,7 @@ NS_INTERNAL
         template<typename Type>
         D_CONSTEXPR
         Type apply(
-            const maybe<Type>& _m
+            const DMaybe<Type>& _m
         ) const
         {
             return _m.value_or(m_default);
@@ -967,8 +971,8 @@ NS_INTERNAL
 
         template<typename Type>
         D_CONSTEXPR
-        maybe<Type> apply(
-            const maybe<Type>& _m
+        DMaybe<Type> apply(
+            const DMaybe<Type>& _m
         ) const
         {
             return _m.filter(m_predicate);
@@ -994,7 +998,7 @@ NS_INTERNAL
 
         template<typename Type>
         Type apply(
-            const maybe<Type>& _m
+            const DMaybe<Type>& _m
         ) const
         {
             return _m.expect(m_message);
@@ -1074,11 +1078,11 @@ template<typename Type,
          typename Combinator,
          typename = decltype(
              std::declval<const Combinator&>().apply(
-                 std::declval<const maybe<Type>&>()))>
+                 std::declval<const DMaybe<Type>&>()))>
 D_CONSTEXPR
 auto operator|
 (
-    const maybe<Type>& _m,
+    const DMaybe<Type>& _m,
     Combinator&&    _combinator
 )
 -> decltype(_combinator.apply(_m))
@@ -1095,22 +1099,22 @@ auto operator|
 //   specialization: makes maybe participate in the generic monad
 // protocol. Exposes value_type, rebind, unit, and bind.
 template<typename Type>
-struct monad_traits<maybe<Type>>
+struct monad_traits<DMaybe<Type>>
 {
     using is_specialized = std::true_type;
     using value_type     = Type;
 
     template<typename U>
-    using rebind = maybe<U>;
+    using rebind = DMaybe<U>;
 
     // unit
     //   lifts a value into maybe. Equivalent to just().
     static D_CONSTEXPR
-    maybe<Type> unit(
+    DMaybe<Type> unit(
         Type _value
     )
     {
-        return maybe<Type>(std::move(_value));
+        return DMaybe<Type>(std::move(_value));
     }
 
     // bind
@@ -1122,7 +1126,7 @@ struct monad_traits<maybe<Type>>
     template<typename Function>
     static D_CONSTEXPR
     auto bind(
-        const maybe<Type>& _m,
+        const DMaybe<Type>& _m,
         Function           _function
     ) -> typename std::decay<decltype( _function(std::declval<const Type&>()))>::type
     {
@@ -1180,10 +1184,10 @@ template<typename A,
          typename Function>
 D_NODISCARD
 auto zip_with(
-    const maybe<A>& _ma,
-    const maybe<B>& _mb,
+    const DMaybe<A>& _ma,
+    const DMaybe<B>& _mb,
     Function        _function
-) -> maybe<typename std::decay<decltype( _function(std::declval<const A&>(), std::declval<const B&>()))>::type>
+) -> DMaybe<typename std::decay<decltype( _function(std::declval<const A&>(), std::declval<const B&>()))>::type>
 {
     using result_t = typename std::decay<decltype(
         _function(std::declval<const A&>(),
@@ -1191,10 +1195,10 @@ auto zip_with(
 
     if (_ma.has_value() && _mb.has_value())
     {
-        return maybe<result_t>(_function(_ma.value(), _mb.value()));
+        return DMaybe<result_t>(_function(_ma.value(), _mb.value()));
     }
 
-    return maybe<result_t>{};
+    return DMaybe<result_t>{};
 }
 
 
@@ -1203,8 +1207,8 @@ auto zip_with(
 // to monad_join for maybe.
 template<typename Type>
 D_NODISCARD
-maybe<Type> flatten(
-    const maybe<maybe<Type>>& _outer
+DMaybe<Type> flatten(
+    const DMaybe<DMaybe<Type>>& _outer
 )
 {
     if (_outer.has_value())
@@ -1212,7 +1216,7 @@ maybe<Type> flatten(
         return _outer.value();
     }
 
-    return maybe<Type>{};
+    return DMaybe<Type>{};
 }
 
 
@@ -1230,7 +1234,7 @@ template<typename Container,
              int>::type = 0>
 D_NODISCARD auto collect(
     const Container& _container
-) -> maybe<std::vector<typename Container::value_type::value_type>>
+) -> DMaybe<std::vector<typename Container::value_type::value_type>>
 {
     using inner_t = typename Container::value_type::value_type;
 
@@ -1240,13 +1244,13 @@ D_NODISCARD auto collect(
     {
         if (!element.has_value())
         {
-            return maybe<std::vector<inner_t>>{};
+            return DMaybe<std::vector<inner_t>>{};
         }
 
         result.push_back(element.value());
     }
 
-    return maybe<std::vector<inner_t>>(std::move(result));
+    return DMaybe<std::vector<inner_t>>(std::move(result));
 }
 
 
@@ -1280,7 +1284,7 @@ D_NODISCARD auto collect(
 // is exhausted.
 template<typename Value,
          typename Next>
-using DStepResult = maybe<DKvPair<Value, Next>>;
+using DStepResult = DMaybe<DKvPair<Value, Next>>;
 
 // some
 //   function: an unfold step that yields _value and advances to _next; builds

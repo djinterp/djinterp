@@ -81,7 +81,7 @@ concept CountableContainer = is_countable_container_v<Type>;
 
 
 // DeclaresMultiplicityBound
-//   concept: carries the opt-in static `multiplicity` -- the authoritative
+//   concept: carries the opt-in static `DMultiplicity` -- the authoritative
 // override, and the only way to state a bound with no structural tell (a
 // bounded multiset, or a keyed container whose insert takes a key and a value
 // rather than one value_type).

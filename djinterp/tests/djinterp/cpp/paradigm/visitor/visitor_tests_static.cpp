@@ -367,21 +367,21 @@ tests_static_visitor_has_no_vtable
 */
 bool tests_static_visitor_has_no_vtable()
 {
-    static_assert(!std::is_polymorphic<static_visitor<tag_visitor> >::value,
+    static_assert(!std::is_polymorphic<DStaticVisitor<tag_visitor> >::value,
                   "the CRTP visitor base has no vtable");
     static_assert(!std::is_polymorphic<tag_visitor>::value,
                   "nor does a derived static visitor");
     static_assert(!std::is_polymorphic<id_visitor>::value,
                   "nor any of them");
 
-    static_assert(!std::is_polymorphic<static_visitable<static_circle> >::value,
+    static_assert(!std::is_polymorphic<DStaticVisitable<static_circle> >::value,
                   "the CRTP element base has no vtable either");
     static_assert(!std::is_polymorphic<static_circle>::value,
                   "nor does a derived static element");
 
     // the comparison that gives the above its meaning: the RUNTIME roots do have
     // vtables, because they must
-    static_assert(std::is_polymorphic<visitor_base<void> >::value,
+    static_assert(std::is_polymorphic<DVisitorBase<void> >::value,
                   "the classic root is polymorphic");
     static_assert(std::is_polymorphic<acyclic_visitor>::value,
                   "and so is the acyclic root");

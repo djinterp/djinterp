@@ -108,9 +108,9 @@ struct counted
 static
 void test_cost_law()
 {
-    arena          a;
-    raw_pool       rp(32, 8);
-    pool<thing>    tp;
+    DArena          a;
+    DRawPool       rp(32, 8);
+    DPool<thing>    tp;
     DMemorySource  ms;
 
     /* the base subobject must be at offset zero: a wrapper pointer and a
@@ -126,14 +126,14 @@ void test_cost_law()
               static_cast< ::dj_mem_source* >(&ms)));
 
     /* and the sizes agree, which the headers also assert statically */
-    CHECK(sizeof(arena)       == sizeof(::dj_arena));
-    CHECK(sizeof(raw_pool)    == sizeof(::dj_pool));
-    CHECK(sizeof(pool<thing>) == sizeof(::dj_pool));
+    CHECK(sizeof(DArena)       == sizeof(::dj_arena));
+    CHECK(sizeof(DRawPool)    == sizeof(::dj_pool));
+    CHECK(sizeof(DPool<thing>) == sizeof(::dj_pool));
 
     std::printf("  sizeof: dj_arena=%zu arena=%zu | dj_pool=%zu pool<thing>=%zu"
                 " | dj_mem_source=%zu\n",
-                sizeof(::dj_arena), sizeof(arena),
-                sizeof(::dj_pool), sizeof(pool<thing>),
+                sizeof(::dj_arena), sizeof(DArena),
+                sizeof(::dj_pool), sizeof(DPool<thing>),
                 sizeof(::dj_mem_source));
 
     return;
@@ -150,7 +150,7 @@ void test_arena_parity()
     static char buf_cpp[16384];
 
     ::dj_arena c_arena;
-    arena     cpp_arena(buf_cpp, static_cast<DMemSize>(sizeof(buf_cpp)));
+    DArena     cpp_arena(buf_cpp, static_cast<DMemSize>(sizeof(buf_cpp)));
 
     CHECK(::d_arena_init_buffer(&c_arena, buf_c,
                                 static_cast<DMemSize>(sizeof(buf_c))) ==
@@ -194,7 +194,7 @@ void test_arena_parity()
 static
 void test_pool_geometry_parity()
 {
-    /*   pool<T> supplies sizeof(T) and alignof(T) at translation time; the C
+    /*   DPool<T> supplies sizeof(T) and alignof(T) at translation time; the C
      * kernel is told them at run time. The claim is that the two arrive at
      * the SAME stride and alignment -- earlier, not differently. */
     ::dj_pool_config c_cfg = ::d_pool_config_default(
@@ -204,7 +204,7 @@ void test_pool_geometry_parity()
     ::dj_pool c_pool;
     CHECK(::d_pool_init(&c_pool, &c_cfg) == D_MEM_OK);
 
-    pool<thing> cpp_pool;
+    DPool<thing> cpp_pool;
 
     CHECK(::d_pool_slot_size(&c_pool)  == cpp_pool.slot_size());
     CHECK(::d_pool_slot_align(&c_pool) == cpp_pool.slot_align());
@@ -247,7 +247,7 @@ void test_pool_geometry_parity()
 static
 void test_object_lifetime()
 {
-    pool<counted> p;
+    DPool<counted> p;
 
     live_things = 0;
 
@@ -302,9 +302,10 @@ static
 void test_handles()
 {
 #if (D_INTERNAL_POOL_GENERATIONAL == 1)
-    pool<thing, D_POOL_POLICY_GENERATIONAL> p;
+    DPool<thing, D_POOL_POLICY_GENERATIONAL> p;
 
-    pool<thing, D_POOL_POLICY_GENERATIONAL>::handle_type h = p.create_handle(42u);
+    DPool<thing, D_POOL_POLICY_GENERATIONAL>::handle_type h =
+        p.create_handle(42u);
 
     CHECK(!h.is_null());
     CHECK(p.is_live(h));
@@ -322,7 +323,8 @@ void test_handles()
     CHECK(p.resolve(h) == nullptr);
 
     /* the slot comes back under a new handle, at the same address */
-    pool<thing, D_POOL_POLICY_GENERATIONAL>::handle_type h2 = p.create_handle(7u);
+    DPool<thing, D_POOL_POLICY_GENERATIONAL>::handle_type h2 =
+        p.create_handle(7u);
 
     CHECK(p.resolve(h2) == t);
     CHECK(p.resolve(h) == nullptr);
@@ -332,7 +334,7 @@ void test_handles()
     CHECK(p.destroy_handle(h) == D_MEM_ERR_STALE);
 
     /* a default-constructed handle is null and never resolves */
-    pool<thing, D_POOL_POLICY_GENERATIONAL>::handle_type fresh;
+    DPool<thing, D_POOL_POLICY_GENERATIONAL>::handle_type fresh;
     CHECK(fresh.is_null());
     CHECK(p.resolve(fresh) == nullptr);
 #else
@@ -350,7 +352,7 @@ static
 void test_arena_scope()
 {
 #if (D_INTERNAL_ARENA_MARKS == 1)
-    arena    a;
+    DArena    a;
     DMemSize before;
     void*    first;
 
@@ -408,10 +410,10 @@ void test_allocators()
 {
     /* a node-based container over a pool: one block per many nodes */
     {
-        using list_t = std::list<int, pool_allocator<int>>;
+        using list_t = std::list<int, DPoolAllocator<int>>;
 
-        node_pool nodes(d_mem_source_default(), 64);
-        list_t    items((pool_allocator<int>(nodes)));
+        DNodePool nodes(d_mem_source_default(), 64);
+        list_t    items((DPoolAllocator<int>(nodes)));
 
         for (int i = 0; i < 500; ++i)
         {
@@ -450,8 +452,8 @@ void test_allocators()
 
     /* a vector over an arena: allocations never come back individually */
     {
-        arena                             a;
-        std::vector<int, arena_allocator<int>> v((arena_allocator<int>(a)));
+        DArena                             a;
+        std::vector<int, DArenaAllocator<int>> v((DArenaAllocator<int>(a)));
 
         v.reserve(1000);
 
@@ -472,11 +474,11 @@ void test_allocators()
     /* a map, to prove rebinding to an unnameable node type works */
     {
         using map_t = std::map<int, int, std::less<int>,
-                               pool_allocator<std::pair<const int, int>>>;
+                               DPoolAllocator<std::pair<const int, int>>>;
 
-        node_pool nodes(d_mem_source_default(), 32);
+        DNodePool nodes(d_mem_source_default(), 32);
         map_t     m((std::less<int>()),
-                    pool_allocator<std::pair<const int, int>>(nodes));
+                    DPoolAllocator<std::pair<const int, int>>(nodes));
 
         for (int i = 0; i < 200; ++i)
         {
@@ -501,8 +503,8 @@ void test_composition()
 #if (D_INTERNAL_ARENA_AS_SOURCE == 1)
     static char storage[131072];
 
-    arena       backing(storage, static_cast<DMemSize>(sizeof(storage)));
-    pool<thing> p(backing.as_source(), 32);
+    DArena       backing(storage, static_cast<DMemSize>(sizeof(storage)));
+    DPool<thing> p(backing.as_source(), 32);
 
     for (int i = 0; i < 200; ++i)
     {
@@ -535,13 +537,13 @@ void test_composition()
 static
 void test_moves()
 {
-    arena a;
+    DArena a;
     void* p = a.allocate(256, 16);
 
     CHECK(p != nullptr);
     std::memset(p, 0x3C, 256);
 
-    arena moved(std::move(a));
+    DArena moved(std::move(a));
 
     CHECK(static_cast<unsigned char*>(p)[0]   == 0x3C);
     CHECK(static_cast<unsigned char*>(p)[255] == 0x3C);
@@ -551,12 +553,12 @@ void test_moves()
 #endif
     CHECK(a.capacity() == 0);
 
-    pool<thing> tp;
+    DPool<thing> tp;
     thing*      t = tp.create(9u);
 
     CHECK(t != nullptr);
 
-    pool<thing> tp2(std::move(tp));
+    DPool<thing> tp2(std::move(tp));
 
     CHECK(t->tag == 9u);
     CHECK(tp2.size() == 1);

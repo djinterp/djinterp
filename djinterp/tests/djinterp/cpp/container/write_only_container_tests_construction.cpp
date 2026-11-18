@@ -30,29 +30,29 @@ tests_write_only_default_construction
 */
 bool tests_write_only_default_construction()
 {
-    const dj::write_only_container<std::vector<int> > v;
+    const dj::DWriteOnlyContainer<std::vector<int> > v;
 
     D_WO_CHECK(v.size() == 0u);
     D_WO_CHECK(v.empty());
 
-    const dj::write_only_container<std::list<int> > l;
+    const dj::DWriteOnlyContainer<std::list<int> > l;
 
     D_WO_CHECK(l.size() == 0u);
     D_WO_CHECK(l.empty());
 
-    const dj::write_only_container<std::string> s;
+    const dj::DWriteOnlyContainer<std::string> s;
 
     D_WO_CHECK(s.size() == 0u);
     D_WO_CHECK(s.empty());
 
     // a fixed-size container reports its own size
-    const dj::write_only_container<std::array<int, 3> > a;
+    const dj::DWriteOnlyContainer<std::array<int, 3> > a;
 
     D_WO_CHECK(a.size() == 3u);
     D_WO_CHECK(!a.empty());
 
     // and a default-constructed sink accepts an append at once
-    dj::write_only_container<std::vector<int> > w;
+    dj::DWriteOnlyContainer<std::vector<int> > w;
 
     w.push_back(1);
     D_WO_CHECK(w.size() == 1u);
@@ -78,7 +78,7 @@ bool tests_write_only_wraps_a_container_value()
     src.push_back(20);
     src.push_back(30);
 
-    const dj::write_only_container<std::vector<int> > copied(src);
+    const dj::DWriteOnlyContainer<std::vector<int> > copied(src);
 
     D_WO_CHECK(copied.size() == 3u);
     D_WO_CHECK(!copied.empty());
@@ -86,22 +86,22 @@ bool tests_write_only_wraps_a_container_value()
 
     // from an rvalue
     std::vector<int>                                 spare(src);
-    const dj::write_only_container<std::vector<int> > moved(
+    const dj::DWriteOnlyContainer<std::vector<int> > moved(
         static_cast<std::vector<int>&&>(spare));
 
     D_WO_CHECK(moved.size() == 3u);
 
     // from a const lvalue
     const std::vector<int>&                          cref = src;
-    const dj::write_only_container<std::vector<int> > from_const(cref);
+    const dj::DWriteOnlyContainer<std::vector<int> > from_const(cref);
 
     D_WO_CHECK(from_const.size() == 3u);
 
     // a node container and a character container
     std::list<int> nodes(std::size_t(2), 5);
 
-    D_WO_CHECK(dj::write_only_container<std::list<int> >(nodes).size() == 2u);
-    D_WO_CHECK(dj::write_only_container<std::string>(
+    D_WO_CHECK(dj::DWriteOnlyContainer<std::list<int> >(nodes).size() == 2u);
+    D_WO_CHECK(dj::DWriteOnlyContainer<std::string>(
                    std::string("abcd")).size() == 4u);
 
     return true;
@@ -117,7 +117,7 @@ tests_write_only_emplaces_from_arguments
 */
 bool tests_write_only_emplaces_from_arguments()
 {
-    const dj::write_only_container<std::vector<int> > filled(
+    const dj::DWriteOnlyContainer<std::vector<int> > filled(
         std::size_t(4), 7);
 
     D_WO_CHECK(filled.size() == 4u);
@@ -125,9 +125,9 @@ bool tests_write_only_emplaces_from_arguments()
 
     // a different count gives a different size, so the first argument is
     // the one being used
-    D_WO_CHECK(dj::write_only_container<std::vector<int> >(
+    D_WO_CHECK(dj::DWriteOnlyContainer<std::vector<int> >(
                    std::size_t(2), 9).size() == 2u);
-    D_WO_CHECK(dj::write_only_container<std::vector<int> >(
+    D_WO_CHECK(dj::DWriteOnlyContainer<std::vector<int> >(
                    std::size_t(0), 9).size() == 0u);
 
     // an iterator pair
@@ -137,18 +137,18 @@ bool tests_write_only_emplaces_from_arguments()
     src.push_back(2);
     src.push_back(3);
 
-    const dj::write_only_container<std::vector<int> > ranged(
+    const dj::DWriteOnlyContainer<std::vector<int> > ranged(
         src.begin(), src.end());
 
     D_WO_CHECK(ranged.size() == 3u);
 
     // a character container
-    const dj::write_only_container<std::string> text(std::size_t(3), 'x');
+    const dj::DWriteOnlyContainer<std::string> text(std::size_t(3), 'x');
 
     D_WO_CHECK(text.size() == 3u);
 
     // and the emplaced sink still accepts appends
-    dj::write_only_container<std::vector<int> > w(std::size_t(2), 5);
+    dj::DWriteOnlyContainer<std::vector<int> > w(std::size_t(2), 5);
 
     w.push_back(6);
     D_WO_CHECK(w.size() == 3u);
@@ -172,8 +172,8 @@ bool tests_write_only_copy_and_move_construction()
     src.push_back(4);
     src.push_back(5);
 
-    dj::write_only_container<std::vector<int> > a(src);
-    dj::write_only_container<std::vector<int> > b(a);
+    dj::DWriteOnlyContainer<std::vector<int> > a(src);
+    dj::DWriteOnlyContainer<std::vector<int> > b(a);
 
     D_WO_CHECK(b.size() == 2u);
 
@@ -183,13 +183,13 @@ bool tests_write_only_copy_and_move_construction()
     D_WO_CHECK(a.size() == 2u);
 
     // move
-    dj::write_only_container<std::vector<int> > c(
-        static_cast<dj::write_only_container<std::vector<int> >&&>(b));
+    dj::DWriteOnlyContainer<std::vector<int> > c(
+        static_cast<dj::DWriteOnlyContainer<std::vector<int> >&&>(b));
 
     D_WO_CHECK(c.size() == 3u);
 
     // assignment
-    dj::write_only_container<std::vector<int> > d;
+    dj::DWriteOnlyContainer<std::vector<int> > d;
 
     d = c;
     D_WO_CHECK(d.size() == 3u);
@@ -197,7 +197,7 @@ bool tests_write_only_copy_and_move_construction()
     D_WO_CHECK(d.size() == 4u);
     D_WO_CHECK(c.size() == 3u);
 
-    typedef dj::write_only_container<std::vector<int> > handle;
+    typedef dj::DWriteOnlyContainer<std::vector<int> > handle;
 
     D_WO_CHECK(std::is_copy_constructible<handle>::value);
     D_WO_CHECK(std::is_move_constructible<handle>::value);
@@ -217,7 +217,7 @@ tests_write_only_variadic_ctor_excludes_self
 */
 bool tests_write_only_variadic_ctor_excludes_self()
 {
-    typedef dj::write_only_container<std::vector<int> > handle;
+    typedef dj::DWriteOnlyContainer<std::vector<int> > handle;
 
     std::vector<int> src;
 
@@ -262,7 +262,7 @@ bool tests_write_only_factory_deduces_container()
     src.push_back(2);
     src.push_back(4);
 
-    typedef dj::write_only_container<std::vector<int> > expected;
+    typedef dj::DWriteOnlyContainer<std::vector<int> > expected;
 
     D_WO_CHECK((std::is_same<decltype(dj::make_write_only(src)),
                              expected>::value));
@@ -291,7 +291,7 @@ bool tests_write_only_factory_deduces_container()
 
     D_WO_CHECK((std::is_same<
                     decltype(dj::make_write_only(nodes)),
-                    dj::write_only_container<std::list<int> > >::value));
+                    dj::DWriteOnlyContainer<std::list<int> > >::value));
     D_WO_CHECK(dj::make_write_only(std::string("abc")).size() == 3u);
 
     return true;
@@ -313,7 +313,7 @@ bool tests_write_only_holds_an_independent_copy()
     src.push_back(1);
     src.push_back(2);
 
-    dj::write_only_container<std::vector<int> > sink(src);
+    dj::DWriteOnlyContainer<std::vector<int> > sink(src);
 
     // append through the sink
     sink.push_back(3);

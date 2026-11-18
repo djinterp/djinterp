@@ -32,11 +32,11 @@ bool test_equality()
 {
     bool verdict = true;
 
-    maybe<int> a(1);
-    maybe<int> a2(1);
-    maybe<int> b(2);
-    maybe<int> e1;
-    maybe<int> e2;
+    DMaybe<int> a(1);
+    DMaybe<int> a2(1);
+    DMaybe<int> b(2);
+    DMaybe<int> e1;
+    DMaybe<int> e2;
 
     // both present, equal values
     record_assertion(verdict, a == a2,

@@ -73,7 +73,7 @@ NS_TESTING
 // writers and enc_tau<E> write through any push_back sink, not only byte_string.
 struct DEoSink
 {
-    byte_string data;
+    DByteString data;
 
     void push_back(
         byte _b

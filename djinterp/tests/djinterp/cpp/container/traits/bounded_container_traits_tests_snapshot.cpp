@@ -139,9 +139,9 @@ bool tests_class_summary()
     using vec  = DBoundedContainerClass<std::vector<int>>;
     using none = DBoundedContainerClass<no_signal>;
 
-    D_BCT_CHECK(arr::capacity == capacity_bound::bounded);
-    D_BCT_CHECK(vec::capacity == capacity_bound::unbounded);
-    D_BCT_CHECK(none::capacity == capacity_bound::unknown);
+    D_BCT_CHECK(arr::capacity == DCapacityBound::bounded);
+    D_BCT_CHECK(vec::capacity == DCapacityBound::unbounded);
+    D_BCT_CHECK(none::capacity == DCapacityBound::unknown);
 
     D_BCT_CHECK(std::strcmp(arr::capacity_name, "bounded") == 0);
     D_BCT_CHECK(std::strcmp(vec::capacity_name, "unbounded") == 0);
@@ -250,9 +250,9 @@ bool tests_class_is_constexpr()
     D_BCT_CHECK((std::integral_constant<bool, vec::has_reserve>::value));
 
     // an enum constant expression
-    D_BCT_CHECK((std::integral_constant<capacity_bound,
+    D_BCT_CHECK((std::integral_constant<DCapacityBound,
                                         arr::capacity>::value ==
-                 capacity_bound::bounded));
+                 DCapacityBound::bounded));
 
     // a const char* constant expression
     D_CONSTEXPR const char* name = arr::capacity_name;

@@ -37,33 +37,33 @@ bool tests_profile_members()
     using p = DComparisonProfile<DCompileSeq, DRuntimeSeq>;
 
     // content
-    D_CCM_LEVEL(content_level::seq, p::content_left);
-    D_CCM_LEVEL(content_level::seq, p::content_right);
-    D_CCM_LEVEL(content_level::seq, p::content_shared);
+    D_CCM_LEVEL(DContentLevel::seq, p::content_left);
+    D_CCM_LEVEL(DContentLevel::seq, p::content_right);
+    D_CCM_LEVEL(DContentLevel::seq, p::content_shared);
 
     // axes
-    D_CCM_REL(order_relation::equivalent, p::discipline_order);
-    D_CCM_REL(order_relation::greater,    p::lifetime_order);
-    D_CCM_REL(order_relation::greater,    p::iterability_order);
-    D_CCM_REL(order_relation::equivalent, p::storage_order);
+    D_CCM_REL(DOrderRelation::equivalent, p::discipline_order);
+    D_CCM_REL(DOrderRelation::greater,    p::lifetime_order);
+    D_CCM_REL(DOrderRelation::greater,    p::iterability_order);
+    D_CCM_REL(DOrderRelation::equivalent, p::storage_order);
 
     // verdict
-    D_CCM_REL(order_relation::greater, p::refinement);
+    D_CCM_REL(DOrderRelation::greater, p::refinement);
 
     // a profile whose content rungs DIFFER, so content_shared is doing work
     using q = DComparisonProfile<DNestedSeq, DUniqueSeq>;
 
-    D_CCM_LEVEL(content_level::str, q::content_left);
-    D_CCM_LEVEL(content_level::set, q::content_right);
-    D_CCM_LEVEL(content_level::set, q::content_shared);   // the COARSER
+    D_CCM_LEVEL(DContentLevel::str, q::content_left);
+    D_CCM_LEVEL(DContentLevel::set, q::content_right);
+    D_CCM_LEVEL(DContentLevel::set, q::content_shared);   // the COARSER
 
     // every member is a constant expression
-    D_CCM_CHECK((std::integral_constant<content_level,
+    D_CCM_CHECK((std::integral_constant<DContentLevel,
                                         p::content_shared>::value ==
-                 content_level::seq));
-    D_CCM_CHECK((std::integral_constant<order_relation,
+                 DContentLevel::seq));
+    D_CCM_CHECK((std::integral_constant<DOrderRelation,
                                         p::refinement>::value ==
-                 order_relation::greater));
+                 DOrderRelation::greater));
 
     // and it costs nothing
     D_CCM_CHECK(std::is_empty<p>::value);
@@ -169,53 +169,53 @@ bool tests_refinement_composition()
     bool ok = true;
 
     // every axis agrees
-    D_CCM_DUAL(order_relation::equivalent, DRuntimeSeq, DRuntimeSeq);
-    D_CCM_DUAL(order_relation::equivalent, DRuntimeSeq, DNestedSeq);
+    D_CCM_DUAL(DOrderRelation::equivalent, DRuntimeSeq, DRuntimeSeq);
+    D_CCM_DUAL(DOrderRelation::equivalent, DRuntimeSeq, DNestedSeq);
 
     // ONE axis moves: discipline
-    D_CCM_DUAL(order_relation::greater, DCapacitySeq, DRuntimeSeq);
-    D_CCM_DUAL(order_relation::greater, DSortedSeq,   DRuntimeSeq);
-    D_CCM_DUAL(order_relation::greater, DKeyedSeq,    DRuntimeSeq);
-    D_CCM_DUAL(order_relation::greater, DUniqueSeq,   DRuntimeSeq);
+    D_CCM_DUAL(DOrderRelation::greater, DCapacitySeq, DRuntimeSeq);
+    D_CCM_DUAL(DOrderRelation::greater, DSortedSeq,   DRuntimeSeq);
+    D_CCM_DUAL(DOrderRelation::greater, DKeyedSeq,    DRuntimeSeq);
+    D_CCM_DUAL(DOrderRelation::greater, DUniqueSeq,   DRuntimeSeq);
 
     // TWO axes move the SAME way: DCompileSeq is more static AND more capable
     // (the stage bit feeds both the lifetime axis and the iterability lattice)
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (lifetime_relation<DCompileSeq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (DIterabilityRelation<DCompileSeq, DRuntimeSeq>::value));
-    D_CCM_DUAL(order_relation::greater, DCompileSeq, DRuntimeSeq);
+    D_CCM_DUAL(DOrderRelation::greater, DCompileSeq, DRuntimeSeq);
 
     // ONE axis is INCOMPARABLE: discipline
-    D_CCM_DUAL(order_relation::incomparable, DSortedSeq, DCapacitySeq);
-    D_CCM_DUAL(order_relation::incomparable, DUniqueSeq, DSortedSeq);
+    D_CCM_DUAL(DOrderRelation::incomparable, DSortedSeq, DCapacitySeq);
+    D_CCM_DUAL(DOrderRelation::incomparable, DUniqueSeq, DSortedSeq);
 
     // ONE axis is INCOMPARABLE: iterability (the mixed kinds)
-    D_CCM_DUAL(order_relation::incomparable, DCompileConstSeq, DRuntimeSeq);
+    D_CCM_DUAL(DOrderRelation::incomparable, DCompileConstSeq, DRuntimeSeq);
 
     // ONE axis is INCOMPARABLE: storage
-    D_CCM_DUAL(order_relation::incomparable, static_seq, dynamic_seq);
-    D_CCM_DUAL(order_relation::incomparable, static_seq, DRuntimeSeq);
+    D_CCM_DUAL(DOrderRelation::incomparable, static_seq, dynamic_seq);
+    D_CCM_DUAL(DOrderRelation::incomparable, static_seq, DRuntimeSeq);
 
     // ...and the storage veto really is the storage veto: static_seq and
     // DRuntimeSeq agree on discipline, lifetime AND iterability
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (discipline_relation<static_seq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (lifetime_relation<static_seq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (DIterabilityRelation<static_seq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::incomparable,
+    D_CCM_REL(DOrderRelation::incomparable,
               (storage_relation<static_seq, DRuntimeSeq>::value));
 
     // OPPOSING DIRECTIONS.  DConstSeq is discipline-equal to DCapacitySeq's base
     // and less capable; give it the capacity flag and it is greater on discipline
     // and less on iterability at once
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (discipline_relation<DCapacitySeq, DRuntimeSeq>::value));
-    D_CCM_REL(order_relation::less,
+    D_CCM_REL(DOrderRelation::less,
               (DIterabilityRelation<DConstSeq, DRuntimeSeq>::value));
-    D_CCM_DUAL(order_relation::less, DConstSeq, DRuntimeSeq);
+    D_CCM_DUAL(DOrderRelation::less, DConstSeq, DRuntimeSeq);
 
     return ok;
 }
@@ -267,11 +267,11 @@ bool tests_refinement_non_container()
     bool ok = true;
 
     // *** THE VERDICT ***
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (refinement_of<DNotAContainer, DNotIterable>::value));
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (refinement_of<int, DNotIterable>::value));
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (refinement_of<void, DNotIterable>::value));
 
     // ...and the module says the two are ORDERED
@@ -280,38 +280,38 @@ bool tests_refinement_non_container()
     D_CCM_CHECK((!realization_equal<int, DNotIterable>::value));
 
     // the direction, backwards: the CONTAINER is the weaker
-    D_CCM_REL(order_relation::less,
+    D_CCM_REL(DOrderRelation::less,
               (refinement_of<DNotIterable, int>::value));
 
     // THE AXIS-BY-AXIS REASON
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (discipline_relation<DNotAContainer, DNotIterable>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (lifetime_relation<DNotAContainer, DNotIterable>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (DIterabilityRelation<DNotAContainer, DNotIterable>::value));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (storage_relation<DNotAContainer, DNotIterable>::value));
 
     // nothing is left to veto the bogus `greater`
     D_CCM_CHECK(order_relation_meet(
                     order_relation_meet(
-                        order_relation_meet(order_relation::greater,
-                                            order_relation::equivalent),
-                        order_relation::equivalent),
-                    order_relation::equivalent) == order_relation::greater);
+                        order_relation_meet(DOrderRelation::greater,
+                                            DOrderRelation::equivalent),
+                        DOrderRelation::equivalent),
+                    DOrderRelation::equivalent) == DOrderRelation::greater);
 
     // THE ONE THING THAT DOES SAY SO: the content axis, which is not in the fold
     using p = DComparisonProfile<DNotAContainer, DNotIterable>;
 
-    D_CCM_LEVEL(content_level::none, p::content_left);
-    D_CCM_LEVEL(content_level::seq,  p::content_right);
-    D_CCM_LEVEL(content_level::none, p::content_shared);
+    D_CCM_LEVEL(DContentLevel::none, p::content_left);
+    D_CCM_LEVEL(DContentLevel::seq,  p::content_right);
+    D_CCM_LEVEL(DContentLevel::none, p::content_shared);
 
     // a caller reading content_shared knows.  A caller reading refinement_of does
     // not - and refinement_of is the trait the header names as "the verdict"
-    D_CCM_CHECK(p::content_shared == content_level::none);
-    D_CCM_CHECK(p::refinement == order_relation::greater);
+    D_CCM_CHECK(p::content_shared == DContentLevel::none);
+    D_CCM_CHECK(p::refinement == DOrderRelation::greater);
 
     return ok;
 }
@@ -360,7 +360,7 @@ bool tests_realization_equal()
     #define D_CCM_EQ_IS_REF(LEFT, RIGHT)                                      \
         D_CCM_CHECK((realization_equal<LEFT, RIGHT>::value) ==                \
                     ((refinement_of<LEFT, RIGHT>::value) ==                   \
-                     order_relation::equivalent))
+                     DOrderRelation::equivalent))
 
     D_CCM_EQ_IS_REF(DRuntimeSeq, DRuntimeSeq);
     D_CCM_EQ_IS_REF(DCompileSeq, DRuntimeSeq);
@@ -407,7 +407,7 @@ bool tests_realization_comparable()
     #define D_CCM_CMP_IS_REF(LEFT, RIGHT)                                     \
         D_CCM_CHECK((realization_comparable<LEFT, RIGHT>::value) ==           \
                     ((refinement_of<LEFT, RIGHT>::value) !=                   \
-                     order_relation::incomparable));                          \
+                     DOrderRelation::incomparable));                          \
         /* equal implies comparable, never the reverse */                     \
         D_CCM_CHECK(!(realization_equal<LEFT, RIGHT>::value) ||               \
                     (realization_comparable<LEFT, RIGHT>::value))
@@ -453,11 +453,11 @@ bool tests_profile_value_companions()
     D_CCM_CHECK((refinement_of_v<DRuntimeSeq, DRuntimeSeq>) ==
                 (refinement_of<DRuntimeSeq, DRuntimeSeq>::value));
 
-    D_CCM_REL(order_relation::greater,
+    D_CCM_REL(DOrderRelation::greater,
               (refinement_of_v<DCompileSeq, DRuntimeSeq>));
-    D_CCM_REL(order_relation::incomparable,
+    D_CCM_REL(DOrderRelation::incomparable,
               (refinement_of_v<DSortedSeq, DCapacitySeq>));
-    D_CCM_REL(order_relation::equivalent,
+    D_CCM_REL(DOrderRelation::equivalent,
               (refinement_of_v<DNestedSeq, DRuntimeSeq>));
 
     D_CCM_CHECK((realization_equal_v<DNestedSeq, DRuntimeSeq>) ==
@@ -477,7 +477,7 @@ bool tests_profile_value_companions()
     // refinement_of_v is an order_relation, the other two are bools
     D_CCM_CHECK((std::is_same<
                     decltype(refinement_of_v<DCompileSeq, DRuntimeSeq>),
-                    const order_relation>::value));
+                    const DOrderRelation>::value));
     D_CCM_CHECK((std::is_same<
                     decltype(realization_equal_v<DCompileSeq, DRuntimeSeq>),
                     const bool>::value));

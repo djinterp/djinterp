@@ -220,7 +220,7 @@ NS_END  // internal
 // 2.  linked_list_iterator
 // ===========================================================================
 
-// linked_list_iterator
+// DLinkedListIterator
 //   class: a non-owning forward / bidirectional iterator over a linked-list
 // node graph. Adapts to the underlying node shape:
 //
@@ -237,7 +237,7 @@ NS_END  // internal
 template<typename Node,
          bool     IsConst    = false,
          bool     IsReverse = false>
-class linked_list_iterator
+class DLinkedListIterator
 {
     // Reverse iteration is only meaningful when the underlying node shape
     // supports backward traversal. Without this guard a user
@@ -280,7 +280,7 @@ public:
 
     // linked_list_iterator
     //   constructor: end-iterator (null current).
-    constexpr linked_list_iterator() noexcept
+    constexpr DLinkedListIterator() noexcept
         : m_current(nullptr),
           m_prev(nullptr),
           m_origin(nullptr)
@@ -291,7 +291,7 @@ public:
     // _origin is non-null for circular lists; the iterator considers itself
     // "at end" when it returns to the origin after at least one advance.
     explicit
-    linked_list_iterator(
+    DLinkedListIterator(
         node_pointer _start,
         node_pointer _prev   = nullptr,
         node_pointer _origin = nullptr
@@ -324,7 +324,7 @@ public:
     // forward advance - operator++
     // -----------------------------------------------------------------
 
-    linked_list_iterator&
+    DLinkedListIterator&
     operator++() noexcept
     {
         m_step_advance(
@@ -334,10 +334,10 @@ public:
         return *this;
     }
 
-    linked_list_iterator
+    DLinkedListIterator
     operator++(int) noexcept
     {
-        linked_list_iterator tmp = *this;
+        DLinkedListIterator tmp = *this;
 
         ++(*this);
 
@@ -352,7 +352,7 @@ public:
              typename = typename std::enable_if<
                  ( is_doubly_linked_node<N>::value ||
                    is_xor_linked_node<N>::value )>::type>
-    linked_list_iterator&
+    DLinkedListIterator&
     operator--() noexcept
     {
         m_step_retreat(
@@ -366,10 +366,10 @@ public:
              typename = typename std::enable_if<
                  ( is_doubly_linked_node<N>::value ||
                    is_xor_linked_node<N>::value )>::type>
-    linked_list_iterator
+    DLinkedListIterator
     operator--(int) noexcept
     {
-        linked_list_iterator tmp = *this;
+        DLinkedListIterator tmp = *this;
 
         --(*this);
 
@@ -382,8 +382,8 @@ public:
 
     friend bool
     operator==(
-        const linked_list_iterator& _a,
-        const linked_list_iterator& _b
+        const DLinkedListIterator& _a,
+        const DLinkedListIterator& _b
     ) noexcept
     {
         return (_a.m_current == _b.m_current);
@@ -391,8 +391,8 @@ public:
 
     friend bool
     operator!=(
-        const linked_list_iterator& _a,
-        const linked_list_iterator& _b
+        const DLinkedListIterator& _a,
+        const DLinkedListIterator& _b
     ) noexcept
     {
         return (_a.m_current != _b.m_current);
@@ -659,49 +659,67 @@ private:
     node_pointer m_origin;    // origin node for circular end-detect
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Node,
+         bool     IsConst    = false,
+         bool     IsReverse = false>
+using linked_list_iterator = DLinkedListIterator<Node, IsConst, IsReverse>;
+
 
 // ===========================================================================
 // 3. CONVENIENCE ALIASES
 // ===========================================================================
 
-// const_linked_list_iterator
+// DConstLinkedListIterator
 //   alias: const variant of linked_list_iterator.
 template<typename Node>
-using const_linked_list_iterator =
-    linked_list_iterator<Node, true, false>;
+using DConstLinkedListIterator =
+    DLinkedListIterator<Node, true, false>;
 
-// reverse_linked_list_iterator
+// old name, until 0.9.0-rc.1
+template<typename Node>
+using const_linked_list_iterator = DConstLinkedListIterator<Node>;
+
+// DReverseLinkedListIterator
 //   alias: reverse variant (only valid for doubly- or xor-linked nodes).
 template<typename Node>
-using reverse_linked_list_iterator =
-    linked_list_iterator<Node, false, true>;
+using DReverseLinkedListIterator =
+    DLinkedListIterator<Node, false, true>;
 
-// const_reverse_linked_list_iterator
+// old name, until 0.9.0-rc.1
+template<typename Node>
+using reverse_linked_list_iterator = DReverseLinkedListIterator<Node>;
+
+// DConstReverseLinkedListIterator
 //   alias: const + reverse variant.
 template<typename Node>
-using const_reverse_linked_list_iterator =
-    linked_list_iterator<Node, true, true>;
+using DConstReverseLinkedListIterator =
+    DLinkedListIterator<Node, true, true>;
+
+// old name, until 0.9.0-rc.1
+template<typename Node>
+using const_reverse_linked_list_iterator = DConstReverseLinkedListIterator<Node>;
 
 
 // ===========================================================================
 // 4.  RANGE ADAPTOR
 // ===========================================================================
 
-// linked_list_reverse_view
+// DLinkedListReverseView
 //   class: lightweight view that flips the begin/end of a list-like container
 // so that range-based-for traverses backward. Requires the wrapped container's
 // node type to support backward traversal.
 template<typename List>
-class linked_list_reverse_view
+class DLinkedListReverseView
 {
 public:
     using node_type = typename List::node_type;
-    using iterator  = reverse_linked_list_iterator<node_type>;
+    using iterator  = DReverseLinkedListIterator<node_type>;
     using const_iterator =
-        const_reverse_linked_list_iterator<node_type>;
+        DConstReverseLinkedListIterator<node_type>;
 
     constexpr explicit
-    linked_list_reverse_view(List& _list) noexcept
+    DLinkedListReverseView(List& _list) noexcept
         : m_list(&_list)
     {}
 
@@ -729,17 +747,21 @@ private:
     List* m_list;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename List>
+using linked_list_reverse_view = DLinkedListReverseView<List>;
+
 // reversed
 //   factory: range adaptor producing a reverse view of _list. Compatible with
 // range-based-for; requires _list to satisfy is_doubly_linked_list (or
 // is_xor_linked_list).
 template<typename List>
 inline
-linked_list_reverse_view<List> reversed(
+DLinkedListReverseView<List> reversed(
     List& _list
 ) noexcept
 {
-    return linked_list_reverse_view<List>(_list);
+    return DLinkedListReverseView<List>(_list);
 }
 
 
@@ -753,26 +775,26 @@ linked_list_reverse_view<List> reversed(
 //   factory: deduces the node type and constructs a forward iterator.
 template<typename Node>
 inline
-linked_list_iterator<Node> make_linked_list_iterator(
+DLinkedListIterator<Node> make_linked_list_iterator(
     Node* _start,
     Node* _prev = nullptr,
     Node* _origin = nullptr
 ) noexcept
 {
-    return linked_list_iterator<Node>(_start, _prev, _origin);
+    return DLinkedListIterator<Node>(_start, _prev, _origin);
 }
 
 // make_const_linked_list_iterator
 //   factory: deduces the node type and constructs a const forward iterator.
 template<typename Node>
 inline
-const_linked_list_iterator<Node> make_const_linked_list_iterator(
+DConstLinkedListIterator<Node> make_const_linked_list_iterator(
     const Node* _start,
     const Node* _prev = nullptr,
     const Node* _origin = nullptr
 ) noexcept
 {
-    return const_linked_list_iterator<Node>(_start, _prev, _origin);
+    return DConstLinkedListIterator<Node>(_start, _prev, _origin);
 }
 
 

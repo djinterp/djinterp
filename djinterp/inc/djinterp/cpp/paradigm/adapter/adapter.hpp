@@ -186,10 +186,10 @@ NS_DJINTERP
 //   static reference_type access(stored_type&)
 //   static const reference_type access(const stored_type&)  [const]
 
-// by_reference
+// DByReference
 //   policy: stores a raw reference to the adaptee. Zero overhead,
 // non-owning. The adaptee must outlive the adapter.
-struct by_reference
+struct DByReference
 {
     template<typename Adaptee>
     struct storage
@@ -207,10 +207,13 @@ struct by_reference
     };
 };
 
-// by_pointer
+// old name, until 0.9.0-rc.1
+using by_reference = DByReference;
+
+// DByPointer
 //   policy: stores a raw pointer to the adaptee. Nullable,
 // non-owning.
-struct by_pointer
+struct DByPointer
 {
     template<typename Adaptee>
     struct storage
@@ -228,10 +231,13 @@ struct by_pointer
     };
 };
 
-// by_value
+// old name, until 0.9.0-rc.1
+using by_pointer = DByPointer;
+
+// DByValue
 //   policy: stores the adaptee by value (owning copy). The adapter
 // owns the adaptee and its lifetime.
-struct by_value
+struct DByValue
 {
     template<typename Adaptee>
     struct storage
@@ -257,10 +263,13 @@ struct by_value
     };
 };
 
-// by_shared_ptr
+// old name, until 0.9.0-rc.1
+using by_value = DByValue;
+
+// DBySharedPtr
 //   policy: stores the adaptee via std::shared_ptr. Shared
 // ownership with reference counting.
-struct by_shared_ptr
+struct DBySharedPtr
 {
     template<typename Adaptee>
     struct storage
@@ -286,10 +295,13 @@ struct by_shared_ptr
     };
 };
 
-// by_unique_ptr
+// old name, until 0.9.0-rc.1
+using by_shared_ptr = DBySharedPtr;
+
+// DByUniquePtr
 //   policy: stores the adaptee via std::unique_ptr. Exclusive
 // ownership; the adapter is move-only.
-struct by_unique_ptr
+struct DByUniquePtr
 {
     template<typename Adaptee>
     struct storage
@@ -314,6 +326,9 @@ struct by_unique_ptr
         }
     };
 };
+
+// old name, until 0.9.0-rc.1
+using by_unique_ptr = DByUniquePtr;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -512,11 +527,11 @@ struct is_invocable_adapter
         is_invocable_adapter<Fn, From, To>::value;
 #endif
 
-// adaptation_class
+// DAdaptationClass
 //   struct: aggregate classification of an adaptee→target relationship.
 template<typename Adaptee,
          typename Target>
-struct adaptation_class
+struct DAdaptationClass
 {
     static constexpr bool compatible_values =
         are_value_type_compatible<Adaptee, Target>::value;
@@ -554,12 +569,17 @@ struct adaptation_class
           structurally_adaptable );
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Adaptee,
+         typename Target>
+using adaptation_class = DAdaptationClass<Adaptee, Target>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             IV.   OBJECT ADAPTER (C++11+)                              ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// object_adapter
+// DObjectAdapter
 //   class: composition-based adapter. Holds an adaptee via the
 // specified OwnershipPolicy and delegates target interface calls
 // to the adaptee through an AdaptationPolicy.
@@ -584,8 +604,8 @@ struct adaptation_class
 //   adapted.get(0);      // calls legacy.element_at(0)
 template<typename Adaptee,
          typename AdaptationPolicy,
-         typename OwnershipPolicy = by_reference>
-class object_adapter
+         typename OwnershipPolicy = DByReference>
+class DObjectAdapter
 {
 private:
     using storage_policy = typename OwnershipPolicy::template
@@ -598,7 +618,7 @@ public:
     using ownership_policy  = OwnershipPolicy;
 
     // constructor
-    explicit object_adapter(
+    explicit DObjectAdapter(
             stored_type _adaptee
         )
             : m_adaptee(std::forward<stored_type>(_adaptee))
@@ -666,12 +686,18 @@ private:
     stored_type m_adaptee;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Adaptee,
+         typename AdaptationPolicy,
+         typename OwnershipPolicy = DByReference>
+using object_adapter = DObjectAdapter<Adaptee, AdaptationPolicy, OwnershipPolicy>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///              V.    CLASS ADAPTER (C++11+)                               ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// class_adapter
+// DClassAdapter
 //   class: multiple-inheritance-based adapter. Inherits publicly from
 // Target (to satisfy the target interface) and privately from Adaptee
 // (to gain access to the adaptee's implementation). Derived must
@@ -690,7 +716,7 @@ private:
 template<typename Target,
          typename Adaptee,
          typename Derived>
-class class_adapter : public  Target,
+class DClassAdapter : public  Target,
                       private Adaptee
 {
 protected:
@@ -710,16 +736,16 @@ public:
     using target_type  = Target;
     using adaptee_type = Adaptee;
 
-    class_adapter() = default;
+    DClassAdapter() = default;
 
-    explicit class_adapter(
+    explicit DClassAdapter(
             const Adaptee& _a
         )
             : Target(),
               Adaptee(_a)
         {}
 
-    explicit class_adapter(
+    explicit DClassAdapter(
             Adaptee&& _a
         )
             : Target(),
@@ -727,12 +753,18 @@ public:
         {}
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Target,
+         typename Adaptee,
+         typename Derived>
+using class_adapter = DClassAdapter<Target, Adaptee, Derived>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///         VI.   INTERFACE ADAPTER — CRTP (C++11+)                        ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// interface_adapter
+// DInterfaceAdapter
 //   class: CRTP base for zero-overhead interface adaptation. Derived
 // implements the target interface by delegating to an internally held
 // adaptee. Unlike object_adapter, there is no policy indirection — the
@@ -752,8 +784,8 @@ public:
 //   };
 template<typename Derived,
          typename Adaptee,
-         typename OwnershipPolicy = by_value>
-class interface_adapter
+         typename OwnershipPolicy = DByValue>
+class DInterfaceAdapter
 {
 private:
     using storage_policy = typename OwnershipPolicy::template
@@ -764,9 +796,9 @@ public:
     using adaptee_type     = Adaptee;
     using ownership_policy = OwnershipPolicy;
 
-    interface_adapter() = default;
+    DInterfaceAdapter() = default;
 
-    explicit interface_adapter(
+    explicit DInterfaceAdapter(
             stored_type _adaptee
         )
             : m_adaptee(std::forward<stored_type>(_adaptee))
@@ -789,6 +821,12 @@ private:
     stored_type m_adaptee;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Derived,
+         typename Adaptee,
+         typename OwnershipPolicy = DByValue>
+using interface_adapter = DInterfaceAdapter<Derived, Adaptee, OwnershipPolicy>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///        VII.  METHOD FORWARDING POLICIES                                 ///
@@ -797,10 +835,10 @@ private:
 // These are mix-in policies for object_adapter. Each defines how
 // individual method calls are mapped from the target to the adaptee.
 
-// forward_as_is
+// DForwardAsIs
 //   policy: forwards calls to identically-named methods on the
 // adaptee. The simplest mapping — target.foo(args) → adaptee.foo(args).
-struct forward_as_is
+struct DForwardAsIs
 {
     template<typename Adaptee,
              typename Method,
@@ -816,11 +854,14 @@ struct forward_as_is
     }
 };
 
-// forward_with_transform
+// old name, until 0.9.0-rc.1
+using forward_as_is = DForwardAsIs;
+
+// DForwardWithTransform
 //   policy: applies a transformation function to each argument before
 // forwarding. Useful for unit conversion, type coercion, etc.
 template<typename Transform>
-struct forward_with_transform
+struct DForwardWithTransform
 {
     template<typename Adaptee,
              typename Method,
@@ -837,12 +878,16 @@ struct forward_with_transform
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Transform>
+using forward_with_transform = DForwardWithTransform<Transform>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///          VIII. FUNCTION ADAPTERS (C++11+)                               ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// function_adapter
+// DFunctionAdapter
 //   class: wraps a callable and adapts its signature. Stores an inner
 // callable and an optional pre-processing transform applied to
 // arguments before forwarding.
@@ -852,13 +897,13 @@ struct forward_with_transform
 //   adapted(args...);  // calls xform on each arg, then fn
 template<typename Fn,
          typename Transform = void>
-class function_adapter
+class DFunctionAdapter
 {
 public:
     using function_type  = Fn;
     using transform_type = Transform;
 
-    function_adapter(
+    DFunctionAdapter(
             Fn         _fn,
             Transform _xform
         )
@@ -891,16 +936,21 @@ private:
     Transform m_xform;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Fn,
+         typename Transform = void>
+using function_adapter = DFunctionAdapter<Fn, Transform>;
+
 // function_adapter (no transform specialization)
 //   class: passthrough adapter that simply wraps a callable with no
 // argument transformation. Useful as a uniform wrapper type.
 template<typename Fn>
-class function_adapter<Fn, void>
+class DFunctionAdapter<Fn, void>
 {
 public:
     using function_type = Fn;
 
-    explicit function_adapter(
+    explicit DFunctionAdapter(
             Fn _fn
         )
             : m_fn(std::move(_fn))
@@ -926,7 +976,7 @@ private:
     Fn m_fn;
 };
 
-// result_adapter
+// DResultAdapter
 //   class: wraps a callable and transforms its return value through
 // a post-processing function.
 //
@@ -935,13 +985,13 @@ private:
 //   int len = ra("hello");
 template<typename Fn,
          typename ResultTransform>
-class result_adapter
+class DResultAdapter
 {
 public:
     using function_type  = Fn;
     using transform_type = ResultTransform;
 
-    result_adapter(
+    DResultAdapter(
             Fn               _fn,
             ResultTransform _xform
         )
@@ -970,7 +1020,12 @@ private:
     ResultTransform m_xform;
 };
 
-// argument_adapter
+// old name, until 0.9.0-rc.1
+template<typename Fn,
+         typename ResultTransform>
+using result_adapter = DResultAdapter<Fn, ResultTransform>;
+
+// DArgumentAdapter
 //   class: wraps a callable and individually transforms each argument
 // position through a tuple of per-position transforms.
 //
@@ -979,10 +1034,10 @@ private:
 //   aa("42", "3.14");  // calls fn(to_int("42"), to_float("3.14"))
 template<typename Fn,
          typename ArgTransformTuple>
-class argument_adapter
+class DArgumentAdapter
 {
 public:
-    argument_adapter(
+    DArgumentAdapter(
             Fn                 _fn,
             ArgTransformTuple _xforms
         )
@@ -1020,15 +1075,20 @@ private:
     ArgTransformTuple m_xforms;
 };
 
-// compose_adapter
+// old name, until 0.9.0-rc.1
+template<typename Fn,
+         typename ArgTransformTuple>
+using argument_adapter = DArgumentAdapter<Fn, ArgTransformTuple>;
+
+// DComposeAdapter
 //   class: function composition adapter. Chains two callables such
 // that operator()(args...) evaluates Outer(Inner(args...)).
 template<typename Outer,
          typename Inner>
-class compose_adapter
+class DComposeAdapter
 {
 public:
-    compose_adapter(
+    DComposeAdapter(
             Outer _outer,
             Inner _inner
         )
@@ -1057,25 +1117,30 @@ private:
     Inner m_inner;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Outer,
+         typename Inner>
+using compose_adapter = DComposeAdapter<Outer, Inner>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///            IX.   VIEW ADAPTERS (C++11+)                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// adapted_ref
+// DAdaptedRef
 //   class: non-owning mutable reference adapter. Holds a reference to
 // an adaptee and exposes the target interface by delegating through
 // an AdaptationPolicy — identical to object_adapter<by_reference>
 // but with a lighter, view-semantic API.
 template<typename Adaptee,
          typename AdaptationPolicy>
-class adapted_ref
+class DAdaptedRef
 {
 public:
     using adaptee_type      = Adaptee;
     using adaptation_policy = AdaptationPolicy;
 
-    explicit adapted_ref(
+    explicit DAdaptedRef(
             Adaptee& _adaptee
         ) noexcept
             : m_ref(_adaptee)
@@ -1122,18 +1187,23 @@ private:
     Adaptee& m_ref;
 };
 
-// adapted_const_ref
+// old name, until 0.9.0-rc.1
+template<typename Adaptee,
+         typename AdaptationPolicy>
+using adapted_ref = DAdaptedRef<Adaptee, AdaptationPolicy>;
+
+// DAdaptedConstRef
 //   class: non-owning const reference adapter. Read-only view of an
 // adaptee through a target interface policy.
 template<typename Adaptee,
          typename AdaptationPolicy>
-class adapted_const_ref
+class DAdaptedConstRef
 {
 public:
     using adaptee_type      = Adaptee;
     using adaptation_policy = AdaptationPolicy;
 
-    explicit adapted_const_ref(
+    explicit DAdaptedConstRef(
             const Adaptee& _adaptee
         ) noexcept
             : m_ref(_adaptee)
@@ -1165,7 +1235,12 @@ private:
     const Adaptee& m_ref;
 };
 
-// adapted_view
+// old name, until 0.9.0-rc.1
+template<typename Adaptee,
+         typename AdaptationPolicy>
+using adapted_const_ref = DAdaptedConstRef<Adaptee, AdaptationPolicy>;
+
+// DAdaptedView
 //   class: non-owning adapter that presents an adaptee's iteration
 // interface through a projection function. Each dereferenced element
 // is transformed by Projection before being returned.
@@ -1176,13 +1251,13 @@ private:
 //   for (auto k : keys) { ... }
 template<typename Adaptee,
          typename Projection>
-class adapted_view
+class DAdaptedView
 {
 public:
     using adaptee_type   = Adaptee;
     using projection_type = Projection;
 
-    adapted_view(
+    DAdaptedView(
             Adaptee&   _adaptee,
             Projection _proj
         )
@@ -1272,6 +1347,11 @@ private:
     Projection m_proj;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Adaptee,
+         typename Projection>
+using adapted_view = DAdaptedView<Adaptee, Projection>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///          X.    CONVENIENCE FACTORIES (C++14+)                           ///
@@ -1288,9 +1368,9 @@ auto make_object_adapter(
     Adaptee& _adaptee
 )
 {
-    return object_adapter<Adaptee,
+    return DObjectAdapter<Adaptee,
                           AdaptationPolicy,
-                          by_reference>(_adaptee);
+                          DByReference>(_adaptee);
 }
 
 // make_owning_adapter
@@ -1302,9 +1382,9 @@ auto make_owning_adapter(
     Adaptee _adaptee
 )
 {
-    return object_adapter<Adaptee,
+    return DObjectAdapter<Adaptee,
                           AdaptationPolicy,
-                          by_value>(std::move(_adaptee));
+                          DByValue>(std::move(_adaptee));
 }
 
 // make_function_adapter
@@ -1317,7 +1397,7 @@ auto make_function_adapter(
     Transform&& _xform
 )
 {
-    return function_adapter<typename std::decay<Fn>::type,
+    return DFunctionAdapter<typename std::decay<Fn>::type,
                             typename std::decay<Transform>::type>(
         std::forward<Fn>(_fn),
         std::forward<Transform>(_xform));
@@ -1330,7 +1410,7 @@ auto make_function_adapter(
     Fn&& _fn
 )
 {
-    return function_adapter<typename std::decay<Fn>::type>(
+    return DFunctionAdapter<typename std::decay<Fn>::type>(
         std::forward<Fn>(_fn));
 }
 
@@ -1344,7 +1424,7 @@ auto make_result_adapter(
     ResultTransform&& _xform
 )
 {
-    return result_adapter<typename std::decay<Fn>::type,
+    return DResultAdapter<typename std::decay<Fn>::type,
                           typename std::decay<ResultTransform>::type>(
         std::forward<Fn>(_fn),
         std::forward<ResultTransform>(_xform));
@@ -1360,7 +1440,7 @@ auto make_compose(
     Inner&& _inner
 )
 {
-    return compose_adapter<typename std::decay<Outer>::type,
+    return DComposeAdapter<typename std::decay<Outer>::type,
                            typename std::decay<Inner>::type>(
         std::forward<Outer>(_outer),
         std::forward<Inner>(_inner));
@@ -1375,7 +1455,7 @@ auto make_adapted_ref(
     Adaptee& _adaptee
 )
 {
-    return adapted_ref<Adaptee, AdaptationPolicy>(_adaptee);
+    return DAdaptedRef<Adaptee, AdaptationPolicy>(_adaptee);
 }
 
 // make_adapted_view
@@ -1388,7 +1468,7 @@ auto make_adapted_view(
     Projection&& _proj
 )
 {
-    return adapted_view<Adaptee, typename std::decay<Projection>::type>(
+    return DAdaptedView<Adaptee, typename std::decay<Projection>::type>(
         _adaptee,
         std::forward<Projection>(_proj));
 }
@@ -1439,9 +1519,9 @@ constrained_adapt(
     Adaptee& _adaptee
 )
 {
-    return object_adapter<Adaptee,
+    return DObjectAdapter<Adaptee,
                           AdaptationPolicy,
-                          by_reference>(_adaptee);
+                          DByReference>(_adaptee);
 }
 
 #endif  // D_ADAPTER_HAS_CONCEPTS

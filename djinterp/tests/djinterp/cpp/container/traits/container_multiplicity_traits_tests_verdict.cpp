@@ -38,35 +38,35 @@ bool tests_multiplicity_kind_of()
     bool _cmp_ok = true;
 
     // -- sequence: countable, comparator-less --
-    D_CMP_CHECK( (multiplicity_kind_of<std::vector<int>>::value == multiplicity_kind::sequence) );
-    D_CMP_CHECK( (multiplicity_kind_of<std::deque<int>>::value  == multiplicity_kind::sequence) );
-    D_CMP_CHECK( (multiplicity_kind_of<std::list<int>>::value   == multiplicity_kind::sequence) );
-    D_CMP_CHECK( (multiplicity_kind_of<std::array<int, 4>>::value == multiplicity_kind::sequence) );
-    D_CMP_CHECK( (multiplicity_kind_of<std::string>::value      == multiplicity_kind::sequence) );
+    D_CMP_CHECK( (multiplicity_kind_of<std::vector<int>>::value == DMultiplicityKind::sequence) );
+    D_CMP_CHECK( (multiplicity_kind_of<std::deque<int>>::value  == DMultiplicityKind::sequence) );
+    D_CMP_CHECK( (multiplicity_kind_of<std::list<int>>::value   == DMultiplicityKind::sequence) );
+    D_CMP_CHECK( (multiplicity_kind_of<std::array<int, 4>>::value == DMultiplicityKind::sequence) );
+    D_CMP_CHECK( (multiplicity_kind_of<std::string>::value      == DMultiplicityKind::sequence) );
 
     // -- unique: keyed + unique insert, an interval, or an opt-in of 1 --
-    D_CMP_CHECK( (multiplicity_kind_of<std::set<int>>::value           == multiplicity_kind::unique) );
-    D_CMP_CHECK( (multiplicity_kind_of<std::unordered_set<int>>::value == multiplicity_kind::unique) );
-    D_CMP_CHECK( (multiplicity_kind_of<std::map<int, int>>::value      == multiplicity_kind::unique) );
-    D_CMP_CHECK( (multiplicity_kind_of<DIntervalSeq>::value            == multiplicity_kind::unique) );  // interval > sequence
-    D_CMP_CHECK( (multiplicity_kind_of<DIntervalKeyed>::value          == multiplicity_kind::unique) );  // interval > keyed
-    D_CMP_CHECK( (multiplicity_kind_of<DOptinUnique>::value            == multiplicity_kind::unique) );  // opt-in 1
+    D_CMP_CHECK( (multiplicity_kind_of<std::set<int>>::value           == DMultiplicityKind::unique) );
+    D_CMP_CHECK( (multiplicity_kind_of<std::unordered_set<int>>::value == DMultiplicityKind::unique) );
+    D_CMP_CHECK( (multiplicity_kind_of<std::map<int, int>>::value      == DMultiplicityKind::unique) );
+    D_CMP_CHECK( (multiplicity_kind_of<DIntervalSeq>::value            == DMultiplicityKind::unique) );  // interval > sequence
+    D_CMP_CHECK( (multiplicity_kind_of<DIntervalKeyed>::value          == DMultiplicityKind::unique) );  // interval > keyed
+    D_CMP_CHECK( (multiplicity_kind_of<DOptinUnique>::value            == DMultiplicityKind::unique) );  // opt-in 1
 
     // -- unbounded_multiset: keyed, insert returns a bare iterator, or opt-in inf --
-    D_CMP_CHECK( (multiplicity_kind_of<std::multiset<int>>::value           == multiplicity_kind::unbounded_multiset) );
-    D_CMP_CHECK( (multiplicity_kind_of<std::multimap<int, int>>::value      == multiplicity_kind::unbounded_multiset) );
-    D_CMP_CHECK( (multiplicity_kind_of<std::unordered_multiset<int>>::value == multiplicity_kind::unbounded_multiset) );
-    D_CMP_CHECK( (multiplicity_kind_of<DOptinUnbounded>::value              == multiplicity_kind::unbounded_multiset) );
+    D_CMP_CHECK( (multiplicity_kind_of<std::multiset<int>>::value           == DMultiplicityKind::unbounded_multiset) );
+    D_CMP_CHECK( (multiplicity_kind_of<std::multimap<int, int>>::value      == DMultiplicityKind::unbounded_multiset) );
+    D_CMP_CHECK( (multiplicity_kind_of<std::unordered_multiset<int>>::value == DMultiplicityKind::unbounded_multiset) );
+    D_CMP_CHECK( (multiplicity_kind_of<DOptinUnbounded>::value              == DMultiplicityKind::unbounded_multiset) );
 
     // -- bounded_multiset: reachable ONLY through the opt-in (1 < m < inf) --
-    D_CMP_CHECK( (multiplicity_kind_of<DOptinBounded>::value       == multiplicity_kind::bounded_multiset) );
-    D_CMP_CHECK( (multiplicity_kind_of<DOptinOverInterval>::value == multiplicity_kind::bounded_multiset) );  // opt-in > interval
+    D_CMP_CHECK( (multiplicity_kind_of<DOptinBounded>::value       == DMultiplicityKind::bounded_multiset) );
+    D_CMP_CHECK( (multiplicity_kind_of<DOptinOverInterval>::value == DMultiplicityKind::bounded_multiset) );  // opt-in > interval
 
     // -- unknown: not countable, or an opt-in of 0 (below the floor) --
-    D_CMP_CHECK( (multiplicity_kind_of<std::forward_list<int>>::value == multiplicity_kind::unknown) );  // no size()
-    D_CMP_CHECK( (multiplicity_kind_of<DKeyedNoSize>::value          == multiplicity_kind::unknown) );  // guard precedes key logic
-    D_CMP_CHECK( (multiplicity_kind_of<int>::value                    == multiplicity_kind::unknown) );
-    D_CMP_CHECK( (multiplicity_kind_of<DOptinZero>::value             == multiplicity_kind::unknown) );  // m = 0 -> unknown
+    D_CMP_CHECK( (multiplicity_kind_of<std::forward_list<int>>::value == DMultiplicityKind::unknown) );  // no size()
+    D_CMP_CHECK( (multiplicity_kind_of<DKeyedNoSize>::value          == DMultiplicityKind::unknown) );  // guard precedes key logic
+    D_CMP_CHECK( (multiplicity_kind_of<int>::value                    == DMultiplicityKind::unknown) );
+    D_CMP_CHECK( (multiplicity_kind_of<DOptinZero>::value             == DMultiplicityKind::unknown) );  // m = 0 -> unknown
 
     return _cmp_ok;
 }
@@ -79,18 +79,18 @@ bool tests_multiplicity_kind_companions()
     bool _cmp_ok = true;
 
     // ::type carrier
-    D_CMP_CHECK( (multiplicity_kind_of_t<std::vector<int>>::value == multiplicity_kind::sequence) );
-    D_CMP_CHECK( (multiplicity_kind_of_t<std::set<int>>::value    == multiplicity_kind::unique) );
-    D_CMP_CHECK( (multiplicity_kind_of_t<std::multiset<int>>::value == multiplicity_kind::unbounded_multiset) );
-    D_CMP_CHECK( (multiplicity_kind_of_t<int>::value             == multiplicity_kind::unknown) );
+    D_CMP_CHECK( (multiplicity_kind_of_t<std::vector<int>>::value == DMultiplicityKind::sequence) );
+    D_CMP_CHECK( (multiplicity_kind_of_t<std::set<int>>::value    == DMultiplicityKind::unique) );
+    D_CMP_CHECK( (multiplicity_kind_of_t<std::multiset<int>>::value == DMultiplicityKind::unbounded_multiset) );
+    D_CMP_CHECK( (multiplicity_kind_of_t<int>::value             == DMultiplicityKind::unknown) );
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // _v companion
     D_CMP_CHECK( (multiplicity_kind_of_v<std::vector<int>>
                      == multiplicity_kind_of<std::vector<int>>::value) );
-    D_CMP_CHECK( (multiplicity_kind_of_v<std::set<int>>       == multiplicity_kind::unique) );
-    D_CMP_CHECK( (multiplicity_kind_of_v<DOptinBounded>       == multiplicity_kind::bounded_multiset) );
-    D_CMP_CHECK( (multiplicity_kind_of_v<DOptinUnbounded>     == multiplicity_kind::unbounded_multiset) );
+    D_CMP_CHECK( (multiplicity_kind_of_v<std::set<int>>       == DMultiplicityKind::unique) );
+    D_CMP_CHECK( (multiplicity_kind_of_v<DOptinBounded>       == DMultiplicityKind::bounded_multiset) );
+    D_CMP_CHECK( (multiplicity_kind_of_v<DOptinUnbounded>     == DMultiplicityKind::unbounded_multiset) );
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
     return _cmp_ok;

@@ -166,8 +166,8 @@ tests_memory_common_traits()
     D_TEST_REQUIRE(!is_memory_resource<int>::value);
     D_TEST_REQUIRE(!has_reset<DMemoryTestsThing>::value);
 
-    D_TEST_REQUIRE(is_memory_resource<arena>::value);
-    D_TEST_REQUIRE(has_reset<arena>::value);
+    D_TEST_REQUIRE(is_memory_resource<DArena>::value);
+    D_TEST_REQUIRE(has_reset<DArena>::value);
 #else
     D_TEST_SKIP("built without D_CFG_MEM_TRAIT_DETECTORS");
 #endif  // D_INTERNAL_MEM_TRAIT_DETECTORS

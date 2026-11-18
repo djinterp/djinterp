@@ -65,11 +65,11 @@ bool tests_override_identity_t()
     // accepted as the unary slot of every combinator that takes one
     D_OV_CHECK(ok, ov_binds_unary<identity_t>::value);
     D_OV_CHECK(ok, std::is_same_v<
-                       DWithOnBaseOnly<keep_base,
+                       DWithOnBaseOnly<DKeepBase,
                                          identity_t>::on_base_only<ov_base>,
                        ov_base>);
     D_OV_CHECK(ok, std::is_same_v<
-                       DWithOnDeltaOnly<keep_base,
+                       DWithOnDeltaOnly<DKeepBase,
                                           identity_t>::on_delta_only<
                                               ov_delta>,
                        ov_delta>);
@@ -164,7 +164,7 @@ bool tests_override_always_keep_left()
                        DWithOnBoth<DKeepDelta,
                                     always_keep_left>::on_both<ov_base,
                                                                ov_delta>,
-                       keep_base::on_both<ov_base, ov_delta>>);
+                       DKeepBase::on_both<ov_base, ov_delta>>);
 
     return ok;
 }
@@ -218,7 +218,7 @@ bool tests_override_always_keep_right()
     // accepted by DWithOnBoth, where it reproduces DKeepDelta's overlap
     D_OV_CHECK(ok, ov_binds_binary<always_keep_right>::value);
     D_OV_CHECK(ok, std::is_same_v<
-                       DWithOnBoth<keep_base,
+                       DWithOnBoth<DKeepBase,
                                     always_keep_right>::on_both<ov_base,
                                                                 ov_delta>,
                        DKeepDelta::on_both<ov_base, ov_delta>>);

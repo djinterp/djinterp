@@ -36,7 +36,7 @@ NS_TESTING
 
 namespace
 {
-    using message = pubsub_message<std::string, int>;
+    using message = DPubsubMessage<std::string, int>;
 }
 
 

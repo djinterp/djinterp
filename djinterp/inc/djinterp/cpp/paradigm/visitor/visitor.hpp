@@ -189,45 +189,53 @@ NS_DJINTERP
 // visitor_base
 // -----------------------------------------------------------------------------
 
-// visitor_base
+// DVisitorBase
 //   class: abstract base class for the classic (Gamma-style) visitor.
 // Parameterized on ReturnType to allow visitors that produce values.
 // Derive from this and add virtual visit() overloads for each concrete
 // element type.
 template<typename ReturnType = D_VISITOR_DEFAULT_RETURN_TYPE>
-class visitor_base
+class DVisitorBase
 {
 public:
     // return_type
     //   type: the return type of all visit() methods in this visitor.
     typedef ReturnType return_type;
 
-    virtual ~visitor_base()
+    virtual ~DVisitorBase()
     {}
 };
 
+// old name, until 0.9.0-rc.1
+template<typename ReturnType = D_VISITOR_DEFAULT_RETURN_TYPE>
+using visitor_base = DVisitorBase<ReturnType>;
+
 // -----------------------------------------------------------------------------
 // visitable_base
 // -----------------------------------------------------------------------------
 
-// visitable_base
+// DVisitableBase
 //   class: abstract base class for elements in the classic visitor pattern.
 // Parameterized on ReturnType to match the visitor's return type.
 // Concrete elements must implement accept() to call the appropriate
 // visit() overload on the visitor.
 template<typename ReturnType = D_VISITOR_DEFAULT_RETURN_TYPE>
-class visitable_base
+class DVisitableBase
 {
 public:
     // return_type
     //   type: the return type produced by accept().
     typedef ReturnType return_type;
 
-    virtual ~visitable_base()
+    virtual ~DVisitableBase()
     {}
 
-    virtual ReturnType accept(visitor_base<ReturnType>&) = 0;
+    virtual ReturnType accept(DVisitorBase<ReturnType>&) = 0;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename ReturnType = D_VISITOR_DEFAULT_RETURN_TYPE>
+using visitable_base = DVisitableBase<ReturnType>;
 
 // D_VISITABLE
 //   macro: injects an accept() implementation into a concrete element
@@ -257,7 +265,7 @@ public:
 // counterpart: it returns a default instead.
 #define D_VISITABLE(ReturnType)                                             \
     virtual ReturnType accept(                                              \
-        ::djinterp::visitor_base<ReturnType>& _visitor                      \
+        ::djinterp::DVisitorBase<ReturnType>& _visitor                      \
     )                                                                        \
     {                                                                        \
         return dynamic_cast<                                                 \
@@ -359,7 +367,7 @@ NS_END  // internal
 //   };
 template<typename    ReturnType,
          typename... ElementTypes>
-class concrete_visitor : public visitor_base<ReturnType>,
+class concrete_visitor : public DVisitorBase<ReturnType>,
                          public internal::visitor_of_base<ReturnType,
                                                           ElementTypes...>
 {
@@ -396,30 +404,35 @@ public:
 // visitor_of
 // -----------------------------------------------------------------------------
 
-// visitor_of
+// DVisitorOf
 //   class: per-type acyclic visitor interface. Provides a single
 // virtual visit() method for ElementType. A concrete acyclic visitor
 // inherits from visitor_of<T> for each type it wishes to handle.
 template<typename ElementType,
          typename ReturnType = D_VISITOR_DEFAULT_RETURN_TYPE>
-class visitor_of
+class DVisitorOf
 {
 public:
     // return_type
     //   type: the return type produced by visit().
     typedef ReturnType return_type;
 
-    virtual ~visitor_of()
+    virtual ~DVisitorOf()
     {}
 
     virtual ReturnType visit(ElementType&) = 0;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename ElementType,
+         typename ReturnType = D_VISITOR_DEFAULT_RETURN_TYPE>
+using visitor_of = DVisitorOf<ElementType, ReturnType>;
+
 // -----------------------------------------------------------------------------
 // acyclic_visitable
 // -----------------------------------------------------------------------------
 
-// acyclic_visitable
+// DAcyclicVisitable
 //   class: base for elements in the acyclic visitor pattern. Uses
 // dynamic_cast internally to find the correct visitor_of<T> interface
 // on the visiting object. Returns DefaultReturn if the visitor does
@@ -432,18 +445,22 @@ public:
 // acyclic_visitable<void>, both the default and the documented spelling, ill-
 // formed.  It was also never referenced by the class or the macro.
 template<typename ReturnType = D_VISITOR_DEFAULT_RETURN_TYPE>
-class acyclic_visitable
+class DAcyclicVisitable
 {
 public:
     // return_type
     //   type: the return type produced by accept().
     typedef ReturnType return_type;
 
-    virtual ~acyclic_visitable()
+    virtual ~DAcyclicVisitable()
     {}
 
     virtual ReturnType accept(acyclic_visitor&) = 0;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename ReturnType = D_VISITOR_DEFAULT_RETURN_TYPE>
+using acyclic_visitable = DAcyclicVisitable<ReturnType>;
 
 // D_ACYCLIC_VISITABLE
 //   macro: injects an accept() implementation for the acyclic visitor
@@ -461,7 +478,7 @@ public:
         ::djinterp::acyclic_visitor& _visitor                                \
     ) override                                                               \
     {                                                                        \
-        typedef ::djinterp::visitor_of<ThisType, ReturnType> target_type;   \
+        typedef ::djinterp::DVisitorOf<ThisType, ReturnType> target_type;   \
         target_type* p = dynamic_cast<target_type*>(&_visitor);              \
         if (p)                                                               \
         {                                                                    \
@@ -516,7 +533,7 @@ NS_END  // internal
 // static_visitor
 // -----------------------------------------------------------------------------
 
-// static_visitor
+// DStaticVisitor
 //   class: CRTP base for compile-time visitors. Derived must implement
 // visit() overloads for each element type it wishes to handle.
 // Provides apply() which statically dispatches to the derived visit().
@@ -532,7 +549,7 @@ NS_END  // internal
 //   my_visitor v;
 //   v.apply(some_circle);
 template<typename Derived>
-class static_visitor
+class DStaticVisitor
 {
 public:
     template<typename Element>
@@ -560,16 +577,20 @@ public:
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Derived>
+using static_visitor = DStaticVisitor<Derived>;
+
 // -----------------------------------------------------------------------------
 // static_visitable
 // -----------------------------------------------------------------------------
 
-// static_visitable
+// DStaticVisitable
 //   class: CRTP base for elements that accept static visitors. Derived
 // is the concrete element type. Provides accept() which forwards to the
 // visitor's apply() method.
 template<typename Derived>
-class static_visitable
+class DStaticVisitable
 {
 public:
     template<typename Visitor>
@@ -588,6 +609,10 @@ public:
         return _visitor.apply(static_cast<const Derived&>(*this));
     }
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Derived>
+using static_visitable = DStaticVisitable<Derived>;
 
 
 #endif  // D_VISITOR_HAS_VARIADIC_TEMPLATES
@@ -608,7 +633,7 @@ public:
 // overloaded
 // -----------------------------------------------------------------------------
 
-// overloaded
+// DOverloaded
 //   class: aggregates multiple callable objects (typically lambdas) into
 // a single overload set. Uses C++17 variadic inheritance and fold
 // expressions.
@@ -620,16 +645,20 @@ public:
 //       [](auto& other) { ... }
 //   };
 template<typename... Fns>
-struct overloaded : Fns...
+struct DOverloaded : Fns...
 {
     using Fns::operator()...;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename... Fns>
+using overloaded = DOverloaded<Fns...>;
 
 #if D_VISITOR_HAS_DEDUCTION_GUIDES
     // overloaded deduction guide
     //   guide: deduces template arguments from constructor arguments.
     template<typename... Fns>
-    overloaded(Fns...) -> overloaded<Fns...>;
+    DOverloaded(Fns...) -> DOverloaded<Fns...>;
 #endif
 
 // -----------------------------------------------------------------------------
@@ -642,11 +671,11 @@ struct overloaded : Fns...
 // contexts where CTAD is unavailable or undesirable.
 template<typename... Fns>
 D_CONSTEXPR_INLINE
-overloaded<typename std::decay<Fns>::type...> make_visitor(
+DOverloaded<typename std::decay<Fns>::type...> make_visitor(
     Fns&&... _fns
 )
 {
-    return overloaded<typename std::decay<Fns>::type...>{
+    return DOverloaded<typename std::decay<Fns>::type...>{
         std::forward<Fns>(_fns)...};
 }
 
@@ -795,7 +824,7 @@ template<typename    Visitor,
          typename... Elements>
 concept acyclic_visitor_for =
     ( std::derived_from<Visitor, acyclic_visitor> &&
-      (std::derived_from<Visitor, visitor_of<Elements>>  && ...) );
+      (std::derived_from<Visitor, DVisitorOf<Elements>>  && ...) );
 
 // constrained_accept
 //   function: accept() that statically verifies the visitor handles

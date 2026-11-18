@@ -48,7 +48,7 @@ bool tests_stdlib_array()
     D_BCT_CHECK(is_bounded_container<std::array<int, 3>>::value);
     D_BCT_CHECK(!is_unbounded_container<std::array<int, 3>>::value);
     D_BCT_CHECK(capacity_bound_of<std::array<int, 3>>::value ==
-                capacity_bound::bounded);
+                DCapacityBound::bounded);
 
     // exactly one signal carries it
     D_BCT_CHECK(has_tuple_size_signal<std::array<int, 3>>::value);
@@ -65,7 +65,7 @@ bool tests_stdlib_array()
     // the zero-length array
     D_BCT_CHECK(is_bounded_container<std::array<int, 0>>::value);
     D_BCT_CHECK(capacity_bound_of<std::array<int, 0>>::value ==
-                capacity_bound::bounded);
+                DCapacityBound::bounded);
 
     return ok;
 }
@@ -86,7 +86,7 @@ bool tests_stdlib_vector()
     D_BCT_CHECK(!is_bounded_container<std::vector<int>>::value);
     D_BCT_CHECK(is_unbounded_container<std::vector<int>>::value);
     D_BCT_CHECK(capacity_bound_of<std::vector<int>>::value ==
-                capacity_bound::unbounded);
+                DCapacityBound::unbounded);
 
     // the fourth disjunct is live, and the anti-signal is what closes it
     D_BCT_CHECK(has_capacity_signal<std::vector<int>>::value);
@@ -131,9 +131,9 @@ bool tests_stdlib_node_containers()
     D_BCT_CHECK(is_unbounded_container<std::list<int>>::value);
     D_BCT_CHECK(is_unbounded_container<std::deque<int>>::value);
     D_BCT_CHECK(capacity_bound_of<std::list<int>>::value ==
-                capacity_bound::unbounded);
+                DCapacityBound::unbounded);
     D_BCT_CHECK(capacity_bound_of<std::deque<int>>::value ==
-                capacity_bound::unbounded);
+                DCapacityBound::unbounded);
 
     // neither has a capacity() - std::deque grows without one
     D_BCT_CHECK(!has_capacity_signal<std::list<int>>::value);
@@ -146,7 +146,7 @@ bool tests_stdlib_node_containers()
     D_BCT_CHECK(!is_bounded_container<std::forward_list<int>>::value);
     D_BCT_CHECK(!is_unbounded_container<std::forward_list<int>>::value);
     D_BCT_CHECK(capacity_bound_of<std::forward_list<int>>::value ==
-                capacity_bound::unknown);
+                DCapacityBound::unknown);
 
     return ok;
 }
@@ -169,7 +169,7 @@ bool tests_stdlib_string()
     D_BCT_CHECK(has_capacity_signal<std::string>::value);
     D_BCT_CHECK(has_reserve_signal<std::string>::value);
     D_BCT_CHECK(capacity_bound_of<std::string>::value ==
-                capacity_bound::unbounded);
+                DCapacityBound::unbounded);
 
     D_BCT_CHECK(is_unbounded_container<std::string_view>::value);
     D_BCT_CHECK(!has_capacity_signal<std::string_view>::value);
@@ -212,9 +212,9 @@ bool tests_stdlib_tuple_pair()
 
     D_BCT_CHECK(!is_unbounded_container<std::tuple<int, char>>::value);
     D_BCT_CHECK(capacity_bound_of<std::tuple<int, char>>::value ==
-                capacity_bound::bounded);
+                DCapacityBound::bounded);
     D_BCT_CHECK(capacity_bound_of<std::pair<int, char>>::value ==
-                capacity_bound::bounded);
+                DCapacityBound::bounded);
 
     // bitset: a container with a fixed width, classified unbounded
     D_BCT_CHECK(has_size_signal<std::bitset<8>>::value);
@@ -224,7 +224,7 @@ bool tests_stdlib_tuple_pair()
     D_BCT_CHECK(!is_bounded_container<std::bitset<8>>::value);
     D_BCT_CHECK(is_unbounded_container<std::bitset<8>>::value);
     D_BCT_CHECK(capacity_bound_of<std::bitset<8>>::value ==
-                capacity_bound::unbounded);
+                DCapacityBound::unbounded);
 
     // initializer_list and valarray: size(), nothing else -> unbounded
     D_BCT_CHECK(is_unbounded_container<std::initializer_list<int>>::value);
@@ -266,7 +266,7 @@ bool tests_stdlib_associative()
     D_BCT_CHECK(is_unbounded_container<std::unordered_set<int>>::value);
 
     D_BCT_CHECK(capacity_bound_of<std::unordered_map<int, int>>::value ==
-                capacity_bound::unbounded);
+                DCapacityBound::unbounded);
 
     // none of them is domain-bounded
     D_BCT_CHECK(!is_domain_bounded_container<std::set<int>>::value);

@@ -99,11 +99,11 @@ NS_DJINTERP
 // I.   Comparison relations
 // ===========================================================================
 
-// order_relation
+// DOrderRelation
 //   enum: the standing of a left operand against a right, on one axis. On a
 // preorder axis all four arise; on an equivalence axis only equivalent and
 // incomparable do.
-enum class order_relation
+enum class DOrderRelation
 {
     equivalent,     // the two agree on this axis
     less,           // left is the weaker / coarser / less-capable
@@ -111,16 +111,19 @@ enum class order_relation
     incomparable    // each stands somewhere the other does not
 };
 
+// old name, until 0.9.0-rc.1
+using order_relation = DOrderRelation;
+
 // order_relation_name
 //   function: a stable spelling, for diagnostics and agent-facing summaries.
 constexpr
 const char* order_relation_name(
-    order_relation _r
+    DOrderRelation _r
 ) noexcept
 {
-    return ( _r == order_relation::equivalent   ? "equivalent"
-           : _r == order_relation::less         ? "less"
-           : _r == order_relation::greater      ? "greater"
+    return ( _r == DOrderRelation::equivalent   ? "equivalent"
+           : _r == DOrderRelation::less         ? "less"
+           : _r == DOrderRelation::greater      ? "greater"
            :                                      "incomparable" );
 }
 
@@ -130,17 +133,17 @@ const char* order_relation_name(
 // incomparability - collapse to incomparable. This is how the per-axis
 // verdicts fold into the single refinement relation.
 constexpr
-order_relation order_relation_meet(
-    order_relation _a,
-    order_relation _b
+DOrderRelation order_relation_meet(
+    DOrderRelation _a,
+    DOrderRelation _b
 ) noexcept
 {
-    return ( _a == order_relation::incomparable
-          || _b == order_relation::incomparable )  ? order_relation::incomparable
-         : ( _a == order_relation::equivalent )     ? _b
-         : ( _b == order_relation::equivalent )     ? _a
+    return ( _a == DOrderRelation::incomparable
+          || _b == DOrderRelation::incomparable )  ? DOrderRelation::incomparable
+         : ( _a == DOrderRelation::equivalent )     ? _b
+         : ( _b == DOrderRelation::equivalent )     ? _a
          : ( _a == _b )                             ? _a   // both less, or both greater
-         :                                            order_relation::incomparable;
+         :                                            DOrderRelation::incomparable;
 }
 
 
@@ -148,10 +151,10 @@ order_relation order_relation_meet(
 // II.  Content: the native level lambda
 // ===========================================================================
 
-// content_level
+// DContentLevel
 //   enum: a rung of the content hierarchy, coarsest to finest. A type's native
 // rung is fixed by its discipline, exactly as the frontier equalities nest.
-enum class content_level
+enum class DContentLevel
 {
     none,       // not a container / indeterminate
     set,        // support only            (=set)  - a set's native rung
@@ -160,16 +163,19 @@ enum class content_level
     str         // shape and values        (=str)  - a nested container's native rung
 };
 
+// old name, until 0.9.0-rc.1
+using content_level = DContentLevel;
+
 // content_level_name
 constexpr
 const char* content_level_name(
-    content_level _l
+    DContentLevel _l
 ) noexcept
 {
-    return ( _l == content_level::none ? "none"
-           : _l == content_level::set  ? "set"
-           : _l == content_level::bag  ? "bag"
-           : _l == content_level::seq  ? "seq"
+    return ( _l == DContentLevel::none ? "none"
+           : _l == DContentLevel::set  ? "set"
+           : _l == DContentLevel::bag  ? "bag"
+           : _l == DContentLevel::seq  ? "seq"
            :                             "str" );
 }
 
@@ -178,7 +184,7 @@ const char* content_level_name(
 // declared in that order, so the cast is the rank.
 constexpr
 int content_level_rank(
-    content_level _l
+    DContentLevel _l
 ) noexcept
 {
     return static_cast<int>(_l);
@@ -188,9 +194,9 @@ int content_level_rank(
 //   function: the coarser of two rungs - the rung at which two types compare,
 // per the formal ``coarser of the two native levels''.
 constexpr
-content_level content_level_coarser(
-    content_level _a,
-    content_level _b
+DContentLevel content_level_coarser(
+    DContentLevel _a,
+    DContentLevel _b
 ) noexcept
 {
     return ( content_level_rank(_a) <= content_level_rank(_b) ) ? _a : _b;
@@ -204,21 +210,21 @@ NS_INTERNAL
     // kind fixes the rung - a sequence at seq, a multiset at bag, a unique
     // discipline at set.
     constexpr
-    content_level native_content_level_helper(
+    DContentLevel native_content_level_helper(
         bool                     _hierarchical,
-        multiplicity_kind::value _mk
+        DMultiplicityKind::value _mk
     ) noexcept
     {
         return _hierarchical
-                   ? content_level::str
-             : ( _mk == multiplicity_kind::sequence )
-                   ? content_level::seq
-             : ( _mk == multiplicity_kind::bounded_multiset
-              || _mk == multiplicity_kind::unbounded_multiset )
-                   ? content_level::bag
-             : ( _mk == multiplicity_kind::unique )
-                   ? content_level::set
-             :     content_level::none;
+                   ? DContentLevel::str
+             : ( _mk == DMultiplicityKind::sequence )
+                   ? DContentLevel::seq
+             : ( _mk == DMultiplicityKind::bounded_multiset
+              || _mk == DMultiplicityKind::unbounded_multiset )
+                   ? DContentLevel::bag
+             : ( _mk == DMultiplicityKind::unique )
+                   ? DContentLevel::set
+             :     DContentLevel::none;
     }
 
 NS_END  // internal
@@ -232,7 +238,7 @@ private:
     using clean_type = clean_t<Type>;
 
 public:
-    static constexpr content_level value =
+    static constexpr DContentLevel value =
         internal::native_content_level_helper(
             is_hierarchical_container<clean_type>::value,
             overlay_of<clean_type>::mult );
@@ -240,11 +246,11 @@ public:
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename Type>
-    inline constexpr content_level native_content_level_of_v =
+    inline constexpr DContentLevel native_content_level_of_v =
         native_content_level_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    constexpr content_level native_content_level_of_v =
+    constexpr DContentLevel native_content_level_of_v =
         native_content_level_of<Type>::value;
 #endif
 
@@ -270,11 +276,11 @@ private:
                           overlay_of<clean_t<Left>>::value() );
 
 public:
-    static constexpr order_relation value =
-        ( left_subsumes_right && right_subsumes_left ) ? order_relation::equivalent
-      : ( left_subsumes_right )                        ? order_relation::greater
-      : ( right_subsumes_left )                        ? order_relation::less
-      :                                                  order_relation::incomparable;
+    static constexpr DOrderRelation value =
+        ( left_subsumes_right && right_subsumes_left ) ? DOrderRelation::equivalent
+      : ( left_subsumes_right )                        ? DOrderRelation::greater
+      : ( right_subsumes_left )                        ? DOrderRelation::less
+      :                                                  DOrderRelation::incomparable;
 };
 
 
@@ -314,10 +320,10 @@ private:
         internal::is_compile_stage_helper<Right>::value;
 
 public:
-    static constexpr order_relation value =
-        ( left_static == right_static ) ? order_relation::equivalent
-      : ( left_static )                 ? order_relation::greater
-      :                                   order_relation::less;
+    static constexpr DOrderRelation value =
+        ( left_static == right_static ) ? DOrderRelation::equivalent
+      : ( left_static )                 ? DOrderRelation::greater
+      :                                   DOrderRelation::less;
 };
 
 // ---------------------------------------------------------------------------
@@ -333,7 +339,7 @@ NS_INTERNAL
     // compile/const and runtime/non-const - are incomparable, as the lattice
     // has them.
     constexpr
-    order_relation iterability_relation_helper(
+    DOrderRelation iterability_relation_helper(
         bool _iter_l,
         bool _stage_l,
         bool _mode_l,
@@ -342,16 +348,16 @@ NS_INTERNAL
         bool _mode_r
     ) noexcept
     {
-        return ( !_iter_l && !_iter_r )                 ? order_relation::equivalent
-             : ( !_iter_r )                             ? order_relation::greater
-             : ( !_iter_l )                             ? order_relation::less
+        return ( !_iter_l && !_iter_r )                 ? DOrderRelation::equivalent
+             : ( !_iter_r )                             ? DOrderRelation::greater
+             : ( !_iter_l )                             ? DOrderRelation::less
              : ( _stage_l == _stage_r
-              && _mode_l  == _mode_r )                  ? order_relation::equivalent
+              && _mode_l  == _mode_r )                  ? DOrderRelation::equivalent
              : ( _stage_l >= _stage_r
-              && _mode_l  >= _mode_r )                  ? order_relation::greater
+              && _mode_l  >= _mode_r )                  ? DOrderRelation::greater
              : ( _stage_l <= _stage_r
-              && _mode_l  <= _mode_r )                  ? order_relation::less
-             :                                            order_relation::incomparable;
+              && _mode_l  <= _mode_r )                  ? DOrderRelation::less
+             :                                            DOrderRelation::incomparable;
     }
 
     // non_const_reachable_helper
@@ -360,7 +366,7 @@ NS_INTERNAL
     struct non_const_reachable_helper
         : std::integral_constant<bool,
               iteration_mode_of<clean_t<Type>>::value
-                  == iteration_mode::non_const>
+                  == DIterationMode::non_const>
     {};
 
 NS_END  // internal
@@ -379,7 +385,7 @@ private:
     using R = clean_t<Right>;
 
 public:
-    static constexpr order_relation value =
+    static constexpr DOrderRelation value =
         internal::iterability_relation_helper(
             is_iterable_container<L>::value,
             is_iterable_container<L>::value
@@ -403,11 +409,11 @@ template<typename Left,
          typename Right>
 struct storage_relation
 {
-    static constexpr order_relation value =
+    static constexpr DOrderRelation value =
         ( storage_of<clean_t<Left>>::value
               == storage_of<clean_t<Right>>::value )
-            ? order_relation::equivalent
-            : order_relation::incomparable;
+            ? DOrderRelation::equivalent
+            : DOrderRelation::incomparable;
 };
 
 
@@ -432,25 +438,25 @@ private:
 
 public:
     // content (native rungs; the shared rung is the coarser)
-    static constexpr content_level content_left =
+    static constexpr DContentLevel content_left =
         native_content_level_of<L>::value;
-    static constexpr content_level content_right =
+    static constexpr DContentLevel content_right =
         native_content_level_of<R>::value;
-    static constexpr content_level content_shared =
+    static constexpr DContentLevel content_shared =
         content_level_coarser(content_left, content_right);
 
     // discipline + realization
-    static constexpr order_relation discipline_order =
+    static constexpr DOrderRelation discipline_order =
         discipline_relation<L, R>::value;
-    static constexpr order_relation lifetime_order =
+    static constexpr DOrderRelation lifetime_order =
         lifetime_relation<L, R>::value;
-    static constexpr order_relation iterability_order =
+    static constexpr DOrderRelation iterability_order =
         DIterabilityRelation<L, R>::value;
-    static constexpr order_relation storage_order =
+    static constexpr DOrderRelation storage_order =
         storage_relation<L, R>::value;
 
     // the product refinement over the type-decidable axes
-    static constexpr order_relation refinement =
+    static constexpr DOrderRelation refinement =
         order_relation_meet(
             order_relation_meet(
                 order_relation_meet(discipline_order, lifetime_order),
@@ -465,17 +471,17 @@ template<typename Left,
          typename Right>
 struct refinement_of
 {
-    static constexpr order_relation value =
+    static constexpr DOrderRelation value =
         DComparisonProfile<Left, Right>::refinement;
 };
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename Left, typename Right>
-    inline constexpr order_relation refinement_of_v =
+    inline constexpr DOrderRelation refinement_of_v =
         refinement_of<Left, Right>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Left, typename Right>
-    constexpr order_relation refinement_of_v =
+    constexpr DOrderRelation refinement_of_v =
         refinement_of<Left, Right>::value;
 #endif
 
@@ -487,7 +493,7 @@ template<typename Left,
          typename Right>
 struct realization_equal
     : std::integral_constant<bool,
-          refinement_of<Left, Right>::value == order_relation::equivalent>
+          refinement_of<Left, Right>::value == DOrderRelation::equivalent>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
@@ -509,7 +515,7 @@ template<typename Left,
          typename Right>
 struct realization_comparable
     : std::integral_constant<bool,
-          refinement_of<Left, Right>::value != order_relation::incomparable>
+          refinement_of<Left, Right>::value != DOrderRelation::incomparable>
 {};
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES

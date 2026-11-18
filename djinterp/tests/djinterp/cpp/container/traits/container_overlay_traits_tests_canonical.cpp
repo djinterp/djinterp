@@ -33,13 +33,13 @@ bool tests_canonical_overlay_name()
 {
     bool _ovl_ok = true;
 
-    D_OVL_CHECK( (ovl_cstr_eq(canonical_overlay_name(canonical_overlay::none),     "none")) );
-    D_OVL_CHECK( (ovl_cstr_eq(canonical_overlay_name(canonical_overlay::set),      "set")) );
-    D_OVL_CHECK( (ovl_cstr_eq(canonical_overlay_name(canonical_overlay::multiset), "multiset")) );
-    D_OVL_CHECK( (ovl_cstr_eq(canonical_overlay_name(canonical_overlay::map),      "map")) );
-    D_OVL_CHECK( (ovl_cstr_eq(canonical_overlay_name(canonical_overlay::multimap), "multimap")) );
+    D_OVL_CHECK( (ovl_cstr_eq(canonical_overlay_name(DCanonicalOverlay::none),     "none")) );
+    D_OVL_CHECK( (ovl_cstr_eq(canonical_overlay_name(DCanonicalOverlay::set),      "set")) );
+    D_OVL_CHECK( (ovl_cstr_eq(canonical_overlay_name(DCanonicalOverlay::multiset), "multiset")) );
+    D_OVL_CHECK( (ovl_cstr_eq(canonical_overlay_name(DCanonicalOverlay::map),      "map")) );
+    D_OVL_CHECK( (ovl_cstr_eq(canonical_overlay_name(DCanonicalOverlay::multimap), "multimap")) );
 
-    D_OVL_CHECK( (!ovl_cstr_eq(canonical_overlay_name(canonical_overlay::set),
+    D_OVL_CHECK( (!ovl_cstr_eq(canonical_overlay_name(DCanonicalOverlay::set),
                                "multiset")) );
 
     return _ovl_ok;
@@ -53,22 +53,22 @@ bool tests_classify_canonical()
     bool _ovl_ok = true;
 
     // unique -> set / map
-    D_OVL_CHECK( (classify_canonical(multiplicity_kind::unique, false) == canonical_overlay::set) );
-    D_OVL_CHECK( (classify_canonical(multiplicity_kind::unique, true)  == canonical_overlay::map) );
+    D_OVL_CHECK( (classify_canonical(DMultiplicityKind::unique, false) == DCanonicalOverlay::set) );
+    D_OVL_CHECK( (classify_canonical(DMultiplicityKind::unique, true)  == DCanonicalOverlay::map) );
 
     // multiset kinds -> multiset / multimap (BOTH bounded and unbounded)
-    D_OVL_CHECK( (classify_canonical(multiplicity_kind::unbounded_multiset, false) == canonical_overlay::multiset) );
-    D_OVL_CHECK( (classify_canonical(multiplicity_kind::unbounded_multiset, true)  == canonical_overlay::multimap) );
-    D_OVL_CHECK( (classify_canonical(multiplicity_kind::bounded_multiset,   false) == canonical_overlay::multiset) );
-    D_OVL_CHECK( (classify_canonical(multiplicity_kind::bounded_multiset,   true)  == canonical_overlay::multimap) );
+    D_OVL_CHECK( (classify_canonical(DMultiplicityKind::unbounded_multiset, false) == DCanonicalOverlay::multiset) );
+    D_OVL_CHECK( (classify_canonical(DMultiplicityKind::unbounded_multiset, true)  == DCanonicalOverlay::multimap) );
+    D_OVL_CHECK( (classify_canonical(DMultiplicityKind::bounded_multiset,   false) == DCanonicalOverlay::multiset) );
+    D_OVL_CHECK( (classify_canonical(DMultiplicityKind::bounded_multiset,   true)  == DCanonicalOverlay::multimap) );
 
     // sequence -> none, even when keyed (no multiplicity cap)
-    D_OVL_CHECK( (classify_canonical(multiplicity_kind::sequence, false) == canonical_overlay::none) );
-    D_OVL_CHECK( (classify_canonical(multiplicity_kind::sequence, true)  == canonical_overlay::none) );
+    D_OVL_CHECK( (classify_canonical(DMultiplicityKind::sequence, false) == DCanonicalOverlay::none) );
+    D_OVL_CHECK( (classify_canonical(DMultiplicityKind::sequence, true)  == DCanonicalOverlay::none) );
 
     // unknown -> none
-    D_OVL_CHECK( (classify_canonical(multiplicity_kind::unknown, false) == canonical_overlay::none) );
-    D_OVL_CHECK( (classify_canonical(multiplicity_kind::unknown, true)  == canonical_overlay::none) );
+    D_OVL_CHECK( (classify_canonical(DMultiplicityKind::unknown, false) == DCanonicalOverlay::none) );
+    D_OVL_CHECK( (classify_canonical(DMultiplicityKind::unknown, true)  == DCanonicalOverlay::none) );
 
     return _ovl_ok;
 }
@@ -81,33 +81,33 @@ bool tests_canonical_overlay_of()
     bool _ovl_ok = true;
 
     // set: unkeyed unique (associative or interval carrier)
-    D_OVL_CHECK( (canonical_overlay_of<std::set<int>>::value           == canonical_overlay::set) );
-    D_OVL_CHECK( (canonical_overlay_of<std::unordered_set<int>>::value == canonical_overlay::set) );
-    D_OVL_CHECK( (canonical_overlay_of<DDomainBoundedSeq>::value      == canonical_overlay::set) );
+    D_OVL_CHECK( (canonical_overlay_of<std::set<int>>::value           == DCanonicalOverlay::set) );
+    D_OVL_CHECK( (canonical_overlay_of<std::unordered_set<int>>::value == DCanonicalOverlay::set) );
+    D_OVL_CHECK( (canonical_overlay_of<DDomainBoundedSeq>::value      == DCanonicalOverlay::set) );
 
     // map: keyed unique
-    D_OVL_CHECK( (canonical_overlay_of<std::map<int, int>>::value == canonical_overlay::map) );
+    D_OVL_CHECK( (canonical_overlay_of<std::map<int, int>>::value == DCanonicalOverlay::map) );
 
     // multiset: unkeyed repeatable (both multiset kinds)
-    D_OVL_CHECK( (canonical_overlay_of<std::multiset<int>>::value           == canonical_overlay::multiset) );
-    D_OVL_CHECK( (canonical_overlay_of<std::unordered_multiset<int>>::value == canonical_overlay::multiset) );
-    D_OVL_CHECK( (canonical_overlay_of<DBoundedMultisetSeq>::value         == canonical_overlay::multiset) );
+    D_OVL_CHECK( (canonical_overlay_of<std::multiset<int>>::value           == DCanonicalOverlay::multiset) );
+    D_OVL_CHECK( (canonical_overlay_of<std::unordered_multiset<int>>::value == DCanonicalOverlay::multiset) );
+    D_OVL_CHECK( (canonical_overlay_of<DBoundedMultisetSeq>::value         == DCanonicalOverlay::multiset) );
 
     // multimap: keyed repeatable (both multiset kinds)
-    D_OVL_CHECK( (canonical_overlay_of<std::multimap<int, int>>::value == canonical_overlay::multimap) );
-    D_OVL_CHECK( (canonical_overlay_of<DBoundedMultimapSeq>::value    == canonical_overlay::multimap) );
+    D_OVL_CHECK( (canonical_overlay_of<std::multimap<int, int>>::value == DCanonicalOverlay::multimap) );
+    D_OVL_CHECK( (canonical_overlay_of<DBoundedMultimapSeq>::value    == DCanonicalOverlay::multimap) );
 
     // none: sequences (incl. a KEYED sequence), unknowns, and non-containers
-    D_OVL_CHECK( (canonical_overlay_of<std::vector<int>>::value  == canonical_overlay::none) );
-    D_OVL_CHECK( (canonical_overlay_of<std::array<int, 4>>::value == canonical_overlay::none) );
-    D_OVL_CHECK( (canonical_overlay_of<std::vector<std::pair<int, int>>>::value == canonical_overlay::none) );  // keyed sequence
-    D_OVL_CHECK( (canonical_overlay_of<DSortedSeq>::value        == canonical_overlay::none) );
-    D_OVL_CHECK( (canonical_overlay_of<std::forward_list<int>>::value == canonical_overlay::none) );  // unknown mult
-    D_OVL_CHECK( (canonical_overlay_of<int>::value              == canonical_overlay::none) );
+    D_OVL_CHECK( (canonical_overlay_of<std::vector<int>>::value  == DCanonicalOverlay::none) );
+    D_OVL_CHECK( (canonical_overlay_of<std::array<int, 4>>::value == DCanonicalOverlay::none) );
+    D_OVL_CHECK( (canonical_overlay_of<std::vector<std::pair<int, int>>>::value == DCanonicalOverlay::none) );  // keyed sequence
+    D_OVL_CHECK( (canonical_overlay_of<DSortedSeq>::value        == DCanonicalOverlay::none) );
+    D_OVL_CHECK( (canonical_overlay_of<std::forward_list<int>>::value == DCanonicalOverlay::none) );  // unknown mult
+    D_OVL_CHECK( (canonical_overlay_of<int>::value              == DCanonicalOverlay::none) );
 
     // ::type carrier
-    D_OVL_CHECK( (canonical_overlay_of_t<std::set<int>>::value  == canonical_overlay::set) );
-    D_OVL_CHECK( (canonical_overlay_of_t<std::multimap<int, int>>::value == canonical_overlay::multimap) );
+    D_OVL_CHECK( (canonical_overlay_of_t<std::set<int>>::value  == DCanonicalOverlay::set) );
+    D_OVL_CHECK( (canonical_overlay_of_t<std::multimap<int, int>>::value == DCanonicalOverlay::multimap) );
 
     return _ovl_ok;
 }

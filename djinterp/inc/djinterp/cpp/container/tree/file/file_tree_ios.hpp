@@ -52,11 +52,11 @@ NS_DJINTERP
 //  ios_scanner
 // ================================================================
 
-// ios_scanner
+// DIosScanner
 //   policy: Darwin enumeration confined to the app sandbox. Shares
 // apple_scanner's batch backend; the distinction is documentary and behavioral
 // at the sandbox boundary, not in the per-entry path.
-struct ios_scanner
+struct DIosScanner
 {
     // scan
     //   delegates to apple_scanner. An inaccessible directory simply yields no
@@ -67,14 +67,17 @@ struct ios_scanner
     void scan(
         Ctx&               _ctx,
         const std::string& _dir_path,
-        file_node_id       _parent
+        DFileNodeId       _parent
     )
     {
-        apple_scanner::scan(_ctx, _dir_path, _parent);
+        DAppleScanner::scan(_ctx, _dir_path, _parent);
 
         return;
     }
 };
+
+// old name, until 0.9.0-rc.1
+using ios_scanner = DIosScanner;
 
 
 NS_END  // djinterp

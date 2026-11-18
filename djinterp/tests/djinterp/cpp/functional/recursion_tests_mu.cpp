@@ -30,7 +30,7 @@ bool tests_mu_default_empty()
 {
     bool ok = true;
 
-    mu<nat_f> m;
+    DMu<nat_f> m;
     ok = ok && (m.empty() == true);
 
     return ok;
@@ -47,10 +47,10 @@ bool tests_mu_in_nonempty()
 {
     bool ok = true;
 
-    mu<nat_f> z = mu<nat_f>::In(nat_zero<mu<nat_f> >());
+    DMu<nat_f> z = DMu<nat_f>::In(nat_zero<DMu<nat_f> >());
     ok = ok && (z.empty() == false);
 
-    mu<nat_f> s = mu<nat_f>::In(nat_succ<mu<nat_f> >(z));
+    DMu<nat_f> s = DMu<nat_f>::In(nat_succ<DMu<nat_f> >(z));
     ok = ok && (s.empty() == false);
 
     return ok;
@@ -68,10 +68,10 @@ bool tests_mu_out_returns_layer()
 {
     bool ok = true;
 
-    mu<nat_f> z = mu<nat_f>::In(nat_zero<mu<nat_f> >());
+    DMu<nat_f> z = DMu<nat_f>::In(nat_zero<DMu<nat_f> >());
     ok = ok && (z.out().is_zero == true);
 
-    mu<nat_f> s = mu<nat_f>::In(nat_succ<mu<nat_f> >(z));
+    DMu<nat_f> s = DMu<nat_f>::In(nat_succ<DMu<nat_f> >(z));
     ok = ok && (s.out().is_zero == false);
     ok = ok && (s.out().succ.out().is_zero == true);   // child is the Zero
 
@@ -88,13 +88,13 @@ tests_mu_layer_type
 bool tests_mu_layer_type()
 {
     static_assert(
-        std::is_same<mu<nat_f>::layer_type, nat_f<mu<nat_f> > >::value,
+        std::is_same<DMu<nat_f>::layer_type, nat_f<DMu<nat_f> > >::value,
         "nat_f layer_type");
     static_assert(
-        std::is_same<mu<list_f>::layer_type, list_f<mu<list_f> > >::value,
+        std::is_same<DMu<list_f>::layer_type, list_f<DMu<list_f> > >::value,
         "list_f layer_type");
     static_assert(
-        std::is_same<mu<tree_f>::layer_type, tree_f<mu<tree_f> > >::value,
+        std::is_same<DMu<tree_f>::layer_type, tree_f<DMu<tree_f> > >::value,
         "tree_f layer_type");
 
     return true;
@@ -115,21 +115,21 @@ bool tests_mu_sharing()
     bool ok = true;
 
     // copy shares the layer content.
-    mu<nat_f> a = mu<nat_f>::In(nat_succ<mu<nat_f> >(
-        mu<nat_f>::In(nat_zero<mu<nat_f> >())));
-    mu<nat_f> b = a;
+    DMu<nat_f> a = DMu<nat_f>::In(nat_succ<DMu<nat_f> >(
+        DMu<nat_f>::In(nat_zero<DMu<nat_f> >())));
+    DMu<nat_f> b = a;
     ok = ok && (b.empty() == false);
     ok = ok && (b.out().is_zero == a.out().is_zero);
 
     // assignment likewise.
-    mu<nat_f> c;
+    DMu<nat_f> c;
     c = a;
     ok = ok && (c.empty() == false);
     ok = ok && (c.out().is_zero == false);
 
     // In copies its argument: mutating the source afterwards is invisible.
-    nat_f<mu<nat_f> > layer = nat_zero<mu<nat_f> >();   // Zero
-    mu<nat_f> boxed = mu<nat_f>::In(layer);
+    nat_f<DMu<nat_f> > layer = nat_zero<DMu<nat_f> >();   // Zero
+    DMu<nat_f> boxed = DMu<nat_f>::In(layer);
     layer.is_zero = false;                              // tamper with the source
     ok = ok && (boxed.out().is_zero == true);           // boxed copy intact
 
@@ -150,14 +150,14 @@ bool tests_mu_nested_navigation()
     bool ok = true;
 
     // walk a Peano chain of length 3.
-    mu<nat_f> n = make_nat(3);
+    DMu<nat_f> n = make_nat(3);
     ok = ok && (n.out().is_zero == false);
     ok = ok && (n.out().succ.out().is_zero == false);
     ok = ok && (n.out().succ.out().succ.out().is_zero == false);
     ok = ok && (n.out().succ.out().succ.out().succ.out().is_zero == true);
 
     // both children of a Branch are reachable.
-    mu<tree_f> t = make_branch(make_leaf(4), make_leaf(9));
+    DMu<tree_f> t = make_branch(make_leaf(4), make_leaf(9));
     ok = ok && (t.out().is_leaf == false);
     ok = ok && (t.out().left.out().is_leaf == true);
     ok = ok && (t.out().left.out().value == 4);

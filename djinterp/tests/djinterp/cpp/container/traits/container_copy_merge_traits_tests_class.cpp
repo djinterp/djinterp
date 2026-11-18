@@ -55,17 +55,17 @@ bool tests_merge_class_disciplines()
 
     // not crossed - the operands differ, so a swap would show
     D_CM_CHECK(   ( (DMergeClass<DCmMap, DCmMultimap>::left_discipline)
-                        == merge_discipline::map )
+                        == DMergeDiscipline::map )
                && ( (DMergeClass<DCmMap, DCmMultimap>::right_discipline)
-                        == merge_discipline::multimap ));
+                        == DMergeDiscipline::multimap ));
     D_CM_CHECK(   ( (DMergeClass<DCmSet, DCmMultiset>::left_discipline)
-                        == merge_discipline::set )
+                        == DMergeDiscipline::set )
                && ( (DMergeClass<DCmSet, DCmMultiset>::right_discipline)
-                        == merge_discipline::multiset ));
+                        == DMergeDiscipline::multiset ));
     D_CM_CHECK(   ( (DMergeClass<DCmVector, DCmMap>::left_discipline)
-                        == merge_discipline::sequence )
+                        == DMergeDiscipline::sequence )
                && ( (DMergeClass<DCmVector, DCmMap>::right_discipline)
-                        == merge_discipline::map ));
+                        == DMergeDiscipline::map ));
 
     // swapping the operands swaps the members
     D_CM_CHECK((DMergeClass<DCmMap, DCmMultimap>::left_discipline)
@@ -75,9 +75,9 @@ bool tests_merge_class_disciplines()
 
     // a non-container operand
     D_CM_CHECK((DMergeClass<int, DCmVector>::left_discipline)
-                   == merge_discipline::unknown);
+                   == DMergeDiscipline::unknown);
     D_CM_CHECK((DMergeClass<DCmVector, int>::right_discipline)
-                   == merge_discipline::unknown);
+                   == DMergeDiscipline::unknown);
 
     // cleaned
     D_CM_CHECK((DMergeClass<const DCmMap&, DCmMultimap&&>::left_discipline)
@@ -85,7 +85,7 @@ bool tests_merge_class_disciplines()
 
     // constexpr
     D_CM_STATIC_CHECK((DMergeClass<DCmMap, DCmMap>::left_discipline)
-                          == merge_discipline::map);
+                          == DMergeDiscipline::map);
 
     return ok;
 }
@@ -118,14 +118,14 @@ bool tests_merge_class_kind()
 
     // read literally, across the kinds
     D_CM_CHECK((DMergeClass<DCmVector, DCmDeque>::kind)
-                   == merge_kind::concatenation);
-    D_CM_CHECK((DMergeClass<DCmSet, DCmSet>::kind) == merge_kind::set_union);
+                   == DMergeKind::concatenation);
+    D_CM_CHECK((DMergeClass<DCmSet, DCmSet>::kind) == DMergeKind::set_union);
     D_CM_CHECK((DMergeClass<DCmSet, DCmMultiset>::kind)
-                   == merge_kind::multiset_union);
+                   == DMergeKind::multiset_union);
     D_CM_CHECK((DMergeClass<DCmMap, DCmMap>::kind)
-                   == merge_kind::keyed_merge);
+                   == DMergeKind::keyed_merge);
     D_CM_CHECK((DMergeClass<DCmVector, DCmMap>::kind)
-                   == merge_kind::incompatible);
+                   == DMergeKind::incompatible);
 
     // the name tracks the kind rather than being fixed
     D_CM_CHECK(cm_kind_is(DMergeClass<DCmVector, DCmDeque>::kind,
@@ -154,7 +154,7 @@ bool tests_merge_class_kind()
 
     // constexpr
     D_CM_STATIC_CHECK((DMergeClass<DCmSet, DCmSet>::kind)
-                          == merge_kind::set_union);
+                          == DMergeKind::set_union);
     D_CM_STATIC_CHECK(DMergeClass<DCmSet, DCmSet>::kind_name[0] == 's');
 
     return ok;
@@ -269,7 +269,7 @@ bool tests_merge_class_agreement()
     D_CM_CHECK((DMergeClass<DCmPairVector, DCmMap>::left_discipline)
                    == merge_discipline_of<DCmPairVector>::value);
     D_CM_CHECK((DMergeClass<DCmPairVector, DCmMap>::kind)
-                   == merge_kind::keyed_merge);
+                   == DMergeKind::keyed_merge);
     D_CM_CHECK((DMergeClass<DCmPairVector, DCmMap>::key_conflict) == true);
 
     // where the merge is refused
@@ -404,15 +404,15 @@ bool tests_traits_metafunction_shape()
     // ... and those nested types ARE integral_constants
     D_CM_STATIC_CHECK(
         std::is_same<merge_discipline_of_t<DCmMap>::value_type,
-                     merge_discipline>::value);
+                     DMergeDiscipline>::value);
     D_CM_STATIC_CHECK(
         std::is_same<merge_kind_of_t<DCmSet, DCmSet>::value_type,
-                     merge_kind>::value);
+                     DMergeKind>::value);
 
     // the aggregate is a plain struct of constants
     D_CM_STATIC_CHECK(
         std::is_same<decltype(DMergeClass<DCmMap, DCmMap>::kind),
-                     const merge_kind>::value);
+                     const DMergeKind>::value);
     D_CM_STATIC_CHECK(
         std::is_same<decltype(DMergeClass<DCmMap, DCmMap>::key_conflict),
                      const bool>::value);

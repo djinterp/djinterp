@@ -25,7 +25,7 @@ bool rw_check_mirror(
 )
 {
     const rw_caps wrapped =
-        rw_probe<dj::read_write_container<_Container> >();
+        rw_probe<dj::DReadWriteContainer<_Container> >();
     const rw_caps raw = rw_probe<_Container>();
 
     if (!rw_rows_match(wrapped, raw))
@@ -85,7 +85,7 @@ tests_read_write_array_gains_no_mutator
 */
 bool tests_read_write_array_gains_no_mutator()
 {
-    typedef dj::read_write_container<std::array<int, 3> > handle;
+    typedef dj::DReadWriteContainer<std::array<int, 3> > handle;
 
     // no growth operations
     D_RW_CHECK(!rw_has_push_back<handle>::value);
@@ -114,7 +114,7 @@ bool tests_read_write_array_gains_no_mutator()
     D_RW_CHECK(rw_has_cbegin<handle>::value);
 
     // and the elements are writable, even though the size is fixed
-    dj::read_write_container<std::array<int, 3> > a;
+    dj::DReadWriteContainer<std::array<int, 3> > a;
 
     a[0] = 1;
     a.front() = 2;
@@ -138,7 +138,7 @@ tests_read_write_list_keeps_both_ends
 */
 bool tests_read_write_list_keeps_both_ends()
 {
-    typedef dj::read_write_container<std::list<int> > handle;
+    typedef dj::DReadWriteContainer<std::list<int> > handle;
 
     // both ends are present
     D_RW_CHECK(rw_has_push_back<handle>::value);
@@ -186,8 +186,8 @@ tests_read_write_deque_and_string_surfaces
 */
 bool tests_read_write_deque_and_string_surfaces()
 {
-    typedef dj::read_write_container<std::deque<int> > deque_handle;
-    typedef dj::read_write_container<std::string>      string_handle;
+    typedef dj::DReadWriteContainer<std::deque<int> > deque_handle;
+    typedef dj::DReadWriteContainer<std::string>      string_handle;
 
     // a deque: subscript without data
     D_RW_CHECK(rw_has_sub<deque_handle>::value);
@@ -240,9 +240,9 @@ bool tests_read_write_is_the_unrestricted_sibling()
     typedef std::vector<int> held;
 
     const rw_caps raw = rw_probe<held>();
-    const rw_caps rw  = rw_probe<dj::read_write_container<held> >();
-    const rw_caps ro  = rw_probe<dj::read_only_container<held> >();
-    const rw_caps wo  = rw_probe<dj::write_only_container<held> >();
+    const rw_caps rw  = rw_probe<dj::DReadWriteContainer<held> >();
+    const rw_caps ro  = rw_probe<dj::DReadOnlyContainer<held> >();
+    const rw_caps wo  = rw_probe<dj::DWriteOnlyContainer<held> >();
 
     // read_write is the only one that mirrors the container
     D_RW_CHECK(rw_rows_match(rw, raw));
@@ -273,11 +273,11 @@ bool tests_read_write_is_the_unrestricted_sibling()
 
     // and all three hold the identical container type
     D_RW_CHECK((std::is_same<
-                    dj::read_write_container<held>::container_type,
-                    dj::read_only_container<held>::container_type>::value));
+                    dj::DReadWriteContainer<held>::container_type,
+                    dj::DReadOnlyContainer<held>::container_type>::value));
     D_RW_CHECK((std::is_same<
-                    dj::read_write_container<held>::container_type,
-                    dj::write_only_container<held>::container_type>::value));
+                    dj::DReadWriteContainer<held>::container_type,
+                    dj::DWriteOnlyContainer<held>::container_type>::value));
 
     return true;
 }
@@ -293,7 +293,7 @@ tests_read_write_const_surface_is_constexpr
 */
 bool tests_read_write_const_surface_is_constexpr()
 {
-    typedef dj::read_write_container<std::array<int, 3> > handle;
+    typedef dj::DReadWriteContainer<std::array<int, 3> > handle;
 
     constexpr std::array<int, 3> raw = { { 4, 5, 6 } };
     constexpr handle             h(raw);
@@ -370,7 +370,7 @@ bool tests_read_write_detection_battery_is_sound()
                               rw_probe<std::list<int> >()));
 
     // and a const handle drops exactly the mutating members
-    typedef const dj::read_write_container<std::vector<int> > const_handle;
+    typedef const dj::DReadWriteContainer<std::vector<int> > const_handle;
 
     D_RW_CHECK(rw_has_size<const_handle>::value);
     D_RW_CHECK(rw_has_cbegin<const_handle>::value);

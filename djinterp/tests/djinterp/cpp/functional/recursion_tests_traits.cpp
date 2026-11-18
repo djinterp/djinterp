@@ -31,17 +31,17 @@ tests_recursive_traits_mu
 */
 bool tests_recursive_traits_mu()
 {
-    static_assert(recursive_traits<mu<nat_f> >::is_specialized::value,
+    static_assert(recursive_traits<DMu<nat_f> >::is_specialized::value,
                   "mu<nat_f> is recursive");
 
     static_assert(
-        std::is_same<recursive_traits<mu<nat_f> >::base<int>,
+        std::is_same<recursive_traits<DMu<nat_f> >::base<int>,
                      nat_f<int> >::value, "nat base<int>");
     static_assert(
-        std::is_same<recursive_traits<mu<list_f> >::base<int>,
+        std::is_same<recursive_traits<DMu<list_f> >::base<int>,
                      list_f<int> >::value, "list base<int>");
     static_assert(
-        std::is_same<recursive_traits<mu<tree_f> >::base<double>,
+        std::is_same<recursive_traits<DMu<tree_f> >::base<double>,
                      tree_f<double> >::value, "tree base<double>");
 
     return true;
@@ -58,14 +58,14 @@ tests_recursive_traits_project
 bool tests_recursive_traits_project()
 {
     bool ok = true;
-    using rec = recursive_traits<mu<nat_f> >;
+    using rec = recursive_traits<DMu<nat_f> >;
 
-    mu<nat_f> z = mu<nat_f>::In(nat_zero<mu<nat_f> >());
-    nat_f<mu<nat_f> > lz = rec::project(z);
+    DMu<nat_f> z = DMu<nat_f>::In(nat_zero<DMu<nat_f> >());
+    nat_f<DMu<nat_f> > lz = rec::project(z);
     ok = ok && (lz.is_zero == true);
 
-    mu<nat_f> n = make_nat(3);
-    nat_f<mu<nat_f> > ln = rec::project(n);
+    DMu<nat_f> n = make_nat(3);
+    nat_f<DMu<nat_f> > ln = rec::project(n);
     ok = ok && (ln.is_zero == false);
     ok = ok && (nat_to_unsigned(ln.succ) == 2);   // one layer peeled
 
@@ -82,14 +82,14 @@ tests_corecursive_traits_mu
 */
 bool tests_corecursive_traits_mu()
 {
-    static_assert(corecursive_traits<mu<nat_f> >::is_specialized::value,
+    static_assert(corecursive_traits<DMu<nat_f> >::is_specialized::value,
                   "mu<nat_f> is corecursive");
 
     static_assert(
-        std::is_same<corecursive_traits<mu<nat_f> >::base<int>,
+        std::is_same<corecursive_traits<DMu<nat_f> >::base<int>,
                      nat_f<int> >::value, "nat base<int>");
     static_assert(
-        std::is_same<corecursive_traits<mu<list_f> >::base<char>,
+        std::is_same<corecursive_traits<DMu<list_f> >::base<char>,
                      list_f<char> >::value, "list base<char>");
 
     return true;
@@ -106,13 +106,13 @@ tests_corecursive_traits_embed
 bool tests_corecursive_traits_embed()
 {
     bool ok = true;
-    using corec = corecursive_traits<mu<nat_f> >;
+    using corec = corecursive_traits<DMu<nat_f> >;
 
-    mu<nat_f> z = corec::embed(nat_zero<mu<nat_f> >());
+    DMu<nat_f> z = corec::embed(nat_zero<DMu<nat_f> >());
     ok = ok && (z.empty() == false);
     ok = ok && (z.out().is_zero == true);
 
-    mu<nat_f> two = corec::embed(nat_succ<mu<nat_f> >(make_nat(1)));
+    DMu<nat_f> two = corec::embed(nat_succ<DMu<nat_f> >(make_nat(1)));
     ok = ok && (nat_to_unsigned(two) == 2);
 
     return ok;
@@ -129,17 +129,17 @@ tests_traits_roundtrip
 bool tests_traits_roundtrip()
 {
     bool ok = true;
-    using rec   = recursive_traits<mu<nat_f> >;
-    using corec = corecursive_traits<mu<nat_f> >;
+    using rec   = recursive_traits<DMu<nat_f> >;
+    using corec = corecursive_traits<DMu<nat_f> >;
 
     // embed . project == id (one layer).
-    mu<nat_f> m = make_nat(5);
-    mu<nat_f> back = corec::embed(rec::project(m));
+    DMu<nat_f> m = make_nat(5);
+    DMu<nat_f> back = corec::embed(rec::project(m));
     ok = ok && (nat_to_unsigned(back) == 5);
 
     // project . embed == id (one layer).
-    nat_f<mu<nat_f> > layer = nat_succ<mu<nat_f> >(make_nat(2));
-    nat_f<mu<nat_f> > layer2 = rec::project(corec::embed(layer));
+    nat_f<DMu<nat_f> > layer = nat_succ<DMu<nat_f> >(make_nat(2));
+    nat_f<DMu<nat_f> > layer2 = rec::project(corec::embed(layer));
     ok = ok && (layer2.is_zero == false);
     ok = ok && (nat_to_unsigned(layer2.succ) == 2);
 
@@ -160,21 +160,21 @@ bool tests_is_recursive()
 {
     bool ok = true;
 
-    ok = ok && (is_recursive<mu<nat_f> >::value);
-    ok = ok && (is_recursive<mu<tree_f> >::value);
+    ok = ok && (is_recursive<DMu<nat_f> >::value);
+    ok = ok && (is_recursive<DMu<tree_f> >::value);
     ok = ok && (!is_recursive<DNotRecursive>::value);
     ok = ok && (!is_recursive<int>::value);
 
     // cv / ref decay.
-    ok = ok && (is_recursive<const mu<nat_f>& >::value);
+    ok = ok && (is_recursive<const DMu<nat_f>& >::value);
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    ok = ok && (is_recursive_v<mu<nat_f> > == is_recursive<mu<nat_f> >::value);
+    ok = ok && (is_recursive_v<DMu<nat_f> > == is_recursive<DMu<nat_f> >::value);
     ok = ok && (is_recursive_v<int> == false);
 #endif
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-    static_assert(Recursive<mu<nat_f> >, "mu is Recursive");
+    static_assert(Recursive<DMu<nat_f> >, "mu is Recursive");
     static_assert(!Recursive<int>, "int is not Recursive");
 #endif
 
@@ -195,22 +195,22 @@ bool tests_is_corecursive()
 {
     bool ok = true;
 
-    ok = ok && (is_corecursive<mu<nat_f> >::value);
-    ok = ok && (is_corecursive<mu<list_f> >::value);
+    ok = ok && (is_corecursive<DMu<nat_f> >::value);
+    ok = ok && (is_corecursive<DMu<list_f> >::value);
     ok = ok && (!is_corecursive<DNotRecursive>::value);
     ok = ok && (!is_corecursive<int>::value);
 
     // cv / ref decay.
-    ok = ok && (is_corecursive<mu<nat_f>& >::value);
+    ok = ok && (is_corecursive<DMu<nat_f>& >::value);
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    ok = ok && (is_corecursive_v<mu<nat_f> > ==
-                is_corecursive<mu<nat_f> >::value);
+    ok = ok && (is_corecursive_v<DMu<nat_f> > ==
+                is_corecursive<DMu<nat_f> >::value);
     ok = ok && (is_corecursive_v<DNotRecursive> == false);
 #endif
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-    static_assert(Corecursive<mu<nat_f> >, "mu is Corecursive");
+    static_assert(Corecursive<DMu<nat_f> >, "mu is Corecursive");
     static_assert(!Corecursive<int>, "int is not Corecursive");
 #endif
 

@@ -51,19 +51,19 @@ bool tests_merge_kind_enum()
     }
 
     // the walker visits each exactly once
-    D_CM_CHECK(cm_kind_at(0) == merge_kind::concatenation);
-    D_CM_CHECK(cm_kind_at(1) == merge_kind::set_union);
-    D_CM_CHECK(cm_kind_at(2) == merge_kind::multiset_union);
-    D_CM_CHECK(cm_kind_at(3) == merge_kind::keyed_merge);
-    D_CM_CHECK(cm_kind_at(4) == merge_kind::incompatible);
+    D_CM_CHECK(cm_kind_at(0) == DMergeKind::concatenation);
+    D_CM_CHECK(cm_kind_at(1) == DMergeKind::set_union);
+    D_CM_CHECK(cm_kind_at(2) == DMergeKind::multiset_union);
+    D_CM_CHECK(cm_kind_at(3) == DMergeKind::keyed_merge);
+    D_CM_CHECK(cm_kind_at(4) == DMergeKind::incompatible);
 
     // the zero value is a DEFINED merge, unlike the discipline enum's
-    D_CM_STATIC_CHECK(static_cast<int>(merge_kind::concatenation) == 0);
-    D_CM_CHECK(merge_kind() == merge_kind::concatenation);
-    D_CM_CHECK(merge_kind() != merge_kind::incompatible);
+    D_CM_STATIC_CHECK(static_cast<int>(DMergeKind::concatenation) == 0);
+    D_CM_CHECK(DMergeKind() == DMergeKind::concatenation);
+    D_CM_CHECK(DMergeKind() != DMergeKind::incompatible);
 
     // ... whereas the discipline enum puts its inert value at zero
-    D_CM_CHECK(merge_discipline() == merge_discipline::unknown);
+    D_CM_CHECK(DMergeDiscipline() == DMergeDiscipline::unknown);
 
     return ok;
 }
@@ -80,11 +80,11 @@ bool tests_merge_kind_name()
 {
     bool ok = true;
 
-    D_CM_CHECK(cm_kind_is(merge_kind::concatenation,  "concatenation"));
-    D_CM_CHECK(cm_kind_is(merge_kind::set_union,      "set_union"));
-    D_CM_CHECK(cm_kind_is(merge_kind::multiset_union, "multiset_union"));
-    D_CM_CHECK(cm_kind_is(merge_kind::keyed_merge,    "keyed_merge"));
-    D_CM_CHECK(cm_kind_is(merge_kind::incompatible,   "incompatible"));
+    D_CM_CHECK(cm_kind_is(DMergeKind::concatenation,  "concatenation"));
+    D_CM_CHECK(cm_kind_is(DMergeKind::set_union,      "set_union"));
+    D_CM_CHECK(cm_kind_is(DMergeKind::multiset_union, "multiset_union"));
+    D_CM_CHECK(cm_kind_is(DMergeKind::keyed_merge,    "keyed_merge"));
+    D_CM_CHECK(cm_kind_is(DMergeKind::incompatible,   "incompatible"));
 
     // pairwise distinct spellings
     for (int i = 0; i < cm_kind_count; ++i)
@@ -97,7 +97,7 @@ bool tests_merge_kind_name()
     }
 
     // constexpr
-    D_CM_STATIC_CHECK(merge_kind_name(merge_kind::set_union)[0] == 's');
+    D_CM_STATIC_CHECK(merge_kind_name(DMergeKind::set_union)[0] == 's');
 
     return ok;
 }
@@ -145,27 +145,27 @@ bool tests_enum_names_fall_through()
     }
 
     // outside it, the last spelling is taken
-    D_CM_CHECK(cm_disc_is(static_cast<merge_discipline>(cm_discipline_count),
+    D_CM_CHECK(cm_disc_is(static_cast<DMergeDiscipline>(cm_discipline_count),
                           "multimap"));
     D_CM_CHECK(cm_disc_is(
-                   static_cast<merge_discipline>(cm_discipline_count + 1),
+                   static_cast<DMergeDiscipline>(cm_discipline_count + 1),
                    "multimap"));
-    D_CM_CHECK(cm_kind_is(static_cast<merge_kind>(cm_kind_count),
+    D_CM_CHECK(cm_kind_is(static_cast<DMergeKind>(cm_kind_count),
                           "incompatible"));
-    D_CM_CHECK(cm_kind_is(static_cast<merge_kind>(cm_kind_count + 1),
+    D_CM_CHECK(cm_kind_is(static_cast<DMergeKind>(cm_kind_count + 1),
                           "incompatible"));
 
     // ... which for the discipline is the PERMISSIVE value
-    D_CM_CHECK(discipline_is_keyed(merge_discipline::multimap) == true);
-    D_CM_CHECK(cm_disc_is(static_cast<merge_discipline>(cm_discipline_count),
-                          merge_discipline_name(merge_discipline::multimap)));
+    D_CM_CHECK(discipline_is_keyed(DMergeDiscipline::multimap) == true);
+    D_CM_CHECK(cm_disc_is(static_cast<DMergeDiscipline>(cm_discipline_count),
+                          merge_discipline_name(DMergeDiscipline::multimap)));
     D_CM_CHECK(!cm_disc_is(
-                   static_cast<merge_discipline>(cm_discipline_count),
-                   merge_discipline_name(merge_discipline::unknown)));
+                   static_cast<DMergeDiscipline>(cm_discipline_count),
+                   merge_discipline_name(DMergeDiscipline::unknown)));
 
     // ... and for the kind is the SAFE one
-    D_CM_CHECK(cm_kind_is(static_cast<merge_kind>(cm_kind_count),
-                          merge_kind_name(merge_kind::incompatible)));
+    D_CM_CHECK(cm_kind_is(static_cast<DMergeKind>(cm_kind_count),
+                          merge_kind_name(DMergeKind::incompatible)));
 
     return ok;
 }
@@ -190,67 +190,67 @@ bool tests_merge_kind_from_disciplines()
     bool ok = true;
 
     // sequences
-    D_CM_CHECK(merge_kind_from_disciplines(merge_discipline::sequence,
-                                           merge_discipline::sequence)
-                   == merge_kind::concatenation);
+    D_CM_CHECK(merge_kind_from_disciplines(DMergeDiscipline::sequence,
+                                           DMergeDiscipline::sequence)
+                   == DMergeKind::concatenation);
 
     // bags, and the uniqueness degradation
-    D_CM_CHECK(merge_kind_from_disciplines(merge_discipline::set,
-                                           merge_discipline::set)
-                   == merge_kind::set_union);
-    D_CM_CHECK(merge_kind_from_disciplines(merge_discipline::set,
-                                           merge_discipline::multiset)
-                   == merge_kind::multiset_union);
-    D_CM_CHECK(merge_kind_from_disciplines(merge_discipline::multiset,
-                                           merge_discipline::set)
-                   == merge_kind::multiset_union);
-    D_CM_CHECK(merge_kind_from_disciplines(merge_discipline::multiset,
-                                           merge_discipline::multiset)
-                   == merge_kind::multiset_union);
+    D_CM_CHECK(merge_kind_from_disciplines(DMergeDiscipline::set,
+                                           DMergeDiscipline::set)
+                   == DMergeKind::set_union);
+    D_CM_CHECK(merge_kind_from_disciplines(DMergeDiscipline::set,
+                                           DMergeDiscipline::multiset)
+                   == DMergeKind::multiset_union);
+    D_CM_CHECK(merge_kind_from_disciplines(DMergeDiscipline::multiset,
+                                           DMergeDiscipline::set)
+                   == DMergeKind::multiset_union);
+    D_CM_CHECK(merge_kind_from_disciplines(DMergeDiscipline::multiset,
+                                           DMergeDiscipline::multiset)
+                   == DMergeKind::multiset_union);
 
     // keyed, which does NOT split on uniqueness
-    D_CM_CHECK(merge_kind_from_disciplines(merge_discipline::map,
-                                           merge_discipline::map)
-                   == merge_kind::keyed_merge);
-    D_CM_CHECK(merge_kind_from_disciplines(merge_discipline::map,
-                                           merge_discipline::multimap)
-                   == merge_kind::keyed_merge);
-    D_CM_CHECK(merge_kind_from_disciplines(merge_discipline::multimap,
-                                           merge_discipline::map)
-                   == merge_kind::keyed_merge);
-    D_CM_CHECK(merge_kind_from_disciplines(merge_discipline::multimap,
-                                           merge_discipline::multimap)
-                   == merge_kind::keyed_merge);
+    D_CM_CHECK(merge_kind_from_disciplines(DMergeDiscipline::map,
+                                           DMergeDiscipline::map)
+                   == DMergeKind::keyed_merge);
+    D_CM_CHECK(merge_kind_from_disciplines(DMergeDiscipline::map,
+                                           DMergeDiscipline::multimap)
+                   == DMergeKind::keyed_merge);
+    D_CM_CHECK(merge_kind_from_disciplines(DMergeDiscipline::multimap,
+                                           DMergeDiscipline::map)
+                   == DMergeKind::keyed_merge);
+    D_CM_CHECK(merge_kind_from_disciplines(DMergeDiscipline::multimap,
+                                           DMergeDiscipline::multimap)
+                   == DMergeKind::keyed_merge);
 
     // across families, both orders
-    D_CM_CHECK(merge_kind_from_disciplines(merge_discipline::sequence,
-                                           merge_discipline::set)
-                   == merge_kind::incompatible);
-    D_CM_CHECK(merge_kind_from_disciplines(merge_discipline::set,
-                                           merge_discipline::sequence)
-                   == merge_kind::incompatible);
-    D_CM_CHECK(merge_kind_from_disciplines(merge_discipline::set,
-                                           merge_discipline::map)
-                   == merge_kind::incompatible);
-    D_CM_CHECK(merge_kind_from_disciplines(merge_discipline::multiset,
-                                           merge_discipline::multimap)
-                   == merge_kind::incompatible);
+    D_CM_CHECK(merge_kind_from_disciplines(DMergeDiscipline::sequence,
+                                           DMergeDiscipline::set)
+                   == DMergeKind::incompatible);
+    D_CM_CHECK(merge_kind_from_disciplines(DMergeDiscipline::set,
+                                           DMergeDiscipline::sequence)
+                   == DMergeKind::incompatible);
+    D_CM_CHECK(merge_kind_from_disciplines(DMergeDiscipline::set,
+                                           DMergeDiscipline::map)
+                   == DMergeKind::incompatible);
+    D_CM_CHECK(merge_kind_from_disciplines(DMergeDiscipline::multiset,
+                                           DMergeDiscipline::multimap)
+                   == DMergeKind::incompatible);
 
     // unknown on either side
-    D_CM_CHECK(merge_kind_from_disciplines(merge_discipline::unknown,
-                                           merge_discipline::sequence)
-                   == merge_kind::incompatible);
-    D_CM_CHECK(merge_kind_from_disciplines(merge_discipline::sequence,
-                                           merge_discipline::unknown)
-                   == merge_kind::incompatible);
-    D_CM_CHECK(merge_kind_from_disciplines(merge_discipline::unknown,
-                                           merge_discipline::unknown)
-                   == merge_kind::incompatible);
+    D_CM_CHECK(merge_kind_from_disciplines(DMergeDiscipline::unknown,
+                                           DMergeDiscipline::sequence)
+                   == DMergeKind::incompatible);
+    D_CM_CHECK(merge_kind_from_disciplines(DMergeDiscipline::sequence,
+                                           DMergeDiscipline::unknown)
+                   == DMergeKind::incompatible);
+    D_CM_CHECK(merge_kind_from_disciplines(DMergeDiscipline::unknown,
+                                           DMergeDiscipline::unknown)
+                   == DMergeKind::incompatible);
 
     // constexpr
-    D_CM_STATIC_CHECK(merge_kind_from_disciplines(merge_discipline::set,
-                                                  merge_discipline::set)
-                          == merge_kind::set_union);
+    D_CM_STATIC_CHECK(merge_kind_from_disciplines(DMergeDiscipline::set,
+                                                  DMergeDiscipline::set)
+                          == DMergeKind::set_union);
 
     return ok;
 }
@@ -285,9 +285,9 @@ bool tests_merge_kind_from_disciplines_total()
     {
         for (int j = 0; j < cm_discipline_count; ++j)
         {
-            const merge_discipline a = cm_discipline_at(i);
-            const merge_discipline b = cm_discipline_at(j);
-            const merge_kind       k = merge_kind_from_disciplines(a, b);
+            const DMergeDiscipline a = cm_discipline_at(i);
+            const DMergeDiscipline b = cm_discipline_at(j);
+            const DMergeKind       k = merge_kind_from_disciplines(a, b);
 
             // symmetric
             D_CM_CHECK(k == merge_kind_from_disciplines(b, a));
@@ -298,29 +298,29 @@ bool tests_merge_kind_from_disciplines_total()
                   || ( discipline_is_bag(a)      && discipline_is_bag(b) )
                   || ( discipline_is_keyed(a)    && discipline_is_keyed(b) ) );
 
-            D_CM_CHECK(( k != merge_kind::incompatible ) == same_family);
+            D_CM_CHECK(( k != DMergeKind::incompatible ) == same_family);
 
             // the kind lands in the shared family
             if (discipline_is_sequence(a) && discipline_is_sequence(b))
             {
-                D_CM_CHECK(k == merge_kind::concatenation);
+                D_CM_CHECK(k == DMergeKind::concatenation);
             }
             else if (discipline_is_bag(a) && discipline_is_bag(b))
             {
-                D_CM_CHECK(   ( k == merge_kind::set_union )
-                           || ( k == merge_kind::multiset_union ));
+                D_CM_CHECK(   ( k == DMergeKind::set_union )
+                           || ( k == DMergeKind::multiset_union ));
             }
             else if (discipline_is_keyed(a) && discipline_is_keyed(b))
             {
-                D_CM_CHECK(k == merge_kind::keyed_merge);
+                D_CM_CHECK(k == DMergeKind::keyed_merge);
             }
 
-            if (k == merge_kind::set_union)
+            if (k == DMergeKind::set_union)
             {
                 ++set_union_points;
 
-                D_CM_CHECK(   ( a == merge_discipline::set )
-                           && ( b == merge_discipline::set ));
+                D_CM_CHECK(   ( a == DMergeDiscipline::set )
+                           && ( b == DMergeDiscipline::set ));
             }
 
             for (int m = 0; m < cm_kind_count; ++m)
@@ -361,15 +361,15 @@ bool tests_merge_kind_of()
 
     // one carrier pair per kind
     D_CM_CHECK((merge_kind_of<DCmVector, DCmVector>::value)
-                   == merge_kind::concatenation);
+                   == DMergeKind::concatenation);
     D_CM_CHECK((merge_kind_of<DCmSet, DCmSet>::value)
-                   == merge_kind::set_union);
+                   == DMergeKind::set_union);
     D_CM_CHECK((merge_kind_of<DCmSet, DCmMultiset>::value)
-                   == merge_kind::multiset_union);
+                   == DMergeKind::multiset_union);
     D_CM_CHECK((merge_kind_of<DCmMap, DCmMap>::value)
-                   == merge_kind::keyed_merge);
+                   == DMergeKind::keyed_merge);
     D_CM_CHECK((merge_kind_of<DCmVector, DCmSet>::value)
-                   == merge_kind::incompatible);
+                   == DMergeKind::incompatible);
 
     // agreement with the function
     D_CM_CHECK((merge_kind_of<DCmVector, DCmVector>::value)
@@ -393,11 +393,11 @@ bool tests_merge_kind_of()
 
     // a non-container on either side
     D_CM_CHECK((merge_kind_of<DCmVector, int>::value)
-                   == merge_kind::incompatible);
+                   == DMergeKind::incompatible);
     D_CM_CHECK((merge_kind_of<int, DCmVector>::value)
-                   == merge_kind::incompatible);
+                   == DMergeKind::incompatible);
     D_CM_CHECK((merge_kind_of<int, int>::value)
-                   == merge_kind::incompatible);
+                   == DMergeKind::incompatible);
 
     return ok;
 }
@@ -433,20 +433,20 @@ bool tests_merge_kind_of_element_guard()
     D_CM_CHECK((merge_elements_compatible<DCmVector,
                                           DCmVecString>::value) == false);
     D_CM_CHECK((merge_kind_of<DCmVector, DCmVecString>::value)
-                   == merge_kind::incompatible);
+                   == DMergeKind::incompatible);
 
     // ... and with compatible elements it is accepted
     D_CM_CHECK((merge_elements_compatible<DCmVector,
                                           DCmVecDouble>::value) == true);
     D_CM_CHECK((merge_kind_of<DCmVector, DCmVecDouble>::value)
-                   == merge_kind::concatenation);
+                   == DMergeKind::concatenation);
 
     // discipline mismatch, compatible elements
     D_CM_CHECK((merge_elements_compatible<DCmVector, DCmSet>::value) == true);
     D_CM_CHECK(merge_discipline_of<DCmVector>::value
                    != merge_discipline_of<DCmSet>::value);
     D_CM_CHECK((merge_kind_of<DCmVector, DCmSet>::value)
-                   == merge_kind::incompatible);
+                   == DMergeKind::incompatible);
 
     // the two causes are indistinguishable in the kind
     D_CM_CHECK((merge_kind_of<DCmVector, DCmVecString>::value)
@@ -484,27 +484,27 @@ bool tests_merge_kind_of_std_types()
 
     // sequences
     D_CM_CHECK((merge_kind_of<DCmVector, DCmDeque>::value)
-                   == merge_kind::concatenation);
+                   == DMergeKind::concatenation);
     D_CM_CHECK((merge_kind_of<DCmList, DCmArray>::value)
-                   == merge_kind::concatenation);
+                   == DMergeKind::concatenation);
     D_CM_CHECK((merge_kind_of<DCmVector, DCmArray>::value)
-                   == merge_kind::concatenation);
+                   == DMergeKind::concatenation);
 
     // sets
     D_CM_CHECK((merge_kind_of<DCmSet, DCmSet>::value)
-                   == merge_kind::set_union);
+                   == DMergeKind::set_union);
     D_CM_CHECK((merge_kind_of<DCmMultiset, DCmMultiset>::value)
-                   == merge_kind::multiset_union);
+                   == DMergeKind::multiset_union);
     D_CM_CHECK((merge_kind_of<DCmMultiset, DCmSet>::value)
-                   == merge_kind::multiset_union);
+                   == DMergeKind::multiset_union);
 
     // maps
     D_CM_CHECK((merge_kind_of<DCmMap, DCmMap>::value)
-                   == merge_kind::keyed_merge);
+                   == DMergeKind::keyed_merge);
     D_CM_CHECK((merge_kind_of<DCmMultimap, DCmMultimap>::value)
-                   == merge_kind::keyed_merge);
+                   == DMergeKind::keyed_merge);
     D_CM_CHECK((merge_kind_of<DCmMap, DCmMultimap>::value)
-                   == merge_kind::keyed_merge);
+                   == DMergeKind::keyed_merge);
 
     // the unordered counterparts
     D_CM_CHECK((merge_kind_of<DCmUset, DCmSet>::value)
@@ -514,13 +514,13 @@ bool tests_merge_kind_of_std_types()
 
     // cross-family refusals
     D_CM_CHECK((merge_kind_of<DCmVector, DCmSet>::value)
-                   == merge_kind::incompatible);
+                   == DMergeKind::incompatible);
     D_CM_CHECK((merge_kind_of<DCmSet, DCmMap>::value)
-                   == merge_kind::incompatible);
+                   == DMergeKind::incompatible);
     D_CM_CHECK((merge_kind_of<DCmVector, DCmMap>::value)
-                   == merge_kind::incompatible);
+                   == DMergeKind::incompatible);
     D_CM_CHECK((merge_kind_of<DCmString, DCmSet>::value)
-                   == merge_kind::incompatible);
+                   == DMergeKind::incompatible);
 
     return ok;
 }
@@ -555,16 +555,16 @@ bool tests_is_mergeable()
     // exactly the complement of incompatible
     D_CM_CHECK((is_mergeable<DCmVector, DCmVector>::value)
                    == ( (merge_kind_of<DCmVector, DCmVector>::value)
-                            != merge_kind::incompatible ));
+                            != DMergeKind::incompatible ));
     D_CM_CHECK((is_mergeable<DCmVector, DCmSet>::value)
                    == ( (merge_kind_of<DCmVector, DCmSet>::value)
-                            != merge_kind::incompatible ));
+                            != DMergeKind::incompatible ));
     D_CM_CHECK((is_mergeable<DCmMap, DCmMap>::value)
                    == ( (merge_kind_of<DCmMap, DCmMap>::value)
-                            != merge_kind::incompatible ));
+                            != DMergeKind::incompatible ));
     D_CM_CHECK((is_mergeable<int, DCmVector>::value)
                    == ( (merge_kind_of<int, DCmVector>::value)
-                            != merge_kind::incompatible ));
+                            != DMergeKind::incompatible ));
 
     // it IS an integral_constant, unlike merge_kind_of
     D_CM_STATIC_CHECK(
@@ -633,13 +633,13 @@ bool tests_merge_kind_companions()
     // the `_t` alias
     D_CM_STATIC_CHECK(
         std::is_same<merge_kind_of_t<DCmVector, DCmVector>,
-                     std::integral_constant<merge_kind,
-                                            merge_kind::concatenation>
+                     std::integral_constant<DMergeKind,
+                                            DMergeKind::concatenation>
                     >::value);
     D_CM_STATIC_CHECK(
         std::is_same<merge_kind_of_t<DCmVector, DCmSet>,
-                     std::integral_constant<merge_kind,
-                                            merge_kind::incompatible>
+                     std::integral_constant<DMergeKind,
+                                            DMergeKind::incompatible>
                     >::value);
     D_CM_CHECK((merge_kind_of_t<DCmSet, DCmSet>::value)
                    == (merge_kind_of<DCmSet, DCmSet>::value));
@@ -655,12 +655,12 @@ bool tests_merge_kind_companions()
 
     // constexpr
     D_CM_STATIC_CHECK((merge_kind_of<DCmSet, DCmSet>::value)
-                          == merge_kind::set_union);
+                          == DMergeKind::set_union);
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
     D_CM_STATIC_CHECK((merge_kind_of_v<DCmVector, DCmVector>)
-                          == merge_kind::concatenation);
+                          == DMergeKind::concatenation);
     D_CM_STATIC_CHECK((is_mergeable_v<DCmVector, DCmVector>));
     D_CM_STATIC_CHECK((is_mergeable_v<DCmVector, DCmSet>) == false);
 

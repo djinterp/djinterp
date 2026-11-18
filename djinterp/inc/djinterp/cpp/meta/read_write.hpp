@@ -38,9 +38,9 @@
 NS_DJINTERP
 
 
-// read_write
+// DReadWrite
 //   tag: the access capability granting observation AND modification.
-struct read_write
+struct DReadWrite
 {
     static D_CONSTEXPR_VAR bool can_read  = true;
     static D_CONSTEXPR_VAR bool can_write = true;
@@ -50,6 +50,9 @@ struct read_write
     // member, so taking the name never requires an out-of-line definition).
     static D_CONSTEXPR const char* name() D_NOEXCEPT { return "read_write"; }
 };
+
+// old name, until 0.9.0-rc.1
+typedef DReadWrite read_write;
 
 
 NS_END  // djinterp

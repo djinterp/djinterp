@@ -34,9 +34,9 @@
 NS_DJINTERP
 
 
-// read_only
+// DReadOnly
 //   tag: the access capability granting observation only.
-struct read_only
+struct DReadOnly
 {
     static D_CONSTEXPR_VAR bool can_read  = true;
     static D_CONSTEXPR_VAR bool can_write = false;
@@ -45,6 +45,9 @@ struct read_only
     //   function: the capability's stable spelling.
     static D_CONSTEXPR const char* name() D_NOEXCEPT { return "read_only"; }
 };
+
+// old name, until 0.9.0-rc.1
+typedef DReadOnly read_only;
 
 
 NS_END  // djinterp

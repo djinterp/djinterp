@@ -39,7 +39,7 @@ using count_terminal_t     = decltype(count());
 // ---- is_view ----
 static_assert(is_view<DSingleView<int>>::value,
     "is_view: single_view is a view");
-static_assert(is_view<iota_view<int>>::value,
+static_assert(is_view<DIotaView<int>>::value,
     "is_view: iota_view is a view");
 static_assert(is_view<DRefView<std::vector<int>>>::value,
     "is_view: ref_view is a view");
@@ -65,7 +65,7 @@ static_assert(!is_pipeable_to_view<int>::value,
 // ---- view_value_type ----
 static_assert(std::is_same<view_value_type_t<DSingleView<int>>, int>::value,
     "view_value_type_t: single_view<int> yields int");
-static_assert(std::is_same<view_value_type_t<iota_view<long>>, long>::value,
+static_assert(std::is_same<view_value_type_t<DIotaView<long>>, long>::value,
     "view_value_type_t: iota_view<long> yields long");
 static_assert(
     std::is_same<view_value_type_t<DRefView<std::vector<int>>>, int>::value,
@@ -148,7 +148,7 @@ bool test_core_traits()
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     record_assertion(verdict,
-        is_view_v<iota_view<int>> && !is_view_v<double>,
+        is_view_v<DIotaView<int>> && !is_view_v<double>,
         "trait: is_view_v matches the struct form");
     record_assertion(verdict,
         is_pipeable_to_view_v<DSingleView<int>>

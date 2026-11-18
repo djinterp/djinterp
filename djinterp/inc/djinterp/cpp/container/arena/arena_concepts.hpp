@@ -93,43 +93,43 @@ concept link_policy =
 //   concept: constrains policies providing a first-child link.
 template<typename Type>
 concept first_child_link_policy =
-    has_link_flag<clean_t<Type>, tree_link::first_child>::value;
+    has_link_flag<clean_t<Type>, DTreeLink::first_child>::value;
 
 // next_sibling_link_policy
 //   concept: constrains policies providing a next-sibling link.
 template<typename Type>
 concept next_sibling_link_policy =
-    has_link_flag<clean_t<Type>, tree_link::next_sibling>::value;
+    has_link_flag<clean_t<Type>, DTreeLink::next_sibling>::value;
 
 // parent_link_policy
 //   concept: constrains policies providing a parent link.
 template<typename Type>
 concept parent_link_policy =
-    has_link_flag<clean_t<Type>, tree_link::parent>::value;
+    has_link_flag<clean_t<Type>, DTreeLink::parent>::value;
 
 // prev_sibling_link_policy
 //   concept: constrains policies providing a previous-sibling link.
 template<typename Type>
 concept prev_sibling_link_policy =
-    has_link_flag<clean_t<Type>, tree_link::prev_sibling>::value;
+    has_link_flag<clean_t<Type>, DTreeLink::prev_sibling>::value;
 
 // last_child_link_policy
 //   concept: constrains policies providing a last-child link.
 template<typename Type>
 concept last_child_link_policy =
-    has_link_flag<clean_t<Type>, tree_link::last_child>::value;
+    has_link_flag<clean_t<Type>, DTreeLink::last_child>::value;
 
 // left_link_policy
 //   concept: constrains policies providing a left-child link.
 template<typename Type>
 concept left_link_policy =
-    has_link_flag<clean_t<Type>, tree_link::left>::value;
+    has_link_flag<clean_t<Type>, DTreeLink::left>::value;
 
 // right_link_policy
 //   concept: constrains policies providing a right-child link.
 template<typename Type>
 concept right_link_policy =
-    has_link_flag<clean_t<Type>, tree_link::right>::value;
+    has_link_flag<clean_t<Type>, DTreeLink::right>::value;
 
 // binary_link_policy_type
 //   concept: constrains policies using a binary left/right layout. (Not
@@ -246,32 +246,32 @@ concept valid_payload_arena =
 //   concept: constrains arenas supporting parent traversal.
 template<typename Type>
 concept parent_traversable_arena =
-    arena_class<clean_t<Type>>::supports_parent_traversal;
+    DArenaClass<clean_t<Type>>::supports_parent_traversal;
 
 // binary_arena
 //   concept: constrains arenas using a binary left/right layout.
 template<typename Type>
 concept binary_arena =
-    arena_class<clean_t<Type>>::is_binary;
+    DArenaClass<clean_t<Type>>::is_binary;
 
 // nary_arena
 //   concept: constrains arenas using an n-ary first-child / next- sibling
 // layout.
 template<typename Type>
 concept nary_arena =
-    arena_class<clean_t<Type>>::is_nary;
+    DArenaClass<clean_t<Type>>::is_nary;
 
 // o1_detachable_arena
 //   concept: constrains arenas supporting O(1) detach.
 template<typename Type>
 concept o1_detachable_arena =
-    arena_class<clean_t<Type>>::o1_detach;
+    DArenaClass<clean_t<Type>>::o1_detach;
 
 // o1_appendable_arena
 //   concept: constrains arenas supporting O(1) append-to-children.
 template<typename Type>
 concept o1_appendable_arena =
-    arena_class<clean_t<Type>>::o1_append;
+    DArenaClass<clean_t<Type>>::o1_append;
 
 // classified_arena
 //   concept: constrains types recognized by the arena trait layer.

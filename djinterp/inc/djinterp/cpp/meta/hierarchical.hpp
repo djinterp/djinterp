@@ -46,9 +46,9 @@
 NS_DJINTERP
 
 
-// hierarchical
+// DHierarchical
 //   tag: the structural kind of a container that nests (depth >= 2).
-struct hierarchical
+struct DHierarchical
 {
     static D_CONSTEXPR_VAR bool        nests     = true;    // node summand
                                                             // present
@@ -59,6 +59,9 @@ struct hierarchical
     //   function: the kind's stable spelling.
     static D_CONSTEXPR const char* name() D_NOEXCEPT { return "hierarchical"; }
 };
+
+// old name, until 0.9.0-rc.1
+typedef DHierarchical hierarchical;
 
 
 NS_END  // djinterp

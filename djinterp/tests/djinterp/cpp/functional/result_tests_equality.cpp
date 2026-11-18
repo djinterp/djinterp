@@ -22,7 +22,7 @@ NS_DJINTERP
 NS_TESTING
 
 
-using ri = result<int, std::string>;
+using ri = DResult<int, std::string>;
 
 
 bool test_equality()

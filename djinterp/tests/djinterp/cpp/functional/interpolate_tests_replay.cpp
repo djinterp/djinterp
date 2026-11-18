@@ -61,7 +61,7 @@ bool test_replay_key_fidelity()
 // an empty cache yields no pieces
 bool test_replay_empty()
 {
-    const std::vector<::djinterp::piece<char>> _empty;
+    const std::vector<::djinterp::DPiece<char>> _empty;
     const auto _v = scan_all(replay_t(_empty));
 
     D_INTERP_CHECK(_v.empty());
@@ -75,7 +75,7 @@ bool test_replay_typedefs()
 {
     static_assert(std::is_same<replay_t::input_type, char>::value, "input_type");
     static_assert(std::is_same<replay_t::result_type,
-                               ::djinterp::piece<char>>::value, "result_type");
+                               ::djinterp::DPiece<char>>::value, "result_type");
 
     return true;
 }

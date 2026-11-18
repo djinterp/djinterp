@@ -152,7 +152,7 @@ bool tests_hylo_equals_cata_ana()
         return _l.is_zero ? 0 : (1 + _l.succ);
     };
     const int hn = hylo<int, int, nat_f>(depth, grow, 6);
-    const int cn = cata<int, mu<nat_f> >(depth, ana<mu<nat_f>, int>(grow, 6));
+    const int cn = cata<int, DMu<nat_f> >(depth, ana<DMu<nat_f>, int>(grow, 6));
     ok = ok && (hn == cn);
     ok = ok && (hn == 6);
 
@@ -166,7 +166,7 @@ bool tests_hylo_equals_cata_ana()
         return _l.is_nil ? 0 : (_l.head + _l.tail);
     };
     const int hl = hylo<int, int, list_f>(sum, down, 5);
-    const int cl = cata<int, mu<list_f> >(sum, ana<mu<list_f>, int>(down, 5));
+    const int cl = cata<int, DMu<list_f> >(sum, ana<DMu<list_f>, int>(down, 5));
     ok = ok && (hl == cl);
     ok = ok && (hl == 15);
 

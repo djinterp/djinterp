@@ -309,8 +309,8 @@ struct lever_storage : view_to
 {
     using view_to::view_to;
 
-    static constexpr storage_duration::value storage_duration_category =
-        storage_duration::static_storage;
+    static constexpr DStorageDuration::value storage_duration_category =
+        DStorageDuration::static_storage;
 };
 
 // lever_discipline
@@ -407,7 +407,7 @@ struct lever_topology : cvt_seq<std::vector<int>>
 };
 
 // content_from / content_to
-//   type: a flat SET (rung `set`) and a flat BAG (rung `bag`) of int, each
+//   type: a flat SET (rung `DSet`) and a flat BAG (rung `bag`) of int, each
 // with a range constructor.  To is the finer, so nothing is forgotten.
 struct content_from : std::set<int>
 {

@@ -162,7 +162,7 @@ bool test_prepared_make()
 // prepare_into fills a caller-owned cache for a DReplayScanner render
 bool test_prepared_prepare_into()
 {
-    std::vector<::djinterp::piece<char>> _cache;
+    std::vector<::djinterp::DPiece<char>> _cache;
     ::djinterp::prepare_into(_cache, sv("{a}b"));
 
     D_INTERP_CHECK(_cache.size() == 2);

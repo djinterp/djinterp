@@ -236,14 +236,14 @@ tests_construction_from_options
 bool tests_construction_from_options()
 {
     using opts_t =
-        array_from_options_t<array_opt_type<int>, DArrayOptExtent<2>>;
+        array_from_options_t<DArrayOptType<int>, DArrayOptExtent<2>>;
     D_AY_CHECK((std::is_same<opts_t,
-                             array<array_opt_type<int>,
+                             DArray<DArrayOptType<int>,
                                    DArrayOptExtent<2>>>::value));
 
-    auto a = make_array_from_options<array_opt_type<int>>(4, 5, 6);
+    auto a = make_array_from_options<DArrayOptType<int>>(4, 5, 6);
     D_AY_CHECK((std::is_same<decltype(a),
-                             array<array_opt_type<int>,
+                             DArray<DArrayOptType<int>,
                                    DArrayOptExtent<3>>>::value));
     D_AY_CHECK(decltype(a)::extent == 3);
     D_AY_CHECK(decltype(a)::lifetime == DArrayLifetime::mutable_lifetime);
@@ -251,8 +251,8 @@ bool tests_construction_from_options()
     D_AY_CHECK(a[0] == 4 && a[2] == 6);
 
     auto i = make_array_from_options<
-        array_opt_type<int>,
-        DContainerOptLifetime<container_lifetime::immutable>>(1, 2);
+        DArrayOptType<int>,
+        DContainerOptLifetime<DContainerLifetime::immutable>>(1, 2);
     D_AY_CHECK(decltype(i)::lifetime == DArrayLifetime::immutable_lifetime);
     D_AY_CHECK(i[1] == 2);
 
@@ -288,8 +288,8 @@ bool tests_construction_cell_constants()
     D_AY_CHECK((std::is_same<ms3::value_type, std::string>::value));
 
     // option order
-    using fwd = array<array_opt_type<int>, DArrayOptExtent<4>>;
-    using rev = array<DArrayOptExtent<4>, array_opt_type<int>>;
+    using fwd = DArray<DArrayOptType<int>, DArrayOptExtent<4>>;
+    using rev = DArray<DArrayOptExtent<4>, DArrayOptType<int>>;
     D_AY_CHECK(fwd::extent == rev::extent);
     D_AY_CHECK((std::is_same<fwd::value_type, rev::value_type>::value));
     D_AY_CHECK(fwd::lifetime == rev::lifetime);

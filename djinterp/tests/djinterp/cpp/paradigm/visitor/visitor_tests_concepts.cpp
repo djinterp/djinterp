@@ -108,8 +108,8 @@ namespace
     //   fixture: a well-formed acyclic visitor -- derives from the root AND from a
     // visitor_of<E> for each element it handles.
     struct plain_acyclic : acyclic_visitor,
-                           visitor_of<acyclic_circle>,
-                           visitor_of<acyclic_rect>
+                           DVisitorOf<acyclic_circle>,
+                           DVisitorOf<acyclic_rect>
     {
         void visit(acyclic_circle&) override
         {}
@@ -122,7 +122,7 @@ namespace
     //   fixture: has the per-type interfaces but NOT the acyclic_visitor root, so it
     // can never be passed to accept() -- the dynamic_cast has nothing to start from.
     // It is the case the concept's first conjunct exists to catch.
-    struct rootless_acyclic : visitor_of<acyclic_circle>
+    struct rootless_acyclic : DVisitorOf<acyclic_circle>
     {
         void visit(acyclic_circle&) override
         {}
@@ -169,7 +169,7 @@ bool tests_concept_visitable_type()
                   "a type with accept() satisfies the concept");
 
     // the real elements, with the visitor each of them actually takes
-    static_assert(visitable_type<classic_circle, visitor_base<std::string> >,
+    static_assert(visitable_type<classic_circle, DVisitorBase<std::string> >,
                   "a classic element accepts a visitor_base");
     static_assert(visitable_type<acyclic_circle, acyclic_visitor>,
                   "an acyclic element accepts an acyclic_visitor");
@@ -202,7 +202,7 @@ bool tests_concept_visitable_type_rejects_non_visitable()
     // one that takes an acyclic_visitor
     static_assert(!visitable_type<classic_circle, acyclic_visitor>,
                   "a classic element does not accept an acyclic visitor");
-    static_assert(visitable_type<classic_circle, visitor_base<std::string> >,
+    static_assert(visitable_type<classic_circle, DVisitorBase<std::string> >,
                   "while it does accept the visitor it was built for");
 
     return true;

@@ -175,13 +175,13 @@ D_TYPE_TRAIT_TRUE(has_contains_member,
 // II.  The observational level
 // ===========================================================================
 
-// observational_level
+// DObservationalLevel
 //   enum: the finest content level an interface can DECIDE. A refinement
 // order, coarsest to finest: none < size < set < bag < seq < str. The four
 // finest name the content_level values of container_comparison_traits.hpp;
 // size is the extra coarsest content step (equal-size only) that observation
 // adds.
-enum class observational_level
+enum class DObservationalLevel
 {
     none,   // nothing shared but identity / type
     size,   // equal size only (coarser than every content level)
@@ -191,18 +191,21 @@ enum class observational_level
     str     // positional shape readable  - at(.)+shape -> =str
 };
 
+// old name, until 0.9.0-rc.1
+using observational_level = DObservationalLevel;
+
 // observational_level_name
 //   function: a stable spelling, for diagnostics and agent-facing summaries.
 constexpr
 const char* observational_level_name(
-    observational_level _l
+    DObservationalLevel _l
 ) noexcept
 {
-    return ( _l == observational_level::none ? "none"
-           : _l == observational_level::size ? "size"
-           : _l == observational_level::set  ? "set"
-           : _l == observational_level::bag  ? "bag"
-           : _l == observational_level::seq  ? "seq"
+    return ( _l == DObservationalLevel::none ? "none"
+           : _l == DObservationalLevel::size ? "size"
+           : _l == DObservationalLevel::set  ? "set"
+           : _l == DObservationalLevel::bag  ? "bag"
+           : _l == DObservationalLevel::seq  ? "seq"
            :                                   "str" );
 }
 
@@ -211,14 +214,14 @@ const char* observational_level_name(
 // str=5), the linear order the level preorder collapses to.
 constexpr
 int observational_level_rank(
-    observational_level _l
+    DObservationalLevel _l
 ) noexcept
 {
-    return ( _l == observational_level::none ? 0
-           : _l == observational_level::size ? 1
-           : _l == observational_level::set  ? 2
-           : _l == observational_level::bag  ? 3
-           : _l == observational_level::seq  ? 4
+    return ( _l == DObservationalLevel::none ? 0
+           : _l == DObservationalLevel::size ? 1
+           : _l == DObservationalLevel::set  ? 2
+           : _l == DObservationalLevel::bag  ? 3
+           : _l == DObservationalLevel::seq  ? 4
            :                                   5 );
 }
 
@@ -226,9 +229,9 @@ int observational_level_rank(
 //   function: the coarser (lower-rank) of two levels - the level a shared
 // interface resolves, and the meet of the refinement order.
 constexpr
-observational_level observational_level_coarser(
-    observational_level _a,
-    observational_level _b
+DObservationalLevel observational_level_coarser(
+    DObservationalLevel _a,
+    DObservationalLevel _b
 ) noexcept
 {
     return ( observational_level_rank(_a) <= observational_level_rank(_b) ) ? _a : _b;
@@ -238,9 +241,9 @@ observational_level observational_level_coarser(
 //   function: the finer (higher-rank) of two levels - the join of the
 // refinement order.
 constexpr
-observational_level observational_level_finer(
-    observational_level _a,
-    observational_level _b
+DObservationalLevel observational_level_finer(
+    DObservationalLevel _a,
+    DObservationalLevel _b
 ) noexcept
 {
     return ( observational_level_rank(_a) >= observational_level_rank(_b) ) ? _a : _b;
@@ -251,8 +254,8 @@ observational_level observational_level_finer(
 // order).
 constexpr
 bool observational_level_subsumes(
-    observational_level _a,
-    observational_level _b
+    DObservationalLevel _a,
+    DObservationalLevel _b
 ) noexcept
 {
     return ( observational_level_rank(_a) >= observational_level_rank(_b) );
@@ -277,22 +280,22 @@ private:
     using clean_type = clean_t<Type>;
 
 public:
-    static constexpr observational_level value =
+    static constexpr DObservationalLevel value =
         (    has_indexed_access<clean_type>::value
           && is_hierarchical_container<clean_type>::value )
-              ? observational_level::str
+              ? DObservationalLevel::str
       : (    is_iterable_container<clean_type>::value
           || has_indexed_access<clean_type>::value )
-              ? observational_level::seq
+              ? DObservationalLevel::seq
       : (  has_count_member<clean_type>::value )
-              ? observational_level::bag
+              ? DObservationalLevel::bag
       : (  has_contains_member<clean_type>::value )
-              ? observational_level::set
+              ? DObservationalLevel::set
       : (  has_size_member<clean_type>::value )
-              ? observational_level::size
-      :         observational_level::none;
+              ? DObservationalLevel::size
+      :         DObservationalLevel::none;
 
-    using type = std::integral_constant<observational_level, value>;
+    using type = std::integral_constant<DObservationalLevel, value>;
 };
 
 // observational_level_of_t / observational_level_of_v
@@ -303,11 +306,11 @@ using observational_level_of_t = typename observational_level_of<Type>::type;
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename Type>
-    inline constexpr observational_level observational_level_of_v =
+    inline constexpr DObservationalLevel observational_level_of_v =
         observational_level_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    constexpr observational_level observational_level_of_v =
+    constexpr DObservationalLevel observational_level_of_v =
         observational_level_of<Type>::value;
 #endif
 
@@ -324,12 +327,12 @@ template<typename Left,
          typename Right>
 struct shared_observational_level
 {
-    static constexpr observational_level value =
+    static constexpr DObservationalLevel value =
         observational_level_coarser(
             observational_level_of<clean_t<Left>>::value,
             observational_level_of<clean_t<Right>>::value );
 
-    using type = std::integral_constant<observational_level, value>;
+    using type = std::integral_constant<DObservationalLevel, value>;
 };
 
 // shared_observational_level_t / shared_observational_level_v
@@ -343,12 +346,12 @@ using shared_observational_level_t =
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename Left,
              typename Right>
-    inline constexpr observational_level shared_observational_level_v =
+    inline constexpr DObservationalLevel shared_observational_level_v =
         shared_observational_level<Left, Right>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Left,
              typename Right>
-    constexpr observational_level shared_observational_level_v =
+    constexpr DObservationalLevel shared_observational_level_v =
         shared_observational_level<Left, Right>::value;
 #endif
 
@@ -384,12 +387,12 @@ private:
     using clean_type = clean_t<Type>;
 
 public:
-    static constexpr lifetime::value value =
+    static constexpr DLifetime::value value =
         ( internal::has_static_size_helper<clean_type>::value )
-              ? lifetime::both
-      :         lifetime::runtime;
+              ? DLifetime::both
+      :         DLifetime::runtime;
 
-    using type = std::integral_constant<lifetime::value, value>;
+    using type = std::integral_constant<DLifetime::value, value>;
 };
 
 // observed_access_stage_of_t / observed_access_stage_of_v
@@ -416,12 +419,12 @@ template<typename Left,
          typename Right>
 struct observational_stage_of
 {
-    static constexpr lifetime::value value =
+    static constexpr DLifetime::value value =
         lifetime_meet(
             observed_access_stage_of<clean_t<Left>>::value,
             observed_access_stage_of<clean_t<Right>>::value );
 
-    using type = std::integral_constant<lifetime::value, value>;
+    using type = std::integral_constant<DLifetime::value, value>;
 };
 
 // observational_stage_of_t / observational_stage_of_v

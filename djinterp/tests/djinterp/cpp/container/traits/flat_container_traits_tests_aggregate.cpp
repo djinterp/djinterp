@@ -31,7 +31,7 @@ bool tests_flat_container_class()
 
     // -- std::vector<int>: ordinary flat container --
     {
-        using C = flat_container_class<std::vector<int>>;
+        using C = DFlatContainerClass<std::vector<int>>;
         D_FC_CHECK( (C::is_container) );
         D_FC_CHECK( (C::depth == 1) );
         D_FC_CHECK( (C::is_flat && C::is_strictly_flat) );
@@ -41,7 +41,7 @@ bool tests_flat_container_class()
 
     // -- std::set<int>: flat despite the node-handle node_type --
     {
-        using C = flat_container_class<std::set<int>>;
+        using C = DFlatContainerClass<std::set<int>>;
         D_FC_CHECK( (C::is_container && C::depth == 1) );
         D_FC_CHECK( (C::is_flat && C::is_strictly_flat) );
         D_FC_CHECK( (C::kind == DStructureKind::flat) );
@@ -49,7 +49,7 @@ bool tests_flat_container_class()
 
     // -- std::vector<std::vector<int>>: depth-heuristic hierarchy --
     {
-        using C = flat_container_class<std::vector<std::vector<int>>>;
+        using C = DFlatContainerClass<std::vector<std::vector<int>>>;
         D_FC_CHECK( (C::is_container) );
         D_FC_CHECK( (C::depth == 2) );
         D_FC_CHECK( (!C::is_flat && !C::is_strictly_flat) );
@@ -59,7 +59,7 @@ bool tests_flat_container_class()
 
     // -- node_box: node_type hierarchy at value_type-depth 1 --
     {
-        using C = flat_container_class<node_box>;
+        using C = DFlatContainerClass<node_box>;
         D_FC_CHECK( (C::is_container && C::depth == 1) );   // depth is 1 ...
         D_FC_CHECK( (!C::is_flat) );                         // ... yet hierarchical via node_type
         D_FC_CHECK( (C::kind == DStructureKind::hierarchical) );
@@ -67,7 +67,7 @@ bool tests_flat_container_class()
 
     // -- hier_tagged: hierarchical tag at depth 1 --
     {
-        using C = flat_container_class<hier_tagged>;
+        using C = DFlatContainerClass<hier_tagged>;
         D_FC_CHECK( (C::is_container && C::depth == 1) );
         D_FC_CHECK( (!C::is_flat && !C::is_strictly_flat) );
         D_FC_CHECK( (C::kind == DStructureKind::hierarchical) );
@@ -75,7 +75,7 @@ bool tests_flat_container_class()
 
     // -- tagged_flat_str: the divergence - flat by tag, depth 2, kind flat --
     {
-        using C = flat_container_class<tagged_flat_str>;
+        using C = DFlatContainerClass<tagged_flat_str>;
         D_FC_CHECK( (C::is_container) );
         D_FC_CHECK( (C::depth == 2) );              // the depth measure is unaffected by the tag
         D_FC_CHECK( (C::is_flat) );                 // flat by the tag ...
@@ -86,7 +86,7 @@ bool tests_flat_container_class()
 
     // -- int / forward_list: non-containers --
     {
-        using C = flat_container_class<int>;
+        using C = DFlatContainerClass<int>;
         D_FC_CHECK( (!C::is_container) );
         D_FC_CHECK( (C::depth == 0) );
         D_FC_CHECK( (!C::is_flat && !C::is_strictly_flat) );
@@ -94,7 +94,7 @@ bool tests_flat_container_class()
         D_FC_CHECK( (fc_cstr_eq(C::kind_name, "non_container")) );
     }
     {
-        using C = flat_container_class<std::forward_list<int>>;
+        using C = DFlatContainerClass<std::forward_list<int>>;
         D_FC_CHECK( (!C::is_container) );           // no size() -> not container-shaped
         D_FC_CHECK( (C::kind == DStructureKind::non_container) );
     }

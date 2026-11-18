@@ -146,7 +146,7 @@ tests_function_adapter_transform
 */
 bool tests_function_adapter_transform()
 {
-    function_adapter<add3, inc> fa(add3{}, inc{});
+    DFunctionAdapter<add3, inc> fa(add3{}, inc{});
 
     static_assert(std::is_same<decltype(fa)::function_type, add3>::value,
                   "function_type");
@@ -170,7 +170,7 @@ tests_function_adapter_transform_const
 */
 bool tests_function_adapter_transform_const()
 {
-    const function_adapter<add3, inc> fa(add3{}, inc{});
+    const DFunctionAdapter<add3, inc> fa(add3{}, inc{});
 
     bool ok = true;
 
@@ -188,7 +188,7 @@ tests_function_adapter_passthrough
 */
 bool tests_function_adapter_passthrough()
 {
-    function_adapter<add3> fp(add3{});
+    DFunctionAdapter<add3> fp(add3{});
 
     static_assert(std::is_same<decltype(fp)::function_type, add3>::value,
                   "function_type");
@@ -209,7 +209,7 @@ tests_function_adapter_passthrough_const
 */
 bool tests_function_adapter_passthrough_const()
 {
-    const function_adapter<add3> fp(add3{});
+    const DFunctionAdapter<add3> fp(add3{});
 
     bool ok = true;
 
@@ -227,7 +227,7 @@ tests_result_adapter
 */
 bool tests_result_adapter()
 {
-    result_adapter<cstr_len, size_to_int> ra(cstr_len{}, size_to_int{});
+    DResultAdapter<cstr_len, size_to_int> ra(cstr_len{}, size_to_int{});
 
     static_assert(std::is_same<decltype(ra)::function_type, cstr_len>::value,
                   "function_type");
@@ -250,7 +250,7 @@ tests_result_adapter_const
 */
 bool tests_result_adapter_const()
 {
-    const result_adapter<cstr_len, size_to_int> ra(cstr_len{}, size_to_int{});
+    const DResultAdapter<cstr_len, size_to_int> ra(cstr_len{}, size_to_int{});
 
     bool ok = true;
 
@@ -267,7 +267,7 @@ tests_argument_adapter
 */
 bool tests_argument_adapter()
 {
-    argument_adapter<combine2, std::tuple<DTimes2, plus10>>
+    DArgumentAdapter<combine2, std::tuple<DTimes2, plus10>>
         aa(combine2{}, std::make_tuple(DTimes2{}, plus10{}));
 
     bool ok = true;
@@ -288,7 +288,7 @@ tests_compose_adapter
 */
 bool tests_compose_adapter()
 {
-    compose_adapter<square, plus1> ca(square{}, plus1{});
+    DComposeAdapter<square, plus1> ca(square{}, plus1{});
 
     bool ok = true;
 
@@ -308,7 +308,7 @@ tests_compose_adapter_const
 */
 bool tests_compose_adapter_const()
 {
-    const compose_adapter<square, plus1> ca(square{}, plus1{});
+    const DComposeAdapter<square, plus1> ca(square{}, plus1{});
 
     bool ok = true;
 

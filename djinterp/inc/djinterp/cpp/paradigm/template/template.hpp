@@ -669,7 +669,7 @@ NS_END  // internal
 //   Didactic storage: the three components share the object and the inactive
 // ones are value-initialized, so Result, Source and Error must be
 // default-constructible.  A production parser would instead pin sigma to a true
-// sum such as `result<pair<rho, tau>, E>` (union storage, no such requirement).
+// sum such as `DResult<pair<rho, tau>, E>` (union storage, no such requirement).
 template<typename Result,
          typename Source,
          typename Error>

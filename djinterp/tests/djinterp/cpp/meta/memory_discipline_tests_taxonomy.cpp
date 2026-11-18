@@ -23,13 +23,13 @@ tests_memory_discipline_enum_distinct
 */
 bool tests_memory_discipline_enum_distinct()
 {
-    const memory_discipline::value _all[] =
+    const DMemoryDiscipline::value _all[] =
     {
-        memory_discipline::unknown,
-        memory_discipline::none,
-        memory_discipline::individual,
-        memory_discipline::pooled,
-        memory_discipline::arena
+        DMemoryDiscipline::unknown,
+        DMemoryDiscipline::none,
+        DMemoryDiscipline::individual,
+        DMemoryDiscipline::pooled,
+        DMemoryDiscipline::arena
     };
 
     for (std::size_t _i = 0; _i < 5; ++_i)
@@ -64,36 +64,36 @@ tests_memory_discipline_predicates
 bool tests_memory_discipline_predicates()
 {
     // is_no_allocation_discipline
-    D_MD_CHECK(is_no_allocation_discipline(memory_discipline::none));
-    D_MD_CHECK(!is_no_allocation_discipline(memory_discipline::individual));
-    D_MD_CHECK(!is_no_allocation_discipline(memory_discipline::pooled));
-    D_MD_CHECK(!is_no_allocation_discipline(memory_discipline::arena));
-    D_MD_CHECK(!is_no_allocation_discipline(memory_discipline::unknown));
+    D_MD_CHECK(is_no_allocation_discipline(DMemoryDiscipline::none));
+    D_MD_CHECK(!is_no_allocation_discipline(DMemoryDiscipline::individual));
+    D_MD_CHECK(!is_no_allocation_discipline(DMemoryDiscipline::pooled));
+    D_MD_CHECK(!is_no_allocation_discipline(DMemoryDiscipline::arena));
+    D_MD_CHECK(!is_no_allocation_discipline(DMemoryDiscipline::unknown));
 
     // is_individual_discipline
-    D_MD_CHECK(is_individual_discipline(memory_discipline::individual));
-    D_MD_CHECK(!is_individual_discipline(memory_discipline::pooled));
-    D_MD_CHECK(!is_individual_discipline(memory_discipline::none));
+    D_MD_CHECK(is_individual_discipline(DMemoryDiscipline::individual));
+    D_MD_CHECK(!is_individual_discipline(DMemoryDiscipline::pooled));
+    D_MD_CHECK(!is_individual_discipline(DMemoryDiscipline::none));
 
     // is_pooled_discipline
-    D_MD_CHECK(is_pooled_discipline(memory_discipline::pooled));
-    D_MD_CHECK(!is_pooled_discipline(memory_discipline::individual));
-    D_MD_CHECK(!is_pooled_discipline(memory_discipline::arena));
+    D_MD_CHECK(is_pooled_discipline(DMemoryDiscipline::pooled));
+    D_MD_CHECK(!is_pooled_discipline(DMemoryDiscipline::individual));
+    D_MD_CHECK(!is_pooled_discipline(DMemoryDiscipline::arena));
 
     // is_arena_discipline
-    D_MD_CHECK(is_arena_discipline(memory_discipline::arena));
-    D_MD_CHECK(!is_arena_discipline(memory_discipline::none));
-    D_MD_CHECK(!is_arena_discipline(memory_discipline::pooled));
+    D_MD_CHECK(is_arena_discipline(DMemoryDiscipline::arena));
+    D_MD_CHECK(!is_arena_discipline(DMemoryDiscipline::none));
+    D_MD_CHECK(!is_arena_discipline(DMemoryDiscipline::pooled));
 
     // is_unknown_discipline
-    D_MD_CHECK(is_unknown_discipline(memory_discipline::unknown));
-    D_MD_CHECK(!is_unknown_discipline(memory_discipline::none));
-    D_MD_CHECK(!is_unknown_discipline(memory_discipline::arena));
+    D_MD_CHECK(is_unknown_discipline(DMemoryDiscipline::unknown));
+    D_MD_CHECK(!is_unknown_discipline(DMemoryDiscipline::none));
+    D_MD_CHECK(!is_unknown_discipline(DMemoryDiscipline::arena));
 
     // constant-expression usability
-    static_assert(is_no_allocation_discipline(memory_discipline::none),
+    static_assert(is_no_allocation_discipline(DMemoryDiscipline::none),
                   "none allocates nothing");
-    static_assert(is_arena_discipline(memory_discipline::arena),
+    static_assert(is_arena_discipline(DMemoryDiscipline::arena),
                   "arena is arena");
 
     return true;
@@ -111,18 +111,18 @@ tests_memory_discipline_family_and_allocates
 bool tests_memory_discipline_family_and_allocates()
 {
     // individual family = individual OR pooled
-    D_MD_CHECK(is_individual_family_discipline(memory_discipline::individual));
-    D_MD_CHECK(is_individual_family_discipline(memory_discipline::pooled));
-    D_MD_CHECK(!is_individual_family_discipline(memory_discipline::none));
-    D_MD_CHECK(!is_individual_family_discipline(memory_discipline::arena));
-    D_MD_CHECK(!is_individual_family_discipline(memory_discipline::unknown));
+    D_MD_CHECK(is_individual_family_discipline(DMemoryDiscipline::individual));
+    D_MD_CHECK(is_individual_family_discipline(DMemoryDiscipline::pooled));
+    D_MD_CHECK(!is_individual_family_discipline(DMemoryDiscipline::none));
+    D_MD_CHECK(!is_individual_family_discipline(DMemoryDiscipline::arena));
+    D_MD_CHECK(!is_individual_family_discipline(DMemoryDiscipline::unknown));
 
     // allocates = individual OR pooled OR arena
-    D_MD_CHECK(discipline_allocates(memory_discipline::individual));
-    D_MD_CHECK(discipline_allocates(memory_discipline::pooled));
-    D_MD_CHECK(discipline_allocates(memory_discipline::arena));
-    D_MD_CHECK(!discipline_allocates(memory_discipline::none));
-    D_MD_CHECK(!discipline_allocates(memory_discipline::unknown));
+    D_MD_CHECK(discipline_allocates(DMemoryDiscipline::individual));
+    D_MD_CHECK(discipline_allocates(DMemoryDiscipline::pooled));
+    D_MD_CHECK(discipline_allocates(DMemoryDiscipline::arena));
+    D_MD_CHECK(!discipline_allocates(DMemoryDiscipline::none));
+    D_MD_CHECK(!discipline_allocates(DMemoryDiscipline::unknown));
 
     return true;
 }
@@ -136,11 +136,11 @@ tests_memory_discipline_name
 */
 bool tests_memory_discipline_name()
 {
-    D_MD_CHECK(str_eq(memory_discipline_name(memory_discipline::none), "none"));
-    D_MD_CHECK(str_eq(memory_discipline_name(memory_discipline::individual), "individual"));
-    D_MD_CHECK(str_eq(memory_discipline_name(memory_discipline::pooled), "pooled"));
-    D_MD_CHECK(str_eq(memory_discipline_name(memory_discipline::arena), "arena"));
-    D_MD_CHECK(str_eq(memory_discipline_name(memory_discipline::unknown), "unknown"));
+    D_MD_CHECK(str_eq(memory_discipline_name(DMemoryDiscipline::none), "none"));
+    D_MD_CHECK(str_eq(memory_discipline_name(DMemoryDiscipline::individual), "individual"));
+    D_MD_CHECK(str_eq(memory_discipline_name(DMemoryDiscipline::pooled), "pooled"));
+    D_MD_CHECK(str_eq(memory_discipline_name(DMemoryDiscipline::arena), "arena"));
+    D_MD_CHECK(str_eq(memory_discipline_name(DMemoryDiscipline::unknown), "unknown"));
 
     return true;
 }

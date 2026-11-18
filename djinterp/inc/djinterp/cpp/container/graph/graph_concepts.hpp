@@ -199,25 +199,25 @@ concept out_degree_graph = traits::has_out_degree_method<Type>::value;
 // ===========================================================================
 
 template<typename Type>
-concept classified_graph_type = traits::graph_class<Type>::is_graph_type;
+concept classified_graph_type = traits::DGraphClass<Type>::is_graph_type;
 
 template<typename Type>
 concept classified_weighted_graph_type =
-    traits::graph_class<Type>::is_weighted;
+    traits::DGraphClass<Type>::is_weighted;
 
 template<typename Type>
 concept classified_propertied_graph_type =
-    traits::graph_class<Type>::is_propertied;
+    traits::DGraphClass<Type>::is_propertied;
 
 template<typename Type>
 concept classified_directed_graph_type =
-    traits::graph_class<Type>::is_directed;
+    traits::DGraphClass<Type>::is_directed;
 
 template<typename Type>
-concept classified_tree_graph_type = traits::graph_class<Type>::is_tree;
+concept classified_tree_graph_type = traits::DGraphClass<Type>::is_tree;
 
 template<typename Type>
-concept classified_hypergraph_type = traits::graph_class<Type>::is_hypergraph;
+concept classified_hypergraph_type = traits::DGraphClass<Type>::is_hypergraph;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 

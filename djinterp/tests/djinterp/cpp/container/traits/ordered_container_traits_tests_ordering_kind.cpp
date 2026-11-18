@@ -45,16 +45,16 @@ bool tests_ordering_kind_enum()
     bool ok = true;
 
     // scoped
-    D_OR_STATIC_CHECK(std::is_enum<ordering_kind>::value == true);
-    D_OR_STATIC_CHECK(std::is_convertible<ordering_kind, int>::value == false);
+    D_OR_STATIC_CHECK(std::is_enum<DOrderingKind>::value == true);
+    D_OR_STATIC_CHECK(std::is_convertible<DOrderingKind, int>::value == false);
 
     // the implicit ordinals
-    D_OR_CHECK(static_cast<int>(ordering_kind::non_container) == 0);
-    D_OR_CHECK(static_cast<int>(ordering_kind::unordered)     == 1);
-    D_OR_CHECK(static_cast<int>(ordering_kind::ordered)       == 2);
+    D_OR_CHECK(static_cast<int>(DOrderingKind::non_container) == 0);
+    D_OR_CHECK(static_cast<int>(DOrderingKind::unordered)     == 1);
+    D_OR_CHECK(static_cast<int>(DOrderingKind::ordered)       == 2);
 
     // a value-initialised kind claims nothing
-    D_OR_CHECK(ordering_kind{} == ordering_kind::non_container);
+    D_OR_CHECK(DOrderingKind{} == DOrderingKind::non_container);
 
     // pairwise distinct, over the whole enum
     for (int i = 0; i < ord_kind_count; ++i)
@@ -69,9 +69,9 @@ bool tests_ordering_kind_enum()
 
     // usable as a non-type template argument
     D_OR_STATIC_CHECK(
-        std::integral_constant<ordering_kind,
-                               ordering_kind::ordered>::value
-            == ordering_kind::ordered);
+        std::integral_constant<DOrderingKind,
+                               DOrderingKind::ordered>::value
+            == DOrderingKind::ordered);
 
     return ok;
 }
@@ -90,9 +90,9 @@ bool tests_ordering_kind_name()
     bool ok = true;
 
     // each state's spelling
-    D_OR_CHECK(ord_kind_name_is(ordering_kind::non_container, "non_container"));
-    D_OR_CHECK(ord_kind_name_is(ordering_kind::unordered,     "unordered"));
-    D_OR_CHECK(ord_kind_name_is(ordering_kind::ordered,       "ordered"));
+    D_OR_CHECK(ord_kind_name_is(DOrderingKind::non_container, "non_container"));
+    D_OR_CHECK(ord_kind_name_is(DOrderingKind::unordered,     "unordered"));
+    D_OR_CHECK(ord_kind_name_is(DOrderingKind::ordered,       "ordered"));
 
     // pairwise distinct spellings
     for (int i = 0; i < ord_kind_count; ++i)
@@ -108,7 +108,7 @@ bool tests_ordering_kind_name()
     }
 
     // constexpr
-    D_OR_STATIC_CHECK(ordering_kind_name(ordering_kind::ordered)[0] == 'o');
+    D_OR_STATIC_CHECK(ordering_kind_name(DOrderingKind::ordered)[0] == 'o');
 
     return ok;
 }
@@ -130,43 +130,43 @@ bool tests_ordering_kind_of()
     bool ok = true;
 
     // ordered
-    D_OR_CHECK(ordering_kind_of<DOrdVector>::value == ordering_kind::ordered);
-    D_OR_CHECK(ordering_kind_of<DOrdArray>::value  == ordering_kind::ordered);
-    D_OR_CHECK(ordering_kind_of<DOrdDeque>::value  == ordering_kind::ordered);
-    D_OR_CHECK(ordering_kind_of<DOrdList>::value   == ordering_kind::ordered);
-    D_OR_CHECK(ordering_kind_of<DOrdFlist>::value  == ordering_kind::ordered);
-    D_OR_CHECK(ordering_kind_of<DOrdString>::value == ordering_kind::ordered);
-    D_OR_CHECK(ordering_kind_of<DOrdNested>::value == ordering_kind::ordered);
+    D_OR_CHECK(ordering_kind_of<DOrdVector>::value == DOrderingKind::ordered);
+    D_OR_CHECK(ordering_kind_of<DOrdArray>::value  == DOrderingKind::ordered);
+    D_OR_CHECK(ordering_kind_of<DOrdDeque>::value  == DOrderingKind::ordered);
+    D_OR_CHECK(ordering_kind_of<DOrdList>::value   == DOrderingKind::ordered);
+    D_OR_CHECK(ordering_kind_of<DOrdFlist>::value  == DOrderingKind::ordered);
+    D_OR_CHECK(ordering_kind_of<DOrdString>::value == DOrderingKind::ordered);
+    D_OR_CHECK(ordering_kind_of<DOrdNested>::value == DOrderingKind::ordered);
     D_OR_CHECK(ordering_kind_of<DOrdSequence>::value
-                   == ordering_kind::ordered);
+                   == DOrderingKind::ordered);
     D_OR_CHECK(ordering_kind_of<DOrdInputOnly>::value
-                   == ordering_kind::ordered);
+                   == DOrderingKind::ordered);
 
     // unordered
-    D_OR_CHECK(ordering_kind_of<DOrdSet>::value  == ordering_kind::unordered);
-    D_OR_CHECK(ordering_kind_of<DOrdMap>::value  == ordering_kind::unordered);
-    D_OR_CHECK(ordering_kind_of<DOrdUset>::value == ordering_kind::unordered);
-    D_OR_CHECK(ordering_kind_of<DOrdUmap>::value == ordering_kind::unordered);
+    D_OR_CHECK(ordering_kind_of<DOrdSet>::value  == DOrderingKind::unordered);
+    D_OR_CHECK(ordering_kind_of<DOrdMap>::value  == DOrderingKind::unordered);
+    D_OR_CHECK(ordering_kind_of<DOrdUset>::value == DOrderingKind::unordered);
+    D_OR_CHECK(ordering_kind_of<DOrdUmap>::value == DOrderingKind::unordered);
     D_OR_CHECK(ordering_kind_of<DOrdMultiset>::value
-                   == ordering_kind::unordered);
+                   == DOrderingKind::unordered);
     D_OR_CHECK(ordering_kind_of<DOrdKeyed>::value
-                   == ordering_kind::unordered);
+                   == DOrderingKind::unordered);
 
     // non_container - with and without a key_type
     D_OR_CHECK(ordering_kind_of<DOrdBare>::value
-                   == ordering_kind::non_container);
+                   == DOrderingKind::non_container);
     D_OR_CHECK(ordering_kind_of<DOrdPair>::value
-                   == ordering_kind::non_container);
+                   == DOrderingKind::non_container);
     D_OR_CHECK(ordering_kind_of<DOrdBeginOnly>::value
-                   == ordering_kind::non_container);
+                   == DOrderingKind::non_container);
     D_OR_CHECK(ordering_kind_of<int>::value
-                   == ordering_kind::non_container);
+                   == DOrderingKind::non_container);
     D_OR_CHECK(ordering_kind_of<void>::value
-                   == ordering_kind::non_container);
+                   == DOrderingKind::non_container);
     D_OR_CHECK(   ( internal::has_key_type_helper<
                         DOrdKeyedNotIterable>::value == true )
                && ( ordering_kind_of<DOrdKeyedNotIterable>::value
-                        == ordering_kind::non_container ));
+                        == DOrderingKind::non_container ));
 
     return ok;
 }
@@ -187,37 +187,37 @@ bool tests_ordering_kind_of_agreement()
     bool ok = true;
 
     // ordered <-> is_ordered_container
-    D_OR_CHECK(( ordering_kind_of<DOrdVector>::value == ordering_kind::ordered )
+    D_OR_CHECK(( ordering_kind_of<DOrdVector>::value == DOrderingKind::ordered )
                    == is_ordered_container<DOrdVector>::value);
-    D_OR_CHECK(( ordering_kind_of<DOrdSet>::value == ordering_kind::ordered )
+    D_OR_CHECK(( ordering_kind_of<DOrdSet>::value == DOrderingKind::ordered )
                    == is_ordered_container<DOrdSet>::value);
-    D_OR_CHECK(( ordering_kind_of<DOrdBare>::value == ordering_kind::ordered )
+    D_OR_CHECK(( ordering_kind_of<DOrdBare>::value == DOrderingKind::ordered )
                    == is_ordered_container<DOrdBare>::value);
-    D_OR_CHECK(( ordering_kind_of<DOrdFlist>::value == ordering_kind::ordered )
+    D_OR_CHECK(( ordering_kind_of<DOrdFlist>::value == DOrderingKind::ordered )
                    == is_ordered_container<DOrdFlist>::value);
 
     // unordered <-> is_unordered_container
     D_OR_CHECK(( ordering_kind_of<DOrdMap>::value
-                     == ordering_kind::unordered )
+                     == DOrderingKind::unordered )
                    == is_unordered_container<DOrdMap>::value);
     D_OR_CHECK(( ordering_kind_of<DOrdVector>::value
-                     == ordering_kind::unordered )
+                     == DOrderingKind::unordered )
                    == is_unordered_container<DOrdVector>::value);
     D_OR_CHECK(( ordering_kind_of<DOrdBare>::value
-                     == ordering_kind::unordered )
+                     == DOrderingKind::unordered )
                    == is_unordered_container<DOrdBare>::value);
 
     // non_container <-> neither
     D_OR_CHECK(( ordering_kind_of<DOrdBare>::value
-                     == ordering_kind::non_container )
+                     == DOrderingKind::non_container )
                    == !(    is_ordered_container<DOrdBare>::value
                          || is_unordered_container<DOrdBare>::value ));
     D_OR_CHECK(( ordering_kind_of<DOrdVector>::value
-                     == ordering_kind::non_container )
+                     == DOrderingKind::non_container )
                    == !(    is_ordered_container<DOrdVector>::value
                          || is_unordered_container<DOrdVector>::value ));
     D_OR_CHECK(( ordering_kind_of<DOrdKeyedNotIterable>::value
-                     == ordering_kind::non_container )
+                     == DOrderingKind::non_container )
                    == !(    is_ordered_container<
                                 DOrdKeyedNotIterable>::value
                          || is_unordered_container<
@@ -226,24 +226,24 @@ bool tests_ordering_kind_of_agreement()
     // the cascade, re-derived term by term
     D_OR_CHECK(ordering_kind_of<DOrdMap>::value
                    == ( !is_iterable_container<DOrdMap>::value
-                            ? ordering_kind::non_container
+                            ? DOrderingKind::non_container
                       : internal::has_key_type_helper<DOrdMap>::value
-                            ? ordering_kind::unordered
-                      :       ordering_kind::ordered ));
+                            ? DOrderingKind::unordered
+                      :       DOrderingKind::ordered ));
     D_OR_CHECK(ordering_kind_of<DOrdVector>::value
                    == ( !is_iterable_container<DOrdVector>::value
-                            ? ordering_kind::non_container
+                            ? DOrderingKind::non_container
                       : internal::has_key_type_helper<DOrdVector>::value
-                            ? ordering_kind::unordered
-                      :       ordering_kind::ordered ));
+                            ? DOrderingKind::unordered
+                      :       DOrderingKind::ordered ));
     D_OR_CHECK(ordering_kind_of<DOrdKeyedNotIterable>::value
                    == ( !is_iterable_container<
                              DOrdKeyedNotIterable>::value
-                            ? ordering_kind::non_container
+                            ? DOrderingKind::non_container
                       : internal::has_key_type_helper<
                             DOrdKeyedNotIterable>::value
-                            ? ordering_kind::unordered
-                      :       ordering_kind::ordered ));
+                            ? DOrderingKind::unordered
+                      :       DOrderingKind::ordered ));
 
     return ok;
 }
@@ -278,20 +278,20 @@ bool tests_ordering_kind_out_of_range()
 {
     bool ok = true;
 
-    const ordering_kind three = static_cast<ordering_kind>(3);
+    const DOrderingKind three = static_cast<DOrderingKind>(3);
 
     // the fall-through answers the most-claiming state
     D_OR_CHECK(ord_kind_name_is(three, "ordered"));
     D_OR_CHECK(std::strcmp(ordering_kind_name(three),
-                           ordering_kind_name(ordering_kind::ordered)) == 0);
+                           ordering_kind_name(DOrderingKind::ordered)) == 0);
 
     // ... though the values themselves differ
-    D_OR_CHECK(three != ordering_kind::ordered);
+    D_OR_CHECK(three != DOrderingKind::ordered);
     D_OR_CHECK(static_cast<int>(three) == 3);
 
     // the default remains the state that claims nothing
-    D_OR_CHECK(ordering_kind{} == ordering_kind::non_container);
-    D_OR_CHECK(ord_kind_name_is(ordering_kind{}, "non_container"));
+    D_OR_CHECK(DOrderingKind{} == DOrderingKind::non_container);
+    D_OR_CHECK(ord_kind_name_is(DOrderingKind{}, "non_container"));
 
     // and no NAMED state can be confused with another
     for (int i = 0; i < ord_kind_count; ++i)
@@ -321,20 +321,20 @@ bool tests_ordering_kind_cv_ref()
 {
     bool ok = true;
 
-    D_OR_CV_REF_AGREE(ordering_kind_of, DOrdVector, ordering_kind::ordered);
-    D_OR_CV_REF_AGREE(ordering_kind_of, DOrdString, ordering_kind::ordered);
-    D_OR_CV_REF_AGREE(ordering_kind_of, DOrdMap,    ordering_kind::unordered);
-    D_OR_CV_REF_AGREE(ordering_kind_of, DOrdUset,   ordering_kind::unordered);
+    D_OR_CV_REF_AGREE(ordering_kind_of, DOrdVector, DOrderingKind::ordered);
+    D_OR_CV_REF_AGREE(ordering_kind_of, DOrdString, DOrderingKind::ordered);
+    D_OR_CV_REF_AGREE(ordering_kind_of, DOrdMap,    DOrderingKind::unordered);
+    D_OR_CV_REF_AGREE(ordering_kind_of, DOrdUset,   DOrderingKind::unordered);
     D_OR_CV_REF_AGREE(ordering_kind_of, DOrdBare,
-                      ordering_kind::non_container);
+                      DOrderingKind::non_container);
     D_OR_CV_REF_AGREE(ordering_kind_of, DOrdPair,
-                      ordering_kind::non_container);
+                      DOrderingKind::non_container);
 
     // spelled out on one carrier
     D_OR_CHECK(ordering_kind_of<volatile DOrdVector>::value
                    == ordering_kind_of<DOrdVector>::value);
     D_OR_CHECK(ordering_kind_of<const volatile DOrdMap&>::value
-                   == ordering_kind::unordered);
+                   == DOrderingKind::unordered);
 
     return ok;
 }
@@ -356,18 +356,18 @@ bool tests_ordering_kind_companions()
     // the _t alias is the integral_constant, exactly
     D_OR_STATIC_CHECK(
         std::is_same<ordering_kind_of_t<DOrdVector>,
-                     std::integral_constant<ordering_kind,
-                                            ordering_kind::ordered> >::value);
+                     std::integral_constant<DOrderingKind,
+                                            DOrderingKind::ordered> >::value);
     D_OR_STATIC_CHECK(
         std::is_same<ordering_kind_of_t<DOrdMap>,
                      std::integral_constant<
-                         ordering_kind,
-                         ordering_kind::unordered> >::value);
+                         DOrderingKind,
+                         DOrderingKind::unordered> >::value);
     D_OR_STATIC_CHECK(
         std::is_same<ordering_kind_of_t<DOrdBare>,
                      std::integral_constant<
-                         ordering_kind,
-                         ordering_kind::non_container> >::value);
+                         DOrderingKind,
+                         DOrderingKind::non_container> >::value);
 
     // ... and carries the value the trait reports
     D_OR_CHECK(ordering_kind_of_t<DOrdFlist>::value
@@ -377,11 +377,11 @@ bool tests_ordering_kind_companions()
 
     // usable in a constant expression
     D_OR_STATIC_CHECK(ordering_kind_of<DOrdVector>::value
-                          == ordering_kind::ordered);
+                          == DOrderingKind::ordered);
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
-    D_OR_STATIC_CHECK(ordering_kind_of_v<DOrdMap> == ordering_kind::unordered);
+    D_OR_STATIC_CHECK(ordering_kind_of_v<DOrdMap> == DOrderingKind::unordered);
 
     D_OR_CHECK(ordering_kind_of_v<DOrdVector>
                    == ordering_kind_of<DOrdVector>::value);

@@ -12,7 +12,7 @@
 *
 *   WHAT IS UNDER TEST.  lifetime.hpp is a self-contained algebra plus a
 * classifier:
-*     - the `lifetime` enum: four values (none, compile_time, runtime, both),
+*     - the `DLifetime` enum: four values (none, compile_time, runtime, both),
 *       one bit per evaluation stage, forming a lattice under bitwise ops;
 *     - the algebra: lifetime_meet (bitwise AND), lifetime_join (bitwise OR),
 *       make_lifetime, eight boolean stage predicates, and lifetime_name;
@@ -148,7 +148,7 @@ bool lifetime_check(
 //   struct: declares the compile-time-only lifetime.
 struct opt_ct
 {
-    static constexpr lifetime::value lifetime_category = lifetime::compile_time;
+    static constexpr DLifetime::value lifetime_category = DLifetime::compile_time;
 };
 
 // opt_rt
@@ -156,14 +156,14 @@ struct opt_ct
 // tests that the opt-in overrides the is_literal_type default.
 struct opt_rt
 {
-    static constexpr lifetime::value lifetime_category = lifetime::runtime;
+    static constexpr DLifetime::value lifetime_category = DLifetime::runtime;
 };
 
 // opt_both
 //   struct: declares the both-stages lifetime.
 struct opt_both
 {
-    static constexpr lifetime::value lifetime_category = lifetime::both;
+    static constexpr DLifetime::value lifetime_category = DLifetime::both;
 };
 
 // opt_none
@@ -171,7 +171,7 @@ struct opt_both
 // that the opt-in wins even when it names the bottom value.
 struct opt_none
 {
-    static constexpr lifetime::value lifetime_category = lifetime::none;
+    static constexpr DLifetime::value lifetime_category = DLifetime::none;
 };
 
 
@@ -204,16 +204,16 @@ struct nonliteral
 //   function: the four lattice values in a fixed order, so the algebra tests
 // can iterate the whole lattice without restating the list.
 inline
-const lifetime::value* all_lifetimes(
+const DLifetime::value* all_lifetimes(
     std::size_t& _count
 )
 {
-    static const lifetime::value values[4] =
+    static const DLifetime::value values[4] =
     {
-        lifetime::none,
-        lifetime::compile_time,
-        lifetime::runtime,
-        lifetime::both
+        DLifetime::none,
+        DLifetime::compile_time,
+        DLifetime::runtime,
+        DLifetime::both
     };
 
     _count = 4;

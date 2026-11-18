@@ -100,7 +100,7 @@ bool tests_trait_is_broker()
 
     ok = ok && ( is_broker<string_bus>::value);
     ok = ok && (!is_broker<int>::value);
-    ok = ok && (!is_broker<subscription>::value);   // a handle is not a broker
+    ok = ok && (!is_broker<DSubscription>::value);   // a handle is not a broker
 
     return ok;
 }
@@ -139,16 +139,16 @@ tests_trait_is_subscription
 */
 bool tests_trait_is_subscription()
 {
-    static_assert( is_subscription<subscription>::value,         "handle");
-    static_assert( is_subscription<scoped_subscription>::value,  "RAII guard");
-    static_assert(!is_subscription<scoped_subscriptions>::value, "the group is not");
+    static_assert( is_subscription<DSubscription>::value,         "handle");
+    static_assert( is_subscription<DScopedSubscription>::value,  "RAII guard");
+    static_assert(!is_subscription<DScopedSubscriptions>::value, "the group is not");
     static_assert(!is_subscription<int>::value,                  "int is not");
 
     bool ok = true;
 
-    ok = ok && ( is_subscription<subscription>::value);
-    ok = ok && ( is_subscription<scoped_subscription>::value);
-    ok = ok && (!is_subscription<scoped_subscriptions>::value);
+    ok = ok && ( is_subscription<DSubscription>::value);
+    ok = ok && ( is_subscription<DScopedSubscription>::value);
+    ok = ok && (!is_subscription<DScopedSubscriptions>::value);
     ok = ok && (!is_subscription<int>::value);
     ok = ok && (!is_subscription<string_bus>::value);   // a broker is not a handle
 
@@ -167,11 +167,11 @@ bool tests_trait_is_subscription_v()
 
     // as is_broker_v: C++14 and up
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    ok = ok && (is_subscription_v<subscription> ==
-                is_subscription<subscription>::value);
-    ok = ok && (is_subscription_v<scoped_subscriptions> ==
-                is_subscription<scoped_subscriptions>::value);
-    ok = ok && ( is_subscription_v<subscription>);
+    ok = ok && (is_subscription_v<DSubscription> ==
+                is_subscription<DSubscription>::value);
+    ok = ok && (is_subscription_v<DScopedSubscriptions> ==
+                is_subscription<DScopedSubscriptions>::value);
+    ok = ok && ( is_subscription_v<DSubscription>);
     ok = ok && (!is_subscription_v<int>);
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 

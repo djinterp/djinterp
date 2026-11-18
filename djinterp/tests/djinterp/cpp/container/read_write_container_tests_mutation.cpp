@@ -25,7 +25,7 @@ tests_read_write_push_back_appends
 */
 bool tests_read_write_push_back_appends()
 {
-    dj::read_write_container<std::vector<int> > h;
+    dj::DReadWriteContainer<std::vector<int> > h;
 
     h.push_back(1);
     D_RW_CHECK(h.size() == 1u);
@@ -49,7 +49,7 @@ bool tests_read_write_push_back_appends()
     D_RW_CHECK(h.back() == 4);
 
     // a node container
-    dj::read_write_container<std::list<int> > l;
+    dj::DReadWriteContainer<std::list<int> > l;
 
     l.push_back(7);
     l.push_back(8);
@@ -58,7 +58,7 @@ bool tests_read_write_push_back_appends()
     D_RW_CHECK(l.back() == 8);
 
     // a character container
-    dj::read_write_container<std::string> s;
+    dj::DReadWriteContainer<std::string> s;
 
     s.push_back('a');
     s.push_back('b');
@@ -80,7 +80,7 @@ tests_read_write_push_front_prepends
 */
 bool tests_read_write_push_front_prepends()
 {
-    dj::read_write_container<std::list<int> > l;
+    dj::DReadWriteContainer<std::list<int> > l;
 
     l.push_front(1);
     D_RW_CHECK(l.size() == 1u);
@@ -93,7 +93,7 @@ bool tests_read_write_push_front_prepends()
     D_RW_CHECK(l.back() == 1);
 
     // a deque offers it with random access, so the order is checkable
-    dj::read_write_container<std::deque<int> > d;
+    dj::DReadWriteContainer<std::deque<int> > d;
 
     d.push_back(2);
     d.push_front(1);
@@ -107,13 +107,13 @@ bool tests_read_write_push_front_prepends()
     // a vector does not offer it, so neither does its handle
     D_RW_CHECK(!rw_has_push_front<std::vector<int> >::value);
     D_RW_CHECK(!rw_has_push_front<
-                   dj::read_write_container<std::vector<int> > >::value);
+                   dj::DReadWriteContainer<std::vector<int> > >::value);
 
     // while the list and deque handles do
     D_RW_CHECK(rw_has_push_front<
-                   dj::read_write_container<std::list<int> > >::value);
+                   dj::DReadWriteContainer<std::list<int> > >::value);
     D_RW_CHECK(rw_has_push_front<
-                   dj::read_write_container<std::deque<int> > >::value);
+                   dj::DReadWriteContainer<std::deque<int> > >::value);
 
     return true;
 }
@@ -128,7 +128,7 @@ tests_read_write_emplace_back_forwards_args
 */
 bool tests_read_write_emplace_back_forwards_args()
 {
-    dj::read_write_container<std::vector<int> > h;
+    dj::DReadWriteContainer<std::vector<int> > h;
 
     h.emplace_back(1);
     h.emplace_back(2);
@@ -138,7 +138,7 @@ bool tests_read_write_emplace_back_forwards_args()
     D_RW_CHECK(h[1] == 2);
 
     // several arguments, forwarded to a two-argument element constructor
-    dj::read_write_container<std::vector<rw_probe_type> > objs;
+    dj::DReadWriteContainer<std::vector<rw_probe_type> > objs;
 
     objs.emplace_back(7, 'q');
     objs.emplace_back(-3, 'z');
@@ -161,7 +161,7 @@ bool tests_read_write_emplace_back_forwards_args()
     D_RW_CHECK(objs.back().b == '\0');
 
     // a node container
-    dj::read_write_container<std::list<rw_probe_type> > l;
+    dj::DReadWriteContainer<std::list<rw_probe_type> > l;
 
     l.emplace_back(5, 'm');
     D_RW_CHECK(l.size() == 1u);
@@ -181,7 +181,7 @@ tests_read_write_pop_back_removes_last
 */
 bool tests_read_write_pop_back_removes_last()
 {
-    dj::read_write_container<std::vector<int> > h;
+    dj::DReadWriteContainer<std::vector<int> > h;
 
     h.push_back(1);
     h.push_back(2);
@@ -205,7 +205,7 @@ bool tests_read_write_pop_back_removes_last()
     D_RW_CHECK(h.begin() == h.end());
 
     // a node container
-    dj::read_write_container<std::list<int> > l(std::size_t(2), 4);
+    dj::DReadWriteContainer<std::list<int> > l(std::size_t(2), 4);
 
     l.pop_back();
     D_RW_CHECK(l.size() == 1u);
@@ -224,7 +224,7 @@ tests_read_write_pop_front_removes_first
 */
 bool tests_read_write_pop_front_removes_first()
 {
-    dj::read_write_container<std::deque<int> > d;
+    dj::DReadWriteContainer<std::deque<int> > d;
 
     d.push_back(1);
     d.push_back(2);
@@ -241,7 +241,7 @@ bool tests_read_write_pop_front_removes_first()
     D_RW_CHECK(d.front() == 3);
 
     // a node container
-    dj::read_write_container<std::list<int> > l;
+    dj::DReadWriteContainer<std::list<int> > l;
 
     l.push_back(7);
     l.push_back(8);
@@ -253,9 +253,9 @@ bool tests_read_write_pop_front_removes_first()
     // a vector does not offer it
     D_RW_CHECK(!rw_has_pop_front<std::vector<int> >::value);
     D_RW_CHECK(!rw_has_pop_front<
-                   dj::read_write_container<std::vector<int> > >::value);
+                   dj::DReadWriteContainer<std::vector<int> > >::value);
     D_RW_CHECK(rw_has_pop_front<
-                   dj::read_write_container<std::list<int> > >::value);
+                   dj::DReadWriteContainer<std::list<int> > >::value);
 
     return true;
 }
@@ -271,7 +271,7 @@ tests_read_write_insert_places_at_position
 */
 bool tests_read_write_insert_places_at_position()
 {
-    dj::read_write_container<std::vector<int> > h;
+    dj::DReadWriteContainer<std::vector<int> > h;
 
     h.push_back(1);
     h.push_back(3);
@@ -303,7 +303,7 @@ bool tests_read_write_insert_places_at_position()
     D_RW_CHECK(h.size() == 6u);
 
     // a node container
-    dj::read_write_container<std::list<int> > l;
+    dj::DReadWriteContainer<std::list<int> > l;
 
     l.push_back(2);
     l.insert(l.cbegin(), 1);
@@ -326,7 +326,7 @@ tests_read_write_erase_removes_at_position
 */
 bool tests_read_write_erase_removes_at_position()
 {
-    dj::read_write_container<std::vector<int> > h;
+    dj::DReadWriteContainer<std::vector<int> > h;
 
     h.push_back(1);
     h.push_back(2);
@@ -357,7 +357,7 @@ bool tests_read_write_erase_removes_at_position()
     D_RW_CHECK(h.empty());
 
     // a node container
-    dj::read_write_container<std::list<int> > l;
+    dj::DReadWriteContainer<std::list<int> > l;
 
     l.push_back(1);
     l.push_back(2);
@@ -380,7 +380,7 @@ tests_read_write_clear_empties_the_container
 */
 bool tests_read_write_clear_empties_the_container()
 {
-    dj::read_write_container<std::vector<int> > h(std::size_t(5), 7);
+    dj::DReadWriteContainer<std::vector<int> > h(std::size_t(5), 7);
 
     D_RW_CHECK(h.size() == 5u);
 
@@ -401,12 +401,12 @@ bool tests_read_write_clear_empties_the_container()
     D_RW_CHECK(h[0] == 1);
 
     // a node container and a character container
-    dj::read_write_container<std::list<int> > l(std::size_t(3), 1);
+    dj::DReadWriteContainer<std::list<int> > l(std::size_t(3), 1);
 
     l.clear();
     D_RW_CHECK(l.empty());
 
-    dj::read_write_container<std::string> s(std::size_t(4), 'a');
+    dj::DReadWriteContainer<std::string> s(std::size_t(4), 'a');
 
     s.clear();
     D_RW_CHECK(s.empty());
@@ -426,7 +426,7 @@ tests_read_write_resize_changes_the_count
 */
 bool tests_read_write_resize_changes_the_count()
 {
-    dj::read_write_container<std::vector<int> > h;
+    dj::DReadWriteContainer<std::vector<int> > h;
 
     h.push_back(1);
     h.push_back(2);
@@ -450,7 +450,7 @@ bool tests_read_write_resize_changes_the_count()
     D_RW_CHECK(h.empty());
 
     // the two-argument form fills with the given value
-    dj::read_write_container<std::vector<int> > f;
+    dj::DReadWriteContainer<std::vector<int> > f;
 
     f.resize(3, 9);
     D_RW_CHECK(f.size() == 3u);
@@ -458,14 +458,14 @@ bool tests_read_write_resize_changes_the_count()
     D_RW_CHECK(f[2] == 9);
 
     // a node container
-    dj::read_write_container<std::list<int> > l;
+    dj::DReadWriteContainer<std::list<int> > l;
 
     l.resize(2);
     D_RW_CHECK(l.size() == 2u);
 
     // a fixed-size container has no resize, and neither does its handle
     D_RW_CHECK(!rw_has_resize<
-                   dj::read_write_container<std::array<int, 3> > >::value);
+                   dj::DReadWriteContainer<std::array<int, 3> > >::value);
 
     return true;
 }
@@ -480,7 +480,7 @@ tests_read_write_reserve_affects_capacity_only
 */
 bool tests_read_write_reserve_affects_capacity_only()
 {
-    dj::read_write_container<std::vector<int> > h;
+    dj::DReadWriteContainer<std::vector<int> > h;
 
     h.push_back(1);
     h.push_back(2);
@@ -507,7 +507,7 @@ bool tests_read_write_reserve_affects_capacity_only()
     D_RW_CHECK(h[0] == 1);
 
     // a string offers it too
-    dj::read_write_container<std::string> s;
+    dj::DReadWriteContainer<std::string> s;
 
     s.push_back('a');
     s.reserve(50);
@@ -517,9 +517,9 @@ bool tests_read_write_reserve_affects_capacity_only()
     // a list does not, and neither does its handle
     D_RW_CHECK(!rw_has_reserve<std::list<int> >::value);
     D_RW_CHECK(!rw_has_reserve<
-                   dj::read_write_container<std::list<int> > >::value);
+                   dj::DReadWriteContainer<std::list<int> > >::value);
     D_RW_CHECK(!rw_has_reserve<
-                   dj::read_write_container<std::deque<int> > >::value);
+                   dj::DReadWriteContainer<std::deque<int> > >::value);
 
     return true;
 }

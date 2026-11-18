@@ -69,7 +69,7 @@ template<typename Type>
 struct is_write_only_container
     : std::integral_constant<bool,
           access_capability_of<clean_t<Type>>::value
-              == access_capability::write_only>
+              == DAccessCapability::write_only>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_write_only_container)

@@ -73,7 +73,7 @@ bool tests_make_bus()
 
     bool ok = (b.empty());
 
-    subscription s = b.subscribe("t", recorder(&log));
+    DSubscription s = b.subscribe("t", recorder(&log));
 
     pubsub_status st = b.publish("t", 6);
 
@@ -101,7 +101,7 @@ bool tests_make_bus_custom_handler()
 
     int total = 0;
 
-    subscription s = b.subscribe("t", tally(&total));
+    DSubscription s = b.subscribe("t", tally(&total));
 
     b.publish("t", 4);
     b.publish("t", 3);
@@ -122,7 +122,7 @@ bool tests_make_message()
     auto m = make_message(std::string("t"), 3);
 
     static_assert(std::is_same<decltype(m),
-                               pubsub_message<std::string, int> >::value,
+                               DPubsubMessage<std::string, int> >::value,
                   "make_message deduces its topic and payload types");
 
     bool ok = true;
@@ -134,7 +134,7 @@ bool tests_make_message()
     string_bus            b;
     std::vector<delivery> log;
 
-    subscription s = b.subscribe("t", recorder(&log));
+    DSubscription s = b.subscribe("t", recorder(&log));
 
     pubsub_status st = b.publish(m);
 

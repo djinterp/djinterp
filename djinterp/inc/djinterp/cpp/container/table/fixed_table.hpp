@@ -93,7 +93,7 @@ NS_DJINTERP
 // I.   is_fixed_table (detection trait)
 // ===========================================================================
 
-// fixed_table (fwd)
+// DFixedTable (fwd)
 //   class: forward declaration for the detection trait below.
 template<typename    Type,
          std::size_t Rows,
@@ -103,7 +103,7 @@ template<typename    Type,
          typename    Iterator,
          typename    ConstIterator,
          typename... Options>
-class fixed_table;
+class DFixedTable;
 
 // is_fixed_table
 //   trait: true when Type (after stripping cv/ref) is a specialization of
@@ -122,7 +122,7 @@ NS_INTERNAL
              typename    I,
              typename    CI,
              typename... O>
-    struct is_fixed_table_impl<fixed_table<T, R, C, D, S, I, CI, O...>>
+    struct is_fixed_table_impl<DFixedTable<T, R, C, D, S, I, CI, O...>>
         : std::true_type
     {};
 
@@ -144,7 +144,7 @@ inline constexpr bool is_fixed_table_v = is_fixed_table<Type>::value;
 // II.  fixed_table (class)
 // ===========================================================================
 
-// fixed_table
+// DFixedTable
 //   class: a fixed-shape mutable rank-2 cell-homogeneous table of Rows by
 // Cols cells, stored row-major in an inline std::array. Inherits the const
 // surface from table_base and adds the writable half; the shape is frozen.
@@ -156,8 +156,8 @@ template<typename    Type,
          typename    Iterator        = Type*,
          typename    ConstIterator   = const Type*,
          typename... Options>
-class fixed_table
-    : public table_base<fixed_table<Type,
+class DFixedTable
+    : public DTableBase<DFixedTable<Type,
                                     Rows,
                                     Cols,
                                     DifferenceType,
@@ -168,10 +168,10 @@ class fixed_table
                         Type,
                         SizeType,
                         DifferenceType>,
-      public options_container_base<Options...>
+      public DOptionsContainerBase<Options...>
 {
 private:
-    using base_type = table_base<fixed_table,
+    using base_type = DTableBase<DFixedTable,
                                  Type,
                                  SizeType,
                                  DifferenceType>;
@@ -206,22 +206,22 @@ public:
 
     // --- axis positions (the first few axes, then the ones that follow) ---
 
-    static constexpr container_lifetime      lifetime      =
-        container_lifetime::mutable_storage;
+    static constexpr DContainerLifetime      lifetime      =
+        DContainerLifetime::mutable_storage;
     static constexpr DContainerStorageKind  storage_kind  =
         DContainerStorageKind::static_storage;
-    static constexpr mutability              mutability_grade =
-        mutability::element_mutable;
+    static constexpr DMutability              mutability_grade =
+        DMutability::element_mutable;
     static constexpr DContainerOrdering      ordering      =
         DContainerOrdering::ordered;
     static constexpr DContainerBounds        bounds        =
         DContainerBounds::bounded;
-    static constexpr container_iterability   iterability   =
-        container_iterability::iterable;
+    static constexpr DContainerIterability   iterability   =
+        DContainerIterability::iterable;
     static constexpr DContainerMultiplicity  multiplicity_grade =
         DContainerMultiplicity::multi;   // m = infinity; cells keyed by position
-    static constexpr container_structure     structure     =
-        container_structure::hierarchical;  // uniformly nested; depth = rank = 2
+    static constexpr DContainerStructure     structure     =
+        DContainerStructure::hierarchical;  // uniformly nested; depth = rank = 2
 
     // Iterability stage sub-axis: structure is compile-time-expressible but
     // the
@@ -241,7 +241,7 @@ public:
     // --- construction ---
 
     // default: value-initializes every cell to Type{}.
-    constexpr fixed_table()
+    constexpr DFixedTable()
         : m_cells{}
     {}
 
@@ -251,26 +251,26 @@ public:
              typename = typename std::enable_if<
                  ( (sizeof...(Cells) == (Rows * Cols)) &&
                    (sizeof...(Cells) >= 2) )>::type>
-    constexpr fixed_table(Cells&&... _cells)
+    constexpr DFixedTable(Cells&&... _cells)
         : m_cells{ { static_cast<Type>(static_cast<Cells&&>(_cells))... } }
     {}
 
     // from a flat, row-major std::array of the exact cell count.
-    explicit constexpr fixed_table(const storage_type& _cells)
+    explicit constexpr DFixedTable(const storage_type& _cells)
         : m_cells(_cells)
     {}
 
-    constexpr fixed_table(const fixed_table&)   = default;
-    constexpr fixed_table(fixed_table&&)        = default;
-    fixed_table& operator=(const fixed_table&)  = default;
-    fixed_table& operator=(fixed_table&&)       = default;
-    ~fixed_table()                              = default;
+    constexpr DFixedTable(const DFixedTable&)   = default;
+    constexpr DFixedTable(DFixedTable&&)        = default;
+    DFixedTable& operator=(const DFixedTable&)  = default;
+    DFixedTable& operator=(DFixedTable&&)       = default;
+    ~DFixedTable()                              = default;
 
     // filled
     //   factory: a table with every cell equal to _value.
-    static DJINTERP_TABLE_MUT_CONSTEXPR fixed_table filled(const Type& _value)
+    static DJINTERP_TABLE_MUT_CONSTEXPR DFixedTable filled(const Type& _value)
     {
-        fixed_table t;
+        DFixedTable t;
         t.fill(_value);
 
         return t;
@@ -416,7 +416,7 @@ public:
 
     // swap
     //   exchanges the cells of two same-shape tables.
-    DJINTERP_TABLE_MUT_CONSTEXPR void swap(fixed_table& _other) noexcept
+    DJINTERP_TABLE_MUT_CONSTEXPR void swap(DFixedTable& _other) noexcept
     {
         m_cells.swap(_other.m_cells);
 
@@ -441,7 +441,7 @@ public:
             return;
         }
 
-        const fixed_table& cself = *this;
+        const DFixedTable& cself = *this;
 
         // build and stably sort a row-index permutation by the comparator
         std::array<size_type, Rows> perm{};
@@ -485,7 +485,7 @@ public:
     // re-typed image in place), so the retyped result is built fresh here.
     template<typename Fn>
     D_NODISCARD constexpr
-    fixed_table<clean_t<decltype(std::declval<Fn&>()(std::declval<const Type&>()))>,
+    DFixedTable<clean_t<decltype(std::declval<Fn&>()(std::declval<const Type&>()))>,
                 Rows, Cols>
     map(Fn _fn) const
     {
@@ -499,7 +499,7 @@ public:
             out[i] = _fn(m_cells[i]);
         }
 
-        return fixed_table<mapped_cell, Rows, Cols>(out);
+        return DFixedTable<mapped_cell, Rows, Cols>(out);
     }
 
     // map_inplace
@@ -549,37 +549,37 @@ public:
 
     template<DSerialEndian E,
              DSerialLength  L>
-    static DDecodeResult<fixed_table> decode_e(DByteReader& _reader)
+    static DDecodeResult<DFixedTable> decode_e(DByteReader& _reader)
     {
         re_std::uint64_t _r = 0;
         re_std::uint64_t _c = 0;
 
         if (!internal::get_length<L, E>(_reader, _r))
         {
-            return decode_failure<fixed_table>();
+            return decode_failure<DFixedTable>();
         }
         if (!internal::get_length<L, E>(_reader, _c))
         {
-            return decode_failure<fixed_table>();
+            return decode_failure<DFixedTable>();
         }
 
         // the stream's shape must match this type's fixed shape
         if ( (_r != static_cast<re_std::uint64_t>(Rows)) ||
              (_c != static_cast<re_std::uint64_t>(Cols)) )
         {
-            return decode_failure<fixed_table>();
+            return decode_failure<DFixedTable>();
         }
 
         storage_type _cells{};
         for (std::size_t i = 0; i < (Rows * Cols); ++i)
         {
             DDecodeResult<Type> _cell = decode_leaf<E, Type>(_reader);
-            if (!_cell.ok) { return decode_failure<fixed_table>(); }
+            if (!_cell.ok) { return decode_failure<DFixedTable>(); }
 
             _cells[i] = static_cast<Type&&>(_cell.value);
         }
 
-        return decode_success(fixed_table(_cells));
+        return decode_success(DFixedTable(_cells));
     }
 
     // encode_into / decode
@@ -596,7 +596,7 @@ public:
         return;
     }
 
-    static DDecodeResult<fixed_table> decode(DByteReader& _reader)
+    static DDecodeResult<DFixedTable> decode(DByteReader& _reader)
     {
         return decode_e<DSerialEndian::big, DSerialLength::u64>(_reader);
     }
@@ -605,6 +605,17 @@ private:
     storage_type m_cells;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename    Type,
+         std::size_t Rows,
+         std::size_t Cols,
+         typename    DifferenceType = std::ptrdiff_t,
+         typename    SizeType        = std::size_t,
+         typename    Iterator        = Type*,
+         typename    ConstIterator   = const Type*,
+         typename... Options>
+using fixed_table = DFixedTable<Type, Rows, Cols, DifferenceType, SizeType, Iterator, ConstIterator, Options...>;
+
 
 // ---------------------------------------------------------------------------
 // axis conformance -- the framework's classifiers must agree with the declared
@@ -612,41 +623,44 @@ private:
 // ---------------------------------------------------------------------------
 namespace table_axis_conformance
 {
-    using fixed_table_probe = fixed_table<int, 2, 3>;
+    using DFixedTableProbe = DFixedTable<int, 2, 3>;
+
+    // old name, until 0.9.0-rc.1
+    using fixed_table_probe = DFixedTableProbe;
 
     // Iterability: iterable, and non-const (element-mutable -> settable
     // cursor).
-    static_assert(is_iterable_container_v<fixed_table_probe>,
+    static_assert(is_iterable_container_v<DFixedTableProbe>,
                   "fixed_table must classify as iterable.");
-    static_assert(iteration_mode_of<fixed_table_probe>::value
-                      == iteration_mode::non_const,
+    static_assert(iteration_mode_of<DFixedTableProbe>::value
+                      == DIterationMode::non_const,
                   "fixed_table iteration must be non-const (element-mutable).");
 
     // Boundedness: fixed capacity kappa = R*C < infinity.
-    static_assert(is_bounded_container_v<fixed_table_probe>,
+    static_assert(is_bounded_container_v<DFixedTableProbe>,
                   "fixed_table must classify as bounded.");
-    static_assert(!is_unbounded_container_v<fixed_table_probe>,
+    static_assert(!is_unbounded_container_v<DFixedTableProbe>,
                   "fixed_table must not classify as unbounded.");
 
     // Multiplicity: comparator-less, position-keyed -> sequence (m = infinity).
-    static_assert(multiplicity_kind_of<fixed_table_probe>::value
-                      == multiplicity_kind::sequence,
+    static_assert(multiplicity_kind_of<DFixedTableProbe>::value
+                      == DMultiplicityKind::sequence,
                   "fixed_table must classify as a sequence (m = infinity).");
 
     // Sortedness / Ordering: ordered, and order-dependent (not sorted in
     // itself).
-    static_assert(is_ordered_container_v<fixed_table_probe>,
+    static_assert(is_ordered_container_v<DFixedTableProbe>,
                   "fixed_table must classify as ordered.");
-    static_assert(sortedness_of<fixed_table_probe>::value
-                      == sortedness::order_dependent,
+    static_assert(sortedness_of<DFixedTableProbe>::value
+                      == DSortedness::order_dependent,
                   "fixed_table must classify as order-dependent (unsorted).");
 
     // Structure: uniformly nested (rank-2) -> hierarchical.
-    static_assert(is_hierarchical_container_v<fixed_table_probe>,
+    static_assert(is_hierarchical_container_v<DFixedTableProbe>,
                   "fixed_table must classify as hierarchical (uniformly nested).");
-    static_assert(!is_flat_container_v<fixed_table_probe>,
+    static_assert(!is_flat_container_v<DFixedTableProbe>,
                   "fixed_table must not classify as flat.");
-    static_assert(structure_kind_of<fixed_table_probe>::value
+    static_assert(structure_kind_of<DFixedTableProbe>::value
                       == DStructureKind::hierarchical,
                   "fixed_table structure_kind must be hierarchical.");
 
@@ -670,14 +684,14 @@ template<std::size_t Rows,
          typename    First,
          typename... Rest>
 D_NODISCARD constexpr
-fixed_table<clean_t<First>, Rows, Cols>
+DFixedTable<clean_t<First>, Rows, Cols>
 make_fixed_table(First&& _first, Rest&&... _rest)
 {
     static_assert(((1 + sizeof...(Rest)) == (Rows * Cols)),
                   "make_fixed_table: the number of cell values must equal "
                   "Rows * Cols.");
 
-    return fixed_table<clean_t<First>, Rows, Cols>(
+    return DFixedTable<clean_t<First>, Rows, Cols>(
         static_cast<First&&>(_first),
         static_cast<Rest&&>(_rest)...);
 }
@@ -693,8 +707,8 @@ template<typename    Type,
          typename    CI,
          typename... O>
 D_NODISCARD constexpr bool operator==(
-    const fixed_table<Type, Rows, Cols, D, S, I, CI, O...>& _a,
-    const fixed_table<Type, Rows, Cols, D, S, I, CI, O...>& _b
+    const DFixedTable<Type, Rows, Cols, D, S, I, CI, O...>& _a,
+    const DFixedTable<Type, Rows, Cols, D, S, I, CI, O...>& _b
 )
 {
     return _a.content_equals(_b);
@@ -709,8 +723,8 @@ template<typename    Type,
          typename    CI,
          typename... O>
 D_NODISCARD constexpr bool operator!=(
-    const fixed_table<Type, Rows, Cols, D, S, I, CI, O...>& _a,
-    const fixed_table<Type, Rows, Cols, D, S, I, CI, O...>& _b
+    const DFixedTable<Type, Rows, Cols, D, S, I, CI, O...>& _a,
+    const DFixedTable<Type, Rows, Cols, D, S, I, CI, O...>& _b
 )
 {
     return !(_a == _b);
@@ -728,8 +742,8 @@ template<typename    Type,
          typename... O>
 DJINTERP_TABLE_MUT_CONSTEXPR
 void swap(
-    fixed_table<Type, Rows, Cols, D, S, I, CI, O...>& _a,
-    fixed_table<Type, Rows, Cols, D, S, I, CI, O...>& _b
+    DFixedTable<Type, Rows, Cols, D, S, I, CI, O...>& _a,
+    DFixedTable<Type, Rows, Cols, D, S, I, CI, O...>& _b
 ) noexcept
 {
     _a.swap(_b);

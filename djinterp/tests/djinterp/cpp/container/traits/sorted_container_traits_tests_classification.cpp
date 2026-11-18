@@ -44,18 +44,18 @@ bool tests_sortedness_enum()
     bool ok = true;
 
     // scoped
-    D_SR_STATIC_CHECK(std::is_enum<sortedness>::value == true);
-    D_SR_STATIC_CHECK(std::is_convertible<sortedness, int>::value == false);
+    D_SR_STATIC_CHECK(std::is_enum<DSortedness>::value == true);
+    D_SR_STATIC_CHECK(std::is_convertible<DSortedness, int>::value == false);
 
     // the implicit ordinals
-    D_SR_CHECK(static_cast<int>(sortedness::non_container)   == 0);
-    D_SR_CHECK(static_cast<int>(sortedness::unordered)       == 1);
-    D_SR_CHECK(static_cast<int>(sortedness::monotone)        == 2);
-    D_SR_CHECK(static_cast<int>(sortedness::order_dependent) == 3);
-    D_SR_CHECK(static_cast<int>(sortedness::sorted)          == 4);
+    D_SR_CHECK(static_cast<int>(DSortedness::non_container)   == 0);
+    D_SR_CHECK(static_cast<int>(DSortedness::unordered)       == 1);
+    D_SR_CHECK(static_cast<int>(DSortedness::monotone)        == 2);
+    D_SR_CHECK(static_cast<int>(DSortedness::order_dependent) == 3);
+    D_SR_CHECK(static_cast<int>(DSortedness::sorted)          == 4);
 
     // a value-initialised state claims nothing
-    D_SR_CHECK(sortedness{} == sortedness::non_container);
+    D_SR_CHECK(DSortedness{} == DSortedness::non_container);
 
     // pairwise distinct, over the whole enum
     for (int i = 0; i < srt_state_count; ++i)
@@ -70,8 +70,8 @@ bool tests_sortedness_enum()
 
     // usable as a non-type template argument
     D_SR_STATIC_CHECK(
-        std::integral_constant<sortedness, sortedness::monotone>::value
-            == sortedness::monotone);
+        std::integral_constant<DSortedness, DSortedness::monotone>::value
+            == DSortedness::monotone);
 
     return ok;
 }
@@ -90,11 +90,11 @@ bool tests_sortedness_name()
     bool ok = true;
 
     // each state's spelling
-    D_SR_CHECK(srt_name_is(sortedness::non_container,   "non_container"));
-    D_SR_CHECK(srt_name_is(sortedness::unordered,       "unordered"));
-    D_SR_CHECK(srt_name_is(sortedness::monotone,        "monotone"));
-    D_SR_CHECK(srt_name_is(sortedness::order_dependent, "order_dependent"));
-    D_SR_CHECK(srt_name_is(sortedness::sorted,          "sorted"));
+    D_SR_CHECK(srt_name_is(DSortedness::non_container,   "non_container"));
+    D_SR_CHECK(srt_name_is(DSortedness::unordered,       "unordered"));
+    D_SR_CHECK(srt_name_is(DSortedness::monotone,        "monotone"));
+    D_SR_CHECK(srt_name_is(DSortedness::order_dependent, "order_dependent"));
+    D_SR_CHECK(srt_name_is(DSortedness::sorted,          "sorted"));
 
     // pairwise distinct spellings
     for (int i = 0; i < srt_state_count; ++i)
@@ -110,7 +110,7 @@ bool tests_sortedness_name()
     }
 
     // constexpr
-    D_SR_STATIC_CHECK(sortedness_name(sortedness::sorted)[0] == 's');
+    D_SR_STATIC_CHECK(sortedness_name(DSortedness::sorted)[0] == 's');
 
     return ok;
 }
@@ -133,68 +133,68 @@ bool tests_sortedness_of_cascade()
     bool ok = true;
 
     // the unordered arm
-    D_SR_CHECK(sortedness_of<DSrtKeyed>::value == sortedness::unordered);
+    D_SR_CHECK(sortedness_of<DSrtKeyed>::value == DSortedness::unordered);
     D_SR_CHECK(sortedness_of<DSrtKeyedCompare>::value
-                   == sortedness::monotone);
+                   == DSortedness::monotone);
 
     // the ordered arm
     D_SR_CHECK(sortedness_of<DSrtSequence>::value
-                   == sortedness::order_dependent);
-    D_SR_CHECK(sortedness_of<DSrtBounds>::value == sortedness::sorted);
+                   == DSortedness::order_dependent);
+    D_SR_CHECK(sortedness_of<DSrtBounds>::value == DSortedness::sorted);
     D_SR_CHECK(sortedness_of<DSrtInvariantTrue>::value
-                   == sortedness::sorted);
+                   == DSortedness::sorted);
 
     // neither arm
-    D_SR_CHECK(sortedness_of<DSrtBare>::value == sortedness::non_container);
+    D_SR_CHECK(sortedness_of<DSrtBare>::value == DSortedness::non_container);
     D_SR_CHECK(sortedness_of<DSrtKeyedNotIterable>::value
-                   == sortedness::non_container);
-    D_SR_CHECK(sortedness_of<DSrtPair>::value == sortedness::non_container);
-    D_SR_CHECK(sortedness_of<int>::value      == sortedness::non_container);
-    D_SR_CHECK(sortedness_of<void>::value     == sortedness::non_container);
+                   == DSortedness::non_container);
+    D_SR_CHECK(sortedness_of<DSrtPair>::value == DSortedness::non_container);
+    D_SR_CHECK(sortedness_of<int>::value      == DSortedness::non_container);
+    D_SR_CHECK(sortedness_of<void>::value     == DSortedness::non_container);
 
     // the cascade, re-derived term by term
     D_SR_CHECK(sortedness_of<DSrtKeyedCompare>::value
                    == ( is_unordered_container<DSrtKeyedCompare>::value
                             ? ( internal::has_key_compare_helper<
                                     DSrtKeyedCompare>::value
-                                    ? sortedness::monotone
-                                    : sortedness::unordered )
+                                    ? DSortedness::monotone
+                                    : DSortedness::unordered )
                       : is_ordered_container<DSrtKeyedCompare>::value
                             ? ( (    internal::has_interval_bounds_helper<
                                          DSrtKeyedCompare>::value
                                   || internal::sorted_invariant_helper<
                                          DSrtKeyedCompare>::value )
-                                    ? sortedness::sorted
-                                    : sortedness::order_dependent )
-                      :       sortedness::non_container ));
+                                    ? DSortedness::sorted
+                                    : DSortedness::order_dependent )
+                      :       DSortedness::non_container ));
     D_SR_CHECK(sortedness_of<DSrtBounds>::value
                    == ( is_unordered_container<DSrtBounds>::value
                             ? ( internal::has_key_compare_helper<
                                     DSrtBounds>::value
-                                    ? sortedness::monotone
-                                    : sortedness::unordered )
+                                    ? DSortedness::monotone
+                                    : DSortedness::unordered )
                       : is_ordered_container<DSrtBounds>::value
                             ? ( (    internal::has_interval_bounds_helper<
                                          DSrtBounds>::value
                                   || internal::sorted_invariant_helper<
                                          DSrtBounds>::value )
-                                    ? sortedness::sorted
-                                    : sortedness::order_dependent )
-                      :       sortedness::non_container ));
+                                    ? DSortedness::sorted
+                                    : DSortedness::order_dependent )
+                      :       DSortedness::non_container ));
     D_SR_CHECK(sortedness_of<DSrtBare>::value
                    == ( is_unordered_container<DSrtBare>::value
                             ? ( internal::has_key_compare_helper<
                                     DSrtBare>::value
-                                    ? sortedness::monotone
-                                    : sortedness::unordered )
+                                    ? DSortedness::monotone
+                                    : DSortedness::unordered )
                       : is_ordered_container<DSrtBare>::value
                             ? ( (    internal::has_interval_bounds_helper<
                                          DSrtBare>::value
                                   || internal::sorted_invariant_helper<
                                          DSrtBare>::value )
-                                    ? sortedness::sorted
-                                    : sortedness::order_dependent )
-                      :       sortedness::non_container ));
+                                    ? DSortedness::sorted
+                                    : DSortedness::order_dependent )
+                      :       DSortedness::non_container ));
 
     return ok;
 }
@@ -226,11 +226,11 @@ bool tests_sortedness_of_precedence()
     D_SR_CHECK(   ( internal::has_interval_bounds_helper<
                         DSrtKeyedBounds>::value == true )
                && ( sortedness_of<DSrtKeyedBounds>::value
-                        == sortedness::unordered ));
-    D_SR_CHECK(sortedness_of<DSrtKeyedBounds>::value != sortedness::sorted);
+                        == DSortedness::unordered ));
+    D_SR_CHECK(sortedness_of<DSrtKeyedBounds>::value != DSortedness::sorted);
 
     // ... and the same declaration on the ordered arm does reach sorted
-    D_SR_CHECK(sortedness_of<DSrtBounds>::value == sortedness::sorted);
+    D_SR_CHECK(sortedness_of<DSrtBounds>::value == DSortedness::sorted);
     D_SR_CHECK(   ( is_unordered_container<DSrtKeyedBounds>::value == true )
                && ( is_ordered_container<DSrtBounds>::value         == true )
                && ( sortedness_of<DSrtKeyedBounds>::value
@@ -240,13 +240,13 @@ bool tests_sortedness_of_precedence()
     D_SR_CHECK(   ( internal::has_key_compare_helper<
                         DSrtSequenceCompare>::value == true )
                && ( sortedness_of<DSrtSequenceCompare>::value
-                        == sortedness::order_dependent ));
+                        == DSortedness::order_dependent ));
     D_SR_CHECK(sortedness_of<DSrtSequenceCompare>::value
-                   != sortedness::monotone);
+                   != DSortedness::monotone);
 
     // ... and the same declaration on the unordered arm does reach monotone
     D_SR_CHECK(sortedness_of<DSrtKeyedCompare>::value
-                   == sortedness::monotone);
+                   == DSortedness::monotone);
     D_SR_CHECK(   ( is_ordered_container<DSrtSequenceCompare>::value == true )
                && ( is_unordered_container<DSrtKeyedCompare>::value  == true )
                && ( sortedness_of<DSrtSequenceCompare>::value
@@ -260,11 +260,11 @@ bool tests_sortedness_of_precedence()
     // within the ordered arm, either signal alone suffices
     D_SR_CHECK(   ( internal::sorted_invariant_helper<DSrtBounds>::value
                         == false )
-               && ( sortedness_of<DSrtBounds>::value == sortedness::sorted ));
+               && ( sortedness_of<DSrtBounds>::value == DSortedness::sorted ));
     D_SR_CHECK(   ( internal::has_interval_bounds_helper<
                         DSrtInvariantTrue>::value == false )
                && ( sortedness_of<DSrtInvariantTrue>::value
-                        == sortedness::sorted ));
+                        == DSortedness::sorted ));
 
     return ok;
 }
@@ -291,39 +291,39 @@ bool tests_sortedness_of_std_types()
     bool ok = true;
 
     // tree-backed: monotone
-    D_SR_CHECK(sortedness_of<DSrtSet>::value      == sortedness::monotone);
-    D_SR_CHECK(sortedness_of<DSrtMultiset>::value == sortedness::monotone);
-    D_SR_CHECK(sortedness_of<DSrtMap>::value      == sortedness::monotone);
+    D_SR_CHECK(sortedness_of<DSrtSet>::value      == DSortedness::monotone);
+    D_SR_CHECK(sortedness_of<DSrtMultiset>::value == DSortedness::monotone);
+    D_SR_CHECK(sortedness_of<DSrtMap>::value      == DSortedness::monotone);
 
     // hashed: unordered - the separation the order axis could not draw
-    D_SR_CHECK(sortedness_of<DSrtUset>::value == sortedness::unordered);
-    D_SR_CHECK(sortedness_of<DSrtUmap>::value == sortedness::unordered);
+    D_SR_CHECK(sortedness_of<DSrtUset>::value == DSortedness::unordered);
+    D_SR_CHECK(sortedness_of<DSrtUmap>::value == DSortedness::unordered);
     D_SR_CHECK(sortedness_of<DSrtMap>::value != sortedness_of<DSrtUmap>::value);
     D_SR_CHECK(ordering_kind_of<DSrtMap>::value
                    == ordering_kind_of<DSrtUmap>::value);
 
     // sequences: order_dependent
     D_SR_CHECK(sortedness_of<DSrtVector>::value
-                   == sortedness::order_dependent);
+                   == DSortedness::order_dependent);
     D_SR_CHECK(sortedness_of<DSrtList>::value
-                   == sortedness::order_dependent);
+                   == DSortedness::order_dependent);
     D_SR_CHECK(sortedness_of<DSrtArray>::value
-                   == sortedness::order_dependent);
+                   == DSortedness::order_dependent);
     D_SR_CHECK(sortedness_of<DSrtString>::value
-                   == sortedness::order_dependent);
+                   == DSortedness::order_dependent);
 
     // non-containers
-    D_SR_CHECK(sortedness_of<DSrtPair>::value == sortedness::non_container);
+    D_SR_CHECK(sortedness_of<DSrtPair>::value == DSortedness::non_container);
 
     // no standard container is `sorted`
-    D_SR_CHECK(sortedness_of<DSrtSet>::value    != sortedness::sorted);
-    D_SR_CHECK(sortedness_of<DSrtMap>::value    != sortedness::sorted);
-    D_SR_CHECK(sortedness_of<DSrtVector>::value != sortedness::sorted);
-    D_SR_CHECK(sortedness_of<DSrtUset>::value   != sortedness::sorted);
+    D_SR_CHECK(sortedness_of<DSrtSet>::value    != DSortedness::sorted);
+    D_SR_CHECK(sortedness_of<DSrtMap>::value    != DSortedness::sorted);
+    D_SR_CHECK(sortedness_of<DSrtVector>::value != DSortedness::sorted);
+    D_SR_CHECK(sortedness_of<DSrtUset>::value   != DSortedness::sorted);
 
     // ... and reaching it takes an explicit opt-in
     D_SR_CHECK(sortedness_of<DSrtInvariantTrue>::value
-                   == sortedness::sorted);
+                   == DSortedness::sorted);
 
     return ok;
 }
@@ -356,19 +356,19 @@ bool tests_sortedness_out_of_range()
 {
     bool ok = true;
 
-    const sortedness five  = static_cast<sortedness>(5);
-    const sortedness six   = static_cast<sortedness>(6);
-    const sortedness seven = static_cast<sortedness>(7);
+    const DSortedness five  = static_cast<DSortedness>(5);
+    const DSortedness six   = static_cast<DSortedness>(6);
+    const DSortedness seven = static_cast<DSortedness>(7);
 
     // the fall-through answers the strongest claim
     D_SR_CHECK(srt_name_is(five,  "sorted"));
     D_SR_CHECK(srt_name_is(six,   "sorted"));
     D_SR_CHECK(srt_name_is(seven, "sorted"));
     D_SR_CHECK(std::strcmp(sortedness_name(five),
-                           sortedness_name(sortedness::sorted)) == 0);
+                           sortedness_name(DSortedness::sorted)) == 0);
 
     // though the values themselves differ
-    D_SR_CHECK(five != sortedness::sorted);
+    D_SR_CHECK(five != DSortedness::sorted);
     D_SR_CHECK(five != six);
     D_SR_CHECK(six  != seven);
     D_SR_CHECK(static_cast<int>(seven) == 7);
@@ -387,8 +387,8 @@ bool tests_sortedness_out_of_range()
     }
 
     // the default remains the state that claims nothing
-    D_SR_CHECK(sortedness{} == sortedness::non_container);
-    D_SR_CHECK(srt_name_is(sortedness{}, "non_container"));
+    D_SR_CHECK(DSortedness{} == DSortedness::non_container);
+    D_SR_CHECK(srt_name_is(DSortedness{}, "non_container"));
 
     return ok;
 }
@@ -405,22 +405,22 @@ bool tests_sortedness_cv_ref()
 {
     bool ok = true;
 
-    D_SR_CV_REF_AGREE(sortedness_of, DSrtSet,   sortedness::monotone);
-    D_SR_CV_REF_AGREE(sortedness_of, DSrtMap,   sortedness::monotone);
-    D_SR_CV_REF_AGREE(sortedness_of, DSrtUset,  sortedness::unordered);
+    D_SR_CV_REF_AGREE(sortedness_of, DSrtSet,   DSortedness::monotone);
+    D_SR_CV_REF_AGREE(sortedness_of, DSrtMap,   DSortedness::monotone);
+    D_SR_CV_REF_AGREE(sortedness_of, DSrtUset,  DSortedness::unordered);
     D_SR_CV_REF_AGREE(sortedness_of, DSrtVector,
-                      sortedness::order_dependent);
+                      DSortedness::order_dependent);
     D_SR_CV_REF_AGREE(sortedness_of, DSrtString,
-                      sortedness::order_dependent);
-    D_SR_CV_REF_AGREE(sortedness_of, DSrtBounds, sortedness::sorted);
-    D_SR_CV_REF_AGREE(sortedness_of, DSrtInvariantTrue, sortedness::sorted);
-    D_SR_CV_REF_AGREE(sortedness_of, DSrtBare, sortedness::non_container);
+                      DSortedness::order_dependent);
+    D_SR_CV_REF_AGREE(sortedness_of, DSrtBounds, DSortedness::sorted);
+    D_SR_CV_REF_AGREE(sortedness_of, DSrtInvariantTrue, DSortedness::sorted);
+    D_SR_CV_REF_AGREE(sortedness_of, DSrtBare, DSortedness::non_container);
 
     // spelled out on one carrier
     D_SR_CHECK(sortedness_of<volatile DSrtSet>::value
-                   == sortedness::monotone);
+                   == DSortedness::monotone);
     D_SR_CHECK(sortedness_of<const volatile DSrtBounds&>::value
-                   == sortedness::sorted);
+                   == DSortedness::sorted);
 
     return ok;
 }
@@ -443,18 +443,18 @@ bool tests_sortedness_companions()
     // the _t alias is the integral_constant, exactly
     D_SR_STATIC_CHECK(
         std::is_same<sortedness_of_t<DSrtSet>,
-                     std::integral_constant<sortedness,
-                                            sortedness::monotone> >::value);
+                     std::integral_constant<DSortedness,
+                                            DSortedness::monotone> >::value);
     D_SR_STATIC_CHECK(
         std::is_same<sortedness_of_t<DSrtVector>,
                      std::integral_constant<
-                         sortedness,
-                         sortedness::order_dependent> >::value);
+                         DSortedness,
+                         DSortedness::order_dependent> >::value);
     D_SR_STATIC_CHECK(
         std::is_same<sortedness_of_t<DSrtBare>,
                      std::integral_constant<
-                         sortedness,
-                         sortedness::non_container> >::value);
+                         DSortedness,
+                         DSortedness::non_container> >::value);
 
     // ... and carries the value the trait reports
     D_SR_CHECK(sortedness_of_t<DSrtUset>::value
@@ -463,11 +463,11 @@ bool tests_sortedness_companions()
                    == sortedness_of<DSrtBounds>::value);
 
     // usable in a constant expression
-    D_SR_STATIC_CHECK(sortedness_of<DSrtMap>::value == sortedness::monotone);
+    D_SR_STATIC_CHECK(sortedness_of<DSrtMap>::value == DSortedness::monotone);
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
-    D_SR_STATIC_CHECK(sortedness_of_v<DSrtSet> == sortedness::monotone);
+    D_SR_STATIC_CHECK(sortedness_of_v<DSrtSet> == DSortedness::monotone);
 
     D_SR_CHECK(sortedness_of_v<DSrtSet>    == sortedness_of<DSrtSet>::value);
     D_SR_CHECK(sortedness_of_v<DSrtUset>   == sortedness_of<DSrtUset>::value);

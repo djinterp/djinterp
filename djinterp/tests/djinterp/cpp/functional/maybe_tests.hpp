@@ -252,7 +252,7 @@ struct DFnNothingLabel
 // A bind/and_then function (returns a maybe).
 struct DFnHalfIfEven
 {
-    maybe<int> operator()(
+    DMaybe<int> operator()(
         const int& _v
     ) const
     {
@@ -269,7 +269,7 @@ struct DFnHalfIfEven
 //   helper: nullary callable returning just(99); the or_else fallback.
 struct DFnMakeJust
 {
-    maybe<int> operator()() const
+    DMaybe<int> operator()() const
     {
         return just(99);
     }
@@ -279,7 +279,7 @@ struct DFnMakeJust
 //   helper: nullary callable returning an empty maybe<int>.
 struct DFnMakeNothing
 {
-    maybe<int> operator()() const
+    DMaybe<int> operator()() const
     {
         return nothing<int>();
     }

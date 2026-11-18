@@ -32,7 +32,7 @@
 * The default configuration is exponential growth with a WRITE-ONLY cursor -
 * the "encode, then hand off / extract" workflow, matching text_buffer's
 * default.  A producer/consumer configuration (encode in, decode out) is the
-* `byte_stream` alias below, or any instantiation with dual_cursor_policy;
+* `DByteStream` alias below, or any instantiation with dual_cursor_policy;
 * the read-cursor operations (get<T>, advance, ...) light up only then.
 *
 * SERIALIZATION CONTRACT:
@@ -132,15 +132,15 @@ NS_DJINTERP
 // =============================================================================
 // I.   byte_buffer Class
 // =============================================================================
-template<typename GrowthPolicy = default_growth_policy,
-         typename CursorPolicy = write_only_cursor_policy>
-class byte_buffer : public DBufferBase<byte_buffer<GrowthPolicy,
+template<typename GrowthPolicy = DDefaultGrowthPolicy,
+         typename CursorPolicy = DWriteOnlyCursorPolicy>
+class DByteBuffer : public DBufferBase<DByteBuffer<GrowthPolicy,
                                                    CursorPolicy>,
                                        GrowthPolicy,
                                        CursorPolicy>
 {
 private:
-    using base_type = DBufferBase<byte_buffer<GrowthPolicy, CursorPolicy>,
+    using base_type = DBufferBase<DByteBuffer<GrowthPolicy, CursorPolicy>,
                                   GrowthPolicy,
                                   CursorPolicy>;
 
@@ -175,7 +175,7 @@ public:
     // default constructor
     //   creates an empty byte buffer with no allocation. The first append
     // triggers the growth policy.
-    byte_buffer() noexcept
+    DByteBuffer() noexcept
         : base_type(),
           m_data(nullptr),
           m_capacity(0)
@@ -185,7 +185,7 @@ public:
     //   creates an empty byte buffer pre-allocated to hold at least
     // _initial_capacity bytes.
     explicit
-    byte_buffer(
+    DByteBuffer(
         size_type _initial_capacity
     )
         : base_type(),
@@ -200,7 +200,7 @@ public:
 
     // raw-range constructor
     //   creates a byte buffer initialized with _len bytes copied from _data.
-    byte_buffer(
+    DByteBuffer(
         const byte* _data,
         size_type   _len
     )
@@ -218,8 +218,8 @@ public:
     //   creates a byte buffer initialized from a byte_string (the medium B* as
     // a value).
     explicit
-    byte_buffer(
-        const byte_string& _bytes
+    DByteBuffer(
+        const DByteString& _bytes
     )
         : base_type(),
           m_data(nullptr),
@@ -232,7 +232,7 @@ public:
     }
 
     // destructor
-    ~byte_buffer() noexcept
+    ~DByteBuffer() noexcept
     {
         if (m_data)
         {
@@ -247,8 +247,8 @@ public:
     // =========================================================================
 
     // move constructor
-    byte_buffer(
-        byte_buffer&& _other
+    DByteBuffer(
+        DByteBuffer&& _other
     ) noexcept
         : base_type(static_cast<base_type&&>(_other)),
           m_data(_other.m_data),
@@ -259,7 +259,7 @@ public:
     }
 
     // move assignment
-    byte_buffer& operator=(byte_buffer&& _other) noexcept
+    DByteBuffer& operator=(DByteBuffer&& _other) noexcept
     {
         if (this != &_other)
         {
@@ -288,7 +288,7 @@ public:
     //   deep-copies the readable region of _other to the front of fresh
     // storage (a copy compacts, dropping any already-consumed prefix in
     // dual-cursor mode).
-    byte_buffer(const byte_buffer& _other)
+    DByteBuffer(const DByteBuffer& _other)
         : base_type(),
           m_data(nullptr),
           m_capacity(0)
@@ -308,7 +308,7 @@ public:
     }
 
     // copy assignment
-    byte_buffer& operator=(const byte_buffer& _other)
+    DByteBuffer& operator=(const DByteBuffer& _other)
     {
         if (this != &_other)
         {
@@ -373,7 +373,7 @@ public:
     // append (byte_string)
     //   appends the contents of a byte_string.
     size_type
-    append(const byte_string& _bytes) noexcept
+    append(const DByteString& _bytes) noexcept
     {
         return append(_bytes.data(), _bytes.size());
     }
@@ -390,11 +390,11 @@ public:
     //   appends the readable region of _other. Safe against self-append (a
     // snapshot is taken when _other is *this).
     size_type
-    append(const byte_buffer& _other)
+    append(const DByteBuffer& _other)
     {
         if (&_other == this)
         {
-            byte_string _snapshot = _other.to_byte_string();
+            DByteString _snapshot = _other.to_byte_string();
 
             return append(_snapshot.data(), _snapshot.size());
         }
@@ -461,7 +461,7 @@ public:
     // container_encode.hpp is in scope, since the call resolves encode_into
     // anew at instantiation.
     template<typename Type>
-    byte_buffer&
+    DByteBuffer&
     put(const Type& _value)
     {
         encode_into(*this, _value);
@@ -517,21 +517,21 @@ public:
     // to_byte_string
     //   returns the readable region as a byte_string - the model's medium B*
     // materialized as a value.
-    byte_string to_byte_string() const
+    DByteString to_byte_string() const
     {
         if (this->size() == 0)
         {
-            return byte_string();
+            return DByteString();
         }
 
         const byte* _p = this->data();
 
-        return byte_string(_p, _p + this->size());
+        return DByteString(_p, _p + this->size());
     }
 
     // bytes
     //   alias for to_byte_string().
-    byte_string bytes() const
+    DByteString bytes() const
     {
         return to_byte_string();
     }
@@ -561,9 +561,9 @@ public:
     // write-then-consume temporality. This is a copy followed by reset(), not
     // a cheap move: the underlying storage is a raw byte array, not a
     // byte_string.
-    byte_string take()
+    DByteString take()
     {
-        byte_string _out = to_byte_string();
+        DByteString _out = to_byte_string();
 
         this->reset();
 
@@ -744,7 +744,7 @@ public:
 
     // swap
     //   exchanges contents with another byte_buffer.
-    void swap(byte_buffer& _other) noexcept
+    void swap(DByteBuffer& _other) noexcept
     {
         if (this == &_other)
         {
@@ -780,7 +780,7 @@ public:
     template<typename GP, typename CP>
     friend std::ostream&
     operator<<(std::ostream&                _os,
-               const byte_buffer<GP, CP>& _buf);
+               const DByteBuffer<GP, CP>& _buf);
 
 
 private:
@@ -904,13 +904,18 @@ private:
     size_type m_capacity;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename GrowthPolicy = DDefaultGrowthPolicy,
+         typename CursorPolicy = DWriteOnlyCursorPolicy>
+using byte_buffer = DByteBuffer<GrowthPolicy, CursorPolicy>;
+
 
 // --- ostream operator (out-of-class definition) ---
 
 template<typename GP, typename CP>
 std::ostream& operator<<(
     std::ostream&              _os,
-    const byte_buffer<GP, CP>& _buf
+    const DByteBuffer<GP, CP>& _buf
 )
 {
     if (_buf.size() > 0)
@@ -928,54 +933,57 @@ std::ostream& operator<<(
 // II.  Factory Functions and Aliases
 // =============================================================================
 
-// byte_stream
+// DByteStream
 //   alias: a byte_buffer configured for the producer/consumer (encode-in,
 // decode-out) workflow - exponential growth with a dual cursor, so
 // get<T>()/advance()/peek() and the incremental read protocol are available.
-using byte_stream = byte_buffer<default_growth_policy,
-                                dual_cursor_policy>;
+using DByteStream = DByteBuffer<DDefaultGrowthPolicy,
+                                DDualCursorPolicy>;
+
+// old name, until 0.9.0-rc.1
+using byte_stream = DByteStream;
 
 // make_byte_buffer
 //   creates a byte_buffer with default policies and the specified initial
 // capacity.
 inline
-byte_buffer<> make_byte_buffer(
+DByteBuffer<> make_byte_buffer(
     std::size_t _capacity = 0
 )
 {
-    return byte_buffer<>(_capacity);
+    return DByteBuffer<>(_capacity);
 }
 
 // make_byte_buffer (from a byte_string)
 //   creates a byte_buffer initialized with a copy of _bytes.
 inline
-byte_buffer<> make_byte_buffer(
-    const byte_string& _bytes
+DByteBuffer<> make_byte_buffer(
+    const DByteString& _bytes
 )
 {
-    return byte_buffer<>(_bytes);
+    return DByteBuffer<>(_bytes);
 }
 
 // make_byte_buffer (from a raw range)
 //   creates a byte_buffer initialized with _len bytes from _data.
 inline
-byte_buffer<> make_byte_buffer(
+DByteBuffer<> make_byte_buffer(
     const byte* _data,
     std::size_t _len
 )
 {
-    return byte_buffer<>(_data, _len);
+    return DByteBuffer<>(_data, _len);
 }
 
 // make_fixed_byte_buffer
 //   creates a byte_buffer with fixed (non-growable) storage of the specified
 // capacity.
 inline
-byte_buffer<fixed_growth_policy> make_fixed_byte_buffer(
+DByteBuffer<DFixedGrowthPolicy> make_fixed_byte_buffer(
     std::size_t _capacity
 )
 {
-    return byte_buffer<fixed_growth_policy>(_capacity);
+    return DByteBuffer<DFixedGrowthPolicy>(_capacity);
 }
 
 

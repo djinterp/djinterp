@@ -53,7 +53,7 @@ bool tests_broadcast_policy()
     handlers.push_back([&](const ping&) { ++count; });
     handlers.push_back([&](const ping&) { ++count; });
 
-    broadcast_policy::dispatch(handlers, ping{ 1 });
+    DBroadcastPolicy::dispatch(handlers, ping{ 1 });
 
     return (count == 3);
 }
@@ -79,7 +79,7 @@ bool tests_targeted_policy()
 
     auto pred = [](const id_handler& _h) { return (_h.id == 1); };
 
-    targeted_policy::dispatch(handlers, ping{ 1 }, pred);
+    DTargetedPolicy::dispatch(handlers, ping{ 1 }, pred);
 
     bool ok = true;
 
@@ -106,11 +106,11 @@ bool tests_filtered_policy()
 
     auto passes = [](const ping& _p) { return (_p.n > 0); };
 
-    filtered_policy::dispatch(handlers, ping{ 5 }, passes);   // passes -> all
+    DFilteredPolicy::dispatch(handlers, ping{ 5 }, passes);   // passes -> all
     bool ok = (count == 2);
 
     count = 0;
-    filtered_policy::dispatch(handlers, ping{ -1 }, passes);  // fails -> none
+    DFilteredPolicy::dispatch(handlers, ping{ -1 }, passes);  // fails -> none
     ok = ok && (count == 0);
 
     return ok;

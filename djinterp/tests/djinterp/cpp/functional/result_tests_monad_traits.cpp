@@ -25,7 +25,7 @@ NS_DJINTERP
 NS_TESTING
 
 
-using ri = result<int, std::string>;
+using ri = DResult<int, std::string>;
 
 
 // compile-time surface of the specialization
@@ -38,7 +38,7 @@ static_assert(std::is_same<monad_traits<ri>::error_type, std::string>::value,
 static_assert(
     std::is_same<
         monad_traits<ri>::template rebind<std::string>,
-        result<std::string, std::string>>::value,
+        DResult<std::string, std::string>>::value,
     "monad_traits<result>: rebind<U> yields result<U, E>");
 
 

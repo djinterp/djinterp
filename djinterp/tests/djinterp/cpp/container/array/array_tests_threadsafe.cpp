@@ -91,7 +91,7 @@ bool tests_threadsafe_lockfree_queries()
     c.assign(ts4_array(1, 1, 1, 1));
     D_AY_CHECK(c.size_lockfree() == 4);
 
-    DThreadsafeArray<array_opt_type<int>, DArrayOptExtent<0>> z;
+    DThreadsafeArray<DArrayOptType<int>, DArrayOptExtent<0>> z;
     D_AY_CHECK(z.size_lockfree() == 0 && z.size() == 0);
     D_AY_CHECK(z.empty_lockfree() && z.empty());
 
@@ -277,9 +277,9 @@ tests_threadsafe_policies
 */
 bool tests_threadsafe_policies()
 {
-    using mutex4  = DMutexArray<array_opt_type<int>, DArrayOptExtent<4>>;
-    using shared4 = DSharedArray<array_opt_type<int>, DArrayOptExtent<4>>;
-    using timed4  = DTimedArray<array_opt_type<int>, DArrayOptExtent<4>>;
+    using mutex4  = DMutexArray<DArrayOptType<int>, DArrayOptExtent<4>>;
+    using shared4 = DSharedArray<DArrayOptType<int>, DArrayOptExtent<4>>;
+    using timed4  = DTimedArray<DArrayOptType<int>, DArrayOptExtent<4>>;
 
     D_AY_CHECK((std::is_same<ts4::lock_policy_type,
                              default_lock_policy>::value));

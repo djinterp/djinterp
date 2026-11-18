@@ -123,7 +123,7 @@ bool mc_check_failed(
 // grade - a property no single predicate can witness on its own.
 inline
 int mc_grade_predicate_count(
-    mutability _grade
+    DMutability _grade
 )
 {
     return ( ( is_immutable_grade(_grade)          ? 1 : 0 )

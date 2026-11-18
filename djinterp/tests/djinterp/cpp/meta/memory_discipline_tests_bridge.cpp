@@ -25,16 +25,16 @@ tests_memory_discipline_implies_siting
 */
 bool tests_memory_discipline_implies_siting()
 {
-    D_MD_CHECK(discipline_implies_siting(memory_discipline::none)
-               == storage_duration::static_storage);
-    D_MD_CHECK(discipline_implies_siting(memory_discipline::individual)
-               == storage_duration::dynamic_storage);
-    D_MD_CHECK(discipline_implies_siting(memory_discipline::pooled)
-               == storage_duration::dynamic_storage);
-    D_MD_CHECK(discipline_implies_siting(memory_discipline::arena)
-               == storage_duration::unknown);
-    D_MD_CHECK(discipline_implies_siting(memory_discipline::unknown)
-               == storage_duration::unknown);
+    D_MD_CHECK(discipline_implies_siting(DMemoryDiscipline::none)
+               == DStorageDuration::static_storage);
+    D_MD_CHECK(discipline_implies_siting(DMemoryDiscipline::individual)
+               == DStorageDuration::dynamic_storage);
+    D_MD_CHECK(discipline_implies_siting(DMemoryDiscipline::pooled)
+               == DStorageDuration::dynamic_storage);
+    D_MD_CHECK(discipline_implies_siting(DMemoryDiscipline::arena)
+               == DStorageDuration::unknown);
+    D_MD_CHECK(discipline_implies_siting(DMemoryDiscipline::unknown)
+               == DStorageDuration::unknown);
 
     return true;
 }
@@ -53,34 +53,34 @@ tests_memory_discipline_siting_consistent
 bool tests_memory_discipline_siting_consistent()
 {
     // none -> static implied
-    D_MD_CHECK(discipline_siting_consistent(memory_discipline::none, storage_duration::static_storage));
-    D_MD_CHECK(discipline_siting_consistent(memory_discipline::none, storage_duration::hybrid_storage));
-    D_MD_CHECK(discipline_siting_consistent(memory_discipline::none, storage_duration::unknown));
-    D_MD_CHECK(!discipline_siting_consistent(memory_discipline::none, storage_duration::dynamic_storage));
+    D_MD_CHECK(discipline_siting_consistent(DMemoryDiscipline::none, DStorageDuration::static_storage));
+    D_MD_CHECK(discipline_siting_consistent(DMemoryDiscipline::none, DStorageDuration::hybrid_storage));
+    D_MD_CHECK(discipline_siting_consistent(DMemoryDiscipline::none, DStorageDuration::unknown));
+    D_MD_CHECK(!discipline_siting_consistent(DMemoryDiscipline::none, DStorageDuration::dynamic_storage));
 
     // individual -> dynamic implied
-    D_MD_CHECK(discipline_siting_consistent(memory_discipline::individual, storage_duration::dynamic_storage));
-    D_MD_CHECK(discipline_siting_consistent(memory_discipline::individual, storage_duration::hybrid_storage));
-    D_MD_CHECK(discipline_siting_consistent(memory_discipline::individual, storage_duration::unknown));
-    D_MD_CHECK(!discipline_siting_consistent(memory_discipline::individual, storage_duration::static_storage));
+    D_MD_CHECK(discipline_siting_consistent(DMemoryDiscipline::individual, DStorageDuration::dynamic_storage));
+    D_MD_CHECK(discipline_siting_consistent(DMemoryDiscipline::individual, DStorageDuration::hybrid_storage));
+    D_MD_CHECK(discipline_siting_consistent(DMemoryDiscipline::individual, DStorageDuration::unknown));
+    D_MD_CHECK(!discipline_siting_consistent(DMemoryDiscipline::individual, DStorageDuration::static_storage));
 
     // pooled -> dynamic implied (same shape as individual)
-    D_MD_CHECK(discipline_siting_consistent(memory_discipline::pooled, storage_duration::dynamic_storage));
-    D_MD_CHECK(discipline_siting_consistent(memory_discipline::pooled, storage_duration::hybrid_storage));
-    D_MD_CHECK(discipline_siting_consistent(memory_discipline::pooled, storage_duration::unknown));
-    D_MD_CHECK(!discipline_siting_consistent(memory_discipline::pooled, storage_duration::static_storage));
+    D_MD_CHECK(discipline_siting_consistent(DMemoryDiscipline::pooled, DStorageDuration::dynamic_storage));
+    D_MD_CHECK(discipline_siting_consistent(DMemoryDiscipline::pooled, DStorageDuration::hybrid_storage));
+    D_MD_CHECK(discipline_siting_consistent(DMemoryDiscipline::pooled, DStorageDuration::unknown));
+    D_MD_CHECK(!discipline_siting_consistent(DMemoryDiscipline::pooled, DStorageDuration::static_storage));
 
     // arena -> forces no siting: consistent with everything
-    D_MD_CHECK(discipline_siting_consistent(memory_discipline::arena, storage_duration::static_storage));
-    D_MD_CHECK(discipline_siting_consistent(memory_discipline::arena, storage_duration::dynamic_storage));
-    D_MD_CHECK(discipline_siting_consistent(memory_discipline::arena, storage_duration::hybrid_storage));
-    D_MD_CHECK(discipline_siting_consistent(memory_discipline::arena, storage_duration::unknown));
+    D_MD_CHECK(discipline_siting_consistent(DMemoryDiscipline::arena, DStorageDuration::static_storage));
+    D_MD_CHECK(discipline_siting_consistent(DMemoryDiscipline::arena, DStorageDuration::dynamic_storage));
+    D_MD_CHECK(discipline_siting_consistent(DMemoryDiscipline::arena, DStorageDuration::hybrid_storage));
+    D_MD_CHECK(discipline_siting_consistent(DMemoryDiscipline::arena, DStorageDuration::unknown));
 
     // unknown discipline -> forces no siting: consistent with everything
-    D_MD_CHECK(discipline_siting_consistent(memory_discipline::unknown, storage_duration::static_storage));
-    D_MD_CHECK(discipline_siting_consistent(memory_discipline::unknown, storage_duration::dynamic_storage));
-    D_MD_CHECK(discipline_siting_consistent(memory_discipline::unknown, storage_duration::hybrid_storage));
-    D_MD_CHECK(discipline_siting_consistent(memory_discipline::unknown, storage_duration::unknown));
+    D_MD_CHECK(discipline_siting_consistent(DMemoryDiscipline::unknown, DStorageDuration::static_storage));
+    D_MD_CHECK(discipline_siting_consistent(DMemoryDiscipline::unknown, DStorageDuration::dynamic_storage));
+    D_MD_CHECK(discipline_siting_consistent(DMemoryDiscipline::unknown, DStorageDuration::hybrid_storage));
+    D_MD_CHECK(discipline_siting_consistent(DMemoryDiscipline::unknown, DStorageDuration::unknown));
 
     return true;
 }

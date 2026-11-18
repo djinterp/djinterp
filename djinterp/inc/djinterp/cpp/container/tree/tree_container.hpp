@@ -47,7 +47,7 @@ template<typename ValueType,
          typename NodeType,
          typename Allocator        = std::allocator<NodeType>,
          typename LockPolicy       = void,
-         typename OwnershipPolicy = non_owning_policy>
+         typename OwnershipPolicy = DNonOwningPolicy>
 class DTreeContainer
     : public DNodeContainer<ValueType,
                             NodeType,
@@ -129,7 +129,7 @@ public:
     template<typename Dummy = OwnershipPolicy,
                 std::enable_if_t<
                     std::is_same<Dummy,
-                                unique_owning_policy>::value,
+                                DUniqueOwningPolicy>::value,
                     int> = 0>
     void
     adopt_root(
@@ -147,7 +147,7 @@ public:
     template<typename Dummy = OwnershipPolicy,
                 std::enable_if_t<
                     std::is_same<Dummy,
-                                shared_owning_policy>::value,
+                                DSharedOwningPolicy>::value,
                     int> = 0>
     void
     share_root(
@@ -184,7 +184,7 @@ using DOwningTreeContainer =
                    NodeType,
                    Allocator,
                    LockPolicy,
-                   unique_owning_policy>;
+                   DUniqueOwningPolicy>;
 
 // DSharedTreeContainer
 //   alias: DTreeContainer with shared_owning_policy.
@@ -197,7 +197,7 @@ using DSharedTreeContainer =
                    NodeType,
                    Allocator,
                    LockPolicy,
-                   shared_owning_policy>;
+                   DSharedOwningPolicy>;
 
 
 NS_END  // djinterp

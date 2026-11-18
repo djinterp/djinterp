@@ -2,7 +2,7 @@
 * djinterp [cpp]                                              pool_allocator.hpp
 *
 * Standard-library allocator adapters.
-*   `pool_allocator<T>` and `arena_allocator<T>` present the kernels as
+*   `DPoolAllocator<T>` and `DArenaAllocator<T>` present the kernels as
 * Allocator-conforming types, so std::vector, std::list, std::map and every
 * other standard container can be given one.
 *
@@ -16,18 +16,18 @@
 *
 * WHICH ADAPTER FOR WHICH CONTAINER:
 *
-*   pool_allocator   fixed-size nodes, so it fits the NODE-BASED containers --
+*   DPoolAllocator   fixed-size nodes, so it fits the NODE-BASED containers --
 *                    std::list, std::forward_list, std::set, std::map,
 *                    std::unordered_* -- where nearly every allocation is one
 *                    node and every node is the same size. This is the pairing
 *                    that makes a pool worth having: a std::list<T> over a
-*                    pool_allocator<T> allocates one block per few hundred
+*                    DPoolAllocator<T> allocates one block per few hundred
 *                    nodes instead of one malloc per node.
-*                    It draws from a `node_pool`, which sizes itself from the
+*                    It draws from a `DNodePool`, which sizes itself from the
 *                    container's own node type on first use -- see that class
 *                    for why the size cannot be known any earlier.
 *
-*   arena_allocator  variable-size allocations that are never individually
+*   DArenaAllocator  variable-size allocations that are never individually
 *                    freed, so it fits std::vector and std::basic_string in a
 *                    phase-scoped workload. deallocate() is a NO-OP: the
 *                    memory returns when the arena is reset or released, and
@@ -53,12 +53,12 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    pool_allocator<T>
+I.    DPoolAllocator<T>
       -----------------
       a. typedefs and rebind
       b. allocate / deallocate
       c. equality
-II.   arena_allocator<T>
+II.   DArenaAllocator<T>
       ------------------
       a. typedefs and rebind
       b. allocate / deallocate (no-op)
@@ -89,10 +89,10 @@ NS_DJINTERP
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                   I.   pool_allocator<T>                                ///
+///                   I.   DPoolAllocator<T>                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// node_pool
+// DNodePool
 //   class: a pool that configures itself on FIRST USE, plus a fallback source
 // for anything it cannot serve.
 //
@@ -105,7 +105,7 @@ NS_DJINTERP
 // ask for.
 //
 //   But the REBOUND ALLOCATOR knows: inside the container, the allocator is
-// pool_allocator<node_type>, and sizeof(node_type) is available there. So the
+// DPoolAllocator<node_type>, and sizeof(node_type) is available there. So the
 // size arrives at the first allocate() call and not before -- which is why
 // this class defers configuration to that call rather than to its
 // constructor.
@@ -117,15 +117,15 @@ NS_DJINTERP
 // for a reason the caller could neither predict nor fix. Instead, a request
 // the pool cannot serve goes to the upstream source, and release routes by
 // asking the pool whether the pointer is its own. Degrade, never error.
-class node_pool
+class DNodePool
 {
 public:
 
-    // node_pool (parameterized)
+    // DNodePool (parameterized)
     //   constructor: an unconfigured pool. Its slot geometry is fixed by the
     // first allocation, and its blocks and overflow both come from _source.
     explicit D_INLINE
-    node_pool(
+    DNodePool(
         const ::dj_mem_source& _source         = ::d_mem_source_none(),
         ::dj_pool_index        _slots_per_block = 0,
         ::dj_pool_index        _max_slots       = 0
@@ -138,7 +138,7 @@ public:
     {}
 
     D_INLINE
-    ~node_pool()
+    ~DNodePool()
     {
         if (m_ready)
         {
@@ -146,11 +146,11 @@ public:
         }
     }
 
-    node_pool(
-        const node_pool&
+    DNodePool(
+        const DNodePool&
     ) = delete;
-    node_pool& operator=(
-        const node_pool&
+    DNodePool& operator=(
+        const DNodePool&
     ) = delete;
 
     // acquire
@@ -274,13 +274,13 @@ private:
 };
 
 
-// pool_allocator
-//   class: an Allocator over a node_pool, for node-based containers.
-//   Every rebound copy shares the same node_pool, which is what makes this
+// DPoolAllocator
+//   class: an Allocator over a DNodePool, for node-based containers.
+//   Every rebound copy shares the same DNodePool, which is what makes this
 // work: the container rebinds to its private node type, and THAT
 // instantiation's sizeof is what configures the pool.
 template<typename Type>
-class pool_allocator
+class DPoolAllocator
 {
 public:
 
@@ -300,37 +300,37 @@ public:
 
     // is_always_equal
     //   trait: FALSE. Two pool_allocators are interchangeable only when they
-    // name the same node_pool, so the containers must compare them. Declaring
+    // name the same DNodePool, so the containers must compare them. Declaring
     // this true is how memory from one pool ends up returned to another.
     using is_always_equal = std::false_type;
 
     // rebind
     //   trait: the C++11 spelling containers still reach for. Every rebound
-    // allocator shares the SAME node_pool.
+    // allocator shares the SAME DNodePool.
     template<typename Other>
     struct rebind
     {
-        using other = pool_allocator<Other>;
+        using other = DPoolAllocator<Other>;
     };
 
-    // pool_allocator (parameterized)
+    // DPoolAllocator (parameterized)
     //   constructor: draws from _pool, which must outlive every container
     // holding this allocator and every copy of it.
     explicit D_INLINE
-    pool_allocator(
-        node_pool& _pool
+    DPoolAllocator(
+        DNodePool& _pool
     ) noexcept
         : m_pool(&_pool)
     {}
 
-    // pool_allocator (rebinding copy)
+    // DPoolAllocator (rebinding copy)
     //   constructor: the conversion the container performs when it rebinds to
     // its node type -- and the point at which the real node size becomes
     // knowable.
     template<typename Other>
     D_INLINE
-    pool_allocator(
-        const pool_allocator<Other>& _other
+    DPoolAllocator(
+        const DPoolAllocator<Other>& _other
     ) noexcept
         : m_pool(_other.resource())
     {}
@@ -380,30 +380,30 @@ public:
     }
 
     // resource
-    //   query: the node_pool this allocator draws from, so a rebound copy can
+    //   query: the DNodePool this allocator draws from, so a rebound copy can
     // share it.
     D_INLINE
-    node_pool* resource() const noexcept
+    DNodePool* resource() const noexcept
     {
         return m_pool;
     }
 
 private:
 
-    node_pool* m_pool;
+    DNodePool* m_pool;
 };
 
 
-// operator== / operator!=  (pool_allocator)
+// operator== / operator!=  (DPoolAllocator)
 //   compare: two pool allocators are interchangeable exactly when they name
-// the same node_pool. Anything looser would let a container deallocate into a
+// the same DNodePool. Anything looser would let a container deallocate into a
 // pool that never vended the slot.
 template<typename Left,
          typename Right>
 D_INLINE
 bool operator==(
-    const pool_allocator<Left>&  _left,
-    const pool_allocator<Right>& _right
+    const DPoolAllocator<Left>&  _left,
+    const DPoolAllocator<Right>& _right
 ) noexcept
 {
     return (_left.resource() == _right.resource());
@@ -413,8 +413,8 @@ template<typename Left,
          typename Right>
 D_INLINE
 bool operator!=(
-    const pool_allocator<Left>&  _left,
-    const pool_allocator<Right>& _right
+    const DPoolAllocator<Left>&  _left,
+    const DPoolAllocator<Right>& _right
 ) noexcept
 {
     return !(_left == _right);
@@ -422,10 +422,10 @@ bool operator!=(
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                  II.   arena_allocator<T>                               ///
+///                  II.   DArenaAllocator<T>                               ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// arena_allocator
+// DArenaAllocator
 //   class: an Allocator over an arena, for variable-size allocations in a
 // phase-scoped workload.
 //   DEALLOCATE IS A NO-OP. A std::vector over this allocator will leave every
@@ -435,7 +435,7 @@ bool operator!=(
 // is to reset the arena at the end of the phase, not to reach for a different
 // allocator.
 template<typename Type>
-class arena_allocator
+class DArenaAllocator
 {
 public:
 
@@ -451,25 +451,25 @@ public:
     template<typename Other>
     struct rebind
     {
-        using other = arena_allocator<Other>;
+        using other = DArenaAllocator<Other>;
     };
 
-    // arena_allocator (parameterized)
+    // DArenaAllocator (parameterized)
     //   constructor: draws from _arena, which must outlive every container
     // holding this allocator.
     explicit D_INLINE
-    arena_allocator(
-        arena& _arena
+    DArenaAllocator(
+        DArena& _arena
     ) noexcept
         : m_arena(&_arena)
     {}
 
-    // arena_allocator (rebinding copy)
+    // DArenaAllocator (rebinding copy)
     //   constructor: the conversion a container performs when it rebinds.
     template<typename Other>
     D_INLINE
-    arena_allocator(
-        const arena_allocator<Other>& _other
+    DArenaAllocator(
+        const DArenaAllocator<Other>& _other
     ) noexcept
         : m_arena(_other.resource())
     {}
@@ -523,25 +523,25 @@ public:
     // resource
     //   query: the arena this allocator draws from.
     D_INLINE
-    arena* resource() const noexcept
+    DArena* resource() const noexcept
     {
         return m_arena;
     }
 
 private:
 
-    arena* m_arena;
+    DArena* m_arena;
 };
 
 
-// operator== / operator!=  (arena_allocator)
+// operator== / operator!=  (DArenaAllocator)
 //   compare: interchangeable exactly when they name the same arena.
 template<typename Left,
          typename Right>
 D_INLINE
 bool operator==(
-    const arena_allocator<Left>&  _left,
-    const arena_allocator<Right>& _right
+    const DArenaAllocator<Left>&  _left,
+    const DArenaAllocator<Right>& _right
 ) noexcept
 {
     return (_left.resource() == _right.resource());
@@ -551,8 +551,8 @@ template<typename Left,
          typename Right>
 D_INLINE
 bool operator!=(
-    const arena_allocator<Left>&  _left,
-    const arena_allocator<Right>& _right
+    const DArenaAllocator<Left>&  _left,
+    const DArenaAllocator<Right>& _right
 ) noexcept
 {
     return !(_left == _right);
@@ -567,17 +567,17 @@ bool operator!=(
 // of every container using it, which is the one place in this subframework
 // where a stray member multiplies.
 
-D_STATIC_ASSERT(sizeof(pool_allocator<char>) == sizeof(void*),
+D_STATIC_ASSERT(sizeof(DPoolAllocator<char>) == sizeof(void*),
                 "pool_allocator must be exactly one pointer");
-D_STATIC_ASSERT(sizeof(pool_allocator<double>) == sizeof(void*),
+D_STATIC_ASSERT(sizeof(DPoolAllocator<double>) == sizeof(void*),
                 "pool_allocator must be exactly one pointer, per instantiation");
-D_STATIC_ASSERT(sizeof(arena_allocator<char>) == sizeof(void*),
+D_STATIC_ASSERT(sizeof(DArenaAllocator<char>) == sizeof(void*),
                 "arena_allocator must be exactly one pointer");
 
-//   node_pool is DELIBERATELY EXEMPT from the cost law, and the exemption is
+//   DNodePool is DELIBERATELY EXEMPT from the cost law, and the exemption is
 // worth stating rather than leaving to be noticed. Every other wrapper in this
 // subframework derives from a C kernel and adds nothing, because everything it
-// does the kernel already did. node_pool is not a wrapper: it holds a dj_pool
+// does the kernel already did. DNodePool is not a wrapper: it holds a dj_pool
 // it has not configured yet, plus the source and geometry it will configure it
 // WITH, plus a flag saying whether it has. Those members exist because the
 // problem is C++-only -- a container's node type has no portable name, so its
@@ -586,7 +586,7 @@ D_STATIC_ASSERT(sizeof(arena_allocator<char>) == sizeof(void*),
 // here would mean either lying about the members or pushing deferred
 // initialization into the kernel to serve a language feature the kernel does
 // not have.
-D_STATIC_ASSERT(sizeof(node_pool) > sizeof(::dj_pool),
+D_STATIC_ASSERT(sizeof(DNodePool) > sizeof(::dj_pool),
                 "node_pool is a deferred-configuration holder, not a "
                 "zero-cost wrapper; if this ever becomes equal, the deferral "
                 "state has been lost");

@@ -37,10 +37,10 @@ bool tests_ana_nat()
         return (_n <= 0) ? nat_zero<int>() : nat_succ<int>(_n - 1);
     };
 
-    ok = ok && (nat_to_unsigned(ana<mu<nat_f>, int>(grow, 0)) == 0u);
-    ok = ok && (nat_to_unsigned(ana<mu<nat_f>, int>(grow, 1)) == 1u);
-    ok = ok && (nat_to_unsigned(ana<mu<nat_f>, int>(grow, 4)) == 4u);
-    ok = ok && (nat_to_unsigned(ana<mu<nat_f>, int>(grow, 9)) == 9u);
+    ok = ok && (nat_to_unsigned(ana<DMu<nat_f>, int>(grow, 0)) == 0u);
+    ok = ok && (nat_to_unsigned(ana<DMu<nat_f>, int>(grow, 1)) == 1u);
+    ok = ok && (nat_to_unsigned(ana<DMu<nat_f>, int>(grow, 4)) == 4u);
+    ok = ok && (nat_to_unsigned(ana<DMu<nat_f>, int>(grow, 9)) == 9u);
 
     return ok;
 }
@@ -62,8 +62,8 @@ bool tests_ana_list_range()
         return (_n <= 0) ? list_nil<int>() : list_cons<int>(_n, _n - 1);
     };
 
-    ok = ok && (list_to_vector(ana<mu<list_f>, int>(down, 0)).empty());
-    ok = ok && (list_to_vector(ana<mu<list_f>, int>(down, 4))
+    ok = ok && (list_to_vector(ana<DMu<list_f>, int>(down, 0)).empty());
+    ok = ok && (list_to_vector(ana<DMu<list_f>, int>(down, 4))
                 == std::vector<int>({4, 3, 2, 1}));
 
     return ok;
@@ -88,11 +88,11 @@ bool tests_ana_tree_balanced()
                          : tree_branch<int>(_d - 1, _d - 1);
     };
 
-    mu<tree_f> t3 = ana<mu<tree_f>, int>(split, 3);
+    DMu<tree_f> t3 = ana<DMu<tree_f>, int>(split, 3);
     ok = ok && (tree_height_manual(t3) == 3);
     ok = ok && (tree_leaf_sum_manual(t3) == 8);    // 2^3 leaves of 1
 
-    mu<tree_f> t0 = ana<mu<tree_f>, int>(split, 0);
+    DMu<tree_f> t0 = ana<DMu<tree_f>, int>(split, 0);
     ok = ok && (tree_height_manual(t0) == 0);
     ok = ok && (tree_leaf_sum_manual(t0) == 1);
 
@@ -142,7 +142,7 @@ bool tests_ana_base_case()
     {
         return (_n <= 0) ? nat_zero<int>() : nat_succ<int>(_n - 1);
     };
-    mu<nat_f> z = ana<mu<nat_f>, int>(grow, 0);
+    DMu<nat_f> z = ana<DMu<nat_f>, int>(grow, 0);
     ok = ok && (z.empty() == false);
     ok = ok && (z.out().is_zero == true);
 
@@ -150,7 +150,7 @@ bool tests_ana_base_case()
     {
         return (_n <= 0) ? list_nil<int>() : list_cons<int>(_n, _n - 1);
     };
-    mu<list_f> nil = ana<mu<list_f>, int>(down, 0);
+    DMu<list_f> nil = ana<DMu<list_f>, int>(down, 0);
     ok = ok && (nil.out().is_nil == true);
 
     return ok;
@@ -173,7 +173,7 @@ bool tests_ana_produces_structure()
     {
         return (_n <= 0) ? nat_zero<int>() : nat_succ<int>(_n - 1);
     };
-    mu<nat_f> n = ana<mu<nat_f>, int>(grow, 3);
+    DMu<nat_f> n = ana<DMu<nat_f>, int>(grow, 3);
     ok = ok && (n.out().is_zero == false);
     ok = ok && (n.out().succ.out().is_zero == false);
     ok = ok && (n.out().succ.out().succ.out().is_zero == false);
@@ -183,7 +183,7 @@ bool tests_ana_produces_structure()
     {
         return (_n <= 0) ? list_nil<int>() : list_cons<int>(_n, _n - 1);
     };
-    mu<list_f> l = ana<mu<list_f>, int>(down, 3);
+    DMu<list_f> l = ana<DMu<list_f>, int>(down, 3);
     ok = ok && (l.out().head == 3);
     ok = ok && (l.out().tail.out().head == 2);
     ok = ok && (l.out().tail.out().tail.out().head == 1);
@@ -204,13 +204,13 @@ bool tests_ana_coalgebra_forms()
     bool ok = true;
 
     // lambda
-    mu<nat_f> a = ana<mu<nat_f>, int>(
+    DMu<nat_f> a = ana<DMu<nat_f>, int>(
         [](int _n){ return (_n <= 0) ? nat_zero<int>()
                                      : nat_succ<int>(_n - 1); }, 5);
     // free function
-    mu<nat_f> b = ana<mu<nat_f>, int>(&nat_succ_fn, 5);
+    DMu<nat_f> b = ana<DMu<nat_f>, int>(&nat_succ_fn, 5);
     // function object
-    mu<nat_f> c = ana<mu<nat_f>, int>(DNatSuccCo(), 5);
+    DMu<nat_f> c = ana<DMu<nat_f>, int>(DNatSuccCo(), 5);
 
     ok = ok && (nat_to_unsigned(a) == 5u);
     ok = ok && (nat_to_unsigned(b) == 5u);

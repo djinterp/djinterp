@@ -33,18 +33,18 @@ bool tests_enforces_uniqueness()
     bool _ct_ok = true;
 
     // sets: key, no mapped
-    D_CT_CHECK( (enforces_uniqueness<std::set<int>>::value) );
-    D_CT_CHECK( (enforces_uniqueness<std::unordered_set<int>>::value) );
+    D_CT_CHECK( (DEnforcesUniqueness<std::set<int>>::value) );
+    D_CT_CHECK( (DEnforcesUniqueness<std::unordered_set<int>>::value) );
     // structural limit: multiset also reads TRUE (key, no mapped) despite dups
-    D_CT_CHECK( (enforces_uniqueness<std::multiset<int>>::value) );
+    D_CT_CHECK( (DEnforcesUniqueness<std::multiset<int>>::value) );
 
     // maps: key AND mapped -> not "unique" by this structural test
-    D_CT_CHECK( (!enforces_uniqueness<std::map<int, int>>::value) );
-    D_CT_CHECK( (!enforces_uniqueness<std::multimap<int, int>>::value) );
+    D_CT_CHECK( (!DEnforcesUniqueness<std::map<int, int>>::value) );
+    D_CT_CHECK( (!DEnforcesUniqueness<std::multimap<int, int>>::value) );
     // sequences: no key_type
-    D_CT_CHECK( (!enforces_uniqueness<std::vector<int>>::value) );
-    D_CT_CHECK( (!enforces_uniqueness<std::list<int>>::value) );
-    D_CT_CHECK( (!enforces_uniqueness<int>::value) );
+    D_CT_CHECK( (!DEnforcesUniqueness<std::vector<int>>::value) );
+    D_CT_CHECK( (!DEnforcesUniqueness<std::list<int>>::value) );
+    D_CT_CHECK( (!DEnforcesUniqueness<int>::value) );
 
     return _ct_ok;
 }
@@ -68,8 +68,8 @@ bool tests_allows_duplicates()
     D_CT_CHECK( (!allows_duplicates<std::multiset<int>>::value) );
 
     // spot-check the negation relation directly
-    D_CT_CHECK( (allows_duplicates<std::set<int>>::value != enforces_uniqueness<std::set<int>>::value) );
-    D_CT_CHECK( (allows_duplicates<std::map<int, int>>::value != enforces_uniqueness<std::map<int, int>>::value) );
+    D_CT_CHECK( (allows_duplicates<std::set<int>>::value != DEnforcesUniqueness<std::set<int>>::value) );
+    D_CT_CHECK( (allows_duplicates<std::map<int, int>>::value != DEnforcesUniqueness<std::map<int, int>>::value) );
 
     return _ct_ok;
 }

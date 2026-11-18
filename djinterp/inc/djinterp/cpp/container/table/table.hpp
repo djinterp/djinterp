@@ -114,7 +114,7 @@ NS_DJINTERP
 // I.   is_table (detection trait)
 // ===========================================================================
 
-// table (fwd)
+// DTable (fwd)
 //   class: forward declaration for the detection trait below.
 template<typename    Type,
          typename    DifferenceType,
@@ -122,7 +122,7 @@ template<typename    Type,
          typename    Iterator,
          typename    ConstIterator,
          typename... Options>
-class table;
+class DTable;
 
 // is_table
 //   trait: true when Type (after stripping cv/ref) is a specialization of
@@ -139,7 +139,7 @@ NS_INTERNAL
              typename    I,
              typename    CI,
              typename... O>
-    struct is_table_impl<table<T, D, S, I, CI, O...>>
+    struct is_table_impl<DTable<T, D, S, I, CI, O...>>
         : std::true_type
     {};
 
@@ -161,7 +161,7 @@ inline constexpr bool is_table_v = is_table<Type>::value;
 // II.  table (class)
 // ===========================================================================
 
-// table
+// DTable
 //   class: a dynamic, fully-mutable rank-2 cell-homogeneous table, cells
 // stored row-major in a std::vector. Inherits the const surface from
 // table_base and
@@ -173,8 +173,8 @@ template<typename    Type,
          typename    Iterator        = Type*,
          typename    ConstIterator   = const Type*,
          typename... Options>
-class table
-    : public table_base<table<Type,
+class DTable
+    : public DTableBase<DTable<Type,
                               DifferenceType,
                               SizeType,
                               Iterator,
@@ -183,10 +183,10 @@ class table
                         Type,
                         SizeType,
                         DifferenceType>,
-      public options_container_base<Options...>
+      public DOptionsContainerBase<Options...>
 {
 private:
-    using base_type    = table_base<table,
+    using base_type    = DTableBase<DTable,
                                     Type,
                                     SizeType,
                                     DifferenceType>;
@@ -214,22 +214,22 @@ public:
     using row_iterator       = internal::row_cursor<Type>;
     using const_row_iterator = typename base_type::const_row_iterator;
 
-    static constexpr container_lifetime      lifetime      =
-        container_lifetime::mutable_storage;
+    static constexpr DContainerLifetime      lifetime      =
+        DContainerLifetime::mutable_storage;
     static constexpr DContainerStorageKind  storage_kind  =
         DContainerStorageKind::dynamic_storage;
-    static constexpr mutability              mutability_grade =
-        mutability::fully_mutable;
+    static constexpr DMutability              mutability_grade =
+        DMutability::fully_mutable;
     static constexpr DContainerOrdering      ordering      =
         DContainerOrdering::ordered;
     static constexpr DContainerBounds        bounds        =
         DContainerBounds::unbounded;
-    static constexpr container_iterability   iterability   =
-        container_iterability::iterable;
+    static constexpr DContainerIterability   iterability   =
+        DContainerIterability::iterable;
     static constexpr DContainerMultiplicity  multiplicity_grade =
         DContainerMultiplicity::multi;   // m = infinity; cells keyed by position
-    static constexpr container_structure     structure     =
-        container_structure::hierarchical;  // uniformly nested; depth = rank = 2
+    static constexpr DContainerStructure     structure     =
+        DContainerStructure::hierarchical;  // uniformly nested; depth = rank = 2
 
     // Iterability stage sub-axis: the row count is a runtime value, so neither
     // the cursor nor the values are compile-time-expressible (the "vector /
@@ -240,14 +240,14 @@ public:
     // --- 2. construction ---
 
     // default: an empty 0 x 0 table.
-    table()
+    DTable()
         : m_cells(),
           m_rows(0),
           m_cols(0)
     {}
 
     // dimensioned: a _rows x _cols table with every cell value-initialized.
-    table(
+    DTable(
         size_type _rows,
         size_type _cols
     )
@@ -258,7 +258,7 @@ public:
 
     // dimensioned + fill: a _rows x _cols table with every cell equal to
     // _value.
-    table(
+    DTable(
         size_type     _rows,
         size_type     _cols,
         const Type&  _value
@@ -271,7 +271,7 @@ public:
 
     // nested rows: table<int>{ {1,2,3}, {4,5,6} }. Every row must share the
     // first row's width, or the rectangular invariant is violated.
-    table(std::initializer_list<std::initializer_list<Type>> _rows)
+    DTable(std::initializer_list<std::initializer_list<Type>> _rows)
         : m_cells(),
           m_rows(0),
           m_cols(0)
@@ -296,16 +296,16 @@ public:
         }
     }
 
-    table(const table&)            = default;
-    table(table&&)                 = default;
-    table& operator=(const table&) = default;
-    table& operator=(table&&)      = default;
-    ~table()                       = default;
+    DTable(const DTable&)            = default;
+    DTable(DTable&&)                 = default;
+    DTable& operator=(const DTable&) = default;
+    DTable& operator=(DTable&&)      = default;
+    ~DTable()                       = default;
 
     // from_flat
     //   factory: adopts a row-major cell buffer, split into _rows x _cols. The
     // buffer size must equal _rows * _cols.
-    static table from_flat(
+    static DTable from_flat(
         storage_type _flat,
         size_type    _rows,
         size_type    _cols
@@ -319,7 +319,7 @@ public:
                 "table::from_flat: buffer size must equal _rows * _cols.");
         }
 
-        table t;
+        DTable t;
         t.m_cells = static_cast<storage_type&&>(_flat);
         t.m_rows  = _rows;
         t.m_cols  = _cols;
@@ -802,7 +802,7 @@ public:
 
     // swap
     //   exchanges the contents and shapes of two tables.
-    void swap(table& _other) noexcept
+    void swap(DTable& _other) noexcept
     {
         m_cells.swap(_other.m_cells);
 
@@ -832,7 +832,7 @@ public:
             return;
         }
 
-        const table& cself = *this;
+        const DTable& cself = *this;
 
         // build and stably sort a row-index permutation by the comparator
         std::vector<size_type> perm(static_cast<std::size_t>(m_rows));
@@ -878,7 +878,7 @@ public:
     // image elsewhere).
     template<typename Fn>
     D_NODISCARD
-    table<clean_t<decltype(std::declval<Fn&>()(std::declval<const Type&>()))>>
+    DTable<clean_t<decltype(std::declval<Fn&>()(std::declval<const Type&>()))>>
     map(Fn _fn) const
     {
         using mapped_cell =
@@ -893,7 +893,7 @@ public:
             out.push_back(_fn(cell));
         }
 
-        return table<mapped_cell>::from_flat(
+        return DTable<mapped_cell>::from_flat(
             static_cast<std::vector<mapped_cell>&&>(out), m_rows, m_cols);
     }
 
@@ -922,9 +922,9 @@ public:
     // closed; |result| <= |this|, and the constant-false predicate yields the
     // empty (0-row) table -- the one bound selection may break.
     template<typename Pred>
-    D_NODISCARD table filter_rows(Pred _pred) const
+    D_NODISCARD DTable filter_rows(Pred _pred) const
     {
-        table out;
+        DTable out;
 
         // gather the surviving rows into a fresh table (width adopted on first)
         for (size_type r = 0; r < m_rows; ++r)
@@ -948,7 +948,7 @@ public:
     template<typename Pred>
     void filter_rows_inplace(Pred _pred)
     {
-        const table& cself = *this;
+        const DTable& cself = *this;
 
         storage_type kept;
         size_type    kept_rows = 0;
@@ -1008,18 +1008,18 @@ public:
 
     template<DSerialEndian E,
              DSerialLength  L>
-    static DDecodeResult<table> decode_e(DByteReader& _reader)
+    static DDecodeResult<DTable> decode_e(DByteReader& _reader)
     {
         re_std::uint64_t _rr = 0;
         re_std::uint64_t _cc = 0;
 
         if (!internal::get_length<L, E>(_reader, _rr))
         {
-            return decode_failure<table>();
+            return decode_failure<DTable>();
         }
         if (!internal::get_length<L, E>(_reader, _cc))
         {
-            return decode_failure<table>();
+            return decode_failure<DTable>();
         }
 
         const std::size_t _rows  = static_cast<std::size_t>(_rr);
@@ -1035,13 +1035,13 @@ public:
         for (std::size_t i = 0; i < _count; ++i)
         {
             DDecodeResult<Type> _cell = decode_leaf<E, Type>(_reader);
-            if (!_cell.ok) { return decode_failure<table>(); }
+            if (!_cell.ok) { return decode_failure<DTable>(); }
 
             _cells.push_back(static_cast<Type&&>(_cell.value));
         }
 
         return decode_success(
-            table::from_flat(static_cast<storage_type&&>(_cells),
+            DTable::from_flat(static_cast<storage_type&&>(_cells),
                              static_cast<size_type>(_rows),
                              static_cast<size_type>(_cols)));
     }
@@ -1060,7 +1060,7 @@ public:
         return;
     }
 
-    static DDecodeResult<table> decode(DByteReader& _reader)
+    static DDecodeResult<DTable> decode(DByteReader& _reader)
     {
         return decode_e<DSerialEndian::big, DSerialLength::u64>(_reader);
     }
@@ -1095,6 +1095,15 @@ private:
     size_type    m_cols;    // extent along coordinate 2 (m_2 + 1)
 };
 
+// old name, until 0.9.0-rc.1
+template<typename    Type,
+         typename    DifferenceType = std::ptrdiff_t,
+         typename    SizeType        = std::size_t,
+         typename    Iterator        = Type*,
+         typename    ConstIterator   = const Type*,
+         typename... Options>
+using table = DTable<Type, DifferenceType, SizeType, Iterator, ConstIterator, Options...>;
+
 
 // ---------------------------------------------------------------------------
 // axis conformance -- the framework's classifiers must agree with the declared
@@ -1102,41 +1111,44 @@ private:
 // ---------------------------------------------------------------------------
 namespace table_axis_conformance
 {
-    using table_probe = table<int>;
+    using DTableProbe = DTable<int>;
+
+    // old name, until 0.9.0-rc.1
+    using table_probe = DTableProbe;
 
     // Iterability: iterable, and non-const (fully mutable -> settable cursor).
-    static_assert(is_iterable_container_v<table_probe>,
+    static_assert(is_iterable_container_v<DTableProbe>,
                   "table must classify as iterable.");
-    static_assert(iteration_mode_of<table_probe>::value
-                      == iteration_mode::non_const,
+    static_assert(iteration_mode_of<DTableProbe>::value
+                      == DIterationMode::non_const,
                   "table iteration must be non-const (fully mutable).");
 
     // Boundedness: no fixed cap (capacity() is spare room, reserve() grows) ->
     // unbounded.
-    static_assert(is_unbounded_container_v<table_probe>,
+    static_assert(is_unbounded_container_v<DTableProbe>,
                   "table must classify as unbounded.");
-    static_assert(!is_bounded_container_v<table_probe>,
+    static_assert(!is_bounded_container_v<DTableProbe>,
                   "table must not classify as bounded.");
 
     // Multiplicity: comparator-less, position-keyed -> sequence (m = infinity).
-    static_assert(multiplicity_kind_of<table_probe>::value
-                      == multiplicity_kind::sequence,
+    static_assert(multiplicity_kind_of<DTableProbe>::value
+                      == DMultiplicityKind::sequence,
                   "table must classify as a sequence (m = infinity).");
 
     // Sortedness / Ordering: ordered, and order-dependent (not sorted in
     // itself).
-    static_assert(is_ordered_container_v<table_probe>,
+    static_assert(is_ordered_container_v<DTableProbe>,
                   "table must classify as ordered.");
-    static_assert(sortedness_of<table_probe>::value
-                      == sortedness::order_dependent,
+    static_assert(sortedness_of<DTableProbe>::value
+                      == DSortedness::order_dependent,
                   "table must classify as order-dependent (unsorted).");
 
     // Structure: uniformly nested (rank-2) -> hierarchical.
-    static_assert(is_hierarchical_container_v<table_probe>,
+    static_assert(is_hierarchical_container_v<DTableProbe>,
                   "table must classify as hierarchical (uniformly nested).");
-    static_assert(!is_flat_container_v<table_probe>,
+    static_assert(!is_flat_container_v<DTableProbe>,
                   "table must not classify as flat.");
-    static_assert(structure_kind_of<table_probe>::value
+    static_assert(structure_kind_of<DTableProbe>::value
                       == DStructureKind::hierarchical,
                   "table structure_kind must be hierarchical.");
 
@@ -1164,8 +1176,8 @@ template<typename    Type,
          typename    CI,
          typename... O>
 D_NODISCARD bool operator==(
-    const table<Type, D, S, I, CI, O...>& _a,
-    const table<Type, D, S, I, CI, O...>& _b
+    const DTable<Type, D, S, I, CI, O...>& _a,
+    const DTable<Type, D, S, I, CI, O...>& _b
 )
 {
     return _a.content_equals(_b);
@@ -1178,8 +1190,8 @@ template<typename    Type,
          typename    CI,
          typename... O>
 D_NODISCARD bool operator!=(
-    const table<Type, D, S, I, CI, O...>& _a,
-    const table<Type, D, S, I, CI, O...>& _b
+    const DTable<Type, D, S, I, CI, O...>& _a,
+    const DTable<Type, D, S, I, CI, O...>& _b
 )
 {
     return !(_a == _b);
@@ -1194,8 +1206,8 @@ template<typename    Type,
          typename    CI,
          typename... O>
 void swap(
-    table<Type, D, S, I, CI, O...>& _a,
-    table<Type, D, S, I, CI, O...>& _b
+    DTable<Type, D, S, I, CI, O...>& _a,
+    DTable<Type, D, S, I, CI, O...>& _b
 ) noexcept
 {
     _a.swap(_b);
@@ -1213,12 +1225,12 @@ void swap(
 // per-row cells are preserved; the row order carries over unchanged.
 template<typename Src,
          typename Pred>
-D_NODISCARD table<typename Src::element_type> select_rows(
+D_NODISCARD DTable<typename Src::element_type> select_rows(
     const Src& _src,
     Pred       _pred
 )
 {
-    table<typename Src::element_type> out;
+    DTable<typename Src::element_type> out;
 
     using src_size = typename Src::size_type;
 

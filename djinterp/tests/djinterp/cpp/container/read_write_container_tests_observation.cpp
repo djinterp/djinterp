@@ -40,25 +40,25 @@ tests_read_write_size_and_empty
 */
 bool tests_read_write_size_and_empty()
 {
-    const dj::read_write_container<std::vector<int> > h(rw_sample());
+    const dj::DReadWriteContainer<std::vector<int> > h(rw_sample());
 
     D_RW_CHECK(h.size() == 4u);
     D_RW_CHECK(!h.empty());
     D_RW_CHECK(h.empty() == (h.size() == 0u));
 
-    const dj::read_write_container<std::vector<int> > e;
+    const dj::DReadWriteContainer<std::vector<int> > e;
 
     D_RW_CHECK(e.size() == 0u);
     D_RW_CHECK(e.empty());
 
     // a node container, where size is not a pointer subtraction
-    const dj::read_write_container<std::list<int> > l(std::size_t(3), 9);
+    const dj::DReadWriteContainer<std::list<int> > l(std::size_t(3), 9);
 
     D_RW_CHECK(l.size() == 3u);
     D_RW_CHECK(!l.empty());
 
     // a fixed-size container reports its own size
-    const dj::read_write_container<std::array<int, 2> > a;
+    const dj::DReadWriteContainer<std::array<int, 2> > a;
 
     D_RW_CHECK(a.size() == 2u);
     D_RW_CHECK(!a.empty());
@@ -78,7 +78,7 @@ tests_read_write_const_subscript_reads
 bool tests_read_write_const_subscript_reads()
 {
     const std::vector<int>                            src = rw_sample();
-    const dj::read_write_container<std::vector<int> > h(src);
+    const dj::DReadWriteContainer<std::vector<int> > h(src);
 
     D_RW_CHECK(h[0] == 11);
     D_RW_CHECK(h[1] == 22);
@@ -116,7 +116,7 @@ tests_read_write_const_front_and_back
 */
 bool tests_read_write_const_front_and_back()
 {
-    const dj::read_write_container<std::vector<int> > h(rw_sample());
+    const dj::DReadWriteContainer<std::vector<int> > h(rw_sample());
 
     D_RW_CHECK(h.front() == 11);
     D_RW_CHECK(h.back() == 44);
@@ -128,7 +128,7 @@ bool tests_read_write_const_front_and_back()
     D_RW_CHECK(rw_const_result<decltype(h.back())>::value);
 
     // a node container has both without a subscript
-    const dj::read_write_container<std::list<int> > l(std::size_t(2), 3);
+    const dj::DReadWriteContainer<std::list<int> > l(std::size_t(2), 3);
 
     D_RW_CHECK(l.front() == 3);
     D_RW_CHECK(l.back() == 3);
@@ -149,7 +149,7 @@ tests_read_write_const_data_and_iteration
 bool tests_read_write_const_data_and_iteration()
 {
     const std::vector<int>                            src = rw_sample();
-    const dj::read_write_container<std::vector<int> > h(src);
+    const dj::DReadWriteContainer<std::vector<int> > h(src);
 
     D_RW_CHECK(h.data() != 0);
     D_RW_CHECK(*h.data() == 11);
@@ -179,7 +179,7 @@ bool tests_read_write_const_data_and_iteration()
                              std::vector<int>::const_iterator>::value));
 
     // an empty handle yields an empty range
-    const dj::read_write_container<std::vector<int> > e;
+    const dj::DReadWriteContainer<std::vector<int> > e;
 
     D_RW_CHECK(e.begin() == e.end());
 
@@ -197,7 +197,7 @@ tests_read_write_cbegin_cend_are_const
 */
 bool tests_read_write_cbegin_cend_are_const()
 {
-    dj::read_write_container<std::vector<int> > h(rw_sample());
+    dj::DReadWriteContainer<std::vector<int> > h(rw_sample());
 
     // const iterators from a non-const handle
     D_RW_CHECK((std::is_same<decltype(h.cbegin()),
@@ -224,7 +224,7 @@ bool tests_read_write_cbegin_cend_are_const()
     D_RW_CHECK(*h.cbegin() == h.front());
 
     // empty
-    dj::read_write_container<std::vector<int> > e;
+    dj::DReadWriteContainer<std::vector<int> > e;
 
     D_RW_CHECK(e.cbegin() == e.cend());
 
@@ -242,9 +242,9 @@ tests_read_write_const_handle_keeps_observers
 */
 bool tests_read_write_const_handle_keeps_observers()
 {
-    dj::read_write_container<std::vector<int> >        mutable_handle(
+    dj::DReadWriteContainer<std::vector<int> >        mutable_handle(
         rw_sample());
-    const dj::read_write_container<std::vector<int> >& h = mutable_handle;
+    const dj::DReadWriteContainer<std::vector<int> >& h = mutable_handle;
 
     // the whole observing surface answers
     D_RW_CHECK(h.size() == 4u);
@@ -262,7 +262,7 @@ bool tests_read_write_const_handle_keeps_observers()
     D_RW_CHECK(h.data() == mutable_handle.data());
 
     // a const handle offers no mutating member
-    typedef const dj::read_write_container<std::vector<int> > const_handle;
+    typedef const dj::DReadWriteContainer<std::vector<int> > const_handle;
 
     D_RW_CHECK(!rw_has_push_back<const_handle>::value);
     D_RW_CHECK(!rw_has_clear<const_handle>::value);
@@ -270,7 +270,7 @@ bool tests_read_write_const_handle_keeps_observers()
     D_RW_CHECK(!rw_has_resize<const_handle>::value);
 
     // while the non-const one does
-    typedef dj::read_write_container<std::vector<int> > handle;
+    typedef dj::DReadWriteContainer<std::vector<int> > handle;
 
     D_RW_CHECK(rw_has_push_back<handle>::value);
     D_RW_CHECK(rw_has_clear<handle>::value);
@@ -288,7 +288,7 @@ tests_read_write_observers_track_mutations
 */
 bool tests_read_write_observers_track_mutations()
 {
-    dj::read_write_container<std::vector<int> > h;
+    dj::DReadWriteContainer<std::vector<int> > h;
 
     D_RW_CHECK(h.empty());
     D_RW_CHECK(h.size() == 0u);

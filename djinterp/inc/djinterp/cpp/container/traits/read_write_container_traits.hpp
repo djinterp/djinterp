@@ -339,10 +339,10 @@ NS_END  // internal
 // II.  Capability classification
 // ===========================================================================
 
-// access_capability
+// DAccessCapability
 //   enum: a type's position on the access axis - the capability a handle
 // grants.
-enum class access_capability
+enum class DAccessCapability
 {
     none,        // neither observable nor mutable (not access-classifiable)
     read_only,   // observation only
@@ -350,16 +350,19 @@ enum class access_capability
     read_write   // both observation and mutation
 };
 
+// old name, until 0.9.0-rc.1
+using access_capability = DAccessCapability;
+
 // access_capability_name
 //   function: a stable spelling, for diagnostics and agent-facing summaries.
 constexpr
 const char* access_capability_name(
-    access_capability _c
+    DAccessCapability _c
 ) noexcept
 {
-    return ( _c == access_capability::none       ? "none"
-           : _c == access_capability::read_only  ? "read_only"
-           : _c == access_capability::write_only ? "write_only"
+    return ( _c == DAccessCapability::none       ? "none"
+           : _c == DAccessCapability::read_only  ? "read_only"
+           : _c == DAccessCapability::write_only ? "write_only"
            :                                       "read_write" );
 }
 
@@ -367,15 +370,15 @@ const char* access_capability_name(
 //   function: the (can_read, can_write) -> capability mapping, shared by the
 // classifier and the aggregate.
 constexpr
-access_capability access_capability_from_bits(
+DAccessCapability access_capability_from_bits(
     bool _can_read,
     bool _can_write
 ) noexcept
 {
-    return ( _can_read && _can_write ? access_capability::read_write
-           : _can_read               ? access_capability::read_only
-           : _can_write              ? access_capability::write_only
-           :                           access_capability::none );
+    return ( _can_read && _can_write ? DAccessCapability::read_write
+           : _can_read               ? DAccessCapability::read_only
+           : _can_write              ? DAccessCapability::write_only
+           :                           DAccessCapability::none );
 }
 
 // access_capability_of
@@ -397,10 +400,10 @@ public:
     static constexpr bool has_capability_tag =
         internal::has_capability_bits_helper<clean_type>::value;
 
-    static constexpr access_capability value =
+    static constexpr DAccessCapability value =
         access_capability_from_bits(can_read, can_write);
 
-    using type = std::integral_constant<access_capability, value>;
+    using type = std::integral_constant<DAccessCapability, value>;
 };
 
 // access_capability_of_t / access_capability_of_v
@@ -411,11 +414,11 @@ using access_capability_of_t = typename access_capability_of<Type>::type;
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename Type>
-    inline constexpr access_capability access_capability_of_v =
+    inline constexpr DAccessCapability access_capability_of_v =
         access_capability_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    constexpr access_capability access_capability_of_v =
+    constexpr DAccessCapability access_capability_of_v =
         access_capability_of<Type>::value;
 #endif
 
@@ -431,7 +434,7 @@ template<typename Type>
 struct is_read_write_container
     : std::integral_constant<bool,
           access_capability_of<clean_t<Type>>::value
-              == access_capability::read_write>
+              == DAccessCapability::read_write>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_read_write_container)
@@ -444,28 +447,28 @@ D_TYPE_TRAIT_VALUE_BOOL(is_read_write_container)
 NS_INTERNAL
 
     template<typename Type,
-             access_capability K = access_capability_of<clean_t<Type>>::value>
+             DAccessCapability K = access_capability_of<clean_t<Type>>::value>
     struct access_tag_dispatch
     {
         using type = void;
     };
 
     template<typename Type>
-    struct access_tag_dispatch<Type, access_capability::read_only>
+    struct access_tag_dispatch<Type, DAccessCapability::read_only>
     {
-        using type = read_only;
+        using type = DReadOnly;
     };
 
     template<typename Type>
-    struct access_tag_dispatch<Type, access_capability::write_only>
+    struct access_tag_dispatch<Type, DAccessCapability::write_only>
     {
-        using type = write_only;
+        using type = DWriteOnly;
     };
 
     template<typename Type>
-    struct access_tag_dispatch<Type, access_capability::read_write>
+    struct access_tag_dispatch<Type, DAccessCapability::read_write>
     {
-        using type = read_write;
+        using type = DReadWrite;
     };
 
 NS_END  // internal
@@ -501,17 +504,17 @@ public:
     static constexpr bool has_capability_tag =
         access_capability_of<clean_type>::has_capability_tag;
 
-    static constexpr access_capability kind =
+    static constexpr DAccessCapability kind =
         access_capability_of<clean_type>::value;
     static constexpr const char* kind_name =
         access_capability_name(kind);
 
     static constexpr bool is_read_only =
-        kind == access_capability::read_only;
+        kind == DAccessCapability::read_only;
     static constexpr bool is_write_only =
-        kind == access_capability::write_only;
+        kind == DAccessCapability::write_only;
     static constexpr bool is_read_write =
-        kind == access_capability::read_write;
+        kind == DAccessCapability::read_write;
 };
 
 

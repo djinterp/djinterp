@@ -31,15 +31,15 @@ bool tests_encode_medium_types()
     D_EN_CHECK(!std::is_signed<byte>::value);
 
     // byte_string: the concrete B* - a growable run of bytes
-    D_EN_CHECK((std::is_same<byte_string, std::vector<byte>>::value));
+    D_EN_CHECK((std::is_same<DByteString, std::vector<byte>>::value));
 
     // encode_length_type: the width-fixed unsigned leading count
-    D_EN_CHECK((std::is_same<encode_length_type, re_std::uint64_t>::value));
-    D_EN_CHECK(sizeof(encode_length_type) == 8);
-    D_EN_CHECK(!std::is_signed<encode_length_type>::value);
+    D_EN_CHECK((std::is_same<DEncodeLengthType, re_std::uint64_t>::value));
+    D_EN_CHECK(sizeof(DEncodeLengthType) == 8);
+    D_EN_CHECK(!std::is_signed<DEncodeLengthType>::value);
 
     // a byte_string carries byte values in order
-    byte_string _b;
+    DByteString _b;
     _b.push_back(static_cast<byte>(0x01));
     _b.push_back(static_cast<byte>(0xFE));
     D_EN_CHECK(_b.size() == 2);

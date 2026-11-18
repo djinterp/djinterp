@@ -27,14 +27,14 @@ bool tests_decode_options_get_uint()
 {
     // big-endian
     {
-        const byte_string _b = { 0x12, 0x34 };
+        const DByteString _b = { 0x12, 0x34 };
         DByteReader _r(_b);
         re_std::uint64_t _v = 0;
         D_DO_CHECK(djinterp::internal::get_uint<DSerialEndian::big>(_r, 2, _v));
         D_DO_CHECK(_v == 0x1234u);
     }
     {
-        const byte_string _b = { 0xDE, 0xAD, 0xBE, 0xEF };
+        const DByteString _b = { 0xDE, 0xAD, 0xBE, 0xEF };
         DByteReader _r(_b);
         re_std::uint64_t _v = 0;
         D_DO_CHECK(djinterp::internal::get_uint<DSerialEndian::big>(_r, 4, _v));
@@ -42,14 +42,14 @@ bool tests_decode_options_get_uint()
     }
     // little-endian
     {
-        const byte_string _b = { 0x34, 0x12 };
+        const DByteString _b = { 0x34, 0x12 };
         DByteReader _r(_b);
         re_std::uint64_t _v = 0;
         D_DO_CHECK(djinterp::internal::get_uint<DSerialEndian::little>(_r, 2, _v));
         D_DO_CHECK(_v == 0x1234u);
     }
     {
-        const byte_string _b = { 0xEF, 0xBE, 0xAD, 0xDE };
+        const DByteString _b = { 0xEF, 0xBE, 0xAD, 0xDE };
         DByteReader _r(_b);
         re_std::uint64_t _v = 0;
         D_DO_CHECK(djinterp::internal::get_uint<DSerialEndian::little>(_r, 4, _v));
@@ -57,14 +57,14 @@ bool tests_decode_options_get_uint()
     }
     // width 1 identical, width 8 both orders
     {
-        const byte_string _b = { 0x2A };
+        const DByteString _b = { 0x2A };
         DByteReader _r(_b);
         re_std::uint64_t _v = 0;
         D_DO_CHECK(djinterp::internal::get_uint<DSerialEndian::little>(_r, 1, _v));
         D_DO_CHECK(_v == 0x2Au);
     }
     {
-        const byte_string _b =
+        const DByteString _b =
             { 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01 };
         DByteReader _r(_b);
         re_std::uint64_t _v = 0;
@@ -73,7 +73,7 @@ bool tests_decode_options_get_uint()
     }
     // width > 8: refused, reader good and unconsumed
     {
-        const byte_string _b =
+        const DByteString _b =
             { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09 };
         DByteReader _r(_b);
         re_std::uint64_t _v = 0;
@@ -83,7 +83,7 @@ bool tests_decode_options_get_uint()
     }
     // underflow: bad reader
     {
-        const byte_string _b = { 0x01, 0x02 };
+        const DByteString _b = { 0x01, 0x02 };
         DByteReader _r(_b);
         re_std::uint64_t _v = 0;
         D_DO_CHECK(!djinterp::internal::get_uint<DSerialEndian::little>(_r, 4, _v));
@@ -104,7 +104,7 @@ tests_decode_options_get_varint
 */
 bool tests_decode_options_get_varint()
 {
-    struct case_t { byte_string bytes; re_std::uint64_t value; };
+    struct case_t { DByteString bytes; re_std::uint64_t value; };
     const case_t _cases[] =
     {
         { { 0x00 }, 0u },
@@ -126,14 +126,14 @@ bool tests_decode_options_get_varint()
 
     // truncated: a lone continuation byte has no successor
     {
-        const byte_string _b = { 0x80 };
+        const DByteString _b = { 0x80 };
         DByteReader _r(_b);
         re_std::uint64_t _v = 0;
         D_DO_CHECK(!djinterp::internal::get_varint(_r, _v));
     }
     // overlong: ten continuation groups overrun the 64-bit budget
     {
-        const byte_string _b =
+        const DByteString _b =
             { 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80 };
         DByteReader _r(_b);
         re_std::uint64_t _v = 0;
@@ -156,21 +156,21 @@ bool tests_decode_options_get_length()
 {
     // fixed widths, big-endian
     {
-        const byte_string _b = { 0x00, 0x05 };
+        const DByteString _b = { 0x00, 0x05 };
         DByteReader _r(_b);
         re_std::uint64_t _v = 0;
         D_DO_CHECK((djinterp::internal::get_length<DSerialLength::u16, DSerialEndian::big>(_r, _v)));
         D_DO_CHECK(_v == 5u);
     }
     {
-        const byte_string _b = { 0x00, 0x00, 0x00, 0x05 };
+        const DByteString _b = { 0x00, 0x00, 0x00, 0x05 };
         DByteReader _r(_b);
         re_std::uint64_t _v = 0;
         D_DO_CHECK((djinterp::internal::get_length<DSerialLength::u32, DSerialEndian::big>(_r, _v)));
         D_DO_CHECK(_v == 5u);
     }
     {
-        const byte_string _b =
+        const DByteString _b =
             { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05 };
         DByteReader _r(_b);
         re_std::uint64_t _v = 0;
@@ -179,7 +179,7 @@ bool tests_decode_options_get_length()
     }
     // fixed width honours byte order
     {
-        const byte_string _b = { 0x05, 0x00 };
+        const DByteString _b = { 0x05, 0x00 };
         DByteReader _r(_b);
         re_std::uint64_t _v = 0;
         D_DO_CHECK((djinterp::internal::get_length<DSerialLength::u16, DSerialEndian::little>(_r, _v)));
@@ -187,7 +187,7 @@ bool tests_decode_options_get_length()
     }
     // varint self-delimits, order-independent
     {
-        const byte_string _b = { 0xAC, 0x02 };
+        const DByteString _b = { 0xAC, 0x02 };
         DByteReader _r(_b);
         re_std::uint64_t _v = 0;
         D_DO_CHECK((djinterp::internal::get_length<DSerialLength::varint, DSerialEndian::big>(_r, _v)));
@@ -195,7 +195,7 @@ bool tests_decode_options_get_length()
     }
     // truncated fixed width fails
     {
-        const byte_string _b = { 0x00 };  // u16 needs two bytes
+        const DByteString _b = { 0x00 };  // u16 needs two bytes
         DByteReader _r(_b);
         re_std::uint64_t _v = 0;
         D_DO_CHECK((!djinterp::internal::get_length<DSerialLength::u16, DSerialEndian::big>(_r, _v)));

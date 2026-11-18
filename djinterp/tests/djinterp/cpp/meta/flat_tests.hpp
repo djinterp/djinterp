@@ -10,7 +10,7 @@
 *       flat_spec(), the module -> block -> test description.
 *
 *   WHAT IS UNDER TEST.  flat.hpp defines exactly one type: the empty tag
-* `flat`, the structure-axis marker for a type that holds only leaves
+* `DFlat`, the structure-axis marker for a type that holds only leaves
 * (depth 1, no node summand).  Its entire observable surface is three
 * compile-time constants/functions:
 *     static constexpr bool        nests     = false;
@@ -25,7 +25,7 @@
 *   WHY nests IS THE POINT.  The structure traits read a tag through its `nests`
 * bit; for flat that bit is false, asserting leaf-ness where only a weak
 * heuristic (a value_type) would otherwise read as nested.  So
-* `flat::nests == false` and `flat::min_depth == 1` are the load-bearing facts,
+* `DFlat::nests == false` and `DFlat::min_depth == 1` are the load-bearing facts,
 * pinned here as constants the traits can consult.
 *
 *   BUILD PREREQUISITE: none.  flat.hpp compiles as shipped (C++11 baseline).

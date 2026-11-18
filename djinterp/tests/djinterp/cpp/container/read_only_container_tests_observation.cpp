@@ -40,27 +40,27 @@ tests_read_only_size_and_empty
 */
 bool tests_read_only_size_and_empty()
 {
-    const dj::read_only_container<std::vector<int> > h(ro_sample());
+    const dj::DReadOnlyContainer<std::vector<int> > h(ro_sample());
 
     D_RO_CHECK(h.size() == 4u);
     D_RO_CHECK(!h.empty());
     D_RO_CHECK(h.empty() == (h.size() == 0u));
 
     // an empty container
-    const dj::read_only_container<std::vector<int> > e;
+    const dj::DReadOnlyContainer<std::vector<int> > e;
 
     D_RO_CHECK(e.size() == 0u);
     D_RO_CHECK(e.empty());
     D_RO_CHECK(e.empty() == (e.size() == 0u));
 
     // a single element
-    const dj::read_only_container<std::vector<int> > one(std::size_t(1), 5);
+    const dj::DReadOnlyContainer<std::vector<int> > one(std::size_t(1), 5);
 
     D_RO_CHECK(one.size() == 1u);
     D_RO_CHECK(!one.empty());
 
     // and a node container, where size is not a pointer subtraction
-    const dj::read_only_container<std::list<int> > l(std::size_t(3), 9);
+    const dj::DReadOnlyContainer<std::list<int> > l(std::size_t(3), 9);
 
     D_RO_CHECK(l.size() == 3u);
     D_RO_CHECK(!l.empty());
@@ -79,7 +79,7 @@ tests_read_only_subscript_reads_elements
 bool tests_read_only_subscript_reads_elements()
 {
     const std::vector<int>                           src = ro_sample();
-    const dj::read_only_container<std::vector<int> > h(src);
+    const dj::DReadOnlyContainer<std::vector<int> > h(src);
 
     D_RO_CHECK(h[0] == 11);
     D_RO_CHECK(h[1] == 22);
@@ -105,7 +105,7 @@ bool tests_read_only_subscript_reads_elements()
     D_RO_CHECK(h[2] == 33);
 
     // and the same holds for a character container
-    const dj::read_only_container<std::string> s(std::string("abc"));
+    const dj::DReadOnlyContainer<std::string> s(std::string("abc"));
 
     D_RO_CHECK(s[0] == 'a');
     D_RO_CHECK(s[2] == 'c');
@@ -123,7 +123,7 @@ tests_read_only_front_and_back
 */
 bool tests_read_only_front_and_back()
 {
-    const dj::read_only_container<std::vector<int> > h(ro_sample());
+    const dj::DReadOnlyContainer<std::vector<int> > h(ro_sample());
 
     D_RO_CHECK(h.front() == 11);
     D_RO_CHECK(h.back() == 44);
@@ -135,14 +135,14 @@ bool tests_read_only_front_and_back()
     D_RO_CHECK(&h.back() == &h[3]);
 
     // one element: front and back coincide
-    const dj::read_only_container<std::vector<int> > one(std::size_t(1), 7);
+    const dj::DReadOnlyContainer<std::vector<int> > one(std::size_t(1), 7);
 
     D_RO_CHECK(one.front() == 7);
     D_RO_CHECK(one.back() == 7);
     D_RO_CHECK(&one.front() == &one.back());
 
     // a node container has front and back but no subscript
-    const dj::read_only_container<std::list<int> > l(std::size_t(2), 3);
+    const dj::DReadOnlyContainer<std::list<int> > l(std::size_t(2), 3);
 
     D_RO_CHECK(l.front() == 3);
     D_RO_CHECK(l.back() == 3);
@@ -163,7 +163,7 @@ bool tests_read_only_data_addresses_storage()
 {
     std::vector<int> src = ro_sample();
 
-    const dj::read_only_container<std::vector<int> > h(src);
+    const dj::DReadOnlyContainer<std::vector<int> > h(src);
 
     D_RO_CHECK(h.data() != 0);
     D_RO_CHECK(*h.data() == 11);
@@ -181,7 +181,7 @@ bool tests_read_only_data_addresses_storage()
     D_RO_CHECK(h.data() != src.data());
 
     // a character container's data spans its characters
-    const dj::read_only_container<std::string> s(std::string("xyz"));
+    const dj::DReadOnlyContainer<std::string> s(std::string("xyz"));
 
     D_RO_CHECK(s.data()[0] == 'x');
     D_RO_CHECK(s.data()[2] == 'z');
@@ -200,7 +200,7 @@ tests_read_only_iteration_visits_elements
 bool tests_read_only_iteration_visits_elements()
 {
     const std::vector<int>                           src = ro_sample();
-    const dj::read_only_container<std::vector<int> > h(src);
+    const dj::DReadOnlyContainer<std::vector<int> > h(src);
 
     std::size_t                                 n = 0;
     std::vector<int>::const_iterator            it;
@@ -225,7 +225,7 @@ bool tests_read_only_iteration_visits_elements()
     D_RO_CHECK(*h.begin() == h.front());
 
     // a node container iterates too
-    const dj::read_only_container<std::list<int> > l(std::size_t(3), 8);
+    const dj::DReadOnlyContainer<std::list<int> > l(std::size_t(3), 8);
     std::size_t                                    ln = 0;
     std::list<int>::const_iterator                 lit;
 
@@ -250,7 +250,7 @@ tests_read_only_cbegin_cend_match_begin_end
 */
 bool tests_read_only_cbegin_cend_match_begin_end()
 {
-    const dj::read_only_container<std::vector<int> > h(ro_sample());
+    const dj::DReadOnlyContainer<std::vector<int> > h(ro_sample());
 
     D_RO_CHECK(h.cbegin() == h.begin());
     D_RO_CHECK(h.cend() == h.end());
@@ -268,7 +268,7 @@ bool tests_read_only_cbegin_cend_match_begin_end()
     D_RO_CHECK(n == h.size());
 
     // on an empty container both ranges are empty
-    const dj::read_only_container<std::vector<int> > e;
+    const dj::DReadOnlyContainer<std::vector<int> > e;
 
     D_RO_CHECK(e.cbegin() == e.cend());
     D_RO_CHECK(e.begin() == e.end());
@@ -287,9 +287,9 @@ tests_read_only_observers_work_on_const_handle
 */
 bool tests_read_only_observers_work_on_const_handle()
 {
-    dj::read_only_container<std::vector<int> >        mutable_handle(
+    dj::DReadOnlyContainer<std::vector<int> >        mutable_handle(
         ro_sample());
-    const dj::read_only_container<std::vector<int> >& h = mutable_handle;
+    const dj::DReadOnlyContainer<std::vector<int> >& h = mutable_handle;
 
     // all ten observers, on a const handle
     D_RO_CHECK(h.size() == 4u);
@@ -322,7 +322,7 @@ tests_read_only_observes_an_empty_container
 */
 bool tests_read_only_observes_an_empty_container()
 {
-    const dj::read_only_container<std::vector<int> > e;
+    const dj::DReadOnlyContainer<std::vector<int> > e;
 
     D_RO_CHECK(e.size() == 0u);
     D_RO_CHECK(e.empty());
@@ -341,15 +341,15 @@ bool tests_read_only_observes_an_empty_container()
     D_RO_CHECK(n == 0u);
 
     // explicitly emptied sources behave the same way
-    const dj::read_only_container<std::vector<int> > z(
+    const dj::DReadOnlyContainer<std::vector<int> > z(
         std::size_t(0), 0);
 
     D_RO_CHECK(z.empty());
     D_RO_CHECK(z.begin() == z.end());
 
     // as does an empty string and an empty list
-    const dj::read_only_container<std::string>     s;
-    const dj::read_only_container<std::list<int> > l;
+    const dj::DReadOnlyContainer<std::string>     s;
+    const dj::DReadOnlyContainer<std::list<int> > l;
 
     D_RO_CHECK(s.empty());
     D_RO_CHECK(l.empty());
@@ -375,7 +375,7 @@ bool tests_read_only_forwards_element_values_faithfully()
     src.push_back(2147483647);
     src.push_back(-2147483647 - 1);
 
-    const dj::read_only_container<std::vector<int> > h(src);
+    const dj::DReadOnlyContainer<std::vector<int> > h(src);
 
     D_RO_CHECK(h[0] == 0);
     D_RO_CHECK(h[1] == -1);
@@ -388,7 +388,7 @@ bool tests_read_only_forwards_element_values_faithfully()
     objs.push_back(ro_probe_type(7, 'q'));
     objs.push_back(ro_probe_type(-3, 'z'));
 
-    const dj::read_only_container<std::vector<ro_probe_type> > oh(objs);
+    const dj::DReadOnlyContainer<std::vector<ro_probe_type> > oh(objs);
 
     D_RO_CHECK(oh.size() == 2u);
     D_RO_CHECK(oh[0].a == 7);
@@ -404,7 +404,7 @@ bool tests_read_only_forwards_element_values_faithfully()
     text.push_back('\0');
     text.push_back('b');
 
-    const dj::read_only_container<std::string> s(text);
+    const dj::DReadOnlyContainer<std::string> s(text);
 
     D_RO_CHECK(s.size() == 3u);
     D_RO_CHECK(s[0] == 'a');

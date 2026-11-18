@@ -102,14 +102,14 @@ struct sig_decompose<Ret(Args...)>
 //   delegate and event do NOT use this - they have cheaper disconnect
 // mechanisms (null the pointer, index-based clear).
 
-// connection
+// DConnection
 //   Handle to a single observer-slot attachment.
-class connection
+class DConnection
 {
 public:
-    connection() = default;
+    DConnection() = default;
 
-    explicit connection(std::shared_ptr<bool> alive)
+    explicit DConnection(std::shared_ptr<bool> alive)
         : alive_(std::move(alive))
     {}
 
@@ -137,25 +137,28 @@ private:
     std::shared_ptr<bool> alive_;
 };
 
-// scoped_connection
+// old name, until 0.9.0-rc.1
+using connection = DConnection;
+
+// DScopedConnection
 //   RAII wrapper.  Disconnects on destruction.  Move-only.
-class scoped_connection
+class DScopedConnection
 {
 public:
-    scoped_connection() = default;
+    DScopedConnection() = default;
 
-    /*implicit*/ scoped_connection(connection c)
+    /*implicit*/ DScopedConnection(DConnection c)
         : conn_(std::move(c))
     {}
 
-    ~scoped_connection() { conn_.disconnect(); }
+    ~DScopedConnection() { conn_.disconnect(); }
 
     // move
-    scoped_connection(scoped_connection&& o) noexcept
+    DScopedConnection(DScopedConnection&& o) noexcept
         : conn_(std::move(o.conn_))
     {}
 
-    scoped_connection& operator=(scoped_connection&& o) noexcept
+    DScopedConnection& operator=(DScopedConnection&& o) noexcept
     {
         if (this != &o) {
             conn_.disconnect();
@@ -165,11 +168,11 @@ public:
     }
 
     // no copy
-    scoped_connection(
-        const scoped_connection&
+    DScopedConnection(
+        const DScopedConnection&
     ) = delete;
-    scoped_connection& operator=(
-        const scoped_connection&
+    DScopedConnection& operator=(
+        const DScopedConnection&
     ) = delete;
 
     void disconnect() { conn_.disconnect(); }
@@ -178,28 +181,31 @@ public:
     // release
     //   Surrender ownership - the slot remains live, but this guard
     // will no longer disconnect it on destruction.
-    connection release() noexcept
+    DConnection release() noexcept
     {
-        connection c = std::move(conn_);
-        conn_ = connection{};
+        DConnection c = std::move(conn_);
+        conn_ = DConnection{};
         return c;
     }
 
 private:
-    connection conn_;
+    DConnection conn_;
 };
 
-// scoped_connections
+// old name, until 0.9.0-rc.1
+using scoped_connection = DScopedConnection;
+
+// DScopedConnections
 //   Holds multiple connections; disconnects all on destruction.
-class scoped_connections
+class DScopedConnections
 {
 public:
-    ~scoped_connections() { disconnect_all(); }
+    ~DScopedConnections() { disconnect_all(); }
 
-    void add(connection c) { conns_.push_back(std::move(c)); }
+    void add(DConnection c) { conns_.push_back(std::move(c)); }
 
-    scoped_connections& operator+=(
-        connection c
+    DScopedConnections& operator+=(
+        DConnection c
     )
     {
         conns_.push_back(std::move(c));
@@ -215,8 +221,11 @@ public:
     D_NODISCARD std::size_t size() const noexcept { return conns_.size(); }
 
 private:
-    std::vector<connection> conns_;
+    std::vector<DConnection> conns_;
 };
+
+// old name, until 0.9.0-rc.1
+using scoped_connections = DScopedConnections;
 
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -361,14 +370,17 @@ template<typename Signature,
           typename Callable = typename sig_decompose<Signature>::fn_ptr_type>
 class event;
 
-// slot_id
+// DSlotId
 //   Index returned by event::connect().  Cheaper than a connection handle -
 // just an integer.  The user is responsible for not using a stale id after
 // disconnection (it will simply address a null slot, which is a safe no-op).
-using slot_id = std::size_t;
+using DSlotId = std::size_t;
+
+// old name, until 0.9.0-rc.1
+using slot_id = DSlotId;
 
 // sentinel for "no free slot"
-D_CONSTEXPR_INLINE_VAR slot_id no_slot = static_cast<slot_id>(-1);
+D_CONSTEXPR_INLINE_VAR DSlotId no_slot = static_cast<DSlotId>(-1);
 
 // partial specialisation
 template<typename Ret, typename... Args, std::size_t Capacity, typename Callable>
@@ -390,7 +402,7 @@ public:
     // connect
     //   Stores the callable in the first available (null) slot.
     //   Returns the slot_id, or no_slot if full.
-    slot_id connect(
+    DSlotId connect(
         Callable fn
     )
     {
@@ -406,7 +418,7 @@ public:
     // disconnect
     //   Nulls the callable at the given slot.
     void disconnect(
-        slot_id id
+        DSlotId id
     )
     {
         if (id < Capacity) slots_[id] = Callable{};
@@ -442,7 +454,7 @@ public:
     // slot_connected
     //   True if the given slot is live.
     D_NODISCARD bool slot_connected(
-        slot_id id
+        DSlotId id
     ) const noexcept
     {
         return id < Capacity && static_cast<bool>(slots_[id]);
@@ -467,8 +479,8 @@ public:
 
     // at
     //   Direct access to the callable at a given slot.
-    Callable&       at(slot_id id)       { return slots_[id]; }
-    const Callable& at(slot_id id) const { return slots_[id]; }
+    Callable&       at(DSlotId id)       { return slots_[id]; }
+    const Callable& at(DSlotId id) const { return slots_[id]; }
 
     // compact
     //   Defragments: moves all live slots to the front.  Invalidates
@@ -538,18 +550,18 @@ public:
     // connect
     //   Appends a callable.  Returns a connection handle for lifetime
     // management.
-    connection connect(
+    DConnection connect(
         Callable fn
     )
     {
         auto alive = std::make_shared<bool>(true);
         slots_.push_back({ std::move(fn), alive });
-        return connection(std::move(alive));
+        return DConnection(std::move(alive));
     }
 
     // operator+=
     //   Shorthand for connect().
-    connection operator+=(Callable fn) { return connect(std::move(fn)); }
+    DConnection operator+=(Callable fn) { return connect(std::move(fn)); }
 
     // disconnect_all
     //   Marks every slot as dead and clears the vector.
@@ -785,7 +797,7 @@ NS_INTERNAL
 
     template<typename Type>
     struct has_disconnect_by_id<Type, void_t<
-        decltype(std::declval<Type>().disconnect(std::declval<slot_id>()))
+        decltype(std::declval<Type>().disconnect(std::declval<DSlotId>()))
     >> : std::true_type {};
 
     // connect_returns_connection
@@ -800,7 +812,7 @@ NS_INTERNAL
         std::is_same<
             decltype(std::declval<Type>().connect(
                 std::declval<typename Type::callable_type>())),
-            connection
+            DConnection
         >::value
     >::type> : std::true_type {};
 
@@ -816,7 +828,7 @@ NS_INTERNAL
         std::is_same<
             decltype(std::declval<Type>().connect(
                 std::declval<typename Type::callable_type>())),
-            slot_id
+            DSlotId
         >::value
     >::type> : std::true_type {};
 

@@ -207,14 +207,30 @@ D_TYPE_TRAIT_VALUE_BOOL(is_underlying_container)
 D_TYPE_TRAIT_TRUE(has_depth_type,
     typename Type::depth_type)
 
-D_TYPE_TRAIT_TRUE(has_parent_accessor,
-    decltype(std::declval<const Type&>().parent()))
+// has_parent_accessor
+//   trait: has_parent_method<const Type&> (node_container_traits.hpp) under
+// its older name: the same question (decision W5).
+// old name, until 0.9.0-rc.1
+template<typename Type,
+         typename = void>
+struct has_parent_accessor : has_parent_method<const Type&>
+{};
+
+D_TYPE_TRAIT_VALUE_BOOL(has_parent_accessor)
 
 D_TYPE_TRAIT_TRUE(has_children_accessor,
     decltype(std::declval<const Type&>().children()))
 
-D_TYPE_TRAIT_TRUE(has_root_accessor,
-    decltype(std::declval<const Type&>().root()))
+// has_root_accessor
+//   trait: has_root_method (node_container_traits.hpp) under its older name:
+// the same question (decision W5).
+// old name, until 0.9.0-rc.1
+template<typename Type,
+         typename = void>
+struct has_root_accessor : has_root_method<Type>
+{};
+
+D_TYPE_TRAIT_VALUE_BOOL(has_root_accessor)
 
 D_TYPE_TRAIT_TRUE(has_max_depth_accessor,
     decltype(std::declval<const Type&>().max_depth()))
@@ -897,11 +913,11 @@ struct is_interval_bounded
 //   3. Structural: key_type without mapped_type implies
 //      set-like uniqueness.
 
-// enforces_uniqueness
+// DEnforcesUniqueness
 //   type trait: true if container enforces element uniqueness (sets, maps with
 // unique keys).
 template<typename Type>
-struct enforces_uniqueness
+struct DEnforcesUniqueness
 {
     using clean_type = clean_t<Type>;
 
@@ -909,6 +925,10 @@ struct enforces_uniqueness
         ( has_key_type_v<clean_type> &&
           !has_mapped_type_v<clean_type> );
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using enforces_uniqueness = DEnforcesUniqueness<Type>;
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename Type>

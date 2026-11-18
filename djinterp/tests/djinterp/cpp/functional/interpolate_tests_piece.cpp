@@ -1,7 +1,7 @@
 /*******************************************************************************
 * djinterp [test]                                    interpolate_tests_piece.cpp
 *
-* Section I -- scan-event vocabulary: DPieceKind and the `piece` token every
+* Section I -- scan-event vocabulary: DPieceKind and the `DPiece` token every
 * scanner emits (its default state, the literal vs key faces, is_key(), and the
 * framework typedefs a piece exposes).
 *
@@ -25,7 +25,7 @@ NS_TESTING
 // a default-constructed piece is an empty literal
 bool test_piece_defaults()
 {
-    ::djinterp::piece<char> _p;
+    ::djinterp::DPiece<char> _p;
 
     D_INTERP_CHECK(!_p.is_key());
     D_INTERP_CHECK(_p.m_kind == ::djinterp::DPieceKind::literal);
@@ -40,7 +40,7 @@ bool test_piece_defaults()
 // a literal piece reports not-a-key and carries its span
 bool test_piece_literal()
 {
-    ::djinterp::piece<char> _p;
+    ::djinterp::DPiece<char> _p;
     _p.m_kind = ::djinterp::DPieceKind::literal;
     _p.m_span = sv("hello");
 
@@ -54,7 +54,7 @@ bool test_piece_literal()
 // a key piece reports is_key and carries both the trimmed name and the raw slice
 bool test_piece_key()
 {
-    ::djinterp::piece<char> _p;
+    ::djinterp::DPiece<char> _p;
     _p.m_kind = ::djinterp::DPieceKind::key;
     _p.m_key  = sv("name");
     _p.m_raw  = sv("{name}");
@@ -70,7 +70,7 @@ bool test_piece_key()
 // the piece exposes the framework token typedefs
 bool test_piece_typedefs()
 {
-    using piece_t = ::djinterp::piece<char>;
+    using piece_t = ::djinterp::DPiece<char>;
 
     static_assert(std::is_same<piece_t::char_type, char>::value,
         "piece char_type is the element type");
@@ -93,7 +93,7 @@ bool test_piece_typedefs()
 // is_key() is a constant expression (the token is usable at compile time)
 bool test_piece_constexpr()
 {
-    constexpr ::djinterp::piece<char> _lit {};
+    constexpr ::djinterp::DPiece<char> _lit {};
     static_assert(!_lit.is_key(), "a default piece is a literal at compile time");
 
     return true;

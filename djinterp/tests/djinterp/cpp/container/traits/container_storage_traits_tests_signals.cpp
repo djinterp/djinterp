@@ -44,7 +44,7 @@ bool tests_has_static_storage_signal()
     D_STG_CHECK( (has_static_storage_signal<const int (&)[4]>::value) );
     D_STG_CHECK( (!has_static_storage_signal<int[]>::value) );
     D_STG_CHECK( (storage_duration_of<int[4]>::value ==
-                  storage_duration::static_storage) );
+                  DStorageDuration::static_storage) );
     // extent route
     D_STG_CHECK( (has_static_storage_signal<extent_only>::value) );
     D_STG_CHECK( (has_static_storage_signal<DHybridShape>::value) );

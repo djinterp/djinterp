@@ -7,7 +7,7 @@
 * is
 * held to, riding on any backing and preserved by every exposed operation.
 * This
-* one imposes, over a `table` of rows:
+* one imposes, over a `DTable` of rows:
 *
 *     sorted  (sequence-level)  the rows are kept in non-decreasing order of a
 *                               designated KEY COLUMN under a cell comparator
@@ -35,7 +35,7 @@
 * overlay demands.
 *
 *   BACKING INDEPENDENCE.  The overlay names no backing beyond delegating to a
-* `table`; its identity is the restriction set, not the store.  It reports the
+* `DTable`; its identity is the restriction set, not the store.  It reports the
 * sorted invariant through the framework's opt-in `sorted_invariant` marker,
 * so
 * the Sortedness classifier reads it as `sorted` rather than the bare table's
@@ -102,7 +102,7 @@ NS_DJINTERP
 // I.   is_sorted_table (detection trait)
 // ===========================================================================
 
-// sorted_table (fwd)
+// DSortedTable (fwd)
 template<typename    Type,
          std::size_t KeyCol,
          typename    CellCompare,
@@ -110,7 +110,7 @@ template<typename    Type,
          typename    SizeType,
          typename    DifferenceType,
          typename... Options>
-class sorted_table;
+class DSortedTable;
 
 // is_sorted_table
 //   trait: true when Type (after stripping cv/ref) is a specialization of
@@ -128,7 +128,7 @@ NS_INTERNAL
              typename    S,
              typename    D,
              typename... O>
-    struct is_sorted_table_impl<sorted_table<T, K, C, U, S, D, O...>>
+    struct is_sorted_table_impl<DSortedTable<T, K, C, U, S, D, O...>>
         : std::true_type
     {};
 
@@ -148,9 +148,9 @@ inline constexpr bool is_sorted_table_v = is_sorted_table<Type>::value;
 // II.  sorted_table (class)
 // ===========================================================================
 
-// sorted_table
+// DSortedTable
 //   class: a table whose rows are held sorted by column KeyCol under
-// CellCompare, optionally with unique keys. Wraps a `table` backing and
+// CellCompare, optionally with unique keys. Wraps a `DTable` backing and
 // exposes a read-only cell surface plus order-preserving structural mutation.
 template<typename    Type,
          std::size_t KeyCol          = 0,
@@ -159,11 +159,11 @@ template<typename    Type,
          typename    SizeType        = std::size_t,
          typename    DifferenceType = std::ptrdiff_t,
          typename... Options>
-class sorted_table
-    : public options_container_base<Options...>
+class DSortedTable
+    : public DOptionsContainerBase<Options...>
 {
 private:
-    using backing_type = table<Type, DifferenceType, SizeType>;
+    using backing_type = DTable<Type, DifferenceType, SizeType>;
 
 public:
     // --- 1. member types and overlay / axis markers ---
@@ -184,7 +184,7 @@ public:
 
     // element / structure vocabulary (delegated from the backing).
     using element_type       = Type;
-    using structure_category = hierarchical;   // uniformly nested, like the backing
+    using structure_category = DHierarchical;   // uniformly nested, like the backing
 
     // npos -- "no such row" sentinel for the key queries.
     static constexpr size_type npos = static_cast<size_type>(-1);
@@ -195,39 +195,39 @@ public:
     static constexpr size_type key_column       = static_cast<size_type>(KeyCol);
 
     // axis positions.
-    static constexpr container_lifetime      lifetime      =
-        container_lifetime::mutable_storage;
+    static constexpr DContainerLifetime      lifetime      =
+        DContainerLifetime::mutable_storage;
     static constexpr DContainerStorageKind  storage_kind  =
         DContainerStorageKind::dynamic_storage;
     static constexpr DContainerOrdering      ordering      =
         DContainerOrdering::sorted;             // the overlay makes it sorted
     static constexpr DContainerBounds        bounds        =
         DContainerBounds::unbounded;
-    static constexpr container_iterability   iterability   =
-        container_iterability::iterable;
+    static constexpr DContainerIterability   iterability   =
+        DContainerIterability::iterable;
     static constexpr DContainerMultiplicity  multiplicity_grade =
         UniqueKeys ? DContainerMultiplicity::unique
                     : DContainerMultiplicity::multi;
-    static constexpr container_structure     structure     =
-        container_structure::hierarchical;
+    static constexpr DContainerStructure     structure     =
+        DContainerStructure::hierarchical;
     static constexpr size_type               rank  = static_cast<size_type>(2);
     static constexpr size_type               depth = static_cast<size_type>(2);
 
     // --- 2. construction ---
 
-    sorted_table()
+    DSortedTable()
         : m_base(),
           m_cmp()
     {}
 
-    explicit sorted_table(CellCompare _cmp)
+    explicit DSortedTable(CellCompare _cmp)
         : m_base(),
           m_cmp(_cmp)
     {}
 
     // nested rows: each is inserted at its sorted position, so any input order
     // yields the sorted invariant.
-    sorted_table(std::initializer_list<std::initializer_list<Type>> _rows)
+    DSortedTable(std::initializer_list<std::initializer_list<Type>> _rows)
         : m_base(),
           m_cmp()
     {
@@ -238,11 +238,11 @@ public:
         }
     }
 
-    sorted_table(const sorted_table&)            = default;
-    sorted_table(sorted_table&&)                 = default;
-    sorted_table& operator=(const sorted_table&) = default;
-    sorted_table& operator=(sorted_table&&)      = default;
-    ~sorted_table()                              = default;
+    DSortedTable(const DSortedTable&)            = default;
+    DSortedTable(DSortedTable&&)                 = default;
+    DSortedTable& operator=(const DSortedTable&) = default;
+    DSortedTable& operator=(DSortedTable&&)      = default;
+    ~DSortedTable()                              = default;
 
     // --- 3. read surface (delegated, const) ---
 
@@ -498,6 +498,16 @@ private:
     CellCompare m_cmp;    // the cell comparator applied to the key column
 };
 
+// old name, until 0.9.0-rc.1
+template<typename    Type,
+         std::size_t KeyCol          = 0,
+         typename    CellCompare     = std::less<Type>,
+         bool        UniqueKeys      = false,
+         typename    SizeType        = std::size_t,
+         typename    DifferenceType = std::ptrdiff_t,
+         typename... Options>
+using sorted_table = DSortedTable<Type, KeyCol, CellCompare, UniqueKeys, SizeType, DifferenceType, Options...>;
+
 
 // ===========================================================================
 // III. make_sorted_table
@@ -508,10 +518,10 @@ private:
 // the cell type from the first cell of the first row.
 template<std::size_t KeyCol = 0,
          typename    Type>
-D_NODISCARD sorted_table<Type, KeyCol>
+D_NODISCARD DSortedTable<Type, KeyCol>
 make_sorted_table(std::initializer_list<std::initializer_list<Type>> _rows)
 {
-    return sorted_table<Type, KeyCol>(_rows);
+    return DSortedTable<Type, KeyCol>(_rows);
 }
 
 
@@ -521,13 +531,16 @@ make_sorted_table(std::initializer_list<std::initializer_list<Type>> _rows)
 // ---------------------------------------------------------------------------
 namespace table_axis_conformance
 {
-    using sorted_table_probe = sorted_table<int>;
+    using DSortedTableProbe = DSortedTable<int>;
 
-    static_assert(is_iterable_container_v<sorted_table_probe>,
+    // old name, until 0.9.0-rc.1
+    using sorted_table_probe = DSortedTableProbe;
+
+    static_assert(is_iterable_container_v<DSortedTableProbe>,
                   "sorted_table must classify as iterable.");
-    static_assert(is_ordered_container_v<sorted_table_probe>,
+    static_assert(is_ordered_container_v<DSortedTableProbe>,
                   "sorted_table must classify as ordered.");
-    static_assert(sortedness_of<sorted_table_probe>::value == sortedness::sorted,
+    static_assert(sortedness_of<DSortedTableProbe>::value == DSortedness::sorted,
                   "sorted_table must classify as SORTED (the varsigma overlay).");
 }
 

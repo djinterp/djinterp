@@ -99,7 +99,7 @@ bool test_resolution_or_else_chain()
 // value_type is the carried value; resolved() decays its argument
 bool test_resolution_value_type()
 {
-    static_assert(std::is_same<::djinterp::resolution<sv>::value_type,
+    static_assert(std::is_same<::djinterp::DResolution<sv>::value_type,
                                sv>::value,
         "resolution value_type is the value");
 

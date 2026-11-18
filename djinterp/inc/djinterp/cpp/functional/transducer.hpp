@@ -223,7 +223,7 @@ struct is_transducer
 ///             I.    REDUCED WRAPPER                                       ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// reduced
+// DReduced
 //   class: marks an accumulator as "finished early". Step
 // functions may set their accumulator wrapper to reduced(state)
 // to signal that no further values should be processed; drivers
@@ -238,15 +238,15 @@ struct is_transducer
 // wrapper for callers who want to extract or check termination
 // explicitly.
 template<typename Acc>
-class reduced
+class DReduced
 {
 public:
     template<typename AccFwd,
              typename = typename std::enable_if<
                  !std::is_same<typename std::decay<AccFwd>::type,
-                               reduced>::value>::type>
+                               DReduced>::value>::type>
     explicit D_CONSTEXPR
-    reduced(
+    DReduced(
         AccFwd&& _acc
     )
         : m_acc(std::forward<AccFwd>(_acc))
@@ -269,6 +269,10 @@ public:
 private:
     Acc m_acc;
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Acc>
+using reduced = DReduced<Acc>;
 
 
 // DReducingState

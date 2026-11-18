@@ -187,26 +187,29 @@ D_TYPE_TRAIT_TRUE(provides_mutable_iteration,
     decltype(*std::declval<clean_t<Type>&>().begin() =
              std::declval<typename clean_t<Type>::value_type>()))
 
-// iteration_mode
+// DIterationMode
 //   enum: the access mode a container's traversal grants. A capability order:
 // none (not iterable) < const_only (observe) < non_const (observe and
 // replace).
-enum class iteration_mode
+enum class DIterationMode
 {
     none,           // no traversal
     const_only,     // const traversal only
     non_const       // non-const traversal (subsumes const observation)
 };
 
+// old name, until 0.9.0-rc.1
+using iteration_mode = DIterationMode;
+
 // iteration_mode_name
 //   function: a stable spelling, for diagnostics and agent-facing summaries.
 constexpr
 const char* iteration_mode_name(
-    iteration_mode _m
+    DIterationMode _m
 ) noexcept
 {
-    return ( _m == iteration_mode::none       ? "none"
-           : _m == iteration_mode::const_only ? "const_only"
+    return ( _m == DIterationMode::none       ? "none"
+           : _m == DIterationMode::const_only ? "const_only"
            :                                    "non_const" );
 }
 
@@ -214,26 +217,26 @@ const char* iteration_mode_name(
 //   function: value-level predicates over an iteration_mode.
 constexpr
 bool is_no_iteration_mode(
-    iteration_mode _m
+    DIterationMode _m
 ) noexcept
 {
-    return ( _m == iteration_mode::none );
+    return ( _m == DIterationMode::none );
 }
 
 constexpr
 bool is_const_only_mode(
-    iteration_mode _m
+    DIterationMode _m
 ) noexcept
 {
-    return ( _m == iteration_mode::const_only );
+    return ( _m == DIterationMode::const_only );
 }
 
 constexpr
 bool is_non_const_mode(
-    iteration_mode _m
+    DIterationMode _m
 ) noexcept
 {
-    return ( _m == iteration_mode::non_const );
+    return ( _m == DIterationMode::non_const );
 }
 
 // mode_grants_observation
@@ -241,20 +244,20 @@ bool is_non_const_mode(
 // non_const) - i.e. any traversal at all.
 constexpr
 bool mode_grants_observation(
-    iteration_mode _m
+    DIterationMode _m
 ) noexcept
 {
-    return ( _m != iteration_mode::none );
+    return ( _m != DIterationMode::none );
 }
 
 // mode_grants_mutation
 //   function: true iff the mode permits replacing element values (non_const).
 constexpr
 bool mode_grants_mutation(
-    iteration_mode _m
+    DIterationMode _m
 ) noexcept
 {
-    return ( _m == iteration_mode::non_const );
+    return ( _m == DIterationMode::non_const );
 }
 
 // iteration_mode_rank
@@ -262,11 +265,11 @@ bool mode_grants_mutation(
 // linear order the formal mode preorder collapses to.
 constexpr
 int iteration_mode_rank(
-    iteration_mode _m
+    DIterationMode _m
 ) noexcept
 {
-    return ( _m == iteration_mode::none       ? 0
-           : _m == iteration_mode::const_only ? 1
+    return ( _m == DIterationMode::none       ? 0
+           : _m == DIterationMode::const_only ? 1
            :                                    2 );
 }
 
@@ -275,8 +278,8 @@ int iteration_mode_rank(
 // order).
 constexpr
 bool iteration_mode_subsumes(
-    iteration_mode _a,
-    iteration_mode _b
+    DIterationMode _a,
+    DIterationMode _b
 ) noexcept
 {
     return ( iteration_mode_rank(_a) >= iteration_mode_rank(_b) );
@@ -292,14 +295,14 @@ private:
     using clean_type = clean_t<Type>;
 
 public:
-    static constexpr iteration_mode value =
+    static constexpr DIterationMode value =
         ( !is_iterable_container<clean_type>::value )
-              ? iteration_mode::none
+              ? DIterationMode::none
       : (  provides_mutable_iteration<clean_type>::value )
-              ? iteration_mode::non_const
-      :         iteration_mode::const_only;
+              ? DIterationMode::non_const
+      :         DIterationMode::const_only;
 
-    using type = std::integral_constant<iteration_mode, value>;
+    using type = std::integral_constant<DIterationMode, value>;
 };
 
 // iteration_mode_of_t / iteration_mode_of_v
@@ -310,11 +313,11 @@ using iteration_mode_of_t = typename iteration_mode_of<Type>::type;
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename Type>
-    inline constexpr iteration_mode iteration_mode_of_v =
+    inline constexpr DIterationMode iteration_mode_of_v =
         iteration_mode_of<Type>::value;
 #elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type>
-    constexpr iteration_mode iteration_mode_of_v =
+    constexpr DIterationMode iteration_mode_of_v =
         iteration_mode_of<Type>::value;
 #endif
 
@@ -380,7 +383,7 @@ public:
         provides_const_iteration<clean_type>::value;
     static constexpr bool           provides_mutable =
         provides_mutable_iteration<clean_type>::value;
-    static constexpr iteration_mode mode =
+    static constexpr DIterationMode mode =
         iteration_mode_of<clean_type>::value;
     static constexpr const char*    mode_name =
         iteration_mode_name(mode);

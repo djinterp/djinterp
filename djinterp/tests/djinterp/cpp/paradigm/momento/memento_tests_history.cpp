@@ -26,7 +26,7 @@ NS_TESTING
 namespace
 {
     // small alias for a history container of int-snapshot mementos.
-    typedef std::vector<memento<int> > int_history;
+    typedef std::vector<DMemento<int> > int_history;
 }
 
 
@@ -40,13 +40,13 @@ tests_unlimited_history
 bool tests_unlimited_history()
 {
     int_history h;
-    h.push_back(memento<int>(1));
-    h.push_back(memento<int>(2));
+    h.push_back(DMemento<int>(1));
+    h.push_back(DMemento<int>(2));
 
     bool ok = true;
 
-    ok = ok && (unlimited_history::should_push(h, 3));
-    unlimited_history::after_push(h);
+    ok = ok && (DUnlimitedHistory::should_push(h, 3));
+    DUnlimitedHistory::after_push(h);
     ok = ok && (h.size() == 2);
 
     return ok;
@@ -63,10 +63,10 @@ bool tests_bounded_history_evicts()
     int_history h;
     for (int i = 1; i <= 5; ++i)
     {
-        h.push_back(memento<int>(i));
+        h.push_back(DMemento<int>(i));
     }
 
-    bounded_history<3>::after_push(h);
+    DBoundedHistory<3>::after_push(h);
 
     bool ok = true;
 
@@ -86,12 +86,12 @@ tests_bounded_history_max_size
 */
 bool tests_bounded_history_max_size()
 {
-    static_assert(bounded_history<8>::max_size == 8, "explicit cap");
-    static_assert(bounded_history<>::max_size == D_MEMENTO_DEFAULT_HISTORY_CAPACITY,
+    static_assert(DBoundedHistory<8>::max_size == 8, "explicit cap");
+    static_assert(DBoundedHistory<>::max_size == D_MEMENTO_DEFAULT_HISTORY_CAPACITY,
                   "default cap");
 
-    return ( bounded_history<8>::max_size == 8 &&
-             bounded_history<>::max_size == 64 );
+    return ( DBoundedHistory<8>::max_size == 8 &&
+             DBoundedHistory<>::max_size == 64 );
 }
 
 /*
@@ -105,10 +105,10 @@ bool tests_coalescing_history_suppresses()
 {
     int_history h;
 
-    bool ok = coalescing_history::should_push(h, 7);   // empty -> true
+    bool ok = DCoalescingHistory::should_push(h, 7);   // empty -> true
 
-    h.push_back(memento<int>(7));
-    ok = ok && (!coalescing_history::should_push(h, 7));   // duplicate -> false
+    h.push_back(DMemento<int>(7));
+    ok = ok && (!DCoalescingHistory::should_push(h, 7));   // duplicate -> false
 
     return ok;
 }
@@ -122,9 +122,9 @@ tests_coalescing_history_distinct
 bool tests_coalescing_history_distinct()
 {
     int_history h;
-    h.push_back(memento<int>(7));
+    h.push_back(DMemento<int>(7));
 
-    return coalescing_history::should_push(h, 8);   // distinct -> true
+    return DCoalescingHistory::should_push(h, 8);   // distinct -> true
 }
 
 

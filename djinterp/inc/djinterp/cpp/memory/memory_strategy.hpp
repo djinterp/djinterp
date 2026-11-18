@@ -8,7 +8,7 @@
 *
 *     DArenaMemoryStrategy<T>       byte-typed, over a dj_arena. Dynamic,
 *                                    pointer-stable, no individual release.
-*     DPoolMemoryStrategy<P>        element-typed, over a pool<T, Policy>.
+*     DPoolMemoryStrategy<P>        element-typed, over a DPool<T, Policy>.
 *                                    Dynamic, pointer-stable, release depends
 *                                    on the policy.
 *     DBufferMemoryStrategy<T, N>   element-typed, over an inline array of N
@@ -99,7 +99,7 @@ class DArenaMemoryStrategy
 {
 public:
 
-    using arena_type   = arena;
+    using arena_type   = DArena;
     using value_type   = unsigned char;
     using element_type = Type;
     using size_type    = std::size_t;
@@ -195,12 +195,12 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 
 // DPoolMemoryStrategy
-//   class: an element-typed strategy drawing from a pool<T, Policy>.
+//   class: an element-typed strategy drawing from a DPool<T, Policy>.
 //   The pool layer's knowledge lives here and nowhere else: the strategy core
 // never mentions pools, and this module never mentions containers.
 //
 //   ITS CONSTANTS ARE PROJECTIONS OF THE POOL'S POLICY, which is why the
-// policy had to become a template parameter of pool<T, Policy>. A monotonic
+// policy had to become a template parameter of DPool<T, Policy>. A monotonic
 // pool reports supports_individual_release == false, so a container needing
 // erase refuses to instantiate over one -- at compile time, with a diagnostic
 // naming the constant, rather than at run time with a slot that never came
@@ -570,16 +570,16 @@ D_STATIC_ASSERT((!is_releasing_strategy<DArenaMemoryStrategy<> >::value),
                 "an arena reclaims in bulk only");
 
 D_STATIC_ASSERT((is_memory_strategy<
-                     DPoolMemoryStrategy<pool<double> > >::value),
+                     DPoolMemoryStrategy<DPool<double> > >::value),
                 "pool_memory_strategy must satisfy the strategy contract");
 D_STATIC_ASSERT((is_element_strategy<
-                     DPoolMemoryStrategy<pool<double> > >::value),
+                     DPoolMemoryStrategy<DPool<double> > >::value),
                 "pool_memory_strategy must classify as element-typed");
 D_STATIC_ASSERT((is_releasing_strategy<
-                     DPoolMemoryStrategy<pool<double> > >::value),
+                     DPoolMemoryStrategy<DPool<double> > >::value),
                 "a free-list pool releases individually");
 D_STATIC_ASSERT((!is_releasing_strategy<DPoolMemoryStrategy<
-                     pool<double, D_POOL_POLICY_MONOTONIC> > >::value),
+                     DPool<double, D_POOL_POLICY_MONOTONIC> > >::value),
                 "a monotonic pool does NOT release individually -- this is "
                 "the projection of the policy the container relies on");
 

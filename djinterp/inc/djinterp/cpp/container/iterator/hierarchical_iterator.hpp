@@ -69,14 +69,14 @@
 NS_DJINTERP
 
 
-// hierarchical_iterator
+// DHierarchicalIterator
 //   class: a forward iterator flattening the leaves beneath an outer range
 // whose elements are inner ranges. Parameterised on the outer iterator type
 // and on a force-const flag; the leaf constness is the outer iterator's,
 // tightened by the flag.
 template<typename OuterIter,
          bool     Const = false>
-class hierarchical_iterator
+class DHierarchicalIterator
 {
 private:
     // the inner range is what the outer iterator dereferences to; the inner
@@ -105,7 +105,7 @@ public:
 
     // hierarchical_iterator (default)
     //   a singular past-the-end iterator.
-    hierarchical_iterator()
+    DHierarchicalIterator()
         : m_outer(), m_outer_end(), m_inner()
     {}
 
@@ -113,7 +113,7 @@ public:
     //   an iterator at the first leaf of [_outer, _outer_end), skipping any
     // leading empty inner ranges. (Constexpr from C++14 - it settles by
     // looping.)
-    D_CONSTEXPR_CPP14 hierarchical_iterator(
+    D_CONSTEXPR_CPP14 DHierarchicalIterator(
         OuterIter _outer,
         OuterIter _outer_end
     )
@@ -151,7 +151,7 @@ public:
 
     // operator++ (pre)
     //   advances to the next leaf, crossing inner-range boundaries as needed.
-    D_CONSTEXPR_CPP14 hierarchical_iterator& operator++()
+    D_CONSTEXPR_CPP14 DHierarchicalIterator& operator++()
     {
         ++m_inner;
         settle();
@@ -160,9 +160,9 @@ public:
     }
 
     // operator++ (post)
-    D_CONSTEXPR_CPP14 hierarchical_iterator operator++(int)
+    D_CONSTEXPR_CPP14 DHierarchicalIterator operator++(int)
     {
-        hierarchical_iterator _tmp(*this);
+        DHierarchicalIterator _tmp(*this);
         ++(*this);
 
         return _tmp;
@@ -175,7 +175,7 @@ public:
     // operator==
     //   two iterators are equal when they rest on the same outer position and,
     // unless both are at the end, the same inner position.
-    constexpr bool operator==(const hierarchical_iterator& _o) const
+    constexpr bool operator==(const DHierarchicalIterator& _o) const
     {
         return (    m_outer == _o.m_outer
                  && (    m_outer == m_outer_end
@@ -183,7 +183,7 @@ public:
     }
 
     // operator!=
-    constexpr bool operator!=(const hierarchical_iterator& _o) const
+    constexpr bool operator!=(const DHierarchicalIterator& _o) const
     {
         return !(*this == _o);
     }
@@ -213,28 +213,33 @@ private:
     inner_iterator m_inner;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename OuterIter,
+         bool     Const = false>
+using hierarchical_iterator = DHierarchicalIterator<OuterIter, Const>;
+
 
 // ===========================================================================
 //  range wrapper + factories
 // ===========================================================================
 
-// hierarchical_view
+// DHierarchicalView
 //   class: a lightweight range over the flattened leaves of a container of
 // inner ranges, so the traversal may drive a range-for. Holds only iterators;
 // it owns nothing. Constness of the leaves follows Container's.
 template<typename Container,
          bool     Const = false>
-class hierarchical_view
+class DHierarchicalView
 {
 private:
     using outer_iterator =
         decltype(std::begin(std::declval<Container&>()));
 
 public:
-    using iterator = hierarchical_iterator<outer_iterator, Const>;
+    using iterator = DHierarchicalIterator<outer_iterator, Const>;
 
     // hierarchical_view (container)
-    explicit hierarchical_view(Container& _c)
+    explicit DHierarchicalView(Container& _c)
         : m_begin(std::begin(_c)),
           m_end(std::end(_c))
     {}
@@ -258,37 +263,42 @@ private:
     outer_iterator m_end;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Container,
+         bool     Const = false>
+using hierarchical_view = DHierarchicalView<Container, Const>;
+
 // make_hierarchical_iterator
 //   factory: the flattening iterator at the first leaf of [_outer,
 // _outer_end).
 template<typename OuterIter>
 D_CONSTEXPR_CPP14
-hierarchical_iterator<OuterIter, false> make_hierarchical_iterator(
+DHierarchicalIterator<OuterIter, false> make_hierarchical_iterator(
     OuterIter _outer,
     OuterIter _outer_end
 )
 {
-    return hierarchical_iterator<OuterIter, false>(_outer, _outer_end);
+    return DHierarchicalIterator<OuterIter, false>(_outer, _outer_end);
 }
 
 // make_hierarchical_view
 //   factory: a flattened range over _c.
 template<typename Container>
-hierarchical_view<Container, false> make_hierarchical_view(
+DHierarchicalView<Container, false> make_hierarchical_view(
     Container& _c
 )
 {
-    return hierarchical_view<Container, false>(_c);
+    return DHierarchicalView<Container, false>(_c);
 }
 
 // make_const_hierarchical_view
 //   factory: a read-only flattened range over _c.
 template<typename Container>
-hierarchical_view<Container, true> make_const_hierarchical_view(
+DHierarchicalView<Container, true> make_const_hierarchical_view(
     Container& _c
 )
 {
-    return hierarchical_view<Container, true>(_c);
+    return DHierarchicalView<Container, true>(_c);
 }
 
 

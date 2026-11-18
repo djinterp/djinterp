@@ -71,7 +71,7 @@ template<typename Type>
 struct is_read_only_container
     : std::integral_constant<bool,
           access_capability_of<clean_t<Type>>::value
-              == access_capability::read_only>
+              == DAccessCapability::read_only>
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(is_read_only_container)

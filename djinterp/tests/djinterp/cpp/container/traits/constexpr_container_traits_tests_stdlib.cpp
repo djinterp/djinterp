@@ -50,9 +50,9 @@ bool tests_stdlib_array()
     D_CCT_CHECK(is_constexpr_container<std::array<int, 0>>::value);
     D_CCT_CHECK(is_constexpr_container<std::array<char, 64>>::value);
 
-    D_CCT_LIFE(lifetime::both, container_lifetime_of<std::array<int, 3>>::value);
-    D_CCT_LIFE(lifetime::both, DSizeLifetime<std::array<int, 3>>::value);
-    D_CCT_LIFE(lifetime::both, lifetime_of<std::array<int, 3>>::value);
+    D_CCT_LIFE(DLifetime::both, container_lifetime_of<std::array<int, 3>>::value);
+    D_CCT_LIFE(DLifetime::both, DSizeLifetime<std::array<int, 3>>::value);
+    D_CCT_LIFE(DLifetime::both, lifetime_of<std::array<int, 3>>::value);
 
     // two signals promote it, and `extent` is not one of them
     D_CCT_CHECK(has_tuple_size<std::array<int, 3>>::value);
@@ -103,7 +103,7 @@ bool tests_stdlib_vector_string()
 
     // C++20: vector{} is a constant expression, so the SIZE probe fires
     D_CCT_CHECK(has_constexpr_size_expression<std::vector<int>>::value);
-    D_CCT_LIFE(lifetime::both, DSizeLifetime<std::vector<int>>::value);
+    D_CCT_LIFE(DLifetime::both, DSizeLifetime<std::vector<int>>::value);
 
 #else
 
@@ -115,7 +115,7 @@ bool tests_stdlib_vector_string()
 #if defined(__cpp_lib_constexpr_string) && (__cpp_lib_constexpr_string >= 201907L)
 
     D_CCT_CHECK(has_constexpr_size_expression<std::string>::value);
-    D_CCT_LIFE(lifetime::both, DSizeLifetime<std::string>::value);
+    D_CCT_LIFE(DLifetime::both, DSizeLifetime<std::string>::value);
 
     // the same thing one level up: a plain struct holding a std::string is now
     // "compile-time sized" too
@@ -131,10 +131,10 @@ bool tests_stdlib_vector_string()
 
     // whatever the library, the CONTENTS are runtime and the meet rescues the
     // verdict - this is the invariant that actually holds
-    D_CCT_LIFE(lifetime::runtime, lifetime_of<std::vector<int>>::value);
-    D_CCT_LIFE(lifetime::runtime, lifetime_of<std::string>::value);
-    D_CCT_LIFE(lifetime::runtime, container_lifetime_of<std::vector<int>>::value);
-    D_CCT_LIFE(lifetime::runtime, container_lifetime_of<std::string>::value);
+    D_CCT_LIFE(DLifetime::runtime, lifetime_of<std::vector<int>>::value);
+    D_CCT_LIFE(DLifetime::runtime, lifetime_of<std::string>::value);
+    D_CCT_LIFE(DLifetime::runtime, container_lifetime_of<std::vector<int>>::value);
+    D_CCT_LIFE(DLifetime::runtime, container_lifetime_of<std::string>::value);
     D_CCT_CHECK(!is_constexpr_container<std::vector<int>>::value);
     D_CCT_CHECK(!is_constexpr_container<std::string>::value);
     D_CCT_CHECK(!is_constexpr_container<DSizeWithStringMember>::value);
@@ -233,12 +233,12 @@ bool tests_stdlib_tuple_pair()
     // the SIZE half is fine
     D_CCT_CHECK(has_tuple_size<std::tuple<int, char>>::value);
     D_CCT_CHECK(has_tuple_size<std::pair<int, char>>::value);
-    D_CCT_LIFE(lifetime::both, DSizeLifetime<std::tuple<int, char>>::value);
-    D_CCT_LIFE(lifetime::both, DSizeLifetime<std::pair<int, char>>::value);
+    D_CCT_LIFE(DLifetime::both, DSizeLifetime<std::tuple<int, char>>::value);
+    D_CCT_LIFE(DLifetime::both, DSizeLifetime<std::pair<int, char>>::value);
 
     // the CONTENTS half is not
-    D_CCT_LIFE(lifetime::runtime, lifetime_of<std::tuple<int, char>>::value);
-    D_CCT_LIFE(lifetime::runtime, lifetime_of<std::pair<int, char>>::value);
+    D_CCT_LIFE(DLifetime::runtime, lifetime_of<std::tuple<int, char>>::value);
+    D_CCT_LIFE(DLifetime::runtime, lifetime_of<std::pair<int, char>>::value);
     D_CCT_CHECK(!is_literal_type<std::tuple<int, char>>::value);
     D_CCT_CHECK(!is_literal_type<std::pair<int, char>>::value);
 
@@ -248,7 +248,7 @@ bool tests_stdlib_tuple_pair()
                     std::pair<int, char>>::value);
 
     // so the verdict is false
-    D_CCT_LIFE(lifetime::runtime,
+    D_CCT_LIFE(DLifetime::runtime,
                container_lifetime_of<std::tuple<int, char>>::value);
     D_CCT_CHECK(!is_constexpr_container<std::tuple<int, char>>::value);
     D_CCT_CHECK(!is_constexpr_container<std::pair<int, char>>::value);
@@ -270,8 +270,8 @@ bool tests_stdlib_tuple_pair()
     D_CCT_CHECK(is_constexpr_container<std::tuple<>>::value);
     D_CCT_CHECK(!is_constexpr_container<std::tuple<int>>::value);
 
-    D_CCT_LIFE(lifetime::both,    container_lifetime_of<std::tuple<>>::value);
-    D_CCT_LIFE(lifetime::runtime, container_lifetime_of<std::tuple<int>>::value);
+    D_CCT_LIFE(DLifetime::both,    container_lifetime_of<std::tuple<>>::value);
+    D_CCT_LIFE(DLifetime::runtime, container_lifetime_of<std::tuple<int>>::value);
 
     // ...and yet both types ARE constexpr-constructible.  If this line compiles,
     // the verdict above is wrong

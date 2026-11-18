@@ -102,10 +102,10 @@ std::size_t multiplicity_meet(
 // II.  The multiplicity kind
 // ===========================================================================
 
-// multiplicity_kind
+// DMultiplicityKind
 //   enum: a container's qualitative multiplicity, the equivalence folded in so
 // the two infinities stay distinct.
-struct multiplicity_kind
+struct DMultiplicityKind
 {
     enum value
     {
@@ -117,17 +117,20 @@ struct multiplicity_kind
     };
 };
 
+// old name, until 0.9.0-rc.1
+typedef DMultiplicityKind multiplicity_kind;
+
 // multiplicity_kind_name
 //   function: a stable spelling, for diagnostics and agent-facing summaries.
 D_CONSTEXPR_REQ
 const char* multiplicity_kind_name(
-    multiplicity_kind::value _k
+    DMultiplicityKind::value _k
 ) D_NOEXCEPT
 {
-    return ( _k == multiplicity_kind::unknown            ? "unknown"
-           : _k == multiplicity_kind::sequence           ? "sequence"
-           : _k == multiplicity_kind::unique             ? "unique"
-           : _k == multiplicity_kind::bounded_multiset   ? "bounded_multiset"
+    return ( _k == DMultiplicityKind::unknown            ? "unknown"
+           : _k == DMultiplicityKind::sequence           ? "sequence"
+           : _k == DMultiplicityKind::unique             ? "unique"
+           : _k == DMultiplicityKind::bounded_multiset   ? "bounded_multiset"
            :                                               "unbounded_multiset" );
 }
 
@@ -138,20 +141,20 @@ const char* multiplicity_kind_name(
 // bounded_multiset (1 < m < inf).  A bound of 0 is below the working floor and
 // maps to unknown.
 D_CONSTEXPR_REQ
-multiplicity_kind::value make_multiplicity_kind(
+DMultiplicityKind::value make_multiplicity_kind(
     bool        _has_equivalence,
     std::size_t _m
 ) D_NOEXCEPT
 {
     return ( !_has_equivalence
-                 ? multiplicity_kind::sequence
+                 ? DMultiplicityKind::sequence
            : _m == 0
-                 ? multiplicity_kind::unknown
+                 ? DMultiplicityKind::unknown
            : _m == unique_multiplicity
-                 ? multiplicity_kind::unique
+                 ? DMultiplicityKind::unique
            : _m == unbounded_multiplicity
-                 ? multiplicity_kind::unbounded_multiset
-           :       multiplicity_kind::bounded_multiset );
+                 ? DMultiplicityKind::unbounded_multiset
+           :       DMultiplicityKind::bounded_multiset );
 }
 
 // multiplicity_bound_of_kind
@@ -162,10 +165,10 @@ multiplicity_kind::value make_multiplicity_kind(
 // alongside by whoever produced the kind.
 D_CONSTEXPR_REQ
 std::size_t multiplicity_bound_of_kind(
-    multiplicity_kind::value _k
+    DMultiplicityKind::value _k
 ) D_NOEXCEPT
 {
-    return ( _k == multiplicity_kind::unique ? unique_multiplicity
+    return ( _k == DMultiplicityKind::unique ? unique_multiplicity
                                              : unbounded_multiplicity );
 }
 
@@ -178,31 +181,31 @@ std::size_t multiplicity_bound_of_kind(
 //   function: true for the set-semantics kind (m = 1).
 D_CONSTEXPR_REQ
 bool is_unique_kind(
-    multiplicity_kind::value _k
+    DMultiplicityKind::value _k
 ) D_NOEXCEPT
 {
-    return _k == multiplicity_kind::unique;
+    return _k == DMultiplicityKind::unique;
 }
 
 // is_multiset_kind
 //   function: true for either multiset kind (a genuine equivalence with m > 1).
 D_CONSTEXPR_REQ
 bool is_multiset_kind(
-    multiplicity_kind::value _k
+    DMultiplicityKind::value _k
 ) D_NOEXCEPT
 {
-    return (    _k == multiplicity_kind::bounded_multiset
-             || _k == multiplicity_kind::unbounded_multiset );
+    return (    _k == DMultiplicityKind::bounded_multiset
+             || _k == DMultiplicityKind::unbounded_multiset );
 }
 
 // is_sequence_kind
 //   function: true for the comparator-less kind (identity default).
 D_CONSTEXPR_REQ
 bool is_sequence_kind(
-    multiplicity_kind::value _k
+    DMultiplicityKind::value _k
 ) D_NOEXCEPT
 {
-    return _k == multiplicity_kind::sequence;
+    return _k == DMultiplicityKind::sequence;
 }
 
 // multiplicity_kind_rank
@@ -213,12 +216,12 @@ bool is_sequence_kind(
 // between the two top kinds is meaning, not magnitude, so they rank equal.
 D_CONSTEXPR_REQ
 int multiplicity_kind_rank(
-    multiplicity_kind::value _k
+    DMultiplicityKind::value _k
 ) D_NOEXCEPT
 {
-    return ( _k == multiplicity_kind::unknown            ? -1
-           : _k == multiplicity_kind::unique             ?  0
-           : _k == multiplicity_kind::bounded_multiset   ?  1
+    return ( _k == DMultiplicityKind::unknown            ? -1
+           : _k == DMultiplicityKind::unique             ?  0
+           : _k == DMultiplicityKind::bounded_multiset   ?  1
            :                                                2 );  // sequence / unbounded_multiset
 }
 

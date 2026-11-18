@@ -434,9 +434,9 @@ tests_adaptation_class
 */
 bool tests_adaptation_class()
 {
-    using vv = adaptation_class<std::vector<int>, std::vector<int>>;
-    using ss = adaptation_class<std::set<int>,    std::set<int>>;
-    using nn = adaptation_class<probe_none,       probe_none>;
+    using vv = DAdaptationClass<std::vector<int>, std::vector<int>>;
+    using ss = DAdaptationClass<std::set<int>,    std::set<int>>;
+    using nn = DAdaptationClass<probe_none,       probe_none>;
 
     bool ok = true;
 

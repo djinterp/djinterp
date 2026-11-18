@@ -34,19 +34,19 @@ bool test_map()
     bool verdict = true;
 
     // map over a present value
-    maybe<int> v(5);
-    maybe<int> doubled = v.map(DFnDouble());
+    DMaybe<int> v(5);
+    DMaybe<int> doubled = v.map(DFnDouble());
     record_assertion(verdict, doubled.has_value() && doubled.value() == 10,
         "map: applies function to a present value");
 
     // map over empty yields an empty mapped maybe
-    maybe<int> e;
-    maybe<int> mapped_empty = e.map(DFnDouble());
+    DMaybe<int> e;
+    DMaybe<int> mapped_empty = e.map(DFnDouble());
     record_assertion(verdict, !mapped_empty.has_value(),
         "map: empty maps to empty");
 
     // type-changing map: int -> std::string
-    maybe<std::string> str = v.map(fn_to_string());
+    DMaybe<std::string> str = v.map(fn_to_string());
     record_assertion(verdict, str.has_value() && str.value() == "5",
         "map: changes the contained type");
 
@@ -59,20 +59,20 @@ bool test_and_then()
     bool verdict = true;
 
     // and_then on a value that satisfies the inner function
-    maybe<int> even(8);
-    maybe<int> r1 = even.and_then(DFnHalfIfEven());
+    DMaybe<int> even(8);
+    DMaybe<int> r1 = even.and_then(DFnHalfIfEven());
     record_assertion(verdict, r1.has_value() && r1.value() == 4,
         "and_then: present value threaded through function");
 
     // and_then where the inner function itself yields nothing
-    maybe<int> odd(7);
-    maybe<int> r2 = odd.and_then(DFnHalfIfEven());
+    DMaybe<int> odd(7);
+    DMaybe<int> r2 = odd.and_then(DFnHalfIfEven());
     record_assertion(verdict, !r2.has_value(),
         "and_then: inner nothing propagates");
 
     // and_then on empty short-circuits without invoking the function
-    maybe<int> e;
-    maybe<int> r3 = e.and_then(DFnHalfIfEven());
+    DMaybe<int> e;
+    DMaybe<int> r3 = e.and_then(DFnHalfIfEven());
     record_assertion(verdict, !r3.has_value(),
         "and_then: empty short-circuits to empty");
 
@@ -85,19 +85,19 @@ bool test_or_else()
     bool verdict = true;
 
     // present value returns itself, fallback not consulted
-    maybe<int> v(3);
-    maybe<int> r1 = v.or_else(DFnMakeJust());
+    DMaybe<int> v(3);
+    DMaybe<int> r1 = v.or_else(DFnMakeJust());
     record_assertion(verdict, r1.has_value() && r1.value() == 3,
         "or_else: present value is returned unchanged");
 
     // empty invokes the fallback (which yields a value)
-    maybe<int> e;
-    maybe<int> r2 = e.or_else(DFnMakeJust());
+    DMaybe<int> e;
+    DMaybe<int> r2 = e.or_else(DFnMakeJust());
     record_assertion(verdict, r2.has_value() && r2.value() == 99,
         "or_else: empty falls back to the function result");
 
     // empty with a fallback that also yields nothing
-    maybe<int> r3 = e.or_else(DFnMakeNothing());
+    DMaybe<int> r3 = e.or_else(DFnMakeNothing());
     record_assertion(verdict, !r3.has_value(),
         "or_else: empty fallback stays empty");
 
@@ -110,20 +110,20 @@ bool test_filter()
     bool verdict = true;
 
     // predicate satisfied -> value retained
-    maybe<int> v(4);
-    maybe<int> kept = v.filter(pred_is_even());
+    DMaybe<int> v(4);
+    DMaybe<int> kept = v.filter(pred_is_even());
     record_assertion(verdict, kept.has_value() && kept.value() == 4,
         "filter: passing predicate retains the value");
 
     // predicate failed -> nothing
-    maybe<int> odd(5);
-    maybe<int> dropped = odd.filter(pred_is_even());
+    DMaybe<int> odd(5);
+    DMaybe<int> dropped = odd.filter(pred_is_even());
     record_assertion(verdict, !dropped.has_value(),
         "filter: failing predicate yields nothing");
 
     // empty -> nothing (predicate never invoked)
-    maybe<int> e;
-    maybe<int> filtered_empty = e.filter(pred_is_even());
+    DMaybe<int> e;
+    DMaybe<int> filtered_empty = e.filter(pred_is_even());
     record_assertion(verdict, !filtered_empty.has_value(),
         "filter: empty stays empty");
 
@@ -136,13 +136,13 @@ bool test_match()
     bool verdict = true;
 
     // just-branch
-    maybe<int>  v(42);
+    DMaybe<int>  v(42);
     std::string a = v.match(fn_to_string(), DFnNothingLabel());
     record_assertion(verdict, a == "42",
         "match: present value dispatches to the just branch");
 
     // nothing-branch
-    maybe<int>  e;
+    DMaybe<int>  e;
     std::string b = e.match(fn_to_string(), DFnNothingLabel());
     record_assertion(verdict, b == "none",
         "match: empty dispatches to the nothing branch");

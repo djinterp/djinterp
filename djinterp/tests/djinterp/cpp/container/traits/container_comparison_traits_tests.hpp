@@ -123,7 +123,7 @@ namespace dt = ::djinterp::test;
 
 // the trait-testing toolkit, by name.  The traits under test need no
 // qualification: djinterp::testing nests inside djinterp, so `refinement_of`,
-// `order_relation`, `content_level` and friends are found by ordinary unqualified
+// `DOrderRelation`, `DContentLevel` and friends are found by ordinary unqualified
 // lookup.
 using ::djinterp::test::count_holds;
 using ::djinterp::test::holds_for_all;
@@ -175,12 +175,12 @@ void ccm_report_failure(
 // right and still fails it.  D_CCM_DUAL checks both directions at once so it
 // cannot be forgotten.
 D_INLINE D_CONSTEXPR
-order_relation ccm_dual(
-    order_relation _relation
+DOrderRelation ccm_dual(
+    DOrderRelation _relation
 )
 {
-    return ( _relation == order_relation::greater ) ? order_relation::less
-         : ( _relation == order_relation::less )    ? order_relation::greater
+    return ( _relation == DOrderRelation::greater ) ? DOrderRelation::less
+         : ( _relation == DOrderRelation::less )    ? DOrderRelation::greater
          :                                            _relation;
 }
 
@@ -213,7 +213,7 @@ order_relation ccm_dual(
 #define D_CCM_REL(EXPECTED, ...)                                              \
     do                                                                        \
     {                                                                         \
-        D_CONSTEXPR ::djinterp::order_relation ccm_actual = (__VA_ARGS__);    \
+        D_CONSTEXPR ::djinterp::DOrderRelation ccm_actual = (__VA_ARGS__);    \
                                                                               \
         if (ccm_actual != (EXPECTED))                                         \
         {                                                                     \
@@ -236,7 +236,7 @@ order_relation ccm_dual(
 #define D_CCM_LEVEL(EXPECTED, ...)                                            \
     do                                                                        \
     {                                                                         \
-        D_CONSTEXPR ::djinterp::content_level ccm_actual = (__VA_ARGS__);     \
+        D_CONSTEXPR ::djinterp::DContentLevel ccm_actual = (__VA_ARGS__);     \
                                                                               \
         if (ccm_actual != (EXPECTED))                                         \
         {                                                                     \
@@ -376,7 +376,7 @@ struct DNestedSeq
 // DHierarchicalUnique
 //   struct: nested AND m = 1.  The precedence case: a nested container compares
 // structurally REGARDLESS of its multiplicity, so its native rung is str and not
-// set.  A helper that read the multiplicity first would say `set`, and would be
+// set.  A helper that read the multiplicity first would say `DSet`, and would be
 // wrong in exactly the case the hierarchy exists for.
 struct DHierarchicalUnique
 {
@@ -526,16 +526,16 @@ struct DCompileConstSeq : DConstSeq
 //   struct: declares static (in-object) siting.
 struct static_seq : DRuntimeSeq
 {
-    static constexpr storage_duration::value storage_duration_category =
-        storage_duration::static_storage;
+    static constexpr DStorageDuration::value storage_duration_category =
+        DStorageDuration::static_storage;
 };
 
 // dynamic_seq
 //   struct: declares dynamic (allocated) siting.
 struct dynamic_seq : DRuntimeSeq
 {
-    static constexpr storage_duration::value storage_duration_category =
-        storage_duration::dynamic_storage;
+    static constexpr DStorageDuration::value storage_duration_category =
+        DStorageDuration::dynamic_storage;
 };
 
 // DHybridSeq
@@ -544,8 +544,8 @@ struct dynamic_seq : DRuntimeSeq
 // because the axis is an equivalence and does not order its own points.
 struct DHybridSeq : DRuntimeSeq
 {
-    static constexpr storage_duration::value storage_duration_category =
-        storage_duration::hybrid_storage;
+    static constexpr DStorageDuration::value storage_duration_category =
+        DStorageDuration::hybrid_storage;
 };
 
 

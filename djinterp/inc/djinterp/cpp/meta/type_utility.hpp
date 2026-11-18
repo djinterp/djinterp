@@ -98,7 +98,7 @@ NS_DJINTERP
 // on every type a template parameter can have, and <limits> is C++98.
 template<typename Type,
          Type     N>
-struct abs_value
+struct DAbsValue
 {
     D_STATIC_ASSERT(std::numeric_limits<Type>::is_integer,
                     "Type parameter `Type` must be an integral type.");
@@ -108,6 +108,17 @@ struct abs_value
                                         : N;
 };
 
+// old name, until 0.9.0-rc.1
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+template<typename Type,
+         Type     N>
+using abs_value = DAbsValue<Type, N>;
+#else
+template<typename Type,
+         Type     N>
+struct abs_value : DAbsValue<Type, N> {};
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+
 // 1.2.2
 // abs_value_v
 //   value: convenience variable template for abs_value<Type, N>::value.
@@ -115,7 +126,7 @@ struct abs_value
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename Type,
              Type     N>
-    constexpr Type abs_value_v = abs_value<Type, N>::value;
+    constexpr Type abs_value_v = DAbsValue<Type, N>::value;
 #endif
 
 // 1.2.3
@@ -127,7 +138,7 @@ struct abs_value
              Type     N>
     constexpr std::size_t abs_value_to_size_t =
         std::integral_constant<std::size_t,
-                               abs_value<Type, N>::value>::value;
+                               DAbsValue<Type, N>::value>::value;
 #endif
 
 // 1.3    Type cleaning

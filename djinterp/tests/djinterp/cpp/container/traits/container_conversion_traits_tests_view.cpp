@@ -66,7 +66,7 @@ bool tests_view_baseline()
     // 2. the same content rung
     D_CVT_CHECK((native_content_level_of<view_from>::value ==
                  native_content_level_of<view_to>::value));
-    D_CVT_LEVEL(content_level::seq, native_content_level_of<view_from>::value);
+    D_CVT_LEVEL(DContentLevel::seq, native_content_level_of<view_from>::value);
 
     // 3. no topology change
     D_CVT_CHECK((!conversion_changes_topology<view_from, view_to>::value));
@@ -75,19 +75,19 @@ bool tests_view_baseline()
     D_CVT_CHECK((sequential_layout_of<view_from>::value ==
                  sequential_layout_of<view_to>::value));
     D_CVT_CHECK(sequential_layout_of<view_from>::value ==
-                sequential_layout::array_like);
+                DSequentialLayout::array_like);
 
     // 5, 6, 7. every realization axis EQUIVALENT
     D_CVT_CHECK((lifetime_relation<view_from, view_to>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((storage_relation<view_from, view_to>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((DIterabilityRelation<view_from, view_to>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
 
     // 8. the discipline no weaker
     D_CVT_CHECK((discipline_relation<view_from, view_to>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
 
     // *** THE RUNG ORDERING.  A construction path EXISTS, and the pair is still a
     // view - because a reinterpretation is the LESSER concern, and rung 4 beats
@@ -136,13 +136,13 @@ bool tests_view_conjunct_elements()
     D_CVT_CHECK((sequential_layout_of<view_from>::value ==
                  sequential_layout_of<lever_elements>::value));
     D_CVT_CHECK((lifetime_relation<view_from, lever_elements>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((storage_relation<view_from, lever_elements>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((DIterabilityRelation<view_from, lever_elements>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((discipline_relation<view_from, lever_elements>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
 
     // so the tier drops exactly one rung: view -> constructive
     D_CVT_CHECK((elements_compatible<view_from, lever_elements>::value));
@@ -184,9 +184,9 @@ bool tests_view_conjunct_content()
     bool ok = true;
 
     // the rungs differ...
-    D_CVT_LEVEL(content_level::set,
+    D_CVT_LEVEL(DContentLevel::set,
                 native_content_level_of<content_from>::value);
-    D_CVT_LEVEL(content_level::bag,
+    D_CVT_LEVEL(DContentLevel::bag,
                 native_content_level_of<content_to>::value);
     D_CVT_CHECK((native_content_level_of<content_from>::value !=
                  native_content_level_of<content_to>::value));
@@ -207,13 +207,13 @@ bool tests_view_conjunct_content()
     D_CVT_CHECK((sequential_layout_of<content_from>::value ==
                  sequential_layout_of<content_to>::value));
     D_CVT_CHECK((lifetime_relation<content_from, content_to>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((storage_relation<content_from, content_to>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((DIterabilityRelation<content_from, content_to>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((discipline_relation<content_from, content_to>::value ==
-                 order_relation::greater));   // From is TIGHTER: clause 8 admits it
+                 DOrderRelation::greater));   // From is TIGHTER: clause 8 admits it
 
     // so the tier is constructive, not lossy
     D_CVT_TIER(DConversionTier::constructive, content_from, content_to);
@@ -329,22 +329,22 @@ bool tests_view_conjunct_layout()
                  native_content_level_of<std_list>::value));
     D_CVT_CHECK((!conversion_changes_topology<std_vector, std_list>::value));
     D_CVT_CHECK((lifetime_relation<std_vector, std_list>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((storage_relation<std_vector, std_list>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((DIterabilityRelation<std_vector, std_list>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((discipline_relation<std_vector, std_list>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
 
     // ...they are REALIZATION-EQUAL, in the comparison module's own words
     D_CVT_CHECK((realization_equal<std_vector, std_list>::value));
 
     // ...and ONLY the layout separates them
     D_CVT_CHECK(sequential_layout_of<std_vector>::value ==
-                sequential_layout::array_like);
+                DSequentialLayout::array_like);
     D_CVT_CHECK(sequential_layout_of<std_list>::value ==
-                sequential_layout::list_like);
+                DSequentialLayout::list_like);
     D_CVT_CHECK((sequential_layout_of<std_vector>::value !=
                  sequential_layout_of<std_list>::value));
 
@@ -364,21 +364,21 @@ bool tests_view_conjunct_layout()
     D_CVT_CHECK((native_content_level_of<view_from>::value ==
                  native_content_level_of<lever_layout>::value));
     D_CVT_CHECK((lifetime_relation<view_from, lever_layout>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((DIterabilityRelation<view_from, lever_layout>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((discipline_relation<view_from, lever_layout>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
 
     // a deque is a third layout, so it too is a copy
     D_CVT_CHECK(sequential_layout_of<std_deque>::value ==
-                sequential_layout::deque_like);
+                DSequentialLayout::deque_like);
     D_CVT_TIER(DConversionTier::constructive, std_vector, std_deque);
 
     // a string is a fourth, and vector<char> -> string would be a copy for the same
     // reason - the layout proxy is what carries the whole distinction
     D_CVT_CHECK(sequential_layout_of<std_str>::value ==
-                sequential_layout::string_like);
+                DSequentialLayout::string_like);
 
     return ok;
 }
@@ -415,9 +415,9 @@ bool tests_view_conjunct_lifetime()
     // iterability != equivalent, so conjunct 5 is never the sole failure there
     #define D_CVT_LIFETIME_IMPLIES_ITER(FROM, TO)                             \
         D_CVT_CHECK(((lifetime_relation<FROM, TO>::value) ==                  \
-                     order_relation::equivalent) ||                           \
+                     DOrderRelation::equivalent) ||                           \
                     ((DIterabilityRelation<FROM, TO>::value) !=               \
-                     order_relation::equivalent))
+                     DOrderRelation::equivalent))
 
     D_CVT_LIFETIME_IMPLIES_ITER(std_array,  std_vector);
     D_CVT_LIFETIME_IMPLIES_ITER(std_vector, std_array);
@@ -430,9 +430,9 @@ bool tests_view_conjunct_lifetime()
     // std::array is the real instance: it is compile-staged where a vector is not,
     // and BOTH clauses therefore fail at once
     D_CVT_CHECK((lifetime_relation<std_array, std_vector>::value ==
-                 order_relation::greater));
+                 DOrderRelation::greater));
     D_CVT_CHECK((DIterabilityRelation<std_array, std_vector>::value ==
-                 order_relation::greater));
+                 DOrderRelation::greater));
     D_CVT_CHECK((!view_of<std_array, std_vector>::value));
 
     // ...even though the two share a LAYOUT.  A std::array is contiguous exactly
@@ -449,11 +449,11 @@ bool tests_view_conjunct_lifetime()
 
     // conjunct 7 holds - both sit at the bottom of the iterability lattice
     D_CVT_CHECK((DIterabilityRelation<nc_runtime, nc_compile>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
 
     // ...and conjunct 5 does NOT
     D_CVT_CHECK((lifetime_relation<nc_runtime, nc_compile>::value !=
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
 
     // so the view fails on clause 5 alone
     D_CVT_CHECK((!view_of<nc_runtime, nc_compile>::value));
@@ -487,11 +487,11 @@ bool tests_view_conjunct_storage()
     bool ok = true;
 
     // the clause fails
-    D_CVT_CHECK(storage_of<view_from>::value == storage_duration::unknown);
+    D_CVT_CHECK(storage_of<view_from>::value == DStorageDuration::unknown);
     D_CVT_CHECK(storage_of<lever_storage>::value ==
-                storage_duration::static_storage);
+                DStorageDuration::static_storage);
     D_CVT_CHECK((storage_relation<view_from, lever_storage>::value ==
-                 order_relation::incomparable));
+                 DOrderRelation::incomparable));
     D_CVT_CHECK((!view_of<view_from, lever_storage>::value));
 
     // ...and the other seven hold
@@ -503,11 +503,11 @@ bool tests_view_conjunct_storage()
     D_CVT_CHECK((sequential_layout_of<view_from>::value ==
                  sequential_layout_of<lever_storage>::value));
     D_CVT_CHECK((lifetime_relation<view_from, lever_storage>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((DIterabilityRelation<view_from, lever_storage>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((discipline_relation<view_from, lever_storage>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
 
     // so the tier drops one rung
     D_CVT_TIER(DConversionTier::constructive, view_from, lever_storage);
@@ -515,10 +515,10 @@ bool tests_view_conjunct_storage()
     // *** and the axis is INERT for the standard library.  Nothing in it declares a
     // siting, so every stdlib pair reports `equivalent` on this clause and it never
     // fires - which is why the suite needs a fixture to exercise it at all
-    D_CVT_CHECK(storage_of<std_vector>::value == storage_duration::unknown);
-    D_CVT_CHECK(storage_of<std_array>::value == storage_duration::unknown);
+    D_CVT_CHECK(storage_of<std_vector>::value == DStorageDuration::unknown);
+    D_CVT_CHECK(storage_of<std_array>::value == DStorageDuration::unknown);
     D_CVT_CHECK((storage_relation<std_vector, std_array>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
 
     return ok;
 }
@@ -552,11 +552,11 @@ bool tests_view_conjunct_iterability()
 
     // the modes differ, and From is the MORE capable
     D_CVT_CHECK(iteration_mode_of<view_from>::value ==
-                iteration_mode::non_const);
+                DIterationMode::non_const);
     D_CVT_CHECK(iteration_mode_of<lever_iterability>::value ==
-                iteration_mode::const_only);
+                DIterationMode::const_only);
     D_CVT_CHECK((DIterabilityRelation<view_from, lever_iterability>::value ==
-                 order_relation::greater));
+                 DOrderRelation::greater));
 
     // ...and the clause fails ANYWAY - it demands equivalence, not "no weaker"
     D_CVT_CHECK((!view_of<view_from, lever_iterability>::value));
@@ -570,11 +570,11 @@ bool tests_view_conjunct_iterability()
     D_CVT_CHECK((sequential_layout_of<view_from>::value ==
                  sequential_layout_of<lever_iterability>::value));
     D_CVT_CHECK((lifetime_relation<view_from, lever_iterability>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((storage_relation<view_from, lever_iterability>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((discipline_relation<view_from, lever_iterability>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
 
     // so the tier drops one rung
     D_CVT_TIER(DConversionTier::constructive, view_from, lever_iterability);
@@ -583,11 +583,11 @@ bool tests_view_conjunct_iterability()
     // `greater`.  Here is a pair where From is `greater` on BOTH axes - and only
     // one of the two clauses forgives it
     D_CVT_CHECK((DIterabilityRelation<view_from, lever_iterability>::value ==
-                 order_relation::greater));
+                 DOrderRelation::greater));
     D_CVT_CHECK((!view_of<view_from, lever_iterability>::value));   // NOT forgiven
 
     D_CVT_CHECK((discipline_relation<lever_discipline, view_from>::value ==
-                 order_relation::greater));
+                 DOrderRelation::greater));
     D_CVT_CHECK((view_of<lever_discipline, view_from>::value));      // FORGIVEN
 
     return ok;
@@ -619,7 +619,7 @@ bool tests_view_conjunct_discipline()
     D_CVT_CHECK(overlay_of<lever_discipline>::sorted);
     D_CVT_CHECK(!overlay_of<view_from>::sorted);
     D_CVT_CHECK((discipline_relation<view_from, lever_discipline>::value ==
-                 order_relation::less));
+                 DOrderRelation::less));
 
     // ...so the clause fails
     D_CVT_CHECK((!view_of<view_from, lever_discipline>::value));
@@ -633,11 +633,11 @@ bool tests_view_conjunct_discipline()
     D_CVT_CHECK((sequential_layout_of<view_from>::value ==
                  sequential_layout_of<lever_discipline>::value));
     D_CVT_CHECK((lifetime_relation<view_from, lever_discipline>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((storage_relation<view_from, lever_discipline>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((DIterabilityRelation<view_from, lever_discipline>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
 
     // ...and nothing is forgotten and nothing is clamped, so rung 3 does not catch
     // it either - it really is the discipline clause that decides
@@ -678,12 +678,12 @@ bool tests_view_discipline_asymmetry()
 
     // *** the same pair, both ways ***
     D_CVT_CHECK((discipline_relation<lever_discipline, view_from>::value ==
-                 order_relation::greater));
+                 DOrderRelation::greater));
     D_CVT_CHECK((view_of<lever_discipline, view_from>::value));
     D_CVT_TIER(DConversionTier::view, lever_discipline, view_from);
 
     D_CVT_CHECK((discipline_relation<view_from, lever_discipline>::value ==
-                 order_relation::less));
+                 DOrderRelation::less));
     D_CVT_CHECK((!view_of<view_from, lever_discipline>::value));
     D_CVT_TIER(DConversionTier::constructive, view_from, lever_discipline);
 
@@ -693,7 +693,7 @@ bool tests_view_discipline_asymmetry()
 
     // the third case: `equivalent` passes as well
     D_CVT_CHECK((discipline_relation<view_from, view_to>::value ==
-                 order_relation::equivalent));
+                 DOrderRelation::equivalent));
     D_CVT_CHECK((view_of<view_from, view_to>::value));
 
     // and the fourth possible relation - `incomparable` - fails, as it must: two
@@ -702,7 +702,7 @@ bool tests_view_discipline_asymmetry()
     // a flag it does not
     D_CVT_CHECK((discipline_relation<content_from,
                                      lever_discipline>::value ==
-                 order_relation::incomparable));
+                 DOrderRelation::incomparable));
     D_CVT_CHECK((!view_of<content_from, lever_discipline>::value));
 
     return ok;
@@ -778,24 +778,24 @@ bool tests_view_non_container()
     D_CVT_CHECK((sequential_layout_of<int>::value ==
                  sequential_layout_of<nc_runtime>::value));               // 4
     D_CVT_CHECK((lifetime_relation<int, nc_runtime>::value ==
-                 order_relation::equivalent));                            // 5
+                 DOrderRelation::equivalent));                            // 5
     D_CVT_CHECK((storage_relation<int, nc_runtime>::value ==
-                 order_relation::equivalent));                            // 6
+                 DOrderRelation::equivalent));                            // 6
     D_CVT_CHECK((DIterabilityRelation<int, nc_runtime>::value ==
-                 order_relation::equivalent));                            // 7
+                 DOrderRelation::equivalent));                            // 7
     D_CVT_CHECK((discipline_relation<int, nc_runtime>::value ==
-                 order_relation::equivalent));                            // 8
+                 DOrderRelation::equivalent));                            // 8
 
     // ...because every axis reports its bottom for a non-container
     D_CVT_CHECK((std::is_same<internal::DElementTypeOfHelper<int>,
                               void>::value));
-    D_CVT_LEVEL(content_level::none, native_content_level_of<int>::value);
-    D_CVT_CHECK(sequential_layout_of<int>::value == sequential_layout::none);
+    D_CVT_LEVEL(DContentLevel::none, native_content_level_of<int>::value);
+    D_CVT_CHECK(sequential_layout_of<int>::value == DSequentialLayout::none);
     D_CVT_CHECK(!is_iterable_container<int>::value);
     D_CVT_CHECK(!is_iterable_container<nc_runtime>::value);
 
     // the ninth clause decides: no content level on either side, two types
-    D_CVT_LEVEL(content_level::none,
+    D_CVT_LEVEL(DContentLevel::none,
                 native_content_level_of<nc_runtime>::value);
     D_CVT_CHECK((!std::is_same<int, nc_runtime>::value));
 
@@ -805,7 +805,7 @@ bool tests_view_non_container()
     D_CVT_TIER(DConversionTier::view, void, void);
 
     // DConversionClass agrees: shared rung `none`, tier `none`, no path
-    D_CVT_LEVEL(content_level::none,
+    D_CVT_LEVEL(DContentLevel::none,
                 (DConversionClass<int, nc_runtime>::shared_content_level));
     D_CVT_CHECK((DConversionClass<int, nc_runtime>::tier ==
                  DConversionTier::none));

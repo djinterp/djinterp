@@ -80,7 +80,7 @@ NS_DJINTERP
 // I.   list_base — CRTP foundation for list-like containers
 // ===========================================================================
 
-// list_base
+// DListBase
 //   class: CRTP base supplying list-specific algorithms expressible over
 // begin() / end(). Inherits DSequentialBase<Derived>, so the generic
 // sequential algorithms (rotate, reverse, is_palindrome, shift, ...) are also
@@ -94,12 +94,12 @@ NS_DJINTERP
 //   All algorithms here mutate via iterator-pair operations, so they work on
 // any list whose iterators model the appropriate category.
 template<typename Derived>
-class list_base
+class DListBase
     : public DSequentialBase<Derived>
 {
 protected:
-    list_base() = default;
-    ~list_base() = default;
+    DListBase() = default;
+    ~DListBase() = default;
 
 private:
     Derived& self() noexcept
@@ -263,6 +263,10 @@ public:
         return ( std::begin(self()) == std::end(self()) );
     }
 };
+
+// old name, until 0.9.0-rc.1
+template<typename Derived>
+using list_base = DListBase<Derived>;
 
 
 // ===========================================================================

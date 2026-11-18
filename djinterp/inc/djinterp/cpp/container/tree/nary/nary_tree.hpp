@@ -11,7 +11,7 @@
 *
 *   Inherits `DTreeContainer` for entry-point storage, size tracking,
 * allocator
-* management, and Rule-of-Five behavior, and `options_container_base` for the
+* management, and Rule-of-Five behavior, and `DOptionsContainerBase` for the
 * framework's per-axis options surface.  This file adds the n-ary topology,
 * hierarchical access, ADDRESSING, filtering, transformation, and the standard
 * subtree mutators.
@@ -378,7 +378,7 @@ private:
 // II.  N-ARY TREE
 // =========================================================================
 
-// nary_tree
+// DNaryTree
 //   class: heap-allocated, owning n-ary tree using the LCRS topology with
 // auxiliary parent / last_child / prev_sibling links. Inherits DTreeContainer
 // for entry-point storage, size tracking, allocator management, and
@@ -388,15 +388,15 @@ private:
 template<typename ValueType,
          typename Allocator        = std::allocator<DNaryTreeNode<ValueType>>,
          typename LockPolicy       = void,
-         typename OwnershipPolicy = unique_owning_policy,
+         typename OwnershipPolicy = DUniqueOwningPolicy,
          typename... Options>
-class nary_tree
+class DNaryTree
     : public DTreeContainer<ValueType,
                             DNaryTreeNode<ValueType>,
                             Allocator,
                             LockPolicy,
                             OwnershipPolicy>,
-      public options_container_base<Options...>
+      public DOptionsContainerBase<Options...>
 {
 private:
     using base = DTreeContainer<ValueType,
@@ -405,7 +405,7 @@ private:
                                 LockPolicy,
                                 OwnershipPolicy>;
 
-    using option_base = options_container_base<Options...>;
+    using option_base = DOptionsContainerBase<Options...>;
 
     using alloc_traits = std::allocator_traits<Allocator>;
 
@@ -443,7 +443,7 @@ public:
     // hierarchical_container_traits consults alongside its structural probes.
     // The node_type member is already the strong tell; this states the same
     // thing outright, so no heuristic has to infer it.
-    using structure_category = hierarchical;
+    using structure_category = DHierarchical;
 
     // -----------------------------------------------------------------
     // 1b. the options surface (C++17 and later)
@@ -456,56 +456,56 @@ public:
 
     using typename option_base::options_type;
 
-    static constexpr container_structure axis_structure =
-        container_structure::hierarchical;   // not configurable: a tree nests
+    static constexpr DContainerStructure axis_structure =
+        DContainerStructure::hierarchical;   // not configurable: a tree nests
 
-    static constexpr container_lifetime axis_lifetime =
+    static constexpr DContainerLifetime axis_lifetime =
         container_axis_value_v<options_type,
-                               container_axis::lifetime,
-                               container_lifetime::mutable_storage>;
+                               DContainerAxis::lifetime,
+                               DContainerLifetime::mutable_storage>;
 
     static constexpr DContainerOrdering axis_ordering =
         container_axis_value_v<options_type,
-                               container_axis::ordering,
+                               DContainerAxis::ordering,
                                DContainerOrdering::ordered>;
 
     static constexpr DContainerBounds axis_bounds =
         container_axis_value_v<options_type,
-                               container_axis::bounds,
+                               DContainerAxis::bounds,
                                DContainerBounds::unbounded>;
 
     static constexpr DContainerMultiplicity axis_multiplicity =
         container_axis_value_v<options_type,
-                               container_axis::multiplicity,
+                               DContainerAxis::multiplicity,
                                DContainerMultiplicity::multi>;
 
     static constexpr DContainerStorageKind axis_storage_kind =
         container_axis_value_v<options_type,
-                               container_axis::storage_kind,
+                               DContainerAxis::storage_kind,
                                DContainerStorageKind::dynamic_storage>;
 
     static constexpr DContainerThreadSafety axis_thread_safety =
         container_axis_value_v<options_type,
-                               container_axis::thread_safety,
+                               DContainerAxis::thread_safety,
                                DContainerThreadSafety::none>;
 
     static constexpr DContainerBacking axis_backing =
         container_axis_value_v<options_type,
-                               container_axis::backing,
+                               DContainerAxis::backing,
                                DContainerBacking::fundamental>;
 
-    static constexpr container_iterability axis_iterability =
+    static constexpr DContainerIterability axis_iterability =
         container_axis_value_v<options_type,
-                               container_axis::iterability,
-                               container_iterability::iterable>;
+                               DContainerAxis::iterability,
+                               DContainerIterability::iterable>;
 
     // a tree cannot be configured flat. The structure axis is the one axis
     // this container does not merely default -- it FIXES.
     static_assert(
         container_axis_value_v<options_type,
-                               container_axis::structure,
-                               container_structure::hierarchical>
-            == container_structure::hierarchical,
+                               DContainerAxis::structure,
+                               DContainerStructure::hierarchical>
+            == DContainerStructure::hierarchical,
         "nary_tree is hierarchical by construction: "
         "container_opt_structure<flat> cannot be honoured.");
 
@@ -573,15 +573,15 @@ public:
     // double-free, no undefined behaviour.  options_container_base is
     // stateless, so it default-constructs and needs no naming here.
 
-    nary_tree(
-        nary_tree&& _other
+    DNaryTree(
+        DNaryTree&& _other
     ) noexcept
         : base(static_cast<base&&>(_other))
     {}
 
-    nary_tree&
+    DNaryTree&
     operator=(
-        nary_tree&& _other
+        DNaryTree&& _other
     ) noexcept
     {
         if (this != &_other)
@@ -607,14 +607,14 @@ public:
     // not the framework's intent; other policies (shared, non-owning) that may
     // legitimately want copyable trees should provide a policy-aware clone()
     // rather than reaching for operator=.
-    nary_tree(const nary_tree&)            = delete;
-    nary_tree& operator=(const nary_tree&) = delete;
+    DNaryTree(const DNaryTree&)            = delete;
+    DNaryTree& operator=(const DNaryTree&) = delete;
 
 
     // -----------------------------------------------------------------
     // destructor - sweeps the entire owned graph
     // -----------------------------------------------------------------
-    ~nary_tree()
+    ~DNaryTree()
     {
         destroy_all();
     }
@@ -1548,12 +1548,12 @@ public:
              typename std::enable_if<
                  is_predicate<Pred, const ValueType&>::value,
                  int>::type = 0>
-    nary_tree
+    DNaryTree
     filter(
         Pred _pred
     ) const
     {
-        nary_tree        out;
+        DNaryTree        out;
         const node_type* r = root();
 
         if (r == nullptr)
@@ -1759,12 +1759,12 @@ public:
              typename std::enable_if<
                  is_callable<Fn, const ValueType&>::value,
                  int>::type = 0>
-    nary_tree
+    DNaryTree
     transform(
         Fn _fn
     ) const
     {
-        nary_tree        out;
+        DNaryTree        out;
         const node_type* r = root();
 
         if (r == nullptr)
@@ -2087,7 +2087,7 @@ private:
 
         if constexpr (
             std::is_same<OwnershipPolicy,
-                            unique_owning_policy>::value)
+                            DUniqueOwningPolicy>::value)
         {
             r = base::entry_point();
 
@@ -2331,7 +2331,7 @@ private:
     bool
     clone_closure(
         const node_type* _src,
-        nary_tree&       _out,
+        DNaryTree&       _out,
         node_type*       _dst_parent,
         Pred&           _pred
     ) const
@@ -2376,7 +2376,7 @@ private:
     void
     clone_mapped(
         const node_type* _src,
-        nary_tree&       _out,
+        DNaryTree&       _out,
         node_type*       _dst,
         Fn&             _fn
     ) const
@@ -2509,6 +2509,14 @@ private:
     }
 };
 
+// old name, until 0.9.0-rc.1
+template<typename ValueType,
+         typename Allocator        = std::allocator<DNaryTreeNode<ValueType>>,
+         typename LockPolicy       = void,
+         typename OwnershipPolicy = DUniqueOwningPolicy,
+         typename... Options>
+using nary_tree = DNaryTree<ValueType, Allocator, LockPolicy, OwnershipPolicy, Options...>;
+
 
 // =========================================================================
 // III. CONVENIENCE ALIASES
@@ -2522,10 +2530,10 @@ template<typename ValueType,
          typename Allocator   = std::allocator<DNaryTreeNode<ValueType>>,
          typename LockPolicy = void,
          typename... Options>
-using DOwningNaryTree = nary_tree<ValueType,
+using DOwningNaryTree = DNaryTree<ValueType,
                                    Allocator,
                                    LockPolicy,
-                                   unique_owning_policy,
+                                   DUniqueOwningPolicy,
                                    Options...>;
 
 // DSharedNaryTree
@@ -2535,10 +2543,10 @@ template<typename ValueType,
          typename Allocator   = std::allocator<DNaryTreeNode<ValueType>>,
          typename LockPolicy = void,
          typename... Options>
-using DSharedNaryTree = nary_tree<ValueType,
+using DSharedNaryTree = DNaryTree<ValueType,
                                    Allocator,
                                    LockPolicy,
-                                   shared_owning_policy,
+                                   DSharedOwningPolicy,
                                    Options...>;
 
 // DNonOwningNaryTree
@@ -2548,10 +2556,10 @@ template<typename ValueType,
          typename Allocator   = std::allocator<DNaryTreeNode<ValueType>>,
          typename LockPolicy = void,
          typename... Options>
-using DNonOwningNaryTree = nary_tree<ValueType,
+using DNonOwningNaryTree = DNaryTree<ValueType,
                                        Allocator,
                                        LockPolicy,
-                                       non_owning_policy,
+                                       DNonOwningPolicy,
                                        Options...>;
 
 

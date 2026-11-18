@@ -128,13 +128,13 @@ bool tests_sum_instance()
 {
     bool ok = true;
 
-    const sum<int> a(2);
-    const sum<int> b(3);
-    const sum<int> c(5);
-    const sum<int> e = monoid_traits<sum<int> >::empty();
+    const DSum<int> a(2);
+    const DSum<int> b(3);
+    const DSum<int> c(5);
+    const DSum<int> e = monoid_traits<DSum<int> >::empty();
 
     // combine is +; empty is 0.
-    ok = ok && (semigroup_traits<sum<int> >::combine(a, b).value == 5);
+    ok = ok && (semigroup_traits<DSum<int> >::combine(a, b).value == 5);
     ok = ok && (e.value == 0);
     ok = ok && (mappend(a, b).value == 5);
 
@@ -147,16 +147,16 @@ bool tests_sum_instance()
                 mappend(a, mappend(b, c)).value);
 
     // negative summands.
-    ok = ok && (mappend(sum<int>(-4), sum<int>(10)).value == 6);
+    ok = ok && (mappend(DSum<int>(-4), DSum<int>(10)).value == 6);
 
     // floating element type.
     ok = ok && close_enough(
-                   mappend(sum<double>(1.5), sum<double>(2.25)).value, 3.75);
-    ok = ok && close_enough(monoid_traits<sum<double> >::empty().value, 0.0);
+                   mappend(DSum<double>(1.5), DSum<double>(2.25)).value, 3.75);
+    ok = ok && close_enough(monoid_traits<DSum<double> >::empty().value, 0.0);
 
     // constexpr algebra.
-    static_assert(mappend(sum<int>(2), sum<int>(3)).value == 5, "sum ce");
-    static_assert(mempty<sum<int> >().value == 0, "sum empty ce");
+    static_assert(mappend(DSum<int>(2), DSum<int>(3)).value == 5, "sum ce");
+    static_assert(mempty<DSum<int> >().value == 0, "sum empty ce");
 
     return ok;
 }
@@ -178,13 +178,13 @@ bool tests_product_instance()
 {
     bool ok = true;
 
-    const product<int> a(2);
-    const product<int> b(3);
-    const product<int> c(4);
-    const product<int> e = monoid_traits<product<int> >::empty();
+    const DProduct<int> a(2);
+    const DProduct<int> b(3);
+    const DProduct<int> c(4);
+    const DProduct<int> e = monoid_traits<DProduct<int> >::empty();
 
     // combine is *; empty is 1.
-    ok = ok && (semigroup_traits<product<int> >::combine(a, b).value == 6);
+    ok = ok && (semigroup_traits<DProduct<int> >::combine(a, b).value == 6);
     ok = ok && (e.value == 1);
     ok = ok && (mappend(a, b).value == 6);
 
@@ -197,19 +197,19 @@ bool tests_product_instance()
                 mappend(a, mappend(b, c)).value);
 
     // absorbing element: anything times 0 is 0.
-    ok = ok && (mappend(a, product<int>(0)).value == 0);
+    ok = ok && (mappend(a, DProduct<int>(0)).value == 0);
 
     // floating element type.
     ok = ok && close_enough(
-                   mappend(product<double>(2.0), product<double>(2.5)).value,
+                   mappend(DProduct<double>(2.0), DProduct<double>(2.5)).value,
                    5.0);
-    ok = ok && close_enough(monoid_traits<product<double> >::empty().value,
+    ok = ok && close_enough(monoid_traits<DProduct<double> >::empty().value,
                             1.0);
 
     // constexpr algebra.
-    static_assert(mappend(product<int>(3), product<int>(4)).value == 12,
+    static_assert(mappend(DProduct<int>(3), DProduct<int>(4)).value == 12,
                   "product ce");
-    static_assert(mempty<product<int> >().value == 1, "product empty ce");
+    static_assert(mempty<DProduct<int> >().value == 1, "product empty ce");
 
     return ok;
 }
@@ -229,29 +229,29 @@ bool tests_all_instance()
 {
     bool ok = true;
 
-    const all e = monoid_traits<all>::empty();
+    const DAll e = monoid_traits<DAll>::empty();
 
     // empty is true.
     ok = ok && (e.value == true);
 
     // combine is &&: full truth table.
-    ok = ok && (mappend(all(true),  all(true)).value  == true);
-    ok = ok && (mappend(all(true),  all(false)).value == false);
-    ok = ok && (mappend(all(false), all(true)).value  == false);
-    ok = ok && (mappend(all(false), all(false)).value == false);
+    ok = ok && (mappend(DAll(true),  DAll(true)).value  == true);
+    ok = ok && (mappend(DAll(true),  DAll(false)).value == false);
+    ok = ok && (mappend(DAll(false), DAll(true)).value  == false);
+    ok = ok && (mappend(DAll(false), DAll(false)).value == false);
 
     // identity: x && true == x, both directions.
-    ok = ok && (mappend(all(true),  e).value == true);
-    ok = ok && (mappend(all(false), e).value == false);
-    ok = ok && (mappend(e, all(false)).value == false);
+    ok = ok && (mappend(DAll(true),  e).value == true);
+    ok = ok && (mappend(DAll(false), e).value == false);
+    ok = ok && (mappend(e, DAll(false)).value == false);
 
     // associativity.
-    ok = ok && (mappend(mappend(all(true), all(false)), all(true)).value ==
-                mappend(all(true), mappend(all(false), all(true))).value);
+    ok = ok && (mappend(mappend(DAll(true), DAll(false)), DAll(true)).value ==
+                mappend(DAll(true), mappend(DAll(false), DAll(true))).value);
 
     // constexpr.
-    static_assert(mappend(all(true), all(false)).value == false, "all ce");
-    static_assert(mempty<all>().value == true, "all empty ce");
+    static_assert(mappend(DAll(true), DAll(false)).value == false, "all ce");
+    static_assert(mempty<DAll>().value == true, "all empty ce");
 
     return ok;
 }
@@ -271,29 +271,29 @@ bool tests_any_instance()
 {
     bool ok = true;
 
-    const any e = monoid_traits<any>::empty();
+    const DAny e = monoid_traits<DAny>::empty();
 
     // empty is false.
     ok = ok && (e.value == false);
 
     // combine is ||: full truth table.
-    ok = ok && (mappend(any(true),  any(true)).value  == true);
-    ok = ok && (mappend(any(true),  any(false)).value == true);
-    ok = ok && (mappend(any(false), any(true)).value  == true);
-    ok = ok && (mappend(any(false), any(false)).value == false);
+    ok = ok && (mappend(DAny(true),  DAny(true)).value  == true);
+    ok = ok && (mappend(DAny(true),  DAny(false)).value == true);
+    ok = ok && (mappend(DAny(false), DAny(true)).value  == true);
+    ok = ok && (mappend(DAny(false), DAny(false)).value == false);
 
     // identity: x || false == x, both directions.
-    ok = ok && (mappend(any(true),  e).value == true);
-    ok = ok && (mappend(any(false), e).value == false);
-    ok = ok && (mappend(e, any(true)).value  == true);
+    ok = ok && (mappend(DAny(true),  e).value == true);
+    ok = ok && (mappend(DAny(false), e).value == false);
+    ok = ok && (mappend(e, DAny(true)).value  == true);
 
     // associativity.
-    ok = ok && (mappend(mappend(any(false), any(true)), any(false)).value ==
-                mappend(any(false), mappend(any(true), any(false))).value);
+    ok = ok && (mappend(mappend(DAny(false), DAny(true)), DAny(false)).value ==
+                mappend(DAny(false), mappend(DAny(true), DAny(false))).value);
 
     // constexpr.
-    static_assert(mappend(any(false), any(true)).value == true, "any ce");
-    static_assert(mempty<any>().value == false, "any empty ce");
+    static_assert(mappend(DAny(false), DAny(true)).value == true, "any ce");
+    static_assert(mempty<DAny>().value == false, "any empty ce");
 
     return ok;
 }
@@ -315,38 +315,38 @@ bool tests_min_instance()
 {
     bool ok = true;
 
-    const min<int> e = monoid_traits<min<int> >::empty();
+    const DMin<int> e = monoid_traits<DMin<int> >::empty();
 
     // empty is the largest representable value (never wins a min).
     ok = ok && (e.value == (std::numeric_limits<int>::max)());
 
     // combine keeps the smaller operand.
-    ok = ok && (mappend(min<int>(3), min<int>(5)).value == 3);
-    ok = ok && (mappend(min<int>(5), min<int>(3)).value == 3);
-    ok = ok && (mappend(min<int>(-2), min<int>(4)).value == -2);
+    ok = ok && (mappend(DMin<int>(3), DMin<int>(5)).value == 3);
+    ok = ok && (mappend(DMin<int>(5), DMin<int>(3)).value == 3);
+    ok = ok && (mappend(DMin<int>(-2), DMin<int>(4)).value == -2);
 
     // a tie resolves to the (equal) value.
-    ok = ok && (mappend(min<int>(7), min<int>(7)).value == 7);
+    ok = ok && (mappend(DMin<int>(7), DMin<int>(7)).value == 7);
 
     // identity: min(x, +inf) == x == min(+inf, x).
-    ok = ok && (mappend(min<int>(9), e).value == 9);
-    ok = ok && (mappend(e, min<int>(9)).value == 9);
-    ok = ok && (mappend(min<int>(-100), e).value == -100);
+    ok = ok && (mappend(DMin<int>(9), e).value == 9);
+    ok = ok && (mappend(e, DMin<int>(9)).value == 9);
+    ok = ok && (mappend(DMin<int>(-100), e).value == -100);
 
     // identity edge: operand already equal to the identity.
     ok = ok && (mappend(e, e).value == (std::numeric_limits<int>::max)());
 
     // associativity.
-    ok = ok && (mappend(mappend(min<int>(4), min<int>(1)), min<int>(9)).value ==
-                mappend(min<int>(4), mappend(min<int>(1), min<int>(9))).value);
+    ok = ok && (mappend(mappend(DMin<int>(4), DMin<int>(1)), DMin<int>(9)).value ==
+                mappend(DMin<int>(4), mappend(DMin<int>(1), DMin<int>(9))).value);
 
     // floating element type.
     ok = ok && close_enough(
-                   mappend(min<double>(1.5), min<double>(0.5)).value, 0.5);
+                   mappend(DMin<double>(1.5), DMin<double>(0.5)).value, 0.5);
 
     // constexpr.
-    static_assert(mappend(min<int>(3), min<int>(5)).value == 3, "min ce");
-    static_assert(mempty<min<int> >().value ==
+    static_assert(mappend(DMin<int>(3), DMin<int>(5)).value == 3, "min ce");
+    static_assert(mempty<DMin<int> >().value ==
                   (std::numeric_limits<int>::max)(), "min empty ce");
 
     return ok;
@@ -369,38 +369,38 @@ bool tests_max_instance()
 {
     bool ok = true;
 
-    const max<int> e = monoid_traits<max<int> >::empty();
+    const DMax<int> e = monoid_traits<DMax<int> >::empty();
 
     // empty is the smallest representable value (never wins a max).
     ok = ok && (e.value == (std::numeric_limits<int>::lowest)());
 
     // combine keeps the larger operand.
-    ok = ok && (mappend(max<int>(3), max<int>(5)).value == 5);
-    ok = ok && (mappend(max<int>(5), max<int>(3)).value == 5);
-    ok = ok && (mappend(max<int>(-2), max<int>(-9)).value == -2);
+    ok = ok && (mappend(DMax<int>(3), DMax<int>(5)).value == 5);
+    ok = ok && (mappend(DMax<int>(5), DMax<int>(3)).value == 5);
+    ok = ok && (mappend(DMax<int>(-2), DMax<int>(-9)).value == -2);
 
     // a tie.
-    ok = ok && (mappend(max<int>(7), max<int>(7)).value == 7);
+    ok = ok && (mappend(DMax<int>(7), DMax<int>(7)).value == 7);
 
     // identity: max(x, -inf) == x == max(-inf, x).
-    ok = ok && (mappend(max<int>(9), e).value == 9);
-    ok = ok && (mappend(e, max<int>(9)).value == 9);
-    ok = ok && (mappend(max<int>(-100), e).value == -100);
+    ok = ok && (mappend(DMax<int>(9), e).value == 9);
+    ok = ok && (mappend(e, DMax<int>(9)).value == 9);
+    ok = ok && (mappend(DMax<int>(-100), e).value == -100);
 
     // identity edge.
     ok = ok && (mappend(e, e).value == (std::numeric_limits<int>::lowest)());
 
     // associativity.
-    ok = ok && (mappend(mappend(max<int>(4), max<int>(1)), max<int>(9)).value ==
-                mappend(max<int>(4), mappend(max<int>(1), max<int>(9))).value);
+    ok = ok && (mappend(mappend(DMax<int>(4), DMax<int>(1)), DMax<int>(9)).value ==
+                mappend(DMax<int>(4), mappend(DMax<int>(1), DMax<int>(9))).value);
 
     // floating element type.
     ok = ok && close_enough(
-                   mappend(max<double>(1.5), max<double>(0.5)).value, 1.5);
+                   mappend(DMax<double>(1.5), DMax<double>(0.5)).value, 1.5);
 
     // constexpr.
-    static_assert(mappend(max<int>(3), max<int>(5)).value == 5, "max ce");
-    static_assert(mempty<max<int> >().value ==
+    static_assert(mappend(DMax<int>(3), DMax<int>(5)).value == 5, "max ce");
+    static_assert(mempty<DMax<int> >().value ==
                   (std::numeric_limits<int>::lowest)(), "max empty ce");
 
     return ok;
@@ -423,17 +423,17 @@ bool tests_instance_is_specialized()
                   "string sg specialized");
     static_assert(semigroup_traits<std::vector<int> >::is_specialized::value,
                   "vector sg specialized");
-    static_assert(semigroup_traits<sum<int> >::is_specialized::value,
+    static_assert(semigroup_traits<DSum<int> >::is_specialized::value,
                   "sum sg specialized");
-    static_assert(semigroup_traits<product<int> >::is_specialized::value,
+    static_assert(semigroup_traits<DProduct<int> >::is_specialized::value,
                   "product sg specialized");
-    static_assert(semigroup_traits<all>::is_specialized::value,
+    static_assert(semigroup_traits<DAll>::is_specialized::value,
                   "all sg specialized");
-    static_assert(semigroup_traits<any>::is_specialized::value,
+    static_assert(semigroup_traits<DAny>::is_specialized::value,
                   "any sg specialized");
-    static_assert(semigroup_traits<min<int> >::is_specialized::value,
+    static_assert(semigroup_traits<DMin<int> >::is_specialized::value,
                   "min sg specialized");
-    static_assert(semigroup_traits<max<int> >::is_specialized::value,
+    static_assert(semigroup_traits<DMax<int> >::is_specialized::value,
                   "max sg specialized");
 
     // monoid_traits<T>::is_specialized for every instance.
@@ -441,22 +441,22 @@ bool tests_instance_is_specialized()
                   "string mn specialized");
     static_assert(monoid_traits<std::vector<int> >::is_specialized::value,
                   "vector mn specialized");
-    static_assert(monoid_traits<sum<int> >::is_specialized::value,
+    static_assert(monoid_traits<DSum<int> >::is_specialized::value,
                   "sum mn specialized");
-    static_assert(monoid_traits<product<int> >::is_specialized::value,
+    static_assert(monoid_traits<DProduct<int> >::is_specialized::value,
                   "product mn specialized");
-    static_assert(monoid_traits<all>::is_specialized::value,
+    static_assert(monoid_traits<DAll>::is_specialized::value,
                   "all mn specialized");
-    static_assert(monoid_traits<any>::is_specialized::value,
+    static_assert(monoid_traits<DAny>::is_specialized::value,
                   "any mn specialized");
-    static_assert(monoid_traits<min<int> >::is_specialized::value,
+    static_assert(monoid_traits<DMin<int> >::is_specialized::value,
                   "min mn specialized");
-    static_assert(monoid_traits<max<int> >::is_specialized::value,
+    static_assert(monoid_traits<DMax<int> >::is_specialized::value,
                   "max mn specialized");
 
     // the marker is exactly std::true_type.
     static_assert(
-        std::is_same<monoid_traits<sum<int> >::is_specialized,
+        std::is_same<monoid_traits<DSum<int> >::is_specialized,
                      std::true_type>::value,
         "marker is std::true_type");
 

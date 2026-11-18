@@ -177,20 +177,20 @@ using ms3  = DMutableIterableArray<std::string, 3>;
 ///             F.2   THE WRAPPERS                                          ///
 ///////////////////////////////////////////////////////////////////////////////
 
-using atomic4 = DAtomicArray<array_opt_type<int>, DArrayOptExtent<4>>;
-using cow4    = DCowArray<array_opt_type<int>, DArrayOptExtent<4>>;
-using rcu4    = rcu_array<array_opt_type<int>, DArrayOptExtent<4>>;
-using ts4     = DThreadsafeArray<array_opt_type<int>, DArrayOptExtent<4>>;
+using atomic4 = DAtomicArray<DArrayOptType<int>, DArrayOptExtent<4>>;
+using cow4    = DCowArray<DArrayOptType<int>, DArrayOptExtent<4>>;
+using rcu4    = DRcuArray<DArrayOptType<int>, DArrayOptExtent<4>>;
+using ts4     = DThreadsafeArray<DArrayOptType<int>, DArrayOptExtent<4>>;
 
 // the non-iterable wrappers, to check that the axis carries through
 using cow4_ni = DCowArray<
-    array_opt_type<int>,
+    DArrayOptType<int>,
     DArrayOptExtent<4>,
-    DContainerOptIterability<container_iterability::non_iterable>>;
+    DContainerOptIterability<DContainerIterability::non_iterable>>;
 using ts4_ni = DThreadsafeArray<
-    array_opt_type<int>,
+    DArrayOptType<int>,
     DArrayOptExtent<4>,
-    DContainerOptIterability<container_iterability::non_iterable>>;
+    DContainerOptIterability<DContainerIterability::non_iterable>>;
 
 
 ///////////////////////////////////////////////////////////////////////////////

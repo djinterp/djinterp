@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/cpp/modules/parse/expression/expression_parse.hpp
 * link(s):   ch-parsing.tex, ch-synthesis.tex
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 /*
@@ -52,8 +52,8 @@ III.  PARSE ENTRY                          (parse_expression)
       -------------------------------------------------------
 */
 
-#ifndef DJINTERP_PARSE_EXPRESSION_EXPRESSION_PARSE_HPP
-#define DJINTERP_PARSE_EXPRESSION_EXPRESSION_PARSE_HPP 1
+#ifndef DJINTERP_PARSE_EXPRESSION_PARSE_HPP
+#define DJINTERP_PARSE_EXPRESSION_PARSE_HPP 1
 
 // FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (README
 // rule 5). The owner's ruling: compile at every level first; port to C++98
@@ -463,4 +463,4 @@ NS_END  // djinterp
 #endif  // floor, for now
 
 
-#endif  // DJINTERP_PARSE_EXPRESSION_EXPRESSION_PARSE_HPP
+#endif  // DJINTERP_PARSE_EXPRESSION_PARSE_HPP

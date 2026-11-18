@@ -118,7 +118,7 @@ bool tests_has_notify_method()
     bool ok = true;
 
     ok = ok && ( di::has_notify_method<mp_notify>::value);
-    ok = ok && ( di::has_notify_method<event_bus>::value);
+    ok = ok && ( di::has_notify_method<DEventBus>::value);
     ok = ok && (!di::has_notify_method<mp_none>::value);
     ok = ok && (!di::has_notify_method<int>::value);
 
@@ -143,7 +143,7 @@ bool tests_has_subscribe_method()
 
     ok = ok && ( di::has_subscribe_method<mp_subscribe>::value);
     ok = ok && (!di::has_subscribe_method<mp_none>::value);
-    ok = ok && (!di::has_subscribe_method<event_bus>::value);
+    ok = ok && (!di::has_subscribe_method<DEventBus>::value);
 
     return ok;
 }
@@ -165,7 +165,7 @@ bool tests_has_set_mediator_method()
 
     ok = ok && ( di::has_set_mediator_method<mp_set_mediator>::value);
     ok = ok && (!di::has_set_mediator_method<mp_none>::value);
-    ok = ok && (!di::has_set_mediator_method<colleague_base>::value);
+    ok = ok && (!di::has_set_mediator_method<DColleagueBase>::value);
 
     return ok;
 }
@@ -187,7 +187,7 @@ bool tests_has_on_event_method()
 
     ok = ok && ( di::has_on_event_method<mp_on_event>::value);
     ok = ok && (!di::has_on_event_method<mp_none>::value);
-    ok = ok && (!di::has_on_event_method<colleague_base>::value);
+    ok = ok && (!di::has_on_event_method<DColleagueBase>::value);
 
     return ok;
 }
@@ -207,7 +207,7 @@ bool tests_is_mediator_like()
     bool ok = true;
 
     ok = ok && ( is_mediator_like<mp_notify>::value);
-    ok = ok && ( is_mediator_like<event_bus>::value);
+    ok = ok && ( is_mediator_like<DEventBus>::value);
     ok = ok && (!is_mediator_like<mp_none>::value);
     ok = ok && (!is_mediator_like<int>::value);
 

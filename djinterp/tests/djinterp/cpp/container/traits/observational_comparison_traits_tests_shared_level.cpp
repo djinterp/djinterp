@@ -40,36 +40,36 @@ bool tests_shared_observational_level()
 
     // like pairs decide at their common level
     D_OC_CHECK(shared_observational_level<DOctNested, DOctNested>::value
-                   == observational_level::str);
+                   == DObservationalLevel::str);
     D_OC_CHECK(shared_observational_level<DOctVector, DOctVector>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
     D_OC_CHECK(shared_observational_level<DOctSet, DOctSet>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
     D_OC_CHECK(shared_observational_level<DOctCountOnly,
                                           DOctCountOnly>::value
-                   == observational_level::bag);
+                   == DObservationalLevel::bag);
     D_OC_CHECK(shared_observational_level<DOctContainsOnly,
                                           DOctContainsOnly>::value
-                   == observational_level::set);
+                   == DObservationalLevel::set);
     D_OC_CHECK(shared_observational_level<DOctSizeOnly,
                                           DOctSizeOnly>::value
-                   == observational_level::size);
+                   == DObservationalLevel::size);
     D_OC_CHECK(shared_observational_level<DOctBare, DOctBare>::value
-                   == observational_level::none);
+                   == DObservationalLevel::none);
 
     // mixed pairs decide at the coarser
     D_OC_CHECK(shared_observational_level<DOctNested, DOctVector>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
     D_OC_CHECK(shared_observational_level<DOctVector, DOctCountOnly>::value
-                   == observational_level::bag);
+                   == DObservationalLevel::bag);
     D_OC_CHECK(shared_observational_level<DOctCountOnly,
                                           DOctContainsOnly>::value
-                   == observational_level::set);
+                   == DObservationalLevel::set);
     D_OC_CHECK(shared_observational_level<DOctContainsOnly,
                                           DOctSizeOnly>::value
-                   == observational_level::size);
+                   == DObservationalLevel::size);
     D_OC_CHECK(shared_observational_level<DOctNested, DOctBare>::value
-                   == observational_level::none);
+                   == DObservationalLevel::none);
 
     // symmetric
     D_OC_CHECK(shared_observational_level<DOctNested, DOctVector>::value
@@ -186,41 +186,41 @@ bool tests_shared_level_principle()
     // an iterable container against progressively more opaque counterparts
     D_OC_CHECK(shared_observational_level<DOctVector,
                                           DOctContainsOnly>::value
-                   == observational_level::set);
+                   == DObservationalLevel::set);
     D_OC_CHECK(shared_observational_level<DOctVector, DOctSizeOnly>::value
-                   == observational_level::size);
+                   == DObservationalLevel::size);
     D_OC_CHECK(shared_observational_level<DOctVector, DOctBare>::value
-                   == observational_level::none);
+                   == DObservationalLevel::none);
 
     // ... and against one that keeps its counts
     D_OC_CHECK(shared_observational_level<DOctVector, DOctCountOnly>::value
-                   == observational_level::bag);
+                   == DObservationalLevel::bag);
 
     // a nested container against a flat one loses the shape
     D_OC_CHECK(shared_observational_level<DOctNested, DOctVector>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
     D_OC_CHECK(observational_level_of<DOctNested>::value
-                   == observational_level::str);
+                   == DObservationalLevel::str);
 
     // the fall belongs to the pair - each operand keeps its own level
     D_OC_CHECK(observational_level_of<DOctVector>::value
-                   == observational_level::seq);
+                   == DObservationalLevel::seq);
     D_OC_CHECK(observational_level_of<DOctContainsOnly>::value
-                   == observational_level::set);
+                   == DObservationalLevel::set);
     D_OC_CHECK(   ( shared_observational_level<DOctVector,
                                                DOctContainsOnly>::value
-                        == observational_level::set )
+                        == DObservationalLevel::set )
                && ( observational_level_of<DOctVector>::value
-                        == observational_level::seq ));
+                        == DObservationalLevel::seq ));
 
     // a bare counterpart annihilates, whatever the other side resolves
     D_OC_CHECK(shared_observational_level<DOctFullInterface,
                                           DOctBare>::value
-                   == observational_level::none);
+                   == DObservationalLevel::none);
     D_OC_CHECK(shared_observational_level<DOctNested, DOctBare>::value
-                   == observational_level::none);
+                   == DObservationalLevel::none);
     D_OC_CHECK(shared_observational_level<DOctSet, DOctBare>::value
-                   == observational_level::none);
+                   == DObservationalLevel::none);
 
     // a str-resolving counterpart is neutral
     D_OC_CHECK(shared_observational_level<DOctNested, DOctSet>::value
@@ -230,7 +230,7 @@ bool tests_shared_level_principle()
                    == observational_level_of<DOctCountOnly>::value);
     D_OC_CHECK(shared_observational_level<DOctNested,
                                           DOctFullInterface>::value
-                   == observational_level::str);
+                   == DObservationalLevel::str);
 
     return ok;
 }
@@ -257,24 +257,24 @@ bool tests_shared_level_cv_ref()
 
     D_OC_CV_REF_PAIR_AGREE(shared_observational_level,
                            DOctNested, DOctVector,
-                           observational_level::seq);
+                           DObservationalLevel::seq);
     D_OC_CV_REF_PAIR_AGREE(shared_observational_level,
                            DOctVector, DOctSizeOnly,
-                           observational_level::size);
+                           DObservationalLevel::size);
     D_OC_CV_REF_PAIR_AGREE(shared_observational_level,
                            DOctNested, DOctNested,
-                           observational_level::str);
+                           DObservationalLevel::str);
     D_OC_CV_REF_PAIR_AGREE(shared_observational_level,
                            DOctSet, DOctBare,
-                           observational_level::none);
+                           DObservationalLevel::none);
     D_OC_CV_REF_PAIR_AGREE(shared_observational_level,
                            DOctCountOnly, DOctContainsOnly,
-                           observational_level::set);
+                           DObservationalLevel::set);
 
     // both operands volatile at once
     D_OC_CHECK((shared_observational_level<volatile DOctNested,
                                            volatile DOctVector>::value
-                    == observational_level::seq));
+                    == DObservationalLevel::seq));
 
     return ok;
 }
@@ -295,13 +295,13 @@ bool tests_shared_level_companions()
     // the _t alias is the integral_constant, exactly
     D_OC_STATIC_CHECK(
         std::is_same<shared_observational_level_t<DOctNested, DOctVector>,
-                     std::integral_constant<observational_level,
-                                            observational_level::seq> >::value);
+                     std::integral_constant<DObservationalLevel,
+                                            DObservationalLevel::seq> >::value);
     D_OC_STATIC_CHECK(
         std::is_same<shared_observational_level_t<DOctVector, DOctBare>,
                      std::integral_constant<
-                         observational_level,
-                         observational_level::none> >::value);
+                         DObservationalLevel,
+                         DObservationalLevel::none> >::value);
 
     // ... and carries the same value the trait reports
     D_OC_CHECK((shared_observational_level_t<DOctSet, DOctCountOnly>::value
@@ -311,13 +311,13 @@ bool tests_shared_level_companions()
     // usable in a constant expression
     D_OC_STATIC_CHECK(
         shared_observational_level<DOctNested, DOctNested>::value
-            == observational_level::str);
+            == DObservationalLevel::str);
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
     D_OC_STATIC_CHECK(
         (shared_observational_level_v<DOctVector, DOctSizeOnly>
-             == observational_level::size));
+             == DObservationalLevel::size));
 
     D_OC_CHECK((shared_observational_level_v<DOctNested, DOctVector>
                     == shared_observational_level<DOctNested,

@@ -71,25 +71,25 @@ concept edge_child_access_type =
 //   concept: constrains types that satisfy more than one child-access model.
 template<typename Type>
 concept hybrid_child_access_type =
-    ( child_access_strategy<Type>::value == nary_child_access::hybrid );
+    ( child_access_strategy<Type>::value == DNaryChildAccess::hybrid );
 
 // classified_lcrs_child_access_type
 //   concept: constrains types classified specifically as LCRS.
 template<typename Type>
 concept classified_lcrs_child_access_type =
-    ( child_access_strategy<Type>::value == nary_child_access::lcrs );
+    ( child_access_strategy<Type>::value == DNaryChildAccess::lcrs );
 
 // classified_container_child_access_type
 //   concept: constrains types classified specifically as container-children.
 template<typename Type>
 concept classified_container_child_access_type =
-    ( child_access_strategy<Type>::value == nary_child_access::container );
+    ( child_access_strategy<Type>::value == DNaryChildAccess::container );
 
 // classified_edge_child_access_type
 //   concept: constrains types classified specifically as edge-based.
 template<typename Type>
 concept classified_edge_child_access_type =
-    ( child_access_strategy<Type>::value == nary_child_access::edges );
+    ( child_access_strategy<Type>::value == DNaryChildAccess::edges );
 
 
 // ===========================================================================
@@ -113,7 +113,7 @@ concept nary_tree_node_like =
 template<typename Type>
 concept rooted_nary_tree_type =
     ( nary_tree_container_type<Type> &&
-      has_root_member_method<Type>::value );
+      has_has_root_method<Type>::value );
 
 
 // ===========================================================================
@@ -132,14 +132,14 @@ concept parent_navigable_nary_tree =
 template<typename Type>
 concept sibling_navigable_nary_tree =
     ( nary_tree_container_type<Type> &&
-      nary_tree_class<Type>::bidirectional_siblings );
+      DNaryTreeClass<Type>::bidirectional_siblings );
 
 // fully_navigable_nary_tree
 //   concept: constrains fully navigable n-ary trees.
 template<typename Type>
 concept fully_navigable_nary_tree =
     ( nary_tree_container_type<Type> &&
-      nary_tree_class<Type>::fully_navigable );
+      DNaryTreeClass<Type>::fully_navigable );
 
 // depth_aware_nary_tree
 //   concept: constrains n-ary trees exposing depth().
@@ -235,21 +235,21 @@ concept removable_subtree_nary_tree =
 template<typename Type>
 concept index_handle_nary_tree =
     ( nary_tree_container_type<Type> &&
-      uses_index_handles<Type>::value );
+      DUsesIndexHandles<Type>::value );
 
 // raw_pointer_handle_nary_tree
 //   concept: constrains n-ary trees using raw-pointer handles.
 template<typename Type>
 concept raw_pointer_handle_nary_tree =
     ( nary_tree_container_type<Type> &&
-      uses_pointer_handles<Type>::value );
+      DUsesPointerHandles<Type>::value );
 
 // smart_pointer_handle_nary_tree
 //   concept: constrains n-ary trees using smart-pointer handles.
 template<typename Type>
 concept smart_pointer_handle_nary_tree =
     ( nary_tree_container_type<Type> &&
-      uses_smart_pointer_handles<Type>::value );
+      DUsesSmartPointerHandles<Type>::value );
 
 
 // ===========================================================================
@@ -283,7 +283,7 @@ concept allocator_backed_nary_tree =
 template<typename Type>
 concept standard_memory_nary_tree =
     ( nary_tree_container_type<Type> &&
-      memory_model_strategy<Type>::value == nary_memory_model::standard );
+      memory_model_strategy<Type>::value == DNaryMemoryModel::standard );
 
 
 // ===========================================================================
@@ -309,7 +309,7 @@ concept versioned_nary_tree_type =
 template<typename Type>
 concept change_tracked_nary_tree =
     ( nary_tree_container_type<Type> &&
-      nary_tree_class<Type>::has_change_tracking );
+      DNaryTreeClass<Type>::has_change_tracking );
 
 
 // ===========================================================================
@@ -346,28 +346,66 @@ concept o1_sibling_insert_nary_tree =
 //   concept: shorthand for any type recognized by nary_tree_class.
 template<typename Type>
 concept classified_nary_tree =
-    nary_tree_class<Type>::is_nary;
+    DNaryTreeClass<Type>::is_nary;
 
 // policy_driven_nary_tree
 //   concept: constrains n-ary trees exposing link-policy awareness.
 template<typename Type>
 concept policy_driven_nary_tree =
     ( nary_tree_container_type<Type> &&
-      nary_tree_class<Type>::policy_driven );
+      DNaryTreeClass<Type>::policy_driven );
 
 // container_children_nary_tree
 //   concept: constrains n-ary trees classified as using children() containers.
 template<typename Type>
 concept container_children_nary_tree =
     ( nary_tree_container_type<Type> &&
-      nary_tree_class<Type>::has_children_container );
+      DNaryTreeClass<Type>::has_children_container );
 
 // edge_children_nary_tree
 //   concept: constrains n-ary trees classified as using edge collections.
 template<typename Type>
 concept edge_children_nary_tree =
     ( nary_tree_container_type<Type> &&
-      nary_tree_class<Type>::has_edges );
+      DNaryTreeClass<Type>::has_edges );
+
+
+// ===========================================================================
+// The old names of nary_tree_traits.hpp's concept wrappers (decision W5)
+// ===========================================================================
+//   Each of the seven was an exact twin of the concept it now names. They
+// stay until 0.9.0-rc.1. A concept takes no attribute, so they stay plain
+// when the other old names start to warn (W3) and go at rc.1.
+
+// nary_tree_type -- old name, until 0.9.0-rc.1
+template<typename Type>
+concept nary_tree_type = nary_tree_container_type<Type>;
+
+// nary_node_type -- old name, until 0.9.0-rc.1
+template<typename Type>
+concept nary_node_type = nary_tree_node_like<Type>;
+
+// rooted_nary_tree -- old name, until 0.9.0-rc.1
+template<typename Type>
+concept rooted_nary_tree = rooted_nary_tree_type<Type>;
+
+// mutable_nary_tree -- old name, until 0.9.0-rc.1
+template<typename Type>
+concept mutable_nary_tree = mutable_nary_tree_type<Type>;
+
+// navigable_nary_tree -- old name, until 0.9.0-rc.1
+template<typename Type>
+concept navigable_nary_tree = fully_navigable_nary_tree<Type>;
+
+// pool_nary_tree -- old name, until 0.9.0-rc.1
+template<typename Type>
+concept pool_nary_tree = pool_backed_nary_tree<Type>;
+
+// versioned_nary_tree -- old name, until 0.9.0-rc.1
+//   (change tracking: stable identity and versioning, not
+// versioned_nary_tree_type, which asks for versioning alone)
+template<typename Type>
+concept versioned_nary_tree = change_tracked_nary_tree<Type>;
 
 #endif  // __cpp_concepts >= 201907L
 

@@ -30,7 +30,7 @@ bool tests_override_concept_primitives()
     bool ok = true;
 
     // the five primitives
-    D_OV_CHECK(ok, OverridePolicy<keep_base>);
+    D_OV_CHECK(ok, OverridePolicy<DKeepBase>);
     D_OV_CHECK(ok, OverridePolicy<DKeepDelta>);
     D_OV_CHECK(ok, OverridePolicy<DDropExtras>);
     D_OV_CHECK(ok, OverridePolicy<DStrictSubset>);
@@ -40,7 +40,7 @@ bool tests_override_concept_primitives()
     D_OV_CHECK(ok, OverridePolicy<ov_lenient_pair>);
 
     // combinators preserve the contract
-    D_OV_CHECK(ok, OverridePolicy<DWithOnBoth<keep_base,
+    D_OV_CHECK(ok, OverridePolicy<DWithOnBoth<DKeepBase,
                                                always_keep_right>>);
     D_OV_CHECK(ok, OverridePolicy<DWithOnBaseOnly<DKeepDelta,
                                                     always_drop>>);
@@ -53,7 +53,7 @@ bool tests_override_concept_primitives()
     D_OV_CHECK(ok, OverridePolicy<
                        DWithOnDeltaOnly<
                            DWithOnBaseOnly<
-                               DWithOnBoth<keep_base, always_keep_left>,
+                               DWithOnBoth<DKeepBase, always_keep_left>,
                                always_drop>,
                            identity_t>>);
 
@@ -160,7 +160,7 @@ bool tests_override_concept_laziness()
                                           ov_delta>::type,
                        ov_delta>);
     D_OV_CHECK(ok, std::is_same_v<
-                       ov_lazy_delta_only<false, keep_base,
+                       ov_lazy_delta_only<false, DKeepBase,
                                           ov_delta>::type,
                        dropped>);
 
@@ -184,17 +184,17 @@ bool tests_override_concept_as_constraint()
     bool ok = true;
 
     // constrained partial specialization
-    D_OV_CHECK(ok, ov_constrained<keep_base>::value);
+    D_OV_CHECK(ok, ov_constrained<DKeepBase>::value);
     D_OV_CHECK(ok, ov_constrained<DKeepDelta>::value);
     D_OV_CHECK(ok, ov_constrained<DStrictSubset>::value);
-    D_OV_CHECK(ok, ov_constrained<DWithOnBoth<keep_base,
+    D_OV_CHECK(ok, ov_constrained<DWithOnBoth<DKeepBase,
                                                always_keep_right>>::value);
     D_OV_CHECK(ok, !ov_constrained<ov_no_hooks>::value);
     D_OV_CHECK(ok, !ov_constrained<ov_ill_formed_both>::value);
     D_OV_CHECK(ok, !ov_constrained<int>::value);
 
     // constrained overload resolution
-    D_OV_CHECK(ok, ov_constrained_call<keep_base>() == 1);
+    D_OV_CHECK(ok, ov_constrained_call<DKeepBase>() == 1);
     D_OV_CHECK(ok, ov_constrained_call<DDropUnmatchedBase>() == 1);
     D_OV_CHECK(ok, ov_constrained_call<ov_lenient_pair>() == 1);
     D_OV_CHECK(ok, ov_constrained_call<ov_no_hooks>() == 0);
@@ -207,7 +207,7 @@ bool tests_override_concept_as_constraint()
                    OverridePolicy<ov_no_hooks>);
     D_OV_CHECK(ok, ::djinterp::test::holds_for_all<
                        ov_is_policy,
-                       keep_base, DKeepDelta, DDropExtras,
+                       DKeepBase, DKeepDelta, DDropExtras,
                        DStrictSubset, DDropUnmatchedBase>::value);
 
     return ok;

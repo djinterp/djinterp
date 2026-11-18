@@ -37,28 +37,28 @@ bool tests_content_level_enum()
 {
     bool ok = true;
 
-    using underlying = std::underlying_type<content_level>::type;
+    using underlying = std::underlying_type<DContentLevel>::type;
 
-    D_CCM_CHECK(std::is_enum<content_level>::value);
-    D_CCM_CHECK(!std::is_convertible<content_level, underlying>::value);
+    D_CCM_CHECK(std::is_enum<DContentLevel>::value);
+    D_CCM_CHECK(!std::is_convertible<DContentLevel, underlying>::value);
 
     // coarsest to finest, and the order IS the semantics
-    D_CCM_CHECK(static_cast<int>(content_level::none) == 0);
-    D_CCM_CHECK(static_cast<int>(content_level::set) == 1);
-    D_CCM_CHECK(static_cast<int>(content_level::bag) == 2);
-    D_CCM_CHECK(static_cast<int>(content_level::seq) == 3);
-    D_CCM_CHECK(static_cast<int>(content_level::str) == 4);
+    D_CCM_CHECK(static_cast<int>(DContentLevel::none) == 0);
+    D_CCM_CHECK(static_cast<int>(DContentLevel::set) == 1);
+    D_CCM_CHECK(static_cast<int>(DContentLevel::bag) == 2);
+    D_CCM_CHECK(static_cast<int>(DContentLevel::seq) == 3);
+    D_CCM_CHECK(static_cast<int>(DContentLevel::str) == 4);
 
     // the nesting the formal frontier equalities describe: =str refines =seq
     // refines =bag refines =set
-    D_CCM_CHECK(content_level_rank(content_level::none) <
-                content_level_rank(content_level::set));
-    D_CCM_CHECK(content_level_rank(content_level::set) <
-                content_level_rank(content_level::bag));
-    D_CCM_CHECK(content_level_rank(content_level::bag) <
-                content_level_rank(content_level::seq));
-    D_CCM_CHECK(content_level_rank(content_level::seq) <
-                content_level_rank(content_level::str));
+    D_CCM_CHECK(content_level_rank(DContentLevel::none) <
+                content_level_rank(DContentLevel::set));
+    D_CCM_CHECK(content_level_rank(DContentLevel::set) <
+                content_level_rank(DContentLevel::bag));
+    D_CCM_CHECK(content_level_rank(DContentLevel::bag) <
+                content_level_rank(DContentLevel::seq));
+    D_CCM_CHECK(content_level_rank(DContentLevel::seq) <
+                content_level_rank(DContentLevel::str));
 
     return ok;
 }
@@ -93,25 +93,25 @@ bool tests_content_level_name()
 {
     bool ok = true;
 
-    D_CCM_CHECK(std::strcmp(content_level_name(content_level::none),
+    D_CCM_CHECK(std::strcmp(content_level_name(DContentLevel::none),
                             "none") == 0);
-    D_CCM_CHECK(std::strcmp(content_level_name(content_level::set),
+    D_CCM_CHECK(std::strcmp(content_level_name(DContentLevel::set),
                             "set") == 0);
-    D_CCM_CHECK(std::strcmp(content_level_name(content_level::bag),
+    D_CCM_CHECK(std::strcmp(content_level_name(DContentLevel::bag),
                             "bag") == 0);
-    D_CCM_CHECK(std::strcmp(content_level_name(content_level::seq),
+    D_CCM_CHECK(std::strcmp(content_level_name(DContentLevel::seq),
                             "seq") == 0);
-    D_CCM_CHECK(std::strcmp(content_level_name(content_level::str),
+    D_CCM_CHECK(std::strcmp(content_level_name(DContentLevel::str),
                             "str") == 0);
 
     // constexpr and noexcept
-    D_CONSTEXPR const char* bag_name = content_level_name(content_level::bag);
+    D_CONSTEXPR const char* bag_name = content_level_name(DContentLevel::bag);
 
     D_CCM_CHECK(std::strcmp(bag_name, "bag") == 0);
-    D_CCM_CHECK(noexcept(content_level_name(content_level::seq)));
+    D_CCM_CHECK(noexcept(content_level_name(DContentLevel::seq)));
 
     // THE FALL-THROUGH: an uninterpretable rung reads as the FINEST one
-    const content_level out_of_range = static_cast<content_level>(42);
+    const DContentLevel out_of_range = static_cast<DContentLevel>(42);
 
     D_CCM_CHECK(content_level_name(out_of_range) != nullptr);
     D_CCM_CHECK(std::strcmp(content_level_name(out_of_range), "str") == 0);
@@ -121,7 +121,7 @@ bool tests_content_level_name()
     // end of its scale.  The two are inconsistent, and only one of them can be
     // right
     D_CCM_CHECK(std::strcmp(
-                    order_relation_name(static_cast<order_relation>(42)),
+                    order_relation_name(static_cast<DOrderRelation>(42)),
                     "incomparable") == 0);
 
     return ok;
@@ -139,20 +139,20 @@ bool tests_content_level_rank()
 {
     bool ok = true;
 
-    D_CCM_CHECK(content_level_rank(content_level::none) == 0);
-    D_CCM_CHECK(content_level_rank(content_level::set) == 1);
-    D_CCM_CHECK(content_level_rank(content_level::bag) == 2);
-    D_CCM_CHECK(content_level_rank(content_level::seq) == 3);
-    D_CCM_CHECK(content_level_rank(content_level::str) == 4);
+    D_CCM_CHECK(content_level_rank(DContentLevel::none) == 0);
+    D_CCM_CHECK(content_level_rank(DContentLevel::set) == 1);
+    D_CCM_CHECK(content_level_rank(DContentLevel::bag) == 2);
+    D_CCM_CHECK(content_level_rank(DContentLevel::seq) == 3);
+    D_CCM_CHECK(content_level_rank(DContentLevel::str) == 4);
 
     // it IS the cast, restated - so a reordered enum is a reordered hierarchy
-    D_CCM_CHECK(content_level_rank(content_level::bag) ==
-                static_cast<int>(content_level::bag));
+    D_CCM_CHECK(content_level_rank(DContentLevel::bag) ==
+                static_cast<int>(DContentLevel::bag));
 
-    D_CONSTEXPR int str_rank = content_level_rank(content_level::str);
+    D_CONSTEXPR int str_rank = content_level_rank(DContentLevel::str);
 
     D_CCM_CHECK(str_rank == 4);
-    D_CCM_CHECK(noexcept(content_level_rank(content_level::set)));
+    D_CCM_CHECK(noexcept(content_level_rank(DContentLevel::set)));
 
     return ok;
 }
@@ -163,7 +163,7 @@ tests_content_level_coarser
 
   The formal rule is "the coarser of the two native levels": a sequence and a set
   can only be compared as sets, because that is the finest equality both of them
-  support.  So `coarser` is a MINIMUM over the rank, and a `max` here would be the
+  support.  So `coarser` is a MINIMUM over the rank, and a `DMax` here would be the
   single most damaging one-character bug in the module - it would claim two
   containers compare at a level neither of them supports.
 
@@ -179,20 +179,20 @@ bool tests_content_level_coarser()
 {
     bool ok = true;
 
-    D_CONSTEXPR content_level all[5] = { content_level::none,
-                                         content_level::set,
-                                         content_level::bag,
-                                         content_level::seq,
-                                         content_level::str };
+    D_CONSTEXPR DContentLevel all[5] = { DContentLevel::none,
+                                         DContentLevel::set,
+                                         DContentLevel::bag,
+                                         DContentLevel::seq,
+                                         DContentLevel::str };
 
     // the coarser IS the minimum by rank - all 25 pairs
     for (int i = 0; i < 5; ++i)
     {
         for (int j = 0; j < 5; ++j)
         {
-            const content_level a = all[i];
-            const content_level b = all[j];
-            const content_level expected =
+            const DContentLevel a = all[i];
+            const DContentLevel b = all[j];
+            const DContentLevel expected =
                 ( content_level_rank(a) <= content_level_rank(b) ) ? a : b;
 
             D_CCM_CHECK(content_level_coarser(a, b) == expected);
@@ -206,26 +206,26 @@ bool tests_content_level_coarser()
         D_CCM_CHECK(content_level_coarser(all[i], all[i]) == all[i]);
 
         // none is absorbing: nothing compares with a non-container
-        D_CCM_CHECK(content_level_coarser(content_level::none, all[i]) ==
-                    content_level::none);
+        D_CCM_CHECK(content_level_coarser(DContentLevel::none, all[i]) ==
+                    DContentLevel::none);
 
         // str is the identity
-        D_CCM_CHECK(content_level_coarser(content_level::str, all[i]) ==
+        D_CCM_CHECK(content_level_coarser(DContentLevel::str, all[i]) ==
                     all[i]);
     }
 
     // the cases a reader would want to see spelled out
-    D_CCM_LEVEL(content_level::set,
-                content_level_coarser(content_level::set, content_level::seq));
-    D_CCM_LEVEL(content_level::seq,
-                content_level_coarser(content_level::str, content_level::seq));
-    D_CCM_LEVEL(content_level::bag,
-                content_level_coarser(content_level::bag, content_level::str));
-    D_CCM_LEVEL(content_level::none,
-                content_level_coarser(content_level::none, content_level::str));
+    D_CCM_LEVEL(DContentLevel::set,
+                content_level_coarser(DContentLevel::set, DContentLevel::seq));
+    D_CCM_LEVEL(DContentLevel::seq,
+                content_level_coarser(DContentLevel::str, DContentLevel::seq));
+    D_CCM_LEVEL(DContentLevel::bag,
+                content_level_coarser(DContentLevel::bag, DContentLevel::str));
+    D_CCM_LEVEL(DContentLevel::none,
+                content_level_coarser(DContentLevel::none, DContentLevel::str));
 
-    D_CCM_CHECK(noexcept(content_level_coarser(content_level::set,
-                                               content_level::seq)));
+    D_CCM_CHECK(noexcept(content_level_coarser(DContentLevel::set,
+                                               DContentLevel::seq)));
 
     return ok;
 }
@@ -236,7 +236,7 @@ tests_native_content_level_rungs
   one fixture each.
   Tests the following:
   - a non-container is `none`
-  - a unique discipline (m = 1) is `set`
+  - a unique discipline (m = 1) is `DSet`
   - a multiset is `bag` - BOTH the bounded and the unbounded kind, which is the
     point of having two fixtures: their multiplicity RANKS differ (1 and 2) and
     their content rungs do not.  The discipline order and the content hierarchy
@@ -249,17 +249,17 @@ bool tests_native_content_level_rungs()
 {
     bool ok = true;
 
-    D_CCM_LEVEL(content_level::none,
+    D_CCM_LEVEL(DContentLevel::none,
                 native_content_level_of<DNotAContainer>::value);
-    D_CCM_LEVEL(content_level::set,
+    D_CCM_LEVEL(DContentLevel::set,
                 native_content_level_of<DUniqueSeq>::value);
-    D_CCM_LEVEL(content_level::bag,
+    D_CCM_LEVEL(DContentLevel::bag,
                 native_content_level_of<DBoundedBag>::value);
-    D_CCM_LEVEL(content_level::bag,
+    D_CCM_LEVEL(DContentLevel::bag,
                 native_content_level_of<DUnboundedBag>::value);
-    D_CCM_LEVEL(content_level::seq,
+    D_CCM_LEVEL(DContentLevel::seq,
                 native_content_level_of<DRuntimeSeq>::value);
-    D_CCM_LEVEL(content_level::str,
+    D_CCM_LEVEL(DContentLevel::str,
                 native_content_level_of<DNestedSeq>::value);
 
     // the two multiset kinds share a RUNG and not a RANK
@@ -269,14 +269,14 @@ bool tests_native_content_level_rungs()
                 multiplicity_kind_rank(overlay_of<DUnboundedBag>::mult));
 
     // and a non-container really is one
-    D_CCM_LEVEL(content_level::none, native_content_level_of<int>::value);
-    D_CCM_LEVEL(content_level::none, native_content_level_of<void>::value);
-    D_CCM_LEVEL(content_level::none,
+    D_CCM_LEVEL(DContentLevel::none, native_content_level_of<int>::value);
+    D_CCM_LEVEL(DContentLevel::none, native_content_level_of<void>::value);
+    D_CCM_LEVEL(DContentLevel::none,
                 native_content_level_of<fixtures::empty>::value);
 
     // a countable but NON-traversable type is still a container on this axis -
     // the content rung is about the discipline, not about the interface
-    D_CCM_LEVEL(content_level::seq, native_content_level_of<DNotIterable>::value);
+    D_CCM_LEVEL(DContentLevel::seq, native_content_level_of<DNotIterable>::value);
 
     return ok;
 }
@@ -288,15 +288,15 @@ tests_native_content_level_precedence
 
   native_content_level_helper reads the structure verdict FIRST and only falls
   through to the multiplicity kind for a flat container.  So a nested container
-  with a unique discipline is `str`, not `set` - and a helper that read mu first
-  would return `set`, and would be wrong in precisely the case the structural rung
+  with a unique discipline is `str`, not `DSet` - and a helper that read mu first
+  would return `DSet`, and would be wrong in precisely the case the structural rung
   exists for.
 
   Tests the following:
-  - a nested container with m = 1 is `str`, not `set`
+  - a nested container with m = 1 is `str`, not `DSet`
   - it really IS both nested and unique, so the check is about precedence and not
     about absence
-  - a flat container with the same multiplicity is `set`, so the difference is the
+  - a flat container with the same multiplicity is `DSet`, so the difference is the
     nesting and nothing else
 */
 bool tests_native_content_level_precedence()
@@ -306,23 +306,23 @@ bool tests_native_content_level_precedence()
     // it is both
     D_CCM_CHECK(is_hierarchical_container<DHierarchicalUnique>::value);
     D_CCM_CHECK(overlay_of<DHierarchicalUnique>::mult ==
-                multiplicity_kind::unique);
+                DMultiplicityKind::unique);
 
     // ...and the structure wins
-    D_CCM_LEVEL(content_level::str,
+    D_CCM_LEVEL(DContentLevel::str,
                 native_content_level_of<DHierarchicalUnique>::value);
 
-    // the flat container with the SAME multiplicity is `set`, so the nesting is
+    // the flat container with the SAME multiplicity is `DSet`, so the nesting is
     // the only difference
     D_CCM_CHECK(!is_hierarchical_container<DUniqueSeq>::value);
-    D_CCM_CHECK(overlay_of<DUniqueSeq>::mult == multiplicity_kind::unique);
-    D_CCM_LEVEL(content_level::set, native_content_level_of<DUniqueSeq>::value);
+    D_CCM_CHECK(overlay_of<DUniqueSeq>::mult == DMultiplicityKind::unique);
+    D_CCM_LEVEL(DContentLevel::set, native_content_level_of<DUniqueSeq>::value);
 
     // ...and the nested SEQUENCE is str as well, so `str` is about the nesting
     // and not about the multiplicity at all
     D_CCM_CHECK(is_hierarchical_container<DNestedSeq>::value);
-    D_CCM_CHECK(overlay_of<DNestedSeq>::mult == multiplicity_kind::sequence);
-    D_CCM_LEVEL(content_level::str, native_content_level_of<DNestedSeq>::value);
+    D_CCM_CHECK(overlay_of<DNestedSeq>::mult == DMultiplicityKind::sequence);
+    D_CCM_LEVEL(DContentLevel::str, native_content_level_of<DNestedSeq>::value);
 
     return ok;
 }
@@ -356,15 +356,15 @@ bool tests_native_content_level_value_companion()
     D_CCM_CHECK(native_content_level_of_v<DNotAContainer> ==
                 native_content_level_of<DNotAContainer>::value);
 
-    D_CCM_CHECK(native_content_level_of_v<DRuntimeSeq> == content_level::seq);
-    D_CCM_CHECK(native_content_level_of_v<DUniqueSeq> == content_level::set);
-    D_CCM_CHECK(native_content_level_of_v<DBoundedBag> == content_level::bag);
-    D_CCM_CHECK(native_content_level_of_v<DNestedSeq> == content_level::str);
+    D_CCM_CHECK(native_content_level_of_v<DRuntimeSeq> == DContentLevel::seq);
+    D_CCM_CHECK(native_content_level_of_v<DUniqueSeq> == DContentLevel::set);
+    D_CCM_CHECK(native_content_level_of_v<DBoundedBag> == DContentLevel::bag);
+    D_CCM_CHECK(native_content_level_of_v<DNestedSeq> == DContentLevel::str);
     D_CCM_CHECK(native_content_level_of_v<DNotAContainer> ==
-                content_level::none);
+                DContentLevel::none);
 
     D_CCM_CHECK((std::is_same<decltype(native_content_level_of_v<DRuntimeSeq>),
-                              const content_level>::value));
+                              const DContentLevel>::value));
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 

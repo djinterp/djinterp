@@ -1091,7 +1091,7 @@ struct array_lifetime_of
 
 // DArrayIterability
 //   enum: classifies iteration capability. Mirrors the universal
-// `container_iterability` enum from container_options.hpp; the per-axis
+// `DContainerIterability` enum from container_options.hpp; the per-axis
 // translation lives in array.hpp's `to_array_iterability` helper.
 //
 //   This is the missing enum that every wrapper header (atomic_array.hpp,

@@ -103,14 +103,14 @@ NS_DJINTERP
 // I.   constexpr_iterator
 // ===========================================================================
 
-// constexpr_iterator
+// DConstexprIterator
 //   class: a fully constexpr random-access iterator over contiguous const
 // storage. All operations are constexpr, enabling compile-time iteration and
 // algorithms.
 //   The iterator is always immutable: dereference yields const Type&. This
 // mirrors const_iterator semantics but in a constexpr-evaluable context.
 template<typename Type>
-class constexpr_iterator
+class DConstexprIterator
 {
 public:
     using value_type      = Type;
@@ -128,12 +128,12 @@ public:
     // --- construction ---
 
     D_CONSTEXPR
-    constexpr_iterator() D_NOEXCEPT
+    DConstexprIterator() D_NOEXCEPT
         : m_ptr(nullptr)
     {}
 
     D_CONSTEXPR explicit
-    constexpr_iterator(
+    DConstexprIterator(
         const Type* _ptr
     ) D_NOEXCEPT
         : m_ptr(_ptr)
@@ -164,7 +164,7 @@ public:
     // --- increment / decrement ---
 
     D_INTERNAL_CXIT_CONSTEXPR
-    constexpr_iterator& operator++() D_NOEXCEPT
+    DConstexprIterator& operator++() D_NOEXCEPT
     {
         ++m_ptr;
 
@@ -172,18 +172,18 @@ public:
     }
 
     D_INTERNAL_CXIT_CONSTEXPR
-    constexpr_iterator operator++(
+    DConstexprIterator operator++(
         int
     ) D_NOEXCEPT
     {
-        constexpr_iterator tmp = *this;
+        DConstexprIterator tmp = *this;
         ++m_ptr;
 
         return tmp;
     }
 
     D_INTERNAL_CXIT_CONSTEXPR
-    constexpr_iterator& operator--() D_NOEXCEPT
+    DConstexprIterator& operator--() D_NOEXCEPT
     {
         --m_ptr;
 
@@ -191,11 +191,11 @@ public:
     }
 
     D_INTERNAL_CXIT_CONSTEXPR
-    constexpr_iterator operator--(
+    DConstexprIterator operator--(
         int
     ) D_NOEXCEPT
     {
-        constexpr_iterator tmp = *this;
+        DConstexprIterator tmp = *this;
         --m_ptr;
 
         return tmp;
@@ -204,7 +204,7 @@ public:
     // --- arithmetic ---
 
     D_INTERNAL_CXIT_CONSTEXPR
-    constexpr_iterator& operator+=(
+    DConstexprIterator& operator+=(
         difference_type _n
     ) D_NOEXCEPT
     {
@@ -214,7 +214,7 @@ public:
     }
 
     D_INTERNAL_CXIT_CONSTEXPR
-    constexpr_iterator& operator-=(
+    DConstexprIterator& operator-=(
         difference_type _n
     ) D_NOEXCEPT
     {
@@ -224,36 +224,36 @@ public:
     }
 
     friend D_CONSTEXPR
-    constexpr_iterator operator+(
-        constexpr_iterator _it,
+    DConstexprIterator operator+(
+        DConstexprIterator _it,
         difference_type    _n
     ) D_NOEXCEPT
     {
-        return constexpr_iterator(_it.m_ptr + _n);
+        return DConstexprIterator(_it.m_ptr + _n);
     }
 
     friend D_CONSTEXPR
-    constexpr_iterator operator+(
+    DConstexprIterator operator+(
         difference_type    _n,
-        constexpr_iterator _it
+        DConstexprIterator _it
     ) D_NOEXCEPT
     {
-        return constexpr_iterator(_it.m_ptr + _n);
+        return DConstexprIterator(_it.m_ptr + _n);
     }
 
     friend D_CONSTEXPR
-    constexpr_iterator operator-(
-        constexpr_iterator _it,
+    DConstexprIterator operator-(
+        DConstexprIterator _it,
         difference_type    _n
     ) D_NOEXCEPT
     {
-        return constexpr_iterator(_it.m_ptr - _n);
+        return DConstexprIterator(_it.m_ptr - _n);
     }
 
     friend D_CONSTEXPR
     difference_type operator-(
-        constexpr_iterator _a,
-        constexpr_iterator _b
+        DConstexprIterator _a,
+        DConstexprIterator _b
     ) D_NOEXCEPT
     {
         return (_a.m_ptr - _b.m_ptr);
@@ -263,8 +263,8 @@ public:
 
     friend D_CONSTEXPR
     bool operator==(
-        constexpr_iterator _a,
-        constexpr_iterator _b
+        DConstexprIterator _a,
+        DConstexprIterator _b
     ) D_NOEXCEPT
     {
         return (_a.m_ptr == _b.m_ptr);
@@ -272,8 +272,8 @@ public:
 
     friend D_CONSTEXPR
     bool operator!=(
-        constexpr_iterator _a,
-        constexpr_iterator _b
+        DConstexprIterator _a,
+        DConstexprIterator _b
     ) D_NOEXCEPT
     {
         return (_a.m_ptr != _b.m_ptr);
@@ -281,8 +281,8 @@ public:
 
     friend D_CONSTEXPR
     bool operator<(
-        constexpr_iterator _a,
-        constexpr_iterator _b
+        DConstexprIterator _a,
+        DConstexprIterator _b
     ) D_NOEXCEPT
     {
         return (_a.m_ptr < _b.m_ptr);
@@ -290,8 +290,8 @@ public:
 
     friend D_CONSTEXPR
     bool operator<=(
-        constexpr_iterator _a,
-        constexpr_iterator _b
+        DConstexprIterator _a,
+        DConstexprIterator _b
     ) D_NOEXCEPT
     {
         return (_a.m_ptr <= _b.m_ptr);
@@ -299,8 +299,8 @@ public:
 
     friend D_CONSTEXPR
     bool operator>(
-        constexpr_iterator _a,
-        constexpr_iterator _b
+        DConstexprIterator _a,
+        DConstexprIterator _b
     ) D_NOEXCEPT
     {
         return (_a.m_ptr > _b.m_ptr);
@@ -308,8 +308,8 @@ public:
 
     friend D_CONSTEXPR
     bool operator>=(
-        constexpr_iterator _a,
-        constexpr_iterator _b
+        DConstexprIterator _a,
+        DConstexprIterator _b
     ) D_NOEXCEPT
     {
         return (_a.m_ptr >= _b.m_ptr);
@@ -327,6 +327,10 @@ private:
     const Type* m_ptr;
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Type>
+using constexpr_iterator = DConstexprIterator<Type>;
+
 
 // ===========================================================================
 // II.  DConstexprRange
@@ -342,12 +346,12 @@ class DConstexprRange
 public:
     using value_type     = Type;
     using size_type      = std::size_t;
-    using iterator       = constexpr_iterator<Type>;
-    using const_iterator = constexpr_iterator<Type>;
+    using iterator       = DConstexprIterator<Type>;
+    using const_iterator = DConstexprIterator<Type>;
 
     // the constexpr_iterator type itself, exposed as a member alias to
     // participate in has_constexpr_iterator_alias detection.
-    using constexpr_iterator_type = constexpr_iterator<Type>;
+    using constexpr_iterator_type = DConstexprIterator<Type>;
 
     // --- construction ---
 

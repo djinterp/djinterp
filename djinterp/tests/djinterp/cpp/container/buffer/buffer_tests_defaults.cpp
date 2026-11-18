@@ -54,13 +54,13 @@ bool tests_default_policy_aliases()
     // --- identity: default_growth_policy == exponential_growth_policy ---
     {
         static_assert(
-            std::is_same<default_growth_policy,
-                         exponential_growth_policy>::value,
+            std::is_same<DDefaultGrowthPolicy,
+                         DExponentialGrowthPolicy>::value,
             "default_growth_policy must be exponential_growth_policy");
 
         record_assertion(ok,
-            (std::is_same<default_growth_policy,
-                          exponential_growth_policy>::value),
+            (std::is_same<DDefaultGrowthPolicy,
+                          DExponentialGrowthPolicy>::value),
             "default_growth_policy == exponential_growth_policy");
     }
 
@@ -68,28 +68,28 @@ bool tests_default_policy_aliases()
     {
         static_assert(
             std::is_same<DDefaultCursorPolicy,
-                         dual_cursor_policy>::value,
+                         DDualCursorPolicy>::value,
             "default_cursor_policy must be dual_cursor_policy");
 
         record_assertion(ok,
             (std::is_same<DDefaultCursorPolicy,
-                          dual_cursor_policy>::value),
+                          DDualCursorPolicy>::value),
             "default_cursor_policy == dual_cursor_policy");
     }
 
     // --- constants exposed by the default growth policy ---
     {
         record_assertion(ok,
-            default_growth_policy::strategy
-                == buffer_growth_strategy::exponential,
+            DDefaultGrowthPolicy::strategy
+                == DBufferGrowthStrategy::exponential,
             "default_growth_policy::strategy == exponential");
 
         record_assertion(ok,
-            default_growth_policy::can_grow == true,
+            DDefaultGrowthPolicy::can_grow == true,
             "default_growth_policy::can_grow == true");
 
         record_assertion(ok,
-            default_growth_policy::min_capacity == 64,
+            DDefaultGrowthPolicy::min_capacity == 64,
             "default_growth_policy::min_capacity == 64");
     }
 
@@ -97,7 +97,7 @@ bool tests_default_policy_aliases()
     {
         record_assertion(ok,
             DDefaultCursorPolicy::model
-                == buffer_cursor_model::dual,
+                == DBufferCursorModel::dual,
             "default_cursor_policy::model == dual");
 
         record_assertion(ok,
@@ -109,17 +109,17 @@ bool tests_default_policy_aliases()
     {
         static_assert(
             std::is_same<
-                default_growth_policy,
+                DDefaultGrowthPolicy,
                 select_growth_policy_t<
-                    buffer_growth_strategy::exponential>>::value,
+                    DBufferGrowthStrategy::exponential>>::value,
             "default_growth_policy must agree with "
             "select_growth_policy_t<exponential>");
 
         record_assertion(ok,
             (std::is_same<
-                default_growth_policy,
+                DDefaultGrowthPolicy,
                 select_growth_policy_t<
-                    buffer_growth_strategy::exponential>>::value),
+                    DBufferGrowthStrategy::exponential>>::value),
             "default_growth_policy == select_growth_policy_t<exponential>");
     }
 
@@ -129,7 +129,7 @@ bool tests_default_policy_aliases()
             std::is_same<
                 DDefaultCursorPolicy,
                 select_cursor_policy_t<
-                    buffer_cursor_model::dual>>::value,
+                    DBufferCursorModel::dual>>::value,
             "default_cursor_policy must agree with "
             "select_cursor_policy_t<dual>");
 
@@ -137,7 +137,7 @@ bool tests_default_policy_aliases()
             (std::is_same<
                 DDefaultCursorPolicy,
                 select_cursor_policy_t<
-                    buffer_cursor_model::dual>>::value),
+                    DBufferCursorModel::dual>>::value),
             "default_cursor_policy == select_cursor_policy_t<dual>");
     }
 
@@ -148,7 +148,7 @@ bool tests_default_policy_aliases()
     // read from - i.e. they do not interact badly when composed.
     {
         const char src[] = "DEFAULTSCOMPOSE!";  // 16 bytes
-        mock_buffer<default_growth_policy,
+        mock_buffer<DDefaultGrowthPolicy,
                     DDefaultCursorPolicy> b(8);  // tiny -> forces grow
 
         std::size_t n_w = b.write(src, 16);

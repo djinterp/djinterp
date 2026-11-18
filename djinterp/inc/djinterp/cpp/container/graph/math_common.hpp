@@ -125,18 +125,21 @@ static D_CONSTEXPR arity_t kVariadicArity =
     static_cast<arity_t>(-1);
 
 
-// parity
+// DParity
 //   enum: parity of an integer or a permutation.
-enum class parity : re_std::uint8_t
+enum class DParity : re_std::uint8_t
 {
     unknown = 0,
     even    = 1,
     odd     = 2
 };
 
-// sign
+// old name, until 0.9.0-rc.1
+using parity = DParity;
+
+// DSign
 //   enum: tri-state sign of a real value.
-enum class sign : re_std::int8_t
+enum class DSign : re_std::int8_t
 {
     unknown  = 0,
     negative = -1,
@@ -144,9 +147,12 @@ enum class sign : re_std::int8_t
     positive = 2
 };
 
-// handedness
+// old name, until 0.9.0-rc.1
+using sign = DSign;
+
+// DHandedness
 //   enum: chirality of a coordinate system or transformation.
-enum class handedness : re_std::uint8_t
+enum class DHandedness : re_std::uint8_t
 {
     unknown = 0,
     left    = 1,
@@ -154,15 +160,18 @@ enum class handedness : re_std::uint8_t
     neither = 3       // achiral
 };
 
+// old name, until 0.9.0-rc.1
+using handedness = DHandedness;
+
 
 // =============================================================================
 // II.   CARDINALITY
 // =============================================================================
 
-// cardinality
+// DCardinality
 //   enum: the size class of a set. Used by both interval/range types in `math`
 // and bound-related axes in `container`.
-enum class cardinality : re_std::uint8_t
+enum class DCardinality : re_std::uint8_t
 {
     unknown            = 0,
 
@@ -182,27 +191,30 @@ enum class cardinality : re_std::uint8_t
     uncountable        = 5
 };
 
+// old name, until 0.9.0-rc.1
+using cardinality = DCardinality;
+
 // is_finite_cardinality
 //   trait: true if the cardinality is finite (any of empty, finite_static,
 // finite_dynamic).
-template<cardinality C>
+template<DCardinality C>
 struct is_finite_cardinality
 {
     static D_CONSTEXPR bool value =
-        ( (C == cardinality::empty)          ||
-          (C == cardinality::finite_static)  ||
-          (C == cardinality::finite_dynamic) );
+        ( (C == DCardinality::empty)          ||
+          (C == DCardinality::finite_static)  ||
+          (C == DCardinality::finite_dynamic) );
 };
 
 // is_countable_cardinality
 //   trait: true if the cardinality is countable (finite or countably
 // infinite).
-template<cardinality C>
+template<DCardinality C>
 struct is_countable_cardinality
 {
     static D_CONSTEXPR bool value =
         ( is_finite_cardinality<C>::value ||
-          (C == cardinality::countable_infinite) );
+          (C == DCardinality::countable_infinite) );
 };
 
 
@@ -210,11 +222,11 @@ struct is_countable_cardinality
 // III.  MULTIPLICITY
 // =============================================================================
 
-// multiplicity
+// DMultiplicity
 //   enum: whether a collection allows duplicate elements, and if so, in what
-// regime. Containers consume this for their `multiplicity` axis; math consumes
+// regime. Containers consume this for their `DMultiplicity` axis; math consumes
 // it for multisets and multi-edges in graphs.
-enum class multiplicity : re_std::uint8_t
+enum class DMultiplicity : re_std::uint8_t
 {
     unknown   = 0,
 
@@ -229,11 +241,14 @@ enum class multiplicity : re_std::uint8_t
     bounded   = 3
 };
 
-// self_loop_policy
+// old name, until 0.9.0-rc.1
+using multiplicity = DMultiplicity;
+
+// DSelfLoopPolicy
 //   enum: whether a relation may relate an element to itself. Equivalent to
 // "is the relation reflexive or irreflexive on the diagonal?" but spelled in
 // graph-friendly terms.
-enum class self_loop_policy : re_std::uint8_t
+enum class DSelfLoopPolicy : re_std::uint8_t
 {
     unknown    = 0,
 
@@ -247,15 +262,18 @@ enum class self_loop_policy : re_std::uint8_t
     require    = 3
 };
 
+// old name, until 0.9.0-rc.1
+using self_loop_policy = DSelfLoopPolicy;
+
 
 // =============================================================================
 // IV.   DIRECTIONALITY
 // =============================================================================
 
-// directionality
+// DDirectionality
 //   enum: whether an edge / morphism / arrow has a sense of direction. Used by
 // graphs at the topology level and by math for morphisms in categories.
-enum class directionality : re_std::uint8_t
+enum class DDirectionality : re_std::uint8_t
 {
     unknown      = 0,
 
@@ -282,11 +300,14 @@ enum class directionality : re_std::uint8_t
     bidirected   = 6
 };
 
-// orientation
+// old name, until 0.9.0-rc.1
+using directionality = DDirectionality;
+
+// DOrientation
 //   enum: direction of a single edge relative to a vertex. Finer-grained than
-// `directionality` (graph-wide); answers the question "with respect to vertex
+// `DDirectionality` (graph-wide); answers the question "with respect to vertex
 // v, which way does this edge go?".
-enum class orientation : re_std::uint8_t
+enum class DOrientation : re_std::uint8_t
 {
     unknown    = 0,
     incoming   = 1,    // edge points TO this vertex
@@ -295,16 +316,19 @@ enum class orientation : re_std::uint8_t
     self_loop  = 4     // edge starts and ends at this vertex
 };
 
+// old name, until 0.9.0-rc.1
+using orientation = DOrientation;
+
 
 // =============================================================================
 // V.    CLOSURE
 // =============================================================================
 
-// closure
+// DClosure
 //   enum: which endpoints of an interval are included. Used by math::interval,
 // by container size_intervals, and by graph path types (open path, closed
 // walk, etc.).
-enum class closure : re_std::uint8_t
+enum class DClosure : re_std::uint8_t
 {
     unknown    = 0,
     open       = 1,    // (a, b)
@@ -313,27 +337,30 @@ enum class closure : re_std::uint8_t
     right_open = 4     // [a, b)
 };
 
+// old name, until 0.9.0-rc.1
+using closure = DClosure;
+
 // closure_includes_left
 //   trait: true if the closure includes its left endpoint. (Not named
 // is_left_closed: math/interval/interval.hpp's is_left_closed classifies an
 // interval TYPE, and two templates of one name cannot share djinterp::math.)
-template<closure C>
+template<DClosure C>
 struct closure_includes_left
 {
     static D_CONSTEXPR bool value =
-        ( (C == closure::closed) ||
-          (C == closure::right_open) );
+        ( (C == DClosure::closed) ||
+          (C == DClosure::right_open) );
 };
 
 // closure_includes_right
 //   trait: true if the closure includes its right endpoint (see
 // closure_includes_left for the name).
-template<closure C>
+template<DClosure C>
 struct closure_includes_right
 {
     static D_CONSTEXPR bool value =
-        ( (C == closure::closed) ||
-          (C == closure::left_open) );
+        ( (C == DClosure::closed) ||
+          (C == DClosure::left_open) );
 };
 
 
@@ -341,11 +368,11 @@ struct closure_includes_right
 // VI.   ORDERING KINDS
 // =============================================================================
 
-// ordering_kind
+// DOrderingKind
 //   enum: the strongest ordering invariant a set / sequence satisfies. Used by
 // container's `ordering` axis (sorted vs. ordered vs. unordered) and by math
 // for posets, lattices, and chains.
-enum class ordering_kind : re_std::uint8_t
+enum class DOrderingKind : re_std::uint8_t
 {
     unknown          = 0,
 
@@ -367,29 +394,35 @@ enum class ordering_kind : re_std::uint8_t
     well_ordered     = 5
 };
 
-// strictness
+// old name, until 0.9.0-rc.1
+using ordering_kind = DOrderingKind;
+
+// DStrictness
 //   enum: whether a relation is strict (irreflexive) or non-strict
 // (reflexive). Pairs with ordering_kind to spell `<` vs `<=` etc.
-enum class strictness : re_std::uint8_t
+enum class DStrictness : re_std::uint8_t
 {
     unknown    = 0,
     strict     = 1,    // < or > ; irreflexive
     non_strict = 2     // <= or >= ; reflexive
 };
 
+// old name, until 0.9.0-rc.1
+using strictness = DStrictness;
+
 
 // =============================================================================
 // VII.  RELATION PROPERTIES
 // =============================================================================
 
-// relation_property
+// DRelationProperty
 //   enum: bitmask of properties a binary relation R on a set X may satisfy.
 // Used by graph traits to classify edge relations and by math to classify
 // orderings, equivalences, equalities.
 //
 // Underlying type is re_std::uint16_t to leave room for future additions while
 // preserving fast bitwise operations.
-enum class relation_property : re_std::uint16_t
+enum class DRelationProperty : re_std::uint16_t
 {
     none           = 0,
 
@@ -433,47 +466,50 @@ enum class relation_property : re_std::uint16_t
     euclidean      = 1u << 12
 };
 
+// old name, until 0.9.0-rc.1
+using relation_property = DRelationProperty;
+
 // operator| / operator& / operator^ / operator~ for relation_property
 //   convenience: bitwise composition of relation properties.
 D_CONSTEXPR_INLINE
-relation_property operator|(
-    relation_property _a,
-    relation_property _b
+DRelationProperty operator|(
+    DRelationProperty _a,
+    DRelationProperty _b
 ) noexcept
 {
-    return static_cast<relation_property>(
+    return static_cast<DRelationProperty>(
         static_cast<re_std::uint16_t>(_a) |
         static_cast<re_std::uint16_t>(_b));
 }
 
 D_CONSTEXPR_INLINE
-relation_property operator&(
-    relation_property _a,
-    relation_property _b
+DRelationProperty operator&(
+    DRelationProperty _a,
+    DRelationProperty _b
 ) noexcept
 {
-    return static_cast<relation_property>(
+    return static_cast<DRelationProperty>(
         static_cast<re_std::uint16_t>(_a) &
         static_cast<re_std::uint16_t>(_b));
 }
 
 D_CONSTEXPR_INLINE
-relation_property operator^(
-    relation_property _a,
-    relation_property _b
+DRelationProperty operator^(
+    DRelationProperty _a,
+    DRelationProperty _b
 ) noexcept
 {
-    return static_cast<relation_property>(
+    return static_cast<DRelationProperty>(
         static_cast<re_std::uint16_t>(_a) ^
         static_cast<re_std::uint16_t>(_b));
 }
 
 D_CONSTEXPR_INLINE
-relation_property operator~(
-    relation_property _a
+DRelationProperty operator~(
+    DRelationProperty _a
 ) noexcept
 {
-    return static_cast<relation_property>(
+    return static_cast<DRelationProperty>(
         ~static_cast<re_std::uint16_t>(_a));
 }
 
@@ -482,8 +518,8 @@ relation_property operator~(
 // Designed for use in `if constexpr` chains.
 D_CONSTEXPR_INLINE
 bool has_relation_property(
-    relation_property _set,
-    relation_property _query
+    DRelationProperty _set,
+    DRelationProperty _query
 ) noexcept
 {
     return ( (static_cast<re_std::uint16_t>(_set) &
@@ -492,11 +528,11 @@ bool has_relation_property(
 }
 
 
-// relation_kind
+// DRelationKind
 //   enum: named composite of relation properties for the most
 // commonly-encountered relation classes. Each kind corresponds to a fixed
 // bitmask of relation_property values.
-enum class relation_kind : re_std::uint8_t
+enum class DRelationKind : re_std::uint8_t
 {
     unknown          = 0,
 
@@ -540,6 +576,9 @@ enum class relation_kind : re_std::uint8_t
     function         = 13
 };
 
+// old name, until 0.9.0-rc.1
+using relation_kind = DRelationKind;
+
 
 // =============================================================================
 // VIII. ALGEBRAIC STRUCTURE TAGS
@@ -550,10 +589,10 @@ enum class relation_kind : re_std::uint8_t
 // (fold, accumulate) and to math modules building expression
 // trees.
 
-// algebraic_structure
+// DAlgebraicStructure
 //   enum: classification of (S, op, ?id, ?inv). Each level strictly extends
 // the one above it.
-enum class algebraic_structure : re_std::uint8_t
+enum class DAlgebraicStructure : re_std::uint8_t
 {
     unknown        = 0,
 
@@ -589,37 +628,40 @@ enum class algebraic_structure : re_std::uint8_t
     ordered_field  = 10
 };
 
+// old name, until 0.9.0-rc.1
+using algebraic_structure = DAlgebraicStructure;
+
 // has_identity_element
 //   trait: true if the structure contains an identity element for its primary
 // operation.
-template<algebraic_structure S>
+template<DAlgebraicStructure S>
 struct has_identity_element
 {
     static D_CONSTEXPR bool value =
         ( static_cast<re_std::uint8_t>(S) >=
-          static_cast<re_std::uint8_t>(algebraic_structure::monoid) );
+          static_cast<re_std::uint8_t>(DAlgebraicStructure::monoid) );
 };
 
 // has_inverses
 //   trait: true if every element has an inverse under the primary operation.
-template<algebraic_structure S>
+template<DAlgebraicStructure S>
 struct has_inverses
 {
     static D_CONSTEXPR bool value =
         ( static_cast<re_std::uint8_t>(S) >=
-          static_cast<re_std::uint8_t>(algebraic_structure::group) );
+          static_cast<re_std::uint8_t>(DAlgebraicStructure::group) );
 };
 
 // is_commutative_structure
 //   trait: true if the primary operation is commutative.
-template<algebraic_structure S>
+template<DAlgebraicStructure S>
 struct is_commutative_structure
 {
     static D_CONSTEXPR bool value =
-        ( (S == algebraic_structure::abelian_group)    ||
-          (S == algebraic_structure::commutative_ring) ||
-          (S == algebraic_structure::field)            ||
-          (S == algebraic_structure::ordered_field) );
+        ( (S == DAlgebraicStructure::abelian_group)    ||
+          (S == DAlgebraicStructure::commutative_ring) ||
+          (S == DAlgebraicStructure::field)            ||
+          (S == DAlgebraicStructure::ordered_field) );
 };
 
 
@@ -632,36 +674,47 @@ struct is_commutative_structure
 // in constexpr contexts where std::pair was historically
 // non-constexpr.
 
-// type_pair
+// DTypePair
 //   struct: compile-time pair of types. Distinct from std::pair since this
 // never instantiates a runtime object.
 template<typename First,
          typename Second>
-struct type_pair
+struct DTypePair
 {
     using first  = First;
     using second = Second;
 };
 
-// type_triple
+// old name, until 0.9.0-rc.1
+template<typename First,
+         typename Second>
+using type_pair = DTypePair<First, Second>;
+
+// DTypeTriple
 //   struct: compile-time triple of types.
 template<typename First,
          typename Second,
          typename Third>
-struct type_triple
+struct DTypeTriple
 {
     using first  = First;
     using second = Second;
     using third  = Third;
 };
 
-// value_pair
+// old name, until 0.9.0-rc.1
+template<typename First,
+         typename Second,
+         typename Third>
+using type_triple = DTypeTriple<First, Second, Third>;
+
+// DValuePair
 //   struct: compile-time pair of values of the same type. Used for vertex/edge
 // endpoints, interval bounds, and similar.
 template<typename Type,
          Type     First,
          Type     Second>
-struct value_pair
+struct DValuePair
 {
     using value_type = Type;
 
@@ -669,20 +722,32 @@ struct value_pair
     static D_CONSTEXPR value_type second = Second;
 };
 
-// indexed_value
+// old name, until 0.9.0-rc.1
+template<typename Type,
+         Type     First,
+         Type     Second>
+using value_pair = DValuePair<Type, First, Second>;
+
+// DIndexedValue
 //   struct: compile-time (index, value) pair. Used by sparse vector / matrix
 // types and by graph algorithms that produce indexed results (degree
 // sequences, score lists, etc.).
 template<std::size_t Index,
          typename    Type,
          Type        Value>
-struct indexed_value
+struct DIndexedValue
 {
     using value_type = Type;
 
     static D_CONSTEXPR std::size_t index = Index;
     static D_CONSTEXPR value_type  value = Value;
 };
+
+// old name, until 0.9.0-rc.1
+template<std::size_t Index,
+         typename    Type,
+         Type        Value>
+using indexed_value = DIndexedValue<Index, Type, Value>;
 
 
 // =============================================================================

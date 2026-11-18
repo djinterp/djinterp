@@ -296,54 +296,54 @@ struct DNatSuccCo
 
 // make_nat: Succ^n Zero.
 inline
-mu<nat_f> make_nat(
+DMu<nat_f> make_nat(
     unsigned _n
 )
 {
-    mu<nat_f> _acc = mu<nat_f>::In(nat_zero<mu<nat_f> >());
+    DMu<nat_f> _acc = DMu<nat_f>::In(nat_zero<DMu<nat_f> >());
     for (unsigned _i = 0; _i < _n; ++_i)
     {
-        _acc = mu<nat_f>::In(nat_succ<mu<nat_f> >(_acc));
+        _acc = DMu<nat_f>::In(nat_succ<DMu<nat_f> >(_acc));
     }
     return _acc;
 }
 
 // make_list: Cons over the elements, left to right (front = outermost Cons).
 inline
-mu<list_f> make_list(
+DMu<list_f> make_list(
     const std::vector<int>& _xs
 )
 {
-    mu<list_f> _acc = mu<list_f>::In(list_nil<mu<list_f> >());
+    DMu<list_f> _acc = DMu<list_f>::In(list_nil<DMu<list_f> >());
     for (std::size_t _i = _xs.size(); _i > 0; --_i)
     {
-        _acc = mu<list_f>::In(list_cons<mu<list_f> >(_xs[_i - 1], _acc));
+        _acc = DMu<list_f>::In(list_cons<DMu<list_f> >(_xs[_i - 1], _acc));
     }
     return _acc;
 }
 
 // make_leaf / make_branch: tree constructors.
 inline
-mu<tree_f> make_leaf(
+DMu<tree_f> make_leaf(
     int _value
 )
 {
-    return mu<tree_f>::In(tree_leaf<mu<tree_f> >(_value));
+    return DMu<tree_f>::In(tree_leaf<DMu<tree_f> >(_value));
 }
 
 inline
-mu<tree_f> make_branch(
-    const mu<tree_f>& _left,
-    const mu<tree_f>& _right
+DMu<tree_f> make_branch(
+    const DMu<tree_f>& _left,
+    const DMu<tree_f>& _right
 )
 {
-    return mu<tree_f>::In(tree_branch<mu<tree_f> >(_left, _right));
+    return DMu<tree_f>::In(tree_branch<DMu<tree_f> >(_left, _right));
 }
 
 // make_balanced_tree: a full binary tree of the given depth, every leaf = 1
 // (depth 0 is a single leaf; 2^depth leaves).
 inline
-mu<tree_f> make_balanced_tree(
+DMu<tree_f> make_balanced_tree(
     unsigned _depth
 )
 {
@@ -351,7 +351,7 @@ mu<tree_f> make_balanced_tree(
     {
         return make_leaf(1);
     }
-    mu<tree_f> _sub = make_balanced_tree(_depth - 1);
+    DMu<tree_f> _sub = make_balanced_tree(_depth - 1);
     return make_branch(_sub, _sub);
 }
 
@@ -361,11 +361,11 @@ mu<tree_f> make_balanced_tree(
 // nat_to_unsigned: the depth of a Peano value.
 inline
 unsigned nat_to_unsigned(
-    const mu<nat_f>& _m
+    const DMu<nat_f>& _m
 )
 {
     unsigned         _d   = 0;
-    const mu<nat_f>* _cur = &_m;
+    const DMu<nat_f>* _cur = &_m;
     while (!_cur->out().is_zero)
     {
         ++_d;
@@ -377,11 +377,11 @@ unsigned nat_to_unsigned(
 // list_to_vector: the elements of a list value, in order.
 inline
 std::vector<int> list_to_vector(
-    const mu<list_f>& _m
+    const DMu<list_f>& _m
 )
 {
     std::vector<int>  _r;
-    const mu<list_f>* _cur = &_m;
+    const DMu<list_f>* _cur = &_m;
     while (!_cur->out().is_nil)
     {
         _r.push_back(_cur->out().head);
@@ -393,10 +393,10 @@ std::vector<int> list_to_vector(
 // tree_leaf_sum_manual: sum of the leaf values.
 inline
 int tree_leaf_sum_manual(
-    const mu<tree_f>& _m
+    const DMu<tree_f>& _m
 )
 {
-    const tree_f<mu<tree_f> >& _layer = _m.out();
+    const tree_f<DMu<tree_f> >& _layer = _m.out();
     if (_layer.is_leaf)
     {
         return _layer.value;
@@ -408,10 +408,10 @@ int tree_leaf_sum_manual(
 // tree_height_manual: edges on the longest root-to-leaf path (leaf = 0).
 inline
 int tree_height_manual(
-    const mu<tree_f>& _m
+    const DMu<tree_f>& _m
 )
 {
-    const tree_f<mu<tree_f> >& _layer = _m.out();
+    const tree_f<DMu<tree_f> >& _layer = _m.out();
     if (_layer.is_leaf)
     {
         return 0;

@@ -71,7 +71,7 @@ bool tests_make_event_bus()
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
     auto bus = make_event_bus();
 
-    static_assert(std::is_same<decltype(bus), event_bus>::value,
+    static_assert(std::is_same<decltype(bus), DEventBus>::value,
                   "make_event_bus returns event_bus");
 
     int seen = 0;
@@ -96,11 +96,11 @@ bool tests_make_signal_hub()
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
     auto hub = make_signal_hub();
 
-    static_assert(std::is_same<decltype(hub), signal_hub>::value,
+    static_assert(std::is_same<decltype(hub), DSignalHub>::value,
                   "make_signal_hub returns signal_hub");
 
     int seen = 0;
-    hub.connect(signal_id("chan"), [&](const re_std::any& _e) { seen = _e.get<int>(); });
+    hub.connect(DSignalId("chan"), [&](const re_std::any& _e) { seen = _e.get<int>(); });
     hub.emit("chan", re_std::any(21));
 
     return (seen == 21);
@@ -121,10 +121,10 @@ tests_subscribe_many
 bool tests_subscribe_many()
 {
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-    event_bus bus;
+    DEventBus bus;
     int       total = 0;
 
-    std::vector<subscription_id> tokens =
+    std::vector<DSubscriptionId> tokens =
         subscribe_many<ping>(
             bus,
             [&](const ping& _e) { total += _e.n; },
@@ -155,10 +155,10 @@ tests_unsubscribe_all
 bool tests_unsubscribe_all()
 {
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-    event_bus bus;
+    DEventBus bus;
     int       total = 0;
 
-    std::vector<subscription_id> tokens =
+    std::vector<DSubscriptionId> tokens =
         subscribe_many<ping>(
             bus,
             [&](const ping&) { ++total; },
@@ -189,15 +189,15 @@ tests_mediator_for
 bool tests_mediator_for()
 {
 #if D_MEDIATOR_HAS_CONCEPTS
-    static_assert( mediator_for<event_bus>,          "event_bus mediates");
+    static_assert( mediator_for<DEventBus>,          "event_bus mediates");
     static_assert(!mediator_for<int>,                "int does not");
-    static_assert(!mediator_for<concrete_mediator>,  "receive() != notify()");
+    static_assert(!mediator_for<DConcreteMediator>,  "receive() != notify()");
 
     bool ok = true;
 
-    ok = ok && ( mediator_for<event_bus>);
+    ok = ok && ( mediator_for<DEventBus>);
     ok = ok && (!mediator_for<int>);
-    ok = ok && (!mediator_for<concrete_mediator>);
+    ok = ok && (!mediator_for<DConcreteMediator>);
 
     return ok;
 #else
@@ -268,7 +268,7 @@ tests_constrained_subscribe
 bool tests_constrained_subscribe()
 {
 #if D_MEDIATOR_HAS_CONCEPTS
-    event_bus bus;
+    DEventBus bus;
     int       seen = 0;
 
     constrained_subscribe<ping>(bus, [&](const ping& _e) { seen = _e.n; });
@@ -290,7 +290,7 @@ tests_constrained_connect
 bool tests_constrained_connect()
 {
 #if D_MEDIATOR_HAS_CONCEPTS
-    signal_hub hub;
+    DSignalHub hub;
     int        seen = 0;
 
     constrained_connect(hub, "chan",

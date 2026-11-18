@@ -134,7 +134,7 @@ D_TYPE_TRAIT_VALUE_BOOL(is_interval_protocol)
 template<typename Value,
          Value    Lower,
          Value    Upper>
-struct closed_bounds
+struct DClosedBounds
 {
     typedef Value value_type;
 
@@ -147,28 +147,34 @@ struct closed_bounds
                     "closed_bounds: the lower bound exceeds the upper bound");
 };
 
+// old name, until 0.9.0-rc.1
+template<typename Value,
+         Value    Lower,
+         Value    Upper>
+using closed_bounds = DClosedBounds<Value, Lower, Upper>;
+
 // the static members' definitions, which an odr-use needs below C++17; from
 // C++17 a constexpr static member is inline, and a definition is redundant
 #if !D_ENV_LANG_IS_CPP17_OR_HIGHER
 template<typename Value,
          Value    Lower,
          Value    Upper>
-D_CONSTEXPR_VAR Value closed_bounds<Value, Lower, Upper>::lower_bound;
+D_CONSTEXPR_VAR Value DClosedBounds<Value, Lower, Upper>::lower_bound;
 
 template<typename Value,
          Value    Lower,
          Value    Upper>
-D_CONSTEXPR_VAR Value closed_bounds<Value, Lower, Upper>::upper_bound;
+D_CONSTEXPR_VAR Value DClosedBounds<Value, Lower, Upper>::upper_bound;
 
 template<typename Value,
          Value    Lower,
          Value    Upper>
-D_CONSTEXPR_VAR bool closed_bounds<Value, Lower, Upper>::is_left_open;
+D_CONSTEXPR_VAR bool DClosedBounds<Value, Lower, Upper>::is_left_open;
 
 template<typename Value,
          Value    Lower,
          Value    Upper>
-D_CONSTEXPR_VAR bool closed_bounds<Value, Lower, Upper>::is_right_open;
+D_CONSTEXPR_VAR bool DClosedBounds<Value, Lower, Upper>::is_right_open;
 #endif  // below C++17
 
 

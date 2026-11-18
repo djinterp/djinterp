@@ -46,7 +46,7 @@ bool tests_decode_reader_construction()
     D_DE_CHECK(_z.exhausted());
 
     // byte_string constructor
-    const byte_string _bytes = { 0xAA, 0xBB, 0xCC, 0xDD };
+    const DByteString _bytes = { 0xAA, 0xBB, 0xCC, 0xDD };
     DByteReader _b(_bytes);
     D_DE_CHECK(_b.good());
     D_DE_CHECK(_b.remaining() == 4);
@@ -67,7 +67,7 @@ tests_decode_reader_take
 */
 bool tests_decode_reader_take()
 {
-    const byte_string _bytes = { 0x10, 0x20, 0x30, 0x40 };
+    const DByteString _bytes = { 0x10, 0x20, 0x30, 0x40 };
 
     // partial take of two bytes
     DByteReader _r(_bytes);
@@ -114,7 +114,7 @@ tests_decode_reader_sticky_bad
 */
 bool tests_decode_reader_sticky_bad()
 {
-    const byte_string _bytes = { 0x01, 0x02, 0x03, 0x04 };
+    const DByteString _bytes = { 0x01, 0x02, 0x03, 0x04 };
     DByteReader _r(_bytes);
 
     // fail once by over-reading
@@ -144,43 +144,43 @@ bool tests_decode_get_uint_be()
 {
     // width 1
     {
-        const byte_string _b = { 0x2A };
+        const DByteString _b = { 0x2A };
         DByteReader _r(_b);
-        decode_length_type _v = 0xFFFF;
+        DDecodeLengthType _v = 0xFFFF;
         D_DE_CHECK(djinterp::internal::get_uint_be(_r, 1, _v));
         D_DE_CHECK(_v == 0x2Au);
         D_DE_CHECK(_r.exhausted());
     }
     // width 2
     {
-        const byte_string _b = { 0x12, 0x34 };
+        const DByteString _b = { 0x12, 0x34 };
         DByteReader _r(_b);
-        decode_length_type _v = 0;
+        DDecodeLengthType _v = 0;
         D_DE_CHECK(djinterp::internal::get_uint_be(_r, 2, _v));
         D_DE_CHECK(_v == 0x1234u);
     }
     // width 4
     {
-        const byte_string _b = { 0xDE, 0xAD, 0xBE, 0xEF };
+        const DByteString _b = { 0xDE, 0xAD, 0xBE, 0xEF };
         DByteReader _r(_b);
-        decode_length_type _v = 0;
+        DDecodeLengthType _v = 0;
         D_DE_CHECK(djinterp::internal::get_uint_be(_r, 4, _v));
         D_DE_CHECK(_v == 0xDEADBEEFu);
     }
     // width 8
     {
-        const byte_string _b =
+        const DByteString _b =
             { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
         DByteReader _r(_b);
-        decode_length_type _v = 0;
+        DDecodeLengthType _v = 0;
         D_DE_CHECK(djinterp::internal::get_uint_be(_r, 8, _v));
         D_DE_CHECK(_v == 0x0102030405060708ull);
     }
     // width 0: reads nothing, yields 0, reader untouched and good
     {
-        const byte_string _b = { 0x77 };
+        const DByteString _b = { 0x77 };
         DByteReader _r(_b);
-        decode_length_type _v = 123;
+        DDecodeLengthType _v = 123;
         D_DE_CHECK(djinterp::internal::get_uint_be(_r, 0, _v));
         D_DE_CHECK(_v == 0u);
         D_DE_CHECK(_r.remaining() == 1);
@@ -188,19 +188,19 @@ bool tests_decode_get_uint_be()
     }
     // width > 8: refused up front, reader stays good and unconsumed
     {
-        const byte_string _b =
+        const DByteString _b =
             { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09 };
         DByteReader _r(_b);
-        decode_length_type _v = 0;
+        DDecodeLengthType _v = 0;
         D_DE_CHECK(!djinterp::internal::get_uint_be(_r, 9, _v));
         D_DE_CHECK(_r.good());
         D_DE_CHECK(_r.remaining() == 9);
     }
     // underflow: width exceeds the buffer -> false and bad
     {
-        const byte_string _b = { 0x01, 0x02 };
+        const DByteString _b = { 0x01, 0x02 };
         DByteReader _r(_b);
-        decode_length_type _v = 0;
+        DDecodeLengthType _v = 0;
         D_DE_CHECK(!djinterp::internal::get_uint_be(_r, 4, _v));
         D_DE_CHECK(!_r.good());
     }

@@ -1,8 +1,8 @@
 /*******************************************************************************
 * djinterp [cpp][memory]                              memory_tests_allocator.cpp
 *
-* The memory suite, block "allocator": pool_allocator.hpp's node_pool, the
-* pool_allocator and arena_allocator over it and over an arena, and the
+* The memory suite, block "allocator": pool_allocator.hpp's DNodePool, the
+* DPoolAllocator and DArenaAllocator over it and over an arena, and the
 * standard containers on them.
 *
 *
@@ -27,7 +27,7 @@ NS_TESTING
 
 /*
 tests_memory_allocator_node_pool
-  node_pool.
+  DNodePool.
   Tests the following:
   - it is not configured until its first acquire, which fixes its slot
   - requests that fit the slot come from the pool; larger ones from its
@@ -36,7 +36,7 @@ tests_memory_allocator_node_pool
 bool
 tests_memory_allocator_node_pool()
 {
-    node_pool nodes;
+    DNodePool nodes;
     void*     small = nullptr;
     void*     large = nullptr;
 
@@ -70,29 +70,29 @@ tests_memory_allocator_node_pool()
 
 /*
 tests_memory_allocator_pool
-  pool_allocator<T>.
+  DPoolAllocator<T>.
   Tests the following:
   - it is an Allocator: its typedefs, and rebinding to another type over the
-    same node_pool
-  - two are equal when they share a node_pool, unequal otherwise
+    same DNodePool
+  - two are equal when they share a DNodePool, unequal otherwise
   - allocate(1) comes from the pool; deallocate gives it back
 */
 bool
 tests_memory_allocator_pool()
 {
-    node_pool                       nodes;
-    node_pool                       others;
-    pool_allocator<int>             ints(nodes);
-    pool_allocator<double>          doubles(ints);
-    pool_allocator<int>             elsewhere(others);
-    pool_allocator<int>::pointer    one = nullptr;
+    DNodePool                       nodes;
+    DNodePool                       others;
+    DPoolAllocator<int>             ints(nodes);
+    DPoolAllocator<double>          doubles(ints);
+    DPoolAllocator<int>             elsewhere(others);
+    DPoolAllocator<int>::pointer    one = nullptr;
 
-    static_assert(std::is_same<pool_allocator<int>::value_type, int>::value,
+    static_assert(std::is_same<DPoolAllocator<int>::value_type, int>::value,
                   "value_type is the element");
-    static_assert(std::is_same<pool_allocator<int>::rebind<char>::other,
-                               pool_allocator<char> >::value,
+    static_assert(std::is_same<DPoolAllocator<int>::rebind<char>::other,
+                               DPoolAllocator<char> >::value,
                   "rebind names the same allocator for another type");
-    static_assert(!pool_allocator<int>::is_always_equal::value,
+    static_assert(!DPoolAllocator<int>::is_always_equal::value,
                   "equality depends on the node_pool");
 
     D_TEST_REQUIRE(doubles.resource() == &nodes);
@@ -115,19 +115,19 @@ tests_memory_allocator_pool()
 tests_memory_allocator_pool_containers
   The containers it is for.
   Tests the following:
-  - a std::list on a pool_allocator takes its nodes from the pool, and gives
+  - a std::list on a DPoolAllocator takes its nodes from the pool, and gives
     them back as it shrinks
   - a std::map runs on one, in order
 */
 bool
 tests_memory_allocator_pool_containers()
 {
-    node_pool list_nodes;
-    node_pool map_nodes;
+    DNodePool list_nodes;
+    DNodePool map_nodes;
 
     {
-        std::list<int, pool_allocator<int> > values(
-            (pool_allocator<int>(list_nodes)));
+        std::list<int, DPoolAllocator<int> > values(
+            (DPoolAllocator<int>(list_nodes)));
 
         for (int i = 0; i < 100; ++i)
         {
@@ -144,7 +144,7 @@ tests_memory_allocator_pool_containers()
     }
 
     {
-        using map_allocator = pool_allocator<std::pair<const int, int> >;
+        using map_allocator = DPoolAllocator<std::pair<const int, int> >;
 
         const std::less<int>                              order;
         std::map<int, int, std::less<int>, map_allocator> squares(
@@ -169,7 +169,7 @@ tests_memory_allocator_pool_containers()
 
 /*
 tests_memory_allocator_arena
-  arena_allocator<T>.
+  DArenaAllocator<T>.
   Tests the following:
   - it allocates aligned storage from its arena, and deallocate frees nothing
   - equality follows the arena; rebinding keeps it
@@ -178,11 +178,11 @@ tests_memory_allocator_arena
 bool
 tests_memory_allocator_arena()
 {
-    arena                  a;
-    arena                  b;
-    arena_allocator<int>   ints(a);
-    arena_allocator<char>  chars(ints);
-    arena_allocator<int>   other(b);
+    DArena                  a;
+    DArena                  b;
+    DArenaAllocator<int>   ints(a);
+    DArenaAllocator<char>  chars(ints);
+    DArenaAllocator<int>   other(b);
     int*                   block = nullptr;
     DMemSize               used  = 0;
 
@@ -200,7 +200,7 @@ tests_memory_allocator_arena()
     D_TEST_REQUIRE(a.used() == used);
 
     {
-        std::vector<int, arena_allocator<int> > values(ints);
+        std::vector<int, DArenaAllocator<int> > values(ints);
 
         for (int i = 0; i < 1000; ++i)
         {

@@ -66,13 +66,13 @@ bool tests_is_sorted_container()
     // the definition
     D_SR_CHECK(is_sorted_container<DSrtBounds>::value
                    == ( sortedness_of<DSrtBounds>::value
-                            == sortedness::sorted ));
+                            == DSortedness::sorted ));
     D_SR_CHECK(is_sorted_container<DSrtSet>::value
                    == ( sortedness_of<DSrtSet>::value
-                            == sortedness::sorted ));
+                            == DSortedness::sorted ));
     D_SR_CHECK(is_sorted_container<DSrtBare>::value
                    == ( sortedness_of<DSrtBare>::value
-                            == sortedness::sorted ));
+                            == DSortedness::sorted ));
 
     return ok;
 }
@@ -116,19 +116,19 @@ bool tests_is_unsorted_container()
     // the definition, term by term
     D_SR_CHECK(is_unsorted_container<DSrtVector>::value
                    == (    ( sortedness_of<DSrtVector>::value
-                                 != sortedness::non_container )
+                                 != DSortedness::non_container )
                         && ( sortedness_of<DSrtVector>::value
-                                 != sortedness::sorted ) ));
+                                 != DSortedness::sorted ) ));
     D_SR_CHECK(is_unsorted_container<DSrtBounds>::value
                    == (    ( sortedness_of<DSrtBounds>::value
-                                 != sortedness::non_container )
+                                 != DSortedness::non_container )
                         && ( sortedness_of<DSrtBounds>::value
-                                 != sortedness::sorted ) ));
+                                 != DSortedness::sorted ) ));
     D_SR_CHECK(is_unsorted_container<DSrtBare>::value
                    == (    ( sortedness_of<DSrtBare>::value
-                                 != sortedness::non_container )
+                                 != DSortedness::non_container )
                         && ( sortedness_of<DSrtBare>::value
-                                 != sortedness::sorted ) ));
+                                 != DSortedness::sorted ) ));
 
     return ok;
 }
@@ -239,13 +239,13 @@ bool tests_is_monotone_container()
     // the definition
     D_SR_CHECK(is_monotone_container<DSrtSet>::value
                    == ( sortedness_of<DSrtSet>::value
-                            == sortedness::monotone ));
+                            == DSortedness::monotone ));
     D_SR_CHECK(is_monotone_container<DSrtUset>::value
                    == ( sortedness_of<DSrtUset>::value
-                            == sortedness::monotone ));
+                            == DSortedness::monotone ));
     D_SR_CHECK(is_monotone_container<DSrtBounds>::value
                    == ( sortedness_of<DSrtBounds>::value
-                            == sortedness::monotone ));
+                            == DSortedness::monotone ));
 
     return ok;
 }
@@ -344,7 +344,7 @@ bool tests_predicates_monotone_paradox()
                && ( admits_sorted_enumeration<DSrtMultiset>::value == true ));
 
     // ... and the state that reconciles them
-    D_SR_CHECK(sortedness_of<DSrtSet>::value == sortedness::monotone);
+    D_SR_CHECK(sortedness_of<DSrtSet>::value == DSortedness::monotone);
     D_SR_CHECK(is_monotone_container<DSrtSet>::value  == true);
     D_SR_CHECK(is_sorted_container<DSrtSet>::value    == false);
 

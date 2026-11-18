@@ -35,14 +35,14 @@ bool tests_poly_var()
     bool ok = true;
 
     // value_type alias.
-    ok = ok && (std::is_same<poly_var<int>::value_type, int>::value);
+    ok = ok && (std::is_same<DPolyVar<int>::value_type, int>::value);
 
     // default construction value-initialises content (int() == 0).
-    poly_var<int> a;
+    DPolyVar<int> a;
     ok = ok && (a.content == 0);
 
     // explicit ctor stores the value.
-    poly_var<int> b(7);
+    DPolyVar<int> b(7);
     ok = ok && (b.content == 7);
 
     // content is public and mutable.
@@ -50,8 +50,8 @@ bool tests_poly_var()
     ok = ok && (b.content == -3);
 
     // the value ctor is explicit.
-    ok = ok && (std::is_constructible<poly_var<int>, int>::value);
-    ok = ok && (!std::is_convertible<int, poly_var<int> >::value);
+    ok = ok && (std::is_constructible<DPolyVar<int>, int>::value);
+    ok = ok && (!std::is_convertible<int, DPolyVar<int> >::value);
 
     return ok;
 }
@@ -70,15 +70,15 @@ bool tests_poly_unit()
     bool ok = true;
 
     // value_type alias.
-    ok = ok && (std::is_same<poly_unit<int>::value_type, int>::value);
+    ok = ok && (std::is_same<DPolyUnit<int>::value_type, int>::value);
 
     // default-constructible; the type exists purely as a marker.
-    ok = ok && (std::is_default_constructible<poly_unit<int> >::value);
-    poly_unit<int> u;
+    ok = ok && (std::is_default_constructible<DPolyUnit<int> >::value);
+    DPolyUnit<int> u;
     (void)u;
 
     // the phantom parameter still distinguishes instantiations.
-    ok = ok && (!std::is_same<poly_unit<int>, poly_unit<double> >::value);
+    ok = ok && (!std::is_same<DPolyUnit<int>, DPolyUnit<double> >::value);
 
     return ok;
 }
@@ -99,17 +99,17 @@ bool tests_poly_const()
     bool ok = true;
 
     // aliases.
-    ok = ok && (std::is_same<poly_const<char, int>::constant_type,
+    ok = ok && (std::is_same<DPolyConst<char, int>::constant_type,
                              char>::value);
-    ok = ok && (std::is_same<poly_const<char, int>::value_type,
+    ok = ok && (std::is_same<DPolyConst<char, int>::value_type,
                              int>::value);
 
     // default construction value-initialises content.
-    poly_const<int, double> a;
+    DPolyConst<int, double> a;
     ok = ok && (a.content == 0);
 
     // explicit ctor stores the constant.
-    poly_const<char, int> b('a');
+    DPolyConst<char, int> b('a');
     ok = ok && (b.content == 'a');
 
     // public, mutable payload.
@@ -117,8 +117,8 @@ bool tests_poly_const()
     ok = ok && (b.content == 'z');
 
     // the ctor from C is explicit.
-    ok = ok && (std::is_constructible<poly_const<char, int>, char>::value);
-    ok = ok && (!std::is_convertible<char, poly_const<char, int> >::value);
+    ok = ok && (std::is_constructible<DPolyConst<char, int>, char>::value);
+    ok = ok && (!std::is_convertible<char, DPolyConst<char, int> >::value);
 
     return ok;
 }
@@ -137,9 +137,9 @@ bool tests_poly_sum()
 {
     bool ok = true;
 
-    typedef poly_var<int>       arm_l;
-    typedef poly_const<char,int> arm_r;
-    typedef poly_sum<arm_l, arm_r> sum_t;
+    typedef DPolyVar<int>       arm_l;
+    typedef DPolyConst<char,int> arm_r;
+    typedef DPolySum<arm_l, arm_r> sum_t;
 
     // value_type is the shared X of the two arms.
     ok = ok && (std::is_same<sum_t::value_type, int>::value);
@@ -175,9 +175,9 @@ bool tests_poly_product()
 {
     bool ok = true;
 
-    typedef poly_var<int>        comp_a;
-    typedef poly_const<char, int> comp_b;
-    typedef poly_product<comp_a, comp_b> prod_t;
+    typedef DPolyVar<int>        comp_a;
+    typedef DPolyConst<char, int> comp_b;
+    typedef DPolyProduct<comp_a, comp_b> prod_t;
 
     // value_type is the shared X of the components.
     ok = ok && (std::is_same<prod_t::value_type, int>::value);
@@ -211,23 +211,23 @@ tests_value_level_value_types
 bool tests_value_level_value_types()
 {
     // leaf carriers.
-    static_assert(std::is_same<poly_var<int>::value_type, int>::value,
+    static_assert(std::is_same<DPolyVar<int>::value_type, int>::value,
                   "poly_var value_type");
-    static_assert(std::is_same<poly_unit<int>::value_type, int>::value,
+    static_assert(std::is_same<DPolyUnit<int>::value_type, int>::value,
                   "poly_unit value_type");
-    static_assert(std::is_same<poly_const<char, int>::value_type, int>::value,
+    static_assert(std::is_same<DPolyConst<char, int>::value_type, int>::value,
                   "poly_const value_type");
-    static_assert(std::is_same<poly_const<char, int>::constant_type,
+    static_assert(std::is_same<DPolyConst<char, int>::constant_type,
                                char>::value,
                   "poly_const constant_type");
 
     // composites inherit the shared X from their arms / components.
     static_assert(
-        std::is_same<poly_sum<poly_var<int>, poly_unit<int> >::value_type,
+        std::is_same<DPolySum<DPolyVar<int>, DPolyUnit<int> >::value_type,
                      int>::value,
         "poly_sum value_type");
     static_assert(
-        std::is_same<poly_product<poly_var<int>, poly_const<char, int> >
+        std::is_same<DPolyProduct<DPolyVar<int>, DPolyConst<char, int> >
                          ::value_type,
                      int>::value,
         "poly_product value_type");
@@ -235,8 +235,8 @@ bool tests_value_level_value_types()
     // nested composite still propagates X.
     static_assert(
         std::is_same<
-            poly_sum<poly_product<poly_var<int>, poly_unit<int> >,
-                     poly_const<char, int> >::value_type,
+            DPolySum<DPolyProduct<DPolyVar<int>, DPolyUnit<int> >,
+                     DPolyConst<char, int> >::value_type,
             int>::value,
         "nested composite value_type");
 

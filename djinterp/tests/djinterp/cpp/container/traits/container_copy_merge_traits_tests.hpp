@@ -216,19 +216,19 @@ static const int cm_kind_count       = 5;
 //   function: the _i-th discipline, in declaration order.  Out-of-range
 // indices clamp to unknown so a loop bug cannot read past the enum.
 inline
-merge_discipline cm_discipline_at(
+DMergeDiscipline cm_discipline_at(
     int _i
 )
 {
     switch (_i)
     {
-        case 0:  return merge_discipline::unknown;
-        case 1:  return merge_discipline::sequence;
-        case 2:  return merge_discipline::set;
-        case 3:  return merge_discipline::multiset;
-        case 4:  return merge_discipline::map;
-        case 5:  return merge_discipline::multimap;
-        default: return merge_discipline::unknown;
+        case 0:  return DMergeDiscipline::unknown;
+        case 1:  return DMergeDiscipline::sequence;
+        case 2:  return DMergeDiscipline::set;
+        case 3:  return DMergeDiscipline::multiset;
+        case 4:  return DMergeDiscipline::map;
+        case 5:  return DMergeDiscipline::multimap;
+        default: return DMergeDiscipline::unknown;
     }
 }
 
@@ -236,18 +236,18 @@ merge_discipline cm_discipline_at(
 //   function: the _i-th merge kind, in declaration order.  Out-of-range
 // indices clamp to incompatible.
 inline
-merge_kind cm_kind_at(
+DMergeKind cm_kind_at(
     int _i
 )
 {
     switch (_i)
     {
-        case 0:  return merge_kind::concatenation;
-        case 1:  return merge_kind::set_union;
-        case 2:  return merge_kind::multiset_union;
-        case 3:  return merge_kind::keyed_merge;
-        case 4:  return merge_kind::incompatible;
-        default: return merge_kind::incompatible;
+        case 0:  return DMergeKind::concatenation;
+        case 1:  return DMergeKind::set_union;
+        case 2:  return DMergeKind::multiset_union;
+        case 3:  return DMergeKind::keyed_merge;
+        case 4:  return DMergeKind::incompatible;
+        default: return DMergeKind::incompatible;
     }
 }
 
@@ -255,7 +255,7 @@ merge_kind cm_kind_at(
 //   functions: compare a value's spelling against an expected literal.
 inline
 bool cm_disc_is(
-    merge_discipline _d,
+    DMergeDiscipline _d,
     const char*      _expected
 )
 {
@@ -264,7 +264,7 @@ bool cm_disc_is(
 
 inline
 bool cm_kind_is(
-    merge_kind  _k,
+    DMergeKind  _k,
     const char* _expected
 )
 {

@@ -85,7 +85,7 @@ concept file_tree_type =
 template<typename Type>
 concept named_file_tree =
     file_tree_type<Type> &&
-    ( has_name_method_v<const Type, file_node_id> ||
+    ( has_name_method_v<const Type, DFileNodeId> ||
       has_name_str_method_v<Type> );
 
 // path_addressable_file_tree
@@ -133,9 +133,9 @@ template<typename Type>
 concept child_insertable_file_tree =
     file_tree_type<Type> &&
     has_add_child_method_v<Type,
-                           file_node_id,
+                           DFileNodeId,
                            const char*,
-                           file_type>;
+                           DFileType>;
 
 // clearable_file_tree
 //   concept: the file tree supports clear().
@@ -149,9 +149,9 @@ template<typename Type>
 concept mutable_file_tree =
     file_tree_type<Type> &&
     has_add_child_method_v<Type,
-                           file_node_id,
+                           DFileNodeId,
                            const char*,
-                           file_type> &&
+                           DFileType> &&
     has_clear_method_v<Type>;
 
 
@@ -183,42 +183,42 @@ concept file_entry_carrying_tree =
 // classification struct.
 template<typename Type>
 concept classified_file_tree =
-    file_tree_class<Type>::is_file_tree;
+    DFileTreeClass<Type>::is_file_tree;
 
 // classified_named_file_tree
 //   concept: shorthand for any type recognized as named by the aggregate
 // classification struct.
 template<typename Type>
 concept classified_named_file_tree =
-    file_tree_class<Type>::is_named;
+    DFileTreeClass<Type>::is_named;
 
 // classified_path_addressable_file_tree
 //   concept: shorthand for any type recognized as path-addressable by the
 // aggregate classification struct.
 template<typename Type>
 concept classified_path_addressable_file_tree =
-    file_tree_class<Type>::is_path_addressable;
+    DFileTreeClass<Type>::is_path_addressable;
 
 // classified_traversable_file_tree
 //   concept: shorthand for any type recognized as traversable by the aggregate
 // classification struct.
 template<typename Type>
 concept classified_traversable_file_tree =
-    file_tree_class<Type>::is_traversable;
+    DFileTreeClass<Type>::is_traversable;
 
 // classified_mutable_file_tree
 //   concept: shorthand for any type recognized as mutable by the aggregate
 // classification struct.
 template<typename Type>
 concept classified_mutable_file_tree =
-    file_tree_class<Type>::is_mutable;
+    DFileTreeClass<Type>::is_mutable;
 
 // classified_file_entry_carrying_tree
 //   concept: shorthand for any type whose node payload is recognized as
 // file_entry-shaped by the aggregate classification struct.
 template<typename Type>
 concept classified_file_entry_carrying_tree =
-    file_tree_class<Type>::carries_file_entry;
+    DFileTreeClass<Type>::carries_file_entry;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
