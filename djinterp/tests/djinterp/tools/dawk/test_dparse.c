@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/tools/dawk/test_dparse.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dparse.h"  // corresponding header
 // std
@@ -655,6 +655,7 @@ d_tests_lexical
   - a slash divides after an operand and opens a regexp otherwise
   - a newline terminates a rule but not a continued expression
   - comments and escaped newlines are invisible to the parser
+  - a CR LF line break reads as a LF one, after a backslash too
   - getline is rejected with a diagnostic rather than silently mis-parsed
 */
 static
@@ -678,6 +679,18 @@ void d_tests_lexical(void)
     // a backslash before a newline continues a string literal too
     d_tests_expect("BEGIN { x = \"a\\\nb\" }",
                    "BEGIN{(= x \"ab\")}");
+
+    // a script saved with CRLF endings reads as the same script with LF: a
+    // backslash before a CR LF continues the line and the literal alike
+    d_tests_expect("BEGIN { x = 1 + \\\r\n 2 }\r\n",
+                   "BEGIN{(= x (+ 1 2))}");
+    d_tests_expect("BEGIN { x = 1 &&\r\n 2 }",
+                   "BEGIN{(= x (&& 1 2))}");
+    d_tests_expect("BEGIN { x = \"a\\\r\nb\" }",
+                   "BEGIN{(= x \"ab\")}");
+
+    // a carriage return alone breaks no line, so it continues nothing
+    d_tests_expect("BEGIN { x = 1 + \\\r 2 }", NULL);
     d_tests_expect("BEGIN { x = \"\\101\\tB\" }",
                    "BEGIN{(= x \"A\tB\")}");
     d_tests_expect("{ n = split($0, a, /,/) }",

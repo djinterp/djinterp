@@ -11,7 +11,7 @@
 * path:      /src/djinterp/tools/dawk/dlex.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../inc/djinterp/tools/dawk/dlex.h"  // corresponding header
 // std
@@ -237,6 +237,41 @@ int d_internal_advance(
 }
 
 
+/*
+d_internal_line_break
+  Measures the line break that starts at an offset from the cursor.  A carriage
+return before a newline belongs to the break, so a script saved with CRLF
+endings, as a Windows checkout saves every script, reads exactly as the same
+script saved with LF.
+
+Parameter(s):
+  _lexer:  the scanner.
+  _ahead:  how far past the cursor the break would start.
+Return:
+  2 for a CR LF, 1 for a LF, and 0 when no line break starts there.
+*/
+static
+size_t d_internal_line_break(
+    const struct dj_awk_lexer* _lexer,
+    size_t                     _ahead
+)
+{
+    const int byte = d_internal_peek(_lexer, _ahead);
+
+    // a newline alone is the break
+    if (byte == '\n')
+    {
+        return 1u;
+    }
+
+    // a carriage return is part of the break only before a newline
+    return ( (byte == '\r') &&
+             (d_internal_peek(_lexer, _ahead + 1u) == '\n') )
+         ? 2u
+         : 0u;
+}
+
+
 //==============================================================================
 // 3.  TOKEN SCANNERS
 //==============================================================================
@@ -285,13 +320,23 @@ bool d_internal_scan_string(
 
         (void)d_internal_advance(_lexer);
 
-        // a backslash takes the byte after it, a newline included
-        if ( (byte == '\\') &&
-             (d_internal_advance(_lexer) < 0) )
+        // a backslash takes the byte after it, a newline included, and takes
+        // a CR LF whole, so the literal goes on past the break either way
+        if (byte == '\\')
         {
-            d_internal_fail(_lexer, "unterminated escape");
+            const size_t brk = d_internal_line_break(_lexer, 0u);
 
-            return false;
+            if (d_internal_advance(_lexer) < 0)
+            {
+                d_internal_fail(_lexer, "unterminated escape");
+
+                return false;
+            }
+
+            if (brk == 2u)
+            {
+                (void)d_internal_advance(_lexer);
+            }
         }
     }
 
@@ -705,11 +750,17 @@ bool d_awk_lexer_next(
             continue;
         }
 
-        // a backslash before a newline continues the line
-        if ((byte == '\\') && (d_internal_peek(_lexer, 1) == '\n'))
+        // a backslash before a line break, LF or CR LF, continues the line
+        if ( (byte == '\\') &&
+             (d_internal_line_break(_lexer, 1u) != 0u) )
         {
-            (void)d_internal_advance(_lexer);
-            (void)d_internal_advance(_lexer);
+            const size_t brk = d_internal_line_break(_lexer, 1u);
+
+            for (size_t step = 0; step <= brk; ++step)
+            {
+                (void)d_internal_advance(_lexer);
+            }
+
             continue;
         }
 
@@ -1087,7 +1138,8 @@ literal's raw text, and the interpreter a command-line assignment's value,
 which POSIX has read "as if it appeared in the awk program" between quotes.
 Two decoders would drift, and an operand `x='a\nz'` would then mean one thing
 and `"a\nz"` another.
-  A backslash before a newline is a line continuation and stands for nothing.
+  A backslash before a newline, or before a CR LF, is a line continuation and
+stands for nothing.
 A backslash that ends the text is kept, since only the scanner can call that
 an error.
 */
@@ -1115,6 +1167,15 @@ size_t d_awk_unescape(
         // an escaped newline continues the line
         if (next == '\n')
         {
+            continue;
+        }
+
+        // so does an escaped CR LF, the newline taken with it
+        if ( (next == '\r')            &&
+             ((at + 1u) < _length)     &&
+             (_text[at + 1u] == '\n') )
+        {
+            ++at;
             continue;
         }
 

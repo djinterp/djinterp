@@ -567,8 +567,12 @@ if [ -d build/cmake ]; then
     fi
 fi
 if command -v cmake > /dev/null 2>&1; then
-    sed 's/$/\r/' "$HERE/cmake_values.cmake" > "$work/values_crlf.cmake"
-    for cases in "$HERE/cmake_values.cmake" "$work/values_crlf.cmake"; do
+    # the values once with LF endings and once with CRLF, whichever the
+    # checkout gave the file: adding a CR to a line that has one already
+    # would test CR CR LF instead
+    tr -d '\r' < "$HERE/cmake_values.cmake" > "$work/values_lf.cmake"
+    sed 's/$/\r/' "$work/values_lf.cmake" > "$work/values_crlf.cmake"
+    for cases in "$work/values_lf.cmake" "$work/values_crlf.cmake"; do
         want=$(cmake -P "$cases" 2>&1 | tr -d '\r')
         got=$("$READER" --values "$cases" 2>&1 | tr -d '\r')
         if [ "$want" = "$got" ]; then

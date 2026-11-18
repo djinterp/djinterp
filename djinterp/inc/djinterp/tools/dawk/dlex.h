@@ -13,7 +13,7 @@
 * path:      /inc/djinterp/tools/dawk/dlex.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -189,8 +189,9 @@ const char* d_awk_token_name(
 /**
  * @brief Decodes awk's string escapes, as a STRING token's text is decoded.
  *
- * @note A backslash before a newline is a line continuation and decodes to
- *       nothing; a backslash ending the text is kept as it is.
+ * @note A backslash before a newline, or before a CR LF, is a line
+ *       continuation and decodes to nothing; a backslash ending the text is
+ *       kept as it is.
  *
  * @param[in]  _text    the text to decode; need not be terminated.
  * @param[in]  _length  the number of bytes of `_text` to decode.

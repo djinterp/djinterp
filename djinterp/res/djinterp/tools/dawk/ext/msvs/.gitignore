@@ -1,0 +1,4 @@
+# msvs_generate.awk reads msvs_test.vcxproj as its template, so the
+# template is kept in the repository, though the root ignores every
+# .vcxproj a build writes
+!msvs_test.vcxproj

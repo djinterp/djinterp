@@ -59,6 +59,8 @@ DGIT="$E/git/dgit_text.c $E/git/dgit_doc.c $E/git/dgit_file.c
 GIT="$DGIT $E/git/dhost_git.c"
 
 mkdir -p "$OUT"
+# made absolute, since story.sh runs dawk from a directory of its own
+OUT=$(cd "$OUT" && pwd)
 $CC $W -o "$OUT/dawk" $S/main.c $CORE $STORY $CMAKE $NINJA $MSVS $WIKI \
     $GIT -lm
 $CC $W -o "$OUT/test_dregex" tests/djinterp/c/util/dregex/test_dregex.c $RX
