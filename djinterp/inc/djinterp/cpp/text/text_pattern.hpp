@@ -1,10 +1,10 @@
 /*******************************************************************************
 * djinterp [cpp]                                                text_pattern.hpp
 *
-*   Marker-aware text pattern engine.  Given a template literal in the
-* same dialect as DTextTemplate (default markers: %key%), DTextPattern
-* compiles the literal into an alternating sequence of literal and
-* capture segments and exposes the four pattern faces:
+*   Marker-aware text pattern engine.  Given a template literal whose
+* captures are marked %key% by default, DTextPattern compiles the literal
+* into an alternating sequence of literal and capture segments and exposes
+* the four pattern faces:
 *
 *     1. predicate  — does input conform to the pattern?
 *     2. extractor  — return the bindings the input represents.
@@ -12,13 +12,14 @@
 *     4. rewrite    — splice a new value for one key into existing text,
 *                     preserving every other capture.
 *
-*   DTextPattern is the inverse of DTextTemplate: a single template
-* literal is the canonical specification, and the two engines consume
-* it in opposite directions.  This lets the same literal drive both
-* generation (writing new files) and parsing (verifying existing ones).
+*   DTextPattern is the inverse of DTextTemplate (text_template.hpp): one
+* literal can drive both, the template generating text and the pattern
+* parsing it back.  DTextTemplate marks its keys {key}, so the pattern to
+* pair with it is make_curly_pattern's.  DTextTemplate also trims the blanks
+* inside the braces and reads {{ and }} as escapes; a pattern does neither.
 *
 *   MARKER SYNTAX:
-*   Markers default to "%" / "%" matching DTextTemplate's defaults.
+*   Markers default to "%" / "%" (D_TEXT_PAT_DEFAULT_PREFIX and _SUFFIX).
 * They are configurable via set_markers().  An escape character
 * (default: '\') preceding a prefix marker suppresses capture and
 * matches the prefix literally.
@@ -27,41 +28,41 @@
 *   Captures are lazy — a capture extends from its start position
 * up to the next literal segment.  Two adjacent captures (with no
 * literal between them) are malformed and rejected at compile time.
+*   So a capture never holds the literal that follows it: in
+* "%dir%/%file%", dir stops at the first '/'.  Nor does a match try a
+* later occurrence: "%a%-%b%." does not match "x-y.z.", because b stops at
+* the first '.' and the input goes on.
 *
 *   USAGE:
-*     DTextPattern p(
-*         "path:      %relative_path%/%filename%.%fileext%");
+*     DTextPattern p("revised: %year%.%month%.%day%");
 *
 *     // predicate face
-*     if (p("path:      /inc/text/text_pattern.hpp")) { ... }
+*     if (p("revised: 2026.10.02")) { ... }
 *
 *     // extractor face
-*     auto r = p.extract("path:      /inc/text/text_pattern.hpp");
+*     auto r = p.extract("revised: 2026.10.02");
 *     if (r.matched)
 *     {
-*         std::string fname = *r.captures.find("filename");
+*         std::string month = *r.captures.find("month");  // "10"
 *         // ...
 *     }
 *
 *     // renderer face
 *     DPatternCaptureMap<std::string, std::string> b;
-*     b.set("relative_path", "/inc/text");
-*     b.set("filename",      "DTextPattern");
-*     b.set("fileext",       "hpp");
-*     std::string s = p.render(b);  // produces the path line
+*     b.set("year",  "2026");
+*     b.set("month", "11");
+*     b.set("day",   "13");
+*     std::string s = p.render(b);  // "revised: 2026.11.13"
 *
 *     // rewrite face
-*     std::string fixed = p.rewrite(
-*         "path:      /inc/wrong/text_pattern.hpp",
-*         "relative_path",
-*         "/inc/text");
-*     // fixed == "path:      /inc/text/text_pattern.hpp"
+*     std::string fixed = p.rewrite("revised: 2026.10.02", "day", "03");
+*     // fixed == "revised: 2026.10.03"
 *
 *
 * path:      /inc/djinterp/cpp/text/text_pattern.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -92,8 +93,8 @@ V.    CONVENIENCE FACTORIES
       ---------------------
 */
 
-#ifndef DJINTERP_TEXT_TEXT_PATTERN_HPP
-#define DJINTERP_TEXT_TEXT_PATTERN_HPP 1
+#ifndef DJINTERP_TEXT_PATTERN_HPP
+#define DJINTERP_TEXT_PATTERN_HPP 1
 
 // FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
 // 2's rule). The owner's ruling: compile at every level first; port down only
@@ -102,13 +103,13 @@ V.    CONVENIENCE FACTORIES
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <cstddef>
-#include <string>
-#include <utility>
-#include <vector>
+#include <cstddef>  // std::size_t
+#include <string>   // std::string
+#include <utility>  // std::move
+#include <vector>   // std::vector
 // djinterp
-#include "../djinterp.hpp"
-#include "../paradigm/pattern/pattern.hpp"
+#include "../djinterp.hpp"                  // framework root
+#include "../paradigm/pattern/pattern.hpp"  // pattern<>, DPattern*
 // re_std
 #include "../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint8_t
 
@@ -232,6 +233,24 @@ public:
           m_prefix  (std::move(_prefix)),
           m_suffix  (std::move(_suffix)),
           m_escape  (D_TEXT_PAT_DEFAULT_ESCAPE),
+          m_segments(),
+          m_compile_status(DPatternStatusOk)
+    {
+        compile();
+    }
+
+    // from literal + custom markers + custom escape ('\0' for none),
+    // compiled once
+    DTextPattern(
+        std::string _literal,
+        std::string _prefix,
+        std::string _suffix,
+        char        _escape
+    )
+        : m_literal (std::move(_literal)),
+          m_prefix  (std::move(_prefix)),
+          m_suffix  (std::move(_suffix)),
+          m_escape  (_escape),
           m_segments(),
           m_compile_status(DPatternStatusOk)
     {
@@ -734,10 +753,11 @@ private:
 // concat
 //   function: produces a new DTextPattern whose literal is the
 // concatenation of _left's and _right's literals.  Both
-// patterns must share the same marker configuration; if they
-// disagree, _left's markers are used.  This is the text-specific
-// composition primitive — sub-patterns combine into full-file
-// patterns the same way functions compose into pipelines.
+// patterns must share the same marker and escape configuration;
+// if they disagree, _left's markers and escape are used.  This is
+// the text-specific composition primitive — sub-patterns combine
+// into full-file patterns the same way functions compose into
+// pipelines.
 D_NODISCARD
 inline
 DTextPattern concat(
@@ -747,7 +767,8 @@ DTextPattern concat(
 {
     return DTextPattern(_left.literal() + _right.literal(),
                         _left.prefix(),
-                        _left.suffix());
+                        _left.suffix(),
+                        _left.escape());
 }
 
 
@@ -790,8 +811,7 @@ DTextPattern make_dollar_pattern(
 
 // make_mustache_pattern
 //   function: builds a DTextPattern using "{{" / "}}" as markers,
-// matching Mustache / Handlebars convention and pairing with
-// make_mustache_template() in text_template.hpp.
+// matching Mustache / Handlebars convention.
 D_NODISCARD
 inline
 DTextPattern make_mustache_pattern(
@@ -806,4 +826,4 @@ NS_END  // djinterp
 
 #endif  // floor, for now
 
-#endif  // DJINTERP_TEXT_TEXT_PATTERN_HPP
+#endif  // DJINTERP_TEXT_PATTERN_HPP

@@ -35,12 +35,19 @@
 *     - render_to_minified_css  (whitespace-stripped output)
 *     - render_to_scss          (SCSS-flavoured output with native
 *                                nesting via `&` selectors)
+*   Nested rules are written nested in all three, as CSS Nesting and
+* SCSS read them; the stylesheet's syntax mode doesn't change that,
+* and nothing flattens them for a reader without nesting. A comment
+* can't end early: a star and a slash in its text are written with a
+* space between them. A keyframe
+* is written as its selector and block, and an at-rule with children
+* keeps its block whatever its keyword.
 *
 *
 * path:      /inc/djinterp/cpp/text/css/css_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -759,6 +766,64 @@ private:
 }   // namespace css
 NS_INTERNAL
 
+    // css_quoted_helper
+    //   function: a string in single quotes, its quotes and
+    // backslashes escaped, as Less's and Sass's
+    // @import, @plugin, @use and @forward take a URL.
+    inline
+    std::string css_quoted_helper(
+        const std::string& _text
+    )
+    {
+        std::string out(1, '\'');
+
+        for (const char c : _text)
+        {
+            if ( (c == '\'') || (c == '\\') )
+            {
+                out.push_back('\\');
+            }
+            out.push_back(c);
+        }
+        out.push_back('\'');
+
+        return out;
+    }
+
+
+    // css_unquoted_helper
+    //   function: the string quoted at `_at` in `_text` -- by ' or "
+    // -- with its backslash escapes undone, as css_quoted_helper
+    // writes them; the rest of the text when the quote isn't closed.
+    inline
+    std::string css_unquoted_helper(
+        const std::string& _text,
+        std::size_t        _at
+    )
+    {
+        const char  quote = _text[_at];
+        std::string out;
+
+        for (std::size_t i = _at + 1; i < _text.size(); ++i)
+        {
+            if ( (_text[i] == '\\') && (i + 1 < _text.size()) )
+            {
+                out.push_back(_text[++i]);
+            }
+            else if (_text[i] == quote)
+            {
+                break;
+            }
+            else
+            {
+                out.push_back(_text[i]);
+            }
+        }
+
+        return out;
+    }
+
+
     // css_emit_indent_helper
     //   function: writes `_depth` repetitions of `_indent` to
     // `_out`.
@@ -801,6 +866,39 @@ NS_INTERNAL
     }
 
 
+    // css_emit_comment_helper
+    //   function: a comment, its text kept but for a star followed by
+    // a slash, which would end it early, and is written with a space
+    // between them.
+    inline
+    void css_emit_comment_helper(
+        std::ostream&       _out,
+        const std::string&  _text
+    )
+    {
+        _out << "/*";
+        for (std::size_t i = 0; i < _text.size(); ++i)
+        {
+            _out << _text[i];
+            if ( (_text[i] == '*') && (i + 1 < _text.size()) &&
+                 (_text[i + 1] == '/') )
+            {
+                _out << ' ';
+            }
+        }
+        _out << "*/";
+    }
+
+
+    void css_emit_rule_helper(
+        std::ostream&           _out,
+        const DCssDefaultNode&  _node,
+        bool                    _minified,
+        std::size_t             _depth,
+        const char*             _indent,
+        const char*             _newline,
+        bool                    _scss_nesting);
+
     // css_emit_rule_body_helper
     //   function: emits the `{ ... }` body of a rule. Walks
     // children and emits declarations and nested rules. Does
@@ -819,8 +917,7 @@ NS_INTERNAL
     {
         using K = ::djinterp::css::DCssRuleKind;
 
-        _out << (_minified ? "{" : "{")
-             << (_minified ? "" : _newline);
+        _out << '{' << (_minified ? "" : _newline);
 
         for (std::size_t i = 0; i < _node.children.size(); ++i)
         {
@@ -829,78 +926,21 @@ NS_INTERNAL
             {
                 continue;
             }
-
-            if (c->rule_kind == K::declaration_block)
+            if (c->rule_kind != K::declaration_block)
             {
-                if (!_minified)
-                {
-                    css_emit_indent_helper(_out, _depth + 1, _indent);
-                }
-                css_emit_declaration_helper(_out, *c, _minified);
-                if (!_minified)
-                {
-                    _out << _newline;
-                }
+                // a comment, or a nested rule (CSS Nesting, SCSS)
+                css_emit_rule_helper(_out, *c, _minified, _depth + 1,
+                                     _indent, _newline, _scss_nesting);
                 continue;
             }
-
-            if (c->rule_kind == K::comment)
-            {
-                if (!_minified)
-                {
-                    css_emit_indent_helper(_out, _depth + 1, _indent);
-                    _out << "/*" << c->comment_text << "*/" << _newline;
-                }
-                continue;
-            }
-
-            // nested rule (CSS Nesting / SCSS)
             if (!_minified)
             {
                 css_emit_indent_helper(_out, _depth + 1, _indent);
             }
-
-            if (c->rule_kind == K::style_rule)
+            css_emit_declaration_helper(_out, *c, _minified);
+            if (!_minified)
             {
-                _out << c->selector;
-                if (!_minified)
-                {
-                    _out << ' ';
-                }
-                css_emit_rule_body_helper(
-                    _out, *c, _minified, _depth + 1, _indent, _newline,
-                    _scss_nesting);
-                if (!_minified)
-                {
-                    _out << _newline;
-                }
-            }
-            else if (::djinterp::css::is_at_rule_kind(c->rule_kind))
-            {
-                _out << '@' << c->at_keyword;
-                if (!c->prelude.empty())
-                {
-                    _out << ' ' << c->prelude;
-                }
-                if ( ::djinterp::css::is_grouping_rule_kind(c->rule_kind) ||
-                     ::djinterp::css::is_descriptor_rule_kind(c->rule_kind) )
-                {
-                    if (!_minified)
-                    {
-                        _out << ' ';
-                    }
-                    css_emit_rule_body_helper(
-                        _out, *c, _minified, _depth + 1, _indent, _newline,
-                        _scss_nesting);
-                }
-                else
-                {
-                    _out << ';';
-                }
-                if (!_minified)
-                {
-                    _out << _newline;
-                }
+                _out << _newline;
             }
         }
 
@@ -913,8 +953,12 @@ NS_INTERNAL
 
 
     // css_emit_rule_helper
-    //   function: top-level rule emission. Dispatches on rule
-    // kind and routes to the body helper.
+    //   function: one rule at a depth: a comment (dropped when
+    // minified); a style rule or a keyframe, as its selector and its
+    // body; an at-rule as its keyword and prelude, then its body when
+    // its kind holds one or it has children -- an unknown at-rule's
+    // block included -- or ';' when it is a statement, as an empty
+    // @layer is.
     inline
     void css_emit_rule_helper(
         std::ostream&           _out,
@@ -928,68 +972,67 @@ NS_INTERNAL
     {
         using K = ::djinterp::css::DCssRuleKind;
 
-        if (_node.rule_kind == K::comment)
+        const bool styled = (_node.rule_kind == K::style_rule) ||
+                            (_node.rule_kind == K::keyframe_rule);
+        const bool at     = ::djinterp::css::is_at_rule_kind(_node.rule_kind);
+
+        if ( (_node.rule_kind == K::comment) && _minified )
         {
-            if (!_minified)
-            {
-                css_emit_indent_helper(_out, _depth, _indent);
-                _out << "/*" << _node.comment_text << "*/" << _newline;
-            }
             return;
         }
-
+        if ( (_node.rule_kind != K::comment) && (!styled) && (!at) )
+        {
+            // unknown / unsupported -- emit nothing
+            return;
+        }
         if (!_minified)
         {
             css_emit_indent_helper(_out, _depth, _indent);
         }
-
-        if (_node.rule_kind == K::style_rule)
+        if (_node.rule_kind == K::comment)
         {
-            _out << _node.selector;
-            if (!_minified)
-            {
-                _out << ' ';
-            }
-            css_emit_rule_body_helper(
-                _out, _node, _minified, _depth, _indent, _newline,
-                _scss_nesting);
-            if (!_minified)
-            {
-                _out << _newline;
-            }
+            css_emit_comment_helper(_out, _node.comment_text);
+            _out << _newline;
             return;
         }
-
-        if (::djinterp::css::is_at_rule_kind(_node.rule_kind))
+        if (styled)
+        {
+            _out << _node.selector;
+        }
+        else
         {
             _out << '@' << _node.at_keyword;
             if (!_node.prelude.empty())
             {
                 _out << ' ' << _node.prelude;
             }
-            if ( ::djinterp::css::is_grouping_rule_kind(_node.rule_kind) ||
-                 ::djinterp::css::is_descriptor_rule_kind(_node.rule_kind) )
-            {
-                if (!_minified)
-                {
-                    _out << ' ';
-                }
-                css_emit_rule_body_helper(
-                    _out, _node, _minified, _depth, _indent, _newline,
-                    _scss_nesting);
-            }
-            else
-            {
-                _out << ';';
-            }
+        }
+        // a block when there is something in it, or the kind is a
+        // block's; but @layer with nothing in it is the statement form,
+        // which can name several layers, as "@layer a, b;"
+        const bool statement = (_node.rule_kind == K::layer_rule) &&
+                               _node.children.empty();
+        if ( styled || (!_node.children.empty()) ||
+             ( (!statement) &&
+               ( ::djinterp::css::is_grouping_rule_kind(_node.rule_kind) ||
+                 ::djinterp::css::is_descriptor_rule_kind(
+                     _node.rule_kind) ) ) )
+        {
             if (!_minified)
             {
-                _out << _newline;
+                _out << ' ';
             }
-            return;
+            css_emit_rule_body_helper(_out, _node, _minified, _depth,
+                                      _indent, _newline, _scss_nesting);
         }
-
-        // unknown / unsupported -- emit nothing
+        else
+        {
+            _out << ';';
+        }
+        if (!_minified)
+        {
+            _out << _newline;
+        }
     }
 
 

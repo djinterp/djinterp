@@ -2,24 +2,26 @@
 * djinterp [config]                                       cfg_ostream_template.h
 *
 *   Configuration for the template engine that writes onto an output stream:
-* how deep its conditional blocks may nest. The engine is otherwise
-* configuration-free: it allocates nothing, and its operations go into the
-* caller's array.
+* how deep its conditional blocks may nest, and what JSON and XML do with text
+* that isn't valid UTF-8. The engine is otherwise configuration-free: it
+* allocates nothing, and its operations go into the caller's array.
 *
-*   targets:  c/text/ostream_template.c -> D_CFG_OSTREAM_TEMPLATE_DEPTH
-*   requires: cfg_common.h (helpers, D_CFG_TESTING)
+*   targets:  c/text/ostream_template.c -> D_CFG_OSTREAM_TEMPLATE_DEPTH,
+*                                          D_CFG_OSTREAM_TEMPLATE_UTF8
+*   requires: cfg_common.h (helpers, D_CFG_NORM, D_CFG_IS_INT_LITERAL)
 *
-*   A KNOB, NOT AN OPTION. The depth sizes the compiler's stack of open
-* blocks, an array on the C stack, so it is fixed when the engine is built.
-* A program that wants a shallower limit for one template need not rebuild:
-* nesting is checked as the template compiles, and a template that nests too
-* deeply is refused with its offset (D_OSTREAM_TEMPLATE_NESTING).
+*   KNOBS, NOT OPTIONS. The depth sizes the compiler's stack of open blocks,
+* an array on the C stack, so it is fixed when the engine is built. A program
+* that wants a shallower limit for one template need not rebuild: nesting is
+* checked as the template compiles, and a template that nests too deeply is
+* refused with its offset (D_OSTREAM_TEMPLATE_NESTING). The UTF-8 policy is
+* the program's, not a call's: one log or report should not mix the two.
 *
 *
 * path:      /inc/djinterp/config/c/text/cfg_ostream_template.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -29,16 +31,20 @@ TABLE OF CONTENTS
     -----
     1.  Templates
          1.  D_CFG_OSTREAM_TEMPLATE_DEPTH
+    2.  Text
+         1.  D_CFG_OSTREAM_TEMPLATE_UTF8_REPLACE, _REFUSE
+         2.  D_CFG_OSTREAM_TEMPLATE_UTF8
 2.  VALIDATION
     ----------
-    1.  Ranges
+    1.  Literals and ranges
 */
 
 #ifndef DJINTERP_CONFIG_C_TEXT_CFG_OSTREAM_TEMPLATE_H
 #define DJINTERP_CONFIG_C_TEXT_CFG_OSTREAM_TEMPLATE_H 1
 
 // djinterp
-#include "../../cfg_common.h"  // the root, first: overrides, D_CFG_TESTING
+#include "../../cfg_common.h"  // the root, first: overrides, D_CFG_NORM,
+                               // D_CFG_IS_INT_LITERAL
 
 
 //==============================================================================
@@ -58,16 +64,51 @@ TABLE OF CONTENTS
 #endif  // D_CFG_OSTREAM_TEMPLATE_DEPTH
 
 
+// 1.2    Text
+//------------------------------------------------------------------------------
+// 1.2.1
+// D_CFG_OSTREAM_TEMPLATE_UTF8_REPLACE, D_CFG_OSTREAM_TEMPLATE_UTF8_REFUSE
+//   constant: the selectors of D_CFG_OSTREAM_TEMPLATE_UTF8.
+#define D_CFG_OSTREAM_TEMPLATE_UTF8_REPLACE 0
+#define D_CFG_OSTREAM_TEMPLATE_UTF8_REFUSE  1
+
+// 1.2.2
+// D_CFG_OSTREAM_TEMPLATE_UTF8
+//   knob: what the JSON and XML conversions do with text that isn't valid
+// UTF-8 (RFC 3629: no overlong forms, no surrogates, nothing past U+10FFFF),
+// which neither format can carry.
+//   REPLACE writes U+FFFD for each maximal invalid run, as Unicode
+// recommends, so "x\xFF\xC3y" is "x\uFFFD\uFFFDy" as UTF-8: the value is
+// written, and the reader is told something was lost.
+//   REFUSE writes nothing of the value, and fails the stream with
+// D_OSTREAM_INVALID and EILSEQ.
+//   Other conversions, and raw text, pass every byte through.
+#ifndef D_CFG_OSTREAM_TEMPLATE_UTF8
+    #define D_CFG_OSTREAM_TEMPLATE_UTF8 D_CFG_OSTREAM_TEMPLATE_UTF8_REPLACE
+#endif  // D_CFG_OSTREAM_TEMPLATE_UTF8
+
+
 //==============================================================================
 // 2.  VALIDATION
 //==============================================================================
 
 
-// 2.1    Ranges
+// 2.1    Literals and ranges
 //------------------------------------------------------------------------------
 #if ( ((D_CFG_OSTREAM_TEMPLATE_DEPTH + 0) < 1) ||                              \
       ((D_CFG_OSTREAM_TEMPLATE_DEPTH + 0) > 255) )
     #error "D_CFG_OSTREAM_TEMPLATE_DEPTH must be from 1 to 255"
+#endif
+
+#if !D_CFG_IS_INT_LITERAL(D_CFG_OSTREAM_TEMPLATE_UTF8)
+    #error "D_CFG_OSTREAM_TEMPLATE_UTF8 must name one of its values"
+#endif
+
+#if ( (D_CFG_NORM(D_CFG_OSTREAM_TEMPLATE_UTF8) !=                              \
+       D_CFG_OSTREAM_TEMPLATE_UTF8_REPLACE) &&                                 \
+      (D_CFG_NORM(D_CFG_OSTREAM_TEMPLATE_UTF8) !=                              \
+       D_CFG_OSTREAM_TEMPLATE_UTF8_REFUSE) )
+    #error "D_CFG_OSTREAM_TEMPLATE_UTF8 must be _REPLACE or _REFUSE"
 #endif
 
 

@@ -35,12 +35,25 @@
 *     - render_to_plaintext
 *   The default backend implements all four; adapter backends may
 * override or rely on the default emission walking the AST.
+*   Markdown is written to read back as the same tree: text escapes
+* every character CommonMark gives a meaning, '<' and '&' included;
+* code spans and fences outnumber the backticks or tildes inside
+* them; destinations go in angle brackets when they must; an ordered
+* list is numbered from its start; an item's later lines are indented
+* to its content's column; a list right after another of its kind takes
+* the other marker, so the two stay apart. Two code spans side by side
+* can't be written apart: Markdown reads their backticks as one run.
+*   HTML follows CommonMark's and GFM's: tight items without paragraphs,
+* destinations percent-encoded, header cells as th, and a column's
+* alignment on its cells. A list is tight only where Markdown can write
+* it tight: an item with two paragraphs makes its list loose, in every
+* rendering.
 *
 *
 * path:      /inc/djinterp/cpp/text/markdown/markdown_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -78,11 +91,14 @@ VII.  FREE HELPERS / FACTORIES
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
+#include <cctype>
 #include <cstddef>
+#include <cstring>
 #include <memory>
 #include <ostream>
 #include <sstream>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 // djinterp
@@ -175,6 +191,9 @@ namespace markdown {
 ///////////////////////////////////////////////////////////////////////////////
 ///                II.   DMarkdownBlock<Backend>                           ///
 ///////////////////////////////////////////////////////////////////////////////
+
+template<typename Backend>
+class DMarkdownInline;
 
 // DMarkdownBlock
 //   class: thin facade over a backend block storage node. Holds
@@ -365,6 +384,46 @@ public:
         DMarkdownBlock<Backend>&& _child
     )
     {
+        if ((m_node == nullptr) || (!_child.valid()))
+        {
+            return;
+        }
+        node_type*  raw = _child.backend_handle();
+        raw->parent     = m_node;
+        m_node->children.push_back(
+            std::unique_ptr<node_type>(raw));
+    }
+
+    // inline_child_at
+    //   function: returns a facade for the inline child at
+    // `_index` of a block whose body is inlines (a paragraph, a
+    // heading, a table cell).
+    DMarkdownInline<Backend> inline_child_at(
+        std::size_t _index
+    ) const
+    {
+        if ((m_node == nullptr) || (_index >= m_node->children.size()))
+        {
+            return DMarkdownInline<Backend>();
+        }
+        return DMarkdownInline<Backend>(m_node->children[_index].get());
+    }
+
+    // add_inline
+    //   function: takes ownership of an existing detached inline,
+    // appending it to this block's inline content: how text gets
+    // into a paragraph, a heading or a table cell. Like add_block,
+    // it needs a backend whose blocks and inlines are one node type,
+    // as the default backend's are.
+    void add_inline(
+        DMarkdownInline<Backend>&& _child
+    )
+    {
+        static_assert(std::is_same<typename Backend::inline_type,
+                                   typename Backend::block_type>::value,
+                      "add_inline needs a backend whose blocks and "
+                      "inlines share one node type");
+
         if ((m_node == nullptr) || (!_child.valid()))
         {
             return;
@@ -567,6 +626,14 @@ private:
 }   // namespace markdown
 NS_INTERNAL
 
+    // DMarkdownNodePtrs
+    //   type: a node's children, as the default backend holds them.
+    typedef std::vector<std::unique_ptr<DMarkdownDefaultNode>>
+        DMarkdownNodePtrs;
+
+
+    /// escaping
+
     // markdown_html_escape_helper
     //   function: writes an HTML-escaped copy of `_in` to `_out`.
     inline
@@ -607,8 +674,9 @@ NS_INTERNAL
 
     // markdown_md_escape_helper
     //   function: writes a markdown-escaped copy of `_in` to
-    // `_out`. Backslash-escapes the standard CommonMark special
-    // characters when they appear in text content.
+    // `_out`. Backslash-escapes the CommonMark special characters
+    // when they appear in text content -- '<' and '&' among them,
+    // so text never reads back as HTML or as an entity.
     inline
     void markdown_md_escape_helper(
         std::ostream&      _out,
@@ -625,7 +693,7 @@ NS_INTERNAL
                 case '{':  case '}':  case '[':  case ']':
                 case '(':  case ')':  case '#':  case '+':
                 case '-':  case '.':  case '!':  case '>':
-                case '|':  case '~':
+                case '|':  case '~':  case '<':  case '&':
                     _out << '\\' << c;
                     break;
                 default:
@@ -633,6 +701,231 @@ NS_INTERNAL
                     break;
             }
         }
+    }
+
+
+    // markdown_url_encode_helper
+    //   function: a destination as an href or a src: percent-encoded
+    // as CommonMark's renderers normalise it -- every byte but letters,
+    // digits and ;/?:@&=+$,-_.!~*'()# becomes %XX, and an existing %XX
+    // is kept -- then escaped as an attribute's value.
+    inline
+    void markdown_url_encode_helper(
+        std::ostream&      _out,
+        const std::string& _url
+    )
+    {
+        static const char* const hex  = "0123456789ABCDEF";
+        static const char* const keep = ";/?:@&=+$,-_.!~*'()#";
+        std::string              encoded;
+
+        for (std::size_t i = 0; i < _url.size(); ++i)
+        {
+            const unsigned char c = static_cast<unsigned char>(_url[i]);
+            const bool escape = (c == '%') && (i + 2 < _url.size()) &&
+                                std::isxdigit(static_cast<unsigned char>(
+                                    _url[i + 1])) &&
+                                std::isxdigit(static_cast<unsigned char>(
+                                    _url[i + 2]));
+
+            if ( escape || std::isalnum(c) ||
+                 ( (c != 0) && (std::strchr(keep, c) != nullptr) ) )
+            {
+                encoded += static_cast<char>(c);
+                continue;
+            }
+            encoded += '%';
+            encoded += hex[c >> 4];
+            encoded += hex[c & 0x0F];
+        }
+        markdown_html_escape_helper(_out, encoded);
+    }
+
+
+    // markdown_longest_run_helper
+    //   function: the length of the longest run of `_c` in `_in`.
+    inline
+    std::size_t markdown_longest_run_helper(
+        const std::string& _in,
+        char               _c
+    )
+    {
+        std::size_t longest = 0;
+        std::size_t run     = 0;
+        for (std::size_t i = 0; i < _in.size(); ++i)
+        {
+            run     = (_in[i] == _c) ? (run + 1) : 0;
+            longest = (run > longest) ? run : longest;
+        }
+        return longest;
+    }
+
+
+    // markdown_trim_newlines_helper
+    //   function: `_in` without its trailing newlines.
+    inline
+    std::string markdown_trim_newlines_helper(
+        const std::string& _in
+    )
+    {
+        std::size_t end = _in.size();
+        while ((end > 0) && (_in[end - 1] == '\n'))
+        {
+            --end;
+        }
+        return _in.substr(0, end);
+    }
+
+
+    // markdown_interrupts_helper
+    //   function: whether a block can follow a paragraph on the next
+    // line, in a tight list item, without joining it: CommonMark
+    // lets a bullet list, an ordered list starting at 1, a fence, an
+    // ATX heading or a block quote interrupt a paragraph.
+    inline
+    bool markdown_interrupts_helper(
+        const DMarkdownDefaultNode&  _node
+    )
+    {
+        using K = ::djinterp::markdown::DMarkdownBlockKind;
+
+        return (_node.block_kind == K::unordered_list)    ||
+               ( (_node.block_kind == K::ordered_list) &&
+                 (_node.list_start == 1) )                 ||
+               (_node.block_kind == K::fenced_code_block) ||
+               (_node.block_kind == K::block_quote)       ||
+               is_heading_block_kind(_node.block_kind);
+    }
+
+
+    // markdown_is_tight_helper
+    //   function: whether a list is written tight: unless it says it
+    // is loose, and as long as every block in each of its items can
+    // follow the one before it on the next line. Two paragraphs in an
+    // item need a blank line between them, which CommonMark reads as
+    // loose, so such a list is written loose in every rendering.
+    inline
+    bool markdown_is_tight_helper(
+        const DMarkdownDefaultNode&  _list
+    )
+    {
+        if (_list.list_loose)
+        {
+            return false;
+        }
+        for (std::size_t i = 0; i < _list.children.size(); ++i)
+        {
+            const DMarkdownDefaultNode* const item = _list.children[i].get();
+            bool                              any  = false;
+
+            for (std::size_t j = 0;
+                 (item != nullptr) && (j < item->children.size());
+                 ++j)
+            {
+                if (!item->children[j])
+                {
+                    continue;
+                }
+                if ( any && (!markdown_interrupts_helper(*item->children[j])) )
+                {
+                    return false;
+                }
+                any = true;
+            }
+        }
+        return true;
+    }
+
+
+    /// HTML
+
+    // markdown_inline_tag_helper
+    //   function: the element an inline wrapping other inlines is
+    // written as in HTML, or null for one that isn't such a wrapper.
+    inline
+    const char* markdown_inline_tag_helper(
+        ::djinterp::markdown::DMarkdownInlineKind _kind
+    )
+    {
+        using K = ::djinterp::markdown::DMarkdownInlineKind;
+
+        return (_kind == K::emphasis)      ? "em"
+             : (_kind == K::strong)        ? "strong"
+             : (_kind == K::strikethrough) ? "del"
+             : (_kind == K::highlight)     ? "mark"
+             : (_kind == K::subscript)     ? "sub"
+             : (_kind == K::superscript)   ? "sup"
+             : (_kind == K::underline)     ? "u"
+             :                               nullptr;
+    }
+
+
+    void markdown_emit_inline_html_helper(
+        std::ostream&                _out,
+        const DMarkdownDefaultNode&  _node);
+
+    // markdown_emit_inlines_html_helper
+    //   function: a node's inline children, in HTML.
+    inline
+    void markdown_emit_inlines_html_helper(
+        std::ostream&                _out,
+        const DMarkdownDefaultNode&  _node
+    )
+    {
+        for (std::size_t i = 0; i < _node.children.size(); ++i)
+        {
+            if (_node.children[i])
+            {
+                markdown_emit_inline_html_helper(_out, *_node.children[i]);
+            }
+        }
+    }
+
+
+    // markdown_emit_link_html_helper
+    //   function: a link, an image or an autolink, in HTML.
+    inline
+    void markdown_emit_link_html_helper(
+        std::ostream&                _out,
+        const DMarkdownDefaultNode&  _node
+    )
+    {
+        using K = ::djinterp::markdown::DMarkdownInlineKind;
+
+        const bool image = (_node.inline_kind == K::image);
+        const bool email = (_node.inline_kind == K::autolink_email);
+
+        _out << (image ? "<img src=\"" : "<a href=\"")
+             << (email ? "mailto:" : "");
+        markdown_url_encode_helper(_out, _node.url);
+        _out << '"';
+        if (image)
+        {
+            _out << " alt=\"";
+            markdown_html_attr_escape_helper(_out, _node.alt_text);
+            _out << '"';
+        }
+        if (!_node.title.empty())
+        {
+            _out << " title=\"";
+            markdown_html_attr_escape_helper(_out, _node.title);
+            _out << '"';
+        }
+        if (image)
+        {
+            _out << " />";
+            return;
+        }
+        _out << '>';
+        if (_node.inline_kind == K::link)
+        {
+            markdown_emit_inlines_html_helper(_out, _node);
+        }
+        else
+        {
+            markdown_html_escape_helper(_out, _node.url);
+        }
+        _out << "</a>";
     }
 
 
@@ -647,11 +940,18 @@ NS_INTERNAL
     {
         using K = ::djinterp::markdown::DMarkdownInlineKind;
 
+        const char* const tag = markdown_inline_tag_helper(_node.inline_kind);
+
+        if (tag != nullptr)
+        {
+            _out << '<' << tag << '>';
+            markdown_emit_inlines_html_helper(_out, _node);
+            _out << "</" << tag << '>';
+            return;
+        }
+
         switch (_node.inline_kind)
         {
-            case K::text:
-                markdown_html_escape_helper(_out, _node.text);
-                break;
             case K::soft_break:
                 _out << '\n';
                 break;
@@ -659,131 +959,19 @@ NS_INTERNAL
             case K::hard_line_break:
                 _out << "<br />\n";
                 break;
-            case K::emphasis:
-                _out << "<em>";
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_inline_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                _out << "</em>";
-                break;
-            case K::strong:
-                _out << "<strong>";
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_inline_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                _out << "</strong>";
-                break;
-            case K::strikethrough:
-                _out << "<del>";
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_inline_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                _out << "</del>";
-                break;
-            case K::highlight:
-                _out << "<mark>";
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_inline_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                _out << "</mark>";
-                break;
-            case K::subscript:
-                _out << "<sub>";
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_inline_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                _out << "</sub>";
-                break;
-            case K::superscript:
-                _out << "<sup>";
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_inline_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                _out << "</sup>";
-                break;
             case K::code_span:
                 _out << "<code>";
                 markdown_html_escape_helper(_out, _node.text);
                 _out << "</code>";
                 break;
             case K::link:
-                _out << "<a href=\"";
-                markdown_html_attr_escape_helper(_out, _node.url);
-                _out << '"';
-                if (!_node.title.empty())
-                {
-                    _out << " title=\"";
-                    markdown_html_attr_escape_helper(_out, _node.title);
-                    _out << '"';
-                }
-                _out << '>';
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_inline_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                _out << "</a>";
-                break;
             case K::image:
-                _out << "<img src=\"";
-                markdown_html_attr_escape_helper(_out, _node.url);
-                _out << "\" alt=\"";
-                markdown_html_attr_escape_helper(_out, _node.alt_text);
-                _out << '"';
-                if (!_node.title.empty())
-                {
-                    _out << " title=\"";
-                    markdown_html_attr_escape_helper(_out, _node.title);
-                    _out << '"';
-                }
-                _out << " />";
-                break;
             case K::autolink:
             case K::autolink_email:
-                _out << "<a href=\"";
-                if (_node.inline_kind == K::autolink_email)
-                {
-                    _out << "mailto:";
-                }
-                markdown_html_attr_escape_helper(_out, _node.url);
-                _out << "\">";
-                markdown_html_escape_helper(_out, _node.url);
-                _out << "</a>";
+                markdown_emit_link_html_helper(_out, _node);
                 break;
             case K::html_inline:
+            case K::entity:
                 _out << _node.text;
                 break;
             case K::math_inline:
@@ -792,10 +980,242 @@ NS_INTERNAL
                 _out << "</span>";
                 break;
             default:
-                // unsupported / unknown -- emit text fallback
+                // text, and the kinds with no element of their own
                 markdown_html_escape_helper(_out, _node.text);
                 break;
         }
+    }
+
+
+    void markdown_emit_block_html_helper(
+        std::ostream&                _out,
+        const DMarkdownDefaultNode&  _node);
+
+    // markdown_emit_blocks_html_helper
+    //   function: a node's block children, in HTML.
+    inline
+    void markdown_emit_blocks_html_helper(
+        std::ostream&                _out,
+        const DMarkdownDefaultNode&  _node
+    )
+    {
+        for (std::size_t i = 0; i < _node.children.size(); ++i)
+        {
+            if (_node.children[i])
+            {
+                markdown_emit_block_html_helper(_out, *_node.children[i]);
+            }
+        }
+    }
+
+
+    // markdown_emit_item_html_helper
+    //   function: one list item. In a tight list a paragraph is
+    // written as its inlines alone, as CommonMark has it:
+    // <li>text</li>, and a block after inlines starts a new line.
+    inline
+    void markdown_emit_item_html_helper(
+        std::ostream&                _out,
+        const DMarkdownDefaultNode&  _item,
+        bool                         _tight
+    )
+    {
+        using K = ::djinterp::markdown::DMarkdownBlockKind;
+
+        bool inline_last = false;
+
+        _out << "<li>";
+        if (_item.is_task)
+        {
+            _out << "<input type=\"checkbox\" disabled"
+                 << (_item.task_checked ? " checked" : "") << " /> ";
+        }
+        if (!_tight)
+        {
+            _out << '\n';
+        }
+        for (std::size_t i = 0; i < _item.children.size(); ++i)
+        {
+            const DMarkdownDefaultNode* const child = _item.children[i].get();
+
+            if (child == nullptr)
+            {
+                continue;
+            }
+            if ( _tight && (child->block_kind == K::paragraph) )
+            {
+                markdown_emit_inlines_html_helper(_out, *child);
+                inline_last = true;
+                continue;
+            }
+            if (inline_last)
+            {
+                _out << '\n';
+            }
+            markdown_emit_block_html_helper(_out, *child);
+            inline_last = false;
+        }
+        _out << "</li>\n";
+    }
+
+
+    // markdown_emit_list_html_helper
+    //   function: an ordered or unordered list, and its items.
+    inline
+    void markdown_emit_list_html_helper(
+        std::ostream&                _out,
+        const DMarkdownDefaultNode&  _list
+    )
+    {
+        using K = ::djinterp::markdown::DMarkdownBlockKind;
+
+        const bool ordered = (_list.block_kind == K::ordered_list);
+        const bool tight   = markdown_is_tight_helper(_list);
+
+        _out << (ordered ? "<ol" : "<ul");
+        if ( ordered && (_list.list_start != 1) )
+        {
+            _out << " start=\"" << _list.list_start << '"';
+        }
+        _out << ">\n";
+        for (std::size_t i = 0; i < _list.children.size(); ++i)
+        {
+            const DMarkdownDefaultNode* const child = _list.children[i].get();
+
+            if (child == nullptr)
+            {
+                continue;
+            }
+            if ( (child->block_kind == K::list_item) ||
+                 (child->block_kind == K::task_list_item) )
+            {
+                markdown_emit_item_html_helper(_out, *child, tight);
+            }
+            else
+            {
+                markdown_emit_block_html_helper(_out, *child);
+            }
+        }
+        _out << (ordered ? "</ol>\n" : "</ul>\n");
+    }
+
+
+    // markdown_emit_row_html_helper
+    //   function: a table row: header cells as th, body cells as td,
+    // each with its column's alignment, as GFM writes them.
+    inline
+    void markdown_emit_row_html_helper(
+        std::ostream&                _out,
+        const DMarkdownDefaultNode&  _table,
+        const DMarkdownDefaultNode&  _row,
+        bool                         _header
+    )
+    {
+        using A = ::djinterp::markdown::DMarkdownTableAlignment;
+
+        const char* const cell = _header ? "th" : "td";
+        std::size_t       column = 0;
+
+        _out << "<tr>\n";
+        for (std::size_t i = 0; i < _row.children.size(); ++i)
+        {
+            if (!_row.children[i])
+            {
+                continue;
+            }
+            const A align = (column < _table.column_alignments.size())
+                                ? _table.column_alignments[column]
+                                : A::none;
+            _out << '<' << cell
+                 << ( (align == A::left)   ? " align=\"left\""
+                    : (align == A::center) ? " align=\"center\""
+                    : (align == A::right)  ? " align=\"right\""
+                    :                        "" )
+                 << '>';
+            markdown_emit_inlines_html_helper(_out, *_row.children[i]);
+            _out << "</" << cell << ">\n";
+            ++column;
+        }
+        _out << "</tr>\n";
+    }
+
+
+    // markdown_emit_rows_html_helper
+    //   function: a table section's rows, or a row standing directly
+    // in the table.
+    inline
+    void markdown_emit_rows_html_helper(
+        std::ostream&                _out,
+        const DMarkdownDefaultNode&  _table,
+        const DMarkdownDefaultNode&  _section,
+        bool                         _header
+    )
+    {
+        using K = ::djinterp::markdown::DMarkdownBlockKind;
+
+        if (_section.block_kind == K::table_row)
+        {
+            markdown_emit_row_html_helper(_out, _table, _section, _header);
+            return;
+        }
+        for (std::size_t i = 0; i < _section.children.size(); ++i)
+        {
+            if (_section.children[i])
+            {
+                markdown_emit_row_html_helper(_out, _table,
+                                              *_section.children[i], _header);
+            }
+        }
+    }
+
+
+    // markdown_emit_table_html_helper
+    //   function: a table: its header section as thead, its body
+    // section, and any row standing in the table, as tbody.
+    inline
+    void markdown_emit_table_html_helper(
+        std::ostream&                _out,
+        const DMarkdownDefaultNode&  _table
+    )
+    {
+        using K = ::djinterp::markdown::DMarkdownBlockKind;
+
+        _out << "<table>\n";
+        for (std::size_t i = 0; i < _table.children.size(); ++i)
+        {
+            const DMarkdownDefaultNode* const part = _table.children[i].get();
+
+            if (part == nullptr)
+            {
+                continue;
+            }
+            const bool header = (part->block_kind == K::table_header);
+            _out << (header ? "<thead>\n" : "<tbody>\n");
+            markdown_emit_rows_html_helper(_out, _table, *part, header);
+            _out << (header ? "</thead>\n" : "</tbody>\n");
+        }
+        _out << "</table>\n";
+    }
+
+
+    // markdown_emit_code_html_helper
+    //   function: a code block, with its language as a class.
+    inline
+    void markdown_emit_code_html_helper(
+        std::ostream&                _out,
+        const DMarkdownDefaultNode&  _node
+    )
+    {
+        _out << "<pre><code";
+        if (!_node.language.empty())
+        {
+            _out << " class=\"language-";
+            markdown_html_attr_escape_helper(_out, _node.language);
+            _out << '"';
+        }
+        _out << '>';
+        markdown_html_escape_helper(_out, _node.text);
+        _out << "</code></pre>\n";
     }
 
 
@@ -812,200 +1232,43 @@ NS_INTERNAL
 
         switch (_node.block_kind)
         {
-            case K::document:
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_block_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                break;
-
             case K::heading_1: case K::heading_2: case K::heading_3:
             case K::heading_4: case K::heading_5: case K::heading_6:
             {
-                const int   lvl = _node.heading_level;
+                const int lvl = heading_level_from_kind(_node.block_kind);
                 _out << "<h" << lvl << '>';
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_inline_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
+                markdown_emit_inlines_html_helper(_out, _node);
                 _out << "</h" << lvl << ">\n";
                 break;
             }
-
             case K::paragraph:
                 _out << "<p>";
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_inline_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
+                markdown_emit_inlines_html_helper(_out, _node);
                 _out << "</p>\n";
                 break;
-
             case K::thematic_break:
                 _out << "<hr />\n";
                 break;
-
             case K::indented_code_block:
             case K::fenced_code_block:
-                _out << "<pre><code";
-                if (!_node.language.empty())
-                {
-                    _out << " class=\"language-";
-                    markdown_html_attr_escape_helper(_out, _node.language);
-                    _out << '"';
-                }
-                _out << '>';
-                markdown_html_escape_helper(_out, _node.text);
-                _out << "</code></pre>\n";
+                markdown_emit_code_html_helper(_out, _node);
                 break;
-
             case K::block_quote:
                 _out << "<blockquote>\n";
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_block_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
+                markdown_emit_blocks_html_helper(_out, _node);
                 _out << "</blockquote>\n";
                 break;
-
             case K::ordered_list:
-            {
-                _out << "<ol";
-                if (_node.list_start != 1)
-                {
-                    _out << " start=\"" << _node.list_start << '"';
-                }
-                _out << ">\n";
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_block_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                _out << "</ol>\n";
-                break;
-            }
-
             case K::unordered_list:
-                _out << "<ul>\n";
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_block_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                _out << "</ul>\n";
+                markdown_emit_list_html_helper(_out, _node);
                 break;
-
             case K::list_item:
             case K::task_list_item:
-                _out << "<li>";
-                if (_node.is_task)
-                {
-                    _out << "<input type=\"checkbox\" disabled";
-                    if (_node.task_checked)
-                    {
-                        _out << " checked";
-                    }
-                    _out << " /> ";
-                }
-                _out << '\n';
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_block_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                _out << "</li>\n";
+                markdown_emit_item_html_helper(_out, _node, false);
                 break;
-
             case K::table:
-                _out << "<table>\n";
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_block_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                _out << "</table>\n";
+                markdown_emit_table_html_helper(_out, _node);
                 break;
-
-            case K::table_header:
-                _out << "<thead>\n";
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_block_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                _out << "</thead>\n";
-                break;
-
-            case K::table_body:
-                _out << "<tbody>\n";
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_block_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                _out << "</tbody>\n";
-                break;
-
-            case K::table_row:
-                _out << "<tr>";
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_block_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                _out << "</tr>\n";
-                break;
-
-            case K::table_cell:
-                _out << "<td>";
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_inline_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                _out << "</td>";
-                break;
-
             case K::html_block:
             case K::raw_block:
                 _out << _node.text;
@@ -1014,25 +1277,100 @@ NS_INTERNAL
                     _out << '\n';
                 }
                 break;
-
             case K::math_block:
                 _out << "<div class=\"math display\">";
                 markdown_html_escape_helper(_out, _node.text);
                 _out << "</div>\n";
                 break;
-
             default:
-                // unsupported / unknown -- emit children if any
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_block_html_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
+                // the document, and kinds with no element of their own
+                markdown_emit_blocks_html_helper(_out, _node);
                 break;
         }
+    }
+
+
+    /// Markdown
+
+    // markdown_emit_code_span_md_helper
+    //   function: a code span whose backticks outnumber any run of
+    // them inside it, padded with a space where the content starts
+    // or ends with a backtick, or both starts and ends with a space.
+    inline
+    void markdown_emit_code_span_md_helper(
+        std::ostream&      _out,
+        const std::string& _code
+    )
+    {
+        const std::string fence(markdown_longest_run_helper(_code, '`') + 1,
+                                '`');
+        const bool        blank = (_code.find_first_not_of(' ') ==
+                                   std::string::npos);
+        const bool        pad   = (!_code.empty()) &&
+                                  ( (_code[0] == '`') ||
+                                    (_code[_code.size() - 1] == '`') ||
+                                    ( (_code[0] == ' ') &&
+                                      (_code[_code.size() - 1] == ' ') &&
+                                      !blank ) );
+
+        _out << fence << (pad ? " " : "") << _code << (pad ? " " : "")
+             << fence;
+    }
+
+
+    // markdown_emit_destination_md_helper
+    //   function: a link's destination: as it is, or in angle
+    // brackets, with '<', '>' and '\' escaped, when it is empty or
+    // holds a space, a parenthesis, an angle bracket or a backslash.
+    inline
+    void markdown_emit_destination_md_helper(
+        std::ostream&      _out,
+        const std::string& _url
+    )
+    {
+        if ( (!_url.empty()) &&
+             (_url.find_first_of(" ()<>\\") == std::string::npos) )
+        {
+            _out << _url;
+            return;
+        }
+        _out << '<';
+        for (std::size_t i = 0; i < _url.size(); ++i)
+        {
+            const char c = _url[i];
+            if ( (c == '<') || (c == '>') || (c == '\\') )
+            {
+                _out << '\\';
+            }
+            _out << c;
+        }
+        _out << '>';
+    }
+
+
+    // markdown_emit_title_md_helper
+    //   function: a link's title, if it has one: quoted, with '"' and
+    // '\' escaped.
+    inline
+    void markdown_emit_title_md_helper(
+        std::ostream&      _out,
+        const std::string& _title
+    )
+    {
+        if (_title.empty())
+        {
+            return;
+        }
+        _out << " \"";
+        for (std::size_t i = 0; i < _title.size(); ++i)
+        {
+            if ( (_title[i] == '"') || (_title[i] == '\\') )
+            {
+                _out << '\\';
+            }
+            _out << _title[i];
+        }
+        _out << '"';
     }
 
 
@@ -1046,6 +1384,35 @@ NS_INTERNAL
     {
         using K = ::djinterp::markdown::DMarkdownInlineKind;
 
+        const char* const mark = (_node.inline_kind == K::emphasis) ? "*"
+                               : (_node.inline_kind == K::strong)   ? "**"
+                               : (_node.inline_kind == K::strikethrough)
+                                                                    ? "~~"
+                               : (_node.inline_kind == K::link)     ? "["
+                               :                                      nullptr;
+
+        if (mark != nullptr)
+        {
+            _out << mark;
+            for (std::size_t i = 0; i < _node.children.size(); ++i)
+            {
+                if (_node.children[i])
+                {
+                    markdown_emit_inline_md_helper(_out, *_node.children[i]);
+                }
+            }
+            if (_node.inline_kind != K::link)
+            {
+                _out << mark;
+                return;
+            }
+            _out << "](";
+            markdown_emit_destination_md_helper(_out, _node.url);
+            markdown_emit_title_md_helper(_out, _node.title);
+            _out << ')';
+            return;
+        }
+
         switch (_node.inline_kind)
         {
             case K::text:
@@ -1054,84 +1421,292 @@ NS_INTERNAL
             case K::soft_break:        _out << '\n';     break;
             case K::hard_break:        _out << "  \n";   break;
             case K::hard_line_break:   _out << "\\\n";   break;
-            case K::emphasis:
-                _out << '*';
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_inline_md_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                _out << '*';
-                break;
-            case K::strong:
-                _out << "**";
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_inline_md_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                _out << "**";
-                break;
-            case K::strikethrough:
-                _out << "~~";
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_inline_md_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                _out << "~~";
-                break;
             case K::code_span:
-                _out << '`' << _node.text << '`';
-                break;
-            case K::link:
-                _out << '[';
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_inline_md_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
-                _out << "](" << _node.url;
-                if (!_node.title.empty())
-                {
-                    _out << " \"" << _node.title << '"';
-                }
-                _out << ')';
+                markdown_emit_code_span_md_helper(_out, _node.text);
                 break;
             case K::image:
-                _out << "![" << _node.alt_text << "](" << _node.url;
-                if (!_node.title.empty())
-                {
-                    _out << " \"" << _node.title << '"';
-                }
+                _out << "![";
+                markdown_md_escape_helper(_out, _node.alt_text);
+                _out << "](";
+                markdown_emit_destination_md_helper(_out, _node.url);
+                markdown_emit_title_md_helper(_out, _node.title);
                 _out << ')';
                 break;
             case K::autolink:
             case K::autolink_email:
                 _out << '<' << _node.url << '>';
                 break;
-            case K::html_inline:
-                _out << _node.text;
-                break;
             case K::math_inline:
                 _out << '$' << _node.text << '$';
                 break;
             default:
+                // html_inline, and kinds with no syntax of their own
                 _out << _node.text;
                 break;
         }
+    }
+
+
+    // markdown_emit_fenced_md_helper
+    //   function: a fenced code block. The fence outnumbers any run
+    // of its character in the code, so no line of the code can close
+    // it, and a backtick fence becomes a tilde fence when the info
+    // string holds a backtick, which a backtick fence can't carry.
+    inline
+    void markdown_emit_fenced_md_helper(
+        std::ostream&                _out,
+        const DMarkdownDefaultNode&  _node
+    )
+    {
+        const std::string& info   = (!_node.info_string.empty())
+                                        ? _node.info_string
+                                        : _node.language;
+        const char         symbol = ( (_node.fence_char == '~') ||
+                                      (info.find('`') != std::string::npos) )
+                                        ? '~'
+                                        : '`';
+        std::size_t        length = (_node.fence_length > 3)
+                                        ? _node.fence_length
+                                        : 3;
+        const std::size_t  inside = markdown_longest_run_helper(_node.text,
+                                                                symbol);
+
+        if (inside >= length)
+        {
+            length = inside + 1;
+        }
+
+        const std::string fence(length, symbol);
+
+        _out << fence << info << '\n' << _node.text;
+        if ((!_node.text.empty()) && (_node.text.back() != '\n'))
+        {
+            _out << '\n';
+        }
+        _out << fence << "\n\n";
+    }
+
+
+    // markdown_emit_prefixed_md_helper
+    //   function: writes `_text` a line at a time: the first line
+    // after `_first`, every later line that isn't empty after
+    // `_rest`, and an empty line after `_blank`.
+    inline
+    void markdown_emit_prefixed_md_helper(
+        std::ostream&      _out,
+        const std::string& _text,
+        const std::string& _first,
+        const std::string& _rest,
+        const std::string& _blank
+    )
+    {
+        std::size_t start = 0;
+
+        for (;;)
+        {
+            const std::size_t nl   = _text.find('\n', start);
+            const std::string line = _text.substr(start,
+                                                  (nl == std::string::npos)
+                                                      ? std::string::npos
+                                                      : (nl - start));
+
+            _out << ( (start == 0)   ? _first
+                    : line.empty()   ? _blank
+                    :                  _rest )
+                 << line << '\n';
+            if (nl == std::string::npos)
+            {
+                break;
+            }
+            start = nl + 1;
+        }
+    }
+
+
+    void markdown_emit_block_md_helper(
+        std::ostream&                _out,
+        const DMarkdownDefaultNode&  _node);
+
+    // markdown_emit_inlines_md_helper
+    //   function: a node's inline children, as Markdown.
+    inline
+    void markdown_emit_inlines_md_helper(
+        std::ostream&                _out,
+        const DMarkdownDefaultNode&  _node
+    )
+    {
+        for (std::size_t i = 0; i < _node.children.size(); ++i)
+        {
+            if (_node.children[i])
+            {
+                markdown_emit_inline_md_helper(_out, *_node.children[i]);
+            }
+        }
+    }
+
+    // markdown_list_bullet_helper
+    //   function: an unordered list's bullet: its first item's, when
+    // that is '-', '+' or '*', and '-' otherwise. CommonMark gives a
+    // list one bullet, so the first item's is every item's.
+    inline
+    char markdown_list_bullet_helper(
+        const DMarkdownDefaultNode&  _list
+    )
+    {
+        for (std::size_t i = 0; i < _list.children.size(); ++i)
+        {
+            if (_list.children[i])
+            {
+                const char c = _list.children[i]->list_bullet;
+                return ( (c == '+') || (c == '*') ) ? c : '-';
+            }
+        }
+        return '-';
+    }
+
+
+    void markdown_emit_list_md_helper(
+        std::ostream&                _out,
+        const DMarkdownDefaultNode&  _list,
+        char                         _mark);
+
+    // markdown_render_children_md_helper
+    //   function: a container's blocks as Markdown, one text each, as
+    // CommonMark would read them back. A list right after a list of
+    // its kind takes the other marker ('*' or '-', ')' or '.') so the
+    // two stay two lists, and an indented code block after a list is
+    // preceded by cmark's "<!-- end list -->", so it doesn't join the
+    // list's last item.
+    inline
+    std::vector<std::string> markdown_render_children_md_helper(
+        const DMarkdownDefaultNode&  _node
+    )
+    {
+        using K = ::djinterp::markdown::DMarkdownBlockKind;
+
+        std::vector<std::string>    out;
+        const DMarkdownDefaultNode* previous = nullptr;
+        char                        bullet   = 0;
+        char                        delim    = 0;
+
+        for (std::size_t i = 0; i < _node.children.size(); ++i)
+        {
+            const DMarkdownDefaultNode* const child = _node.children[i].get();
+            std::ostringstream                one;
+
+            if (child == nullptr)
+            {
+                continue;
+            }
+            const bool after = (previous != nullptr) &&
+                               (previous->block_kind == child->block_kind);
+            if (child->block_kind == K::unordered_list)
+            {
+                const char first = markdown_list_bullet_helper(*child);
+                bullet = (after && (first == bullet))
+                             ? ((first == '-') ? '*' : '-')
+                             : first;
+                markdown_emit_list_md_helper(one, *child, bullet);
+            }
+            else if (child->block_kind == K::ordered_list)
+            {
+                delim = (after && (delim == '.')) ? ')' : '.';
+                markdown_emit_list_md_helper(one, *child, delim);
+            }
+            else
+            {
+                if ( (child->block_kind == K::indented_code_block) &&
+                     (previous != nullptr) &&
+                     is_list_block_kind(previous->block_kind) )
+                {
+                    out.push_back("<!-- end list -->\n\n");
+                }
+                markdown_emit_block_md_helper(one, *child);
+            }
+            out.push_back(one.str());
+            previous = child;
+        }
+        return out;
+    }
+
+
+    // markdown_emit_item_md_helper
+    //   function: one list item: its marker, a task's box, and its
+    // blocks, every later line indented to the content's column so
+    // that it stays in the item. In a tight list each block follows
+    // the one before it on the next line; in a loose one, after a
+    // blank line.
+    inline
+    void markdown_emit_item_md_helper(
+        std::ostream&                _out,
+        const DMarkdownDefaultNode&  _item,
+        const std::string&           _marker,
+        bool                         _tight
+    )
+    {
+        const std::vector<std::string> blocks =
+            markdown_render_children_md_helper(_item);
+        std::string                    body;
+
+        for (std::size_t i = 0; i < blocks.size(); ++i)
+        {
+            if (i > 0)
+            {
+                body += _tight ? "\n" : "\n\n";
+            }
+            body += markdown_trim_newlines_helper(blocks[i]);
+        }
+
+        std::string first = _marker;
+        if (_item.is_task)
+        {
+            first += _item.task_checked ? "[x] " : "[ ] ";
+        }
+        markdown_emit_prefixed_md_helper(_out, body, first,
+                                         std::string(_marker.size(), ' '),
+                                         "");
+    }
+
+
+    // markdown_emit_list_md_helper
+    //   function: a list's items, each with its marker: an ordered
+    // list's numbers, from its start, with `_mark` as the delimiter,
+    // or `_mark` as every item's bullet. A loose list puts a blank
+    // line between items, and every list ends with one.
+    inline
+    void markdown_emit_list_md_helper(
+        std::ostream&                _out,
+        const DMarkdownDefaultNode&  _list,
+        char                         _mark
+    )
+    {
+        using K = ::djinterp::markdown::DMarkdownBlockKind;
+
+        const bool ordered = (_list.block_kind == K::ordered_list);
+        const bool tight   = markdown_is_tight_helper(_list);
+        long       number  = (_list.list_start > 0) ? _list.list_start : 0;
+        bool       first   = true;
+
+        for (std::size_t i = 0; i < _list.children.size(); ++i)
+        {
+            const DMarkdownDefaultNode* const item = _list.children[i].get();
+
+            if (item == nullptr)
+            {
+                continue;
+            }
+            if ( (!first) && (!tight) )
+            {
+                _out << '\n';
+            }
+            markdown_emit_item_md_helper(
+                _out, *item,
+                ordered ? (std::to_string(number++) + _mark + ' ')
+                        : (std::string(1, _mark) + ' '),
+                tight);
+            first = false;
+        }
+        _out << '\n';
     }
 
 
@@ -1140,264 +1715,372 @@ NS_INTERNAL
     inline
     void markdown_emit_block_md_helper(
         std::ostream&                _out,
-        const DMarkdownDefaultNode&  _node,
-        std::size_t                  _list_depth = 0
+        const DMarkdownDefaultNode&  _node
     )
     {
         using K = ::djinterp::markdown::DMarkdownBlockKind;
 
         switch (_node.block_kind)
         {
-            case K::document:
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_block_md_helper(
-                            _out, *_node.children[i], _list_depth);
-                    }
-                }
-                break;
-
             case K::heading_1: case K::heading_2: case K::heading_3:
             case K::heading_4: case K::heading_5: case K::heading_6:
-            {
-                const int   lvl = _node.heading_level;
-                for (int i = 0; i < lvl; ++i)
-                {
-                    _out << '#';
-                }
-                _out << ' ';
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_inline_md_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
+                _out << std::string(static_cast<std::size_t>(
+                            heading_level_from_kind(_node.block_kind)), '#')
+                     << ' ';
+                markdown_emit_inlines_md_helper(_out, _node);
                 _out << "\n\n";
                 break;
-            }
-
             case K::paragraph:
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_inline_md_helper(
-                            _out, *_node.children[i]);
-                    }
-                }
+                markdown_emit_inlines_md_helper(_out, _node);
                 _out << "\n\n";
                 break;
-
             case K::thematic_break:
-                _out << "---\n\n";
+                _out << "***\n\n";
                 break;
-
             case K::fenced_code_block:
-            {
-                const std::string fence(
-                    (_node.fence_length > 0) ? _node.fence_length : 3,
-                    _node.fence_char);
-                _out << fence;
-                if (!_node.info_string.empty())
-                {
-                    _out << _node.info_string;
-                }
-                else if (!_node.language.empty())
-                {
-                    _out << _node.language;
-                }
-                _out << '\n' << _node.text;
-                if ((!_node.text.empty()) && (_node.text.back() != '\n'))
-                {
-                    _out << '\n';
-                }
-                _out << fence << "\n\n";
+                markdown_emit_fenced_md_helper(_out, _node);
                 break;
-            }
-
             case K::indented_code_block:
-            {
-                const std::string&  txt = _node.text;
-                std::size_t         start = 0;
-                while (start <= txt.size())
-                {
-                    const std::size_t   nl = txt.find('\n', start);
-                    _out << "    "
-                         << txt.substr(start,
-                                       (nl == std::string::npos)
-                                           ? (txt.size() - start)
-                                           : (nl - start))
-                         << '\n';
-                    if (nl == std::string::npos)
-                    {
-                        break;
-                    }
-                    start = nl + 1;
-                }
+                markdown_emit_prefixed_md_helper(
+                    _out, markdown_trim_newlines_helper(_node.text),
+                    "    ", "    ", "");
                 _out << '\n';
                 break;
-            }
-
             case K::block_quote:
             {
-                std::ostringstream  inner;
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
+                std::string inner;
+                for (const std::string& block :
+                     markdown_render_children_md_helper(_node))
                 {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_block_md_helper(
-                            inner, *_node.children[i], _list_depth);
-                    }
+                    inner += block;
                 }
-                const std::string   buf = inner.str();
-                std::size_t         start = 0;
-                while (start < buf.size())
-                {
-                    const std::size_t   nl = buf.find('\n', start);
-                    _out << "> "
-                         << buf.substr(start,
-                                       (nl == std::string::npos)
-                                           ? (buf.size() - start)
-                                           : (nl - start + 1));
-                    if (nl == std::string::npos)
-                    {
-                        break;
-                    }
-                    start = nl + 1;
-                }
+                markdown_emit_prefixed_md_helper(
+                    _out, markdown_trim_newlines_helper(inner),
+                    "> ", "> ", ">");
                 _out << '\n';
                 break;
             }
-
             case K::ordered_list:
-            case K::unordered_list:
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_block_md_helper(
-                            _out, *_node.children[i], _list_depth + 1);
-                    }
-                }
-                if (_list_depth == 0)
-                {
-                    _out << '\n';
-                }
+                markdown_emit_list_md_helper(_out, _node, '.');
                 break;
-
+            case K::unordered_list:
+                markdown_emit_list_md_helper(
+                    _out, _node, markdown_list_bullet_helper(_node));
+                break;
             case K::list_item:
             case K::task_list_item:
-            {
-                for (std::size_t i = 1; i < _list_depth; ++i)
-                {
-                    _out << "  ";
-                }
-                _out << _node.list_bullet << ' ';
-                if (_node.is_task)
-                {
-                    _out << '[' << (_node.task_checked ? 'x' : ' ') << "] ";
-                }
-                std::ostringstream  inner;
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_block_md_helper(
-                            inner, *_node.children[i], _list_depth);
-                    }
-                }
-                const std::string&  buf = inner.str();
-                // strip trailing blank line for compact items
-                std::size_t         end = buf.size();
-                while ((end > 0) && (buf[end - 1] == '\n'))
-                {
-                    --end;
-                }
-                _out << buf.substr(0, end) << '\n';
+                markdown_emit_item_md_helper(_out, _node, "- ", true);
                 break;
-            }
-
             case K::html_block:
             case K::raw_block:
-                _out << _node.text;
-                if ((!_node.text.empty()) && (_node.text.back() != '\n'))
-                {
-                    _out << '\n';
-                }
-                _out << '\n';
+                _out << markdown_trim_newlines_helper(_node.text) << "\n\n";
                 break;
-
             case K::math_block:
-                _out << "$$\n" << _node.text;
-                if ((!_node.text.empty()) && (_node.text.back() != '\n'))
-                {
-                    _out << '\n';
-                }
-                _out << "$$\n\n";
+                _out << "$$\n" << markdown_trim_newlines_helper(_node.text)
+                     << "\n$$\n\n";
                 break;
-
             default:
-                // unsupported / unknown -- emit children if any
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
+                // the document, and kinds with no syntax of their own
+                for (const std::string& block :
+                     markdown_render_children_md_helper(_node))
                 {
-                    if (_node.children[i])
-                    {
-                        markdown_emit_block_md_helper(
-                            _out, *_node.children[i], _list_depth);
-                    }
+                    _out << block;
                 }
                 break;
         }
     }
 
 
+    /// plain text
+
     // markdown_emit_block_plaintext_helper
-    //   function: strips formatting and emits text content only.
+    //   function: strips formatting and emits text content only: an
+    // image's alternative text, and an autolink's address. A block's
+    // text ends its line; a table's cells are separated by tabs, and
+    // its rows end their lines.
     inline
     void markdown_emit_block_plaintext_helper(
         std::ostream&                _out,
         const DMarkdownDefaultNode&  _node
     )
     {
-        if ( !_node.text.empty() &&
-             (_node.is_block) )
+        using K = ::djinterp::markdown::DMarkdownBlockKind;
+
+        using I = ::djinterp::markdown::DMarkdownInlineKind;
+
+        const bool row = _node.is_block && (_node.block_kind == K::table_row);
+        const I    ik  = _node.inline_kind;
+
+        _out << _node.text;
+        if ( (!_node.is_block) && (ik == I::image) )
         {
-            _out << _node.text;
+            _out << _node.alt_text;
         }
-        if ( !_node.is_block )
+        else if ( (!_node.is_block) &&
+                  ( (ik == I::autolink) || (ik == I::autolink_email) ) )
         {
-            // inline: emit text and walk children
-            _out << _node.text;
+            _out << _node.url;
+        }
+        for (std::size_t i = 0, cells = 0; i < _node.children.size(); ++i)
+        {
+            if (!_node.children[i])
+            {
+                continue;
+            }
+            if ( row && (cells++ > 0) )
+            {
+                _out << '\t';
+            }
+            markdown_emit_block_plaintext_helper(_out, *_node.children[i]);
+        }
+        if (!_node.is_block)
+        {
+            return;
+        }
+        // a code block's text ends its own last line
+        const K    k     = _node.block_kind;
+        const bool ended = (!_node.text.empty()) &&
+                           (_node.text[_node.text.size() - 1] == '\n');
+        if ( (k == K::paragraph)      || is_heading_block_kind(k) ||
+             (k == K::thematic_break) || (k == K::table_row)      ||
+             ( is_code_block_kind(k) && (!ended) ) )
+        {
+            _out << '\n';
+        }
+    }
+
+
+    /// CommonMark XML
+
+    // markdown_xml_escape_helper
+    //   function: XML character data or an attribute's value: '&',
+    // '<', '>' and '"' as entities.
+    inline
+    void markdown_xml_escape_helper(
+        std::ostream&      _out,
+        const std::string& _in
+    )
+    {
+        for (std::size_t i = 0; i < _in.size(); ++i)
+        {
+            switch (_in[i])
+            {
+                case '&':  _out << "&amp;";  break;
+                case '<':  _out << "&lt;";   break;
+                case '>':  _out << "&gt;";   break;
+                case '"':  _out << "&quot;"; break;
+                default:   _out << _in[i];   break;
+            }
+        }
+    }
+
+
+    // markdown_xml_name_helper
+    //   function: a node's element name in CommonMark's XML: cmark's
+    // names for CommonMark's kinds, and the kind's own name for the
+    // extensions (table, table_row, strikethrough, math_inline, ...).
+    inline
+    const char* markdown_xml_name_helper(
+        const DMarkdownDefaultNode&  _node
+    )
+    {
+        using B = ::djinterp::markdown::DMarkdownBlockKind;
+        using I = ::djinterp::markdown::DMarkdownInlineKind;
+
+        if (_node.is_block)
+        {
+            const B k = _node.block_kind;
+            return (k == B::document)            ? "document"
+                 : is_heading_block_kind(k)      ? "heading"
+                 : (k == B::paragraph)           ? "paragraph"
+                 : (k == B::thematic_break)      ? "thematic_break"
+                 : ( is_code_block_kind(k) && (k != B::math_block) )
+                                                 ? "code_block"
+                 : (k == B::block_quote)         ? "block_quote"
+                 : is_list_block_kind(k)         ? "list"
+                 : is_list_item_block_kind(k)    ? "item"
+                 : (k == B::html_block)          ? "html_block"
+                 : (k == B::table)               ? "table"
+                 : (k == B::table_header)        ? "table_header"
+                 : (k == B::table_body)          ? "table_body"
+                 : (k == B::table_row)           ? "table_row"
+                 : (k == B::table_cell)          ? "table_cell"
+                 : (k == B::math_block)          ? "math_block"
+                 :                                 "custom_block";
+        }
+        const I k = _node.inline_kind;
+        return (k == I::text)            ? "text"
+             : (k == I::soft_break)      ? "softbreak"
+             : is_break_inline_kind(k)   ? "linebreak"
+             : (k == I::emphasis)        ? "emph"
+             : (k == I::strong)          ? "strong"
+             : (k == I::strikethrough)   ? "strikethrough"
+             : (k == I::code_span)       ? "code"
+             : is_link_inline_kind(k)    ? "link"
+             : (k == I::image)           ? "image"
+             : (k == I::html_inline)     ? "html_inline"
+             : (k == I::math_inline)     ? "math_inline"
+             :                             "custom_inline";
+    }
+
+
+    // markdown_emit_xml_attributes_helper
+    //   function: a node's attributes in CommonMark's XML: a
+    // heading's level, a list's type, start, delimiter and
+    // tightness, a code block's info, a link's or an image's
+    // destination and title, and a task item's state.
+    inline
+    void markdown_emit_xml_attributes_helper(
+        std::ostream&                _out,
+        const DMarkdownDefaultNode&  _node
+    )
+    {
+        using B = ::djinterp::markdown::DMarkdownBlockKind;
+        using I = ::djinterp::markdown::DMarkdownInlineKind;
+
+        if (!_node.is_block)
+        {
+            const I k = _node.inline_kind;
+            if ( is_link_inline_kind(k) || (k == I::image) )
+            {
+                _out << " destination=\""
+                     << ((k == I::autolink_email) ? "mailto:" : "");
+                markdown_xml_escape_helper(_out, _node.url);
+                _out << "\" title=\"";
+                markdown_xml_escape_helper(_out, _node.title);
+                _out << '"';
+            }
+            return;
+        }
+        const B k = _node.block_kind;
+        if (k == B::document)
+        {
+            _out << " xmlns=\"http://commonmark.org/xml/1.0\"";
+        }
+        else if (is_heading_block_kind(k))
+        {
+            _out << " level=\"" << heading_level_from_kind(k) << '"';
+        }
+        else if (is_list_block_kind(k))
+        {
+            if (k == B::ordered_list)
+            {
+                _out << " type=\"ordered\" start=\"" << _node.list_start
+                     << "\" delim=\"period\"";
+            }
+            else
+            {
+                _out << " type=\"bullet\"";
+            }
+            _out << " tight=\""
+                 << (markdown_is_tight_helper(_node) ? "true" : "false")
+                 << '"';
+        }
+        else if ( is_code_block_kind(k) && (k != B::math_block) &&
+                  ( (!_node.info_string.empty()) ||
+                    (!_node.language.empty()) ) )
+        {
+            _out << " info=\"";
+            markdown_xml_escape_helper(_out, (!_node.info_string.empty())
+                                                 ? _node.info_string
+                                                 : _node.language);
+            _out << '"';
+        }
+        else if (_node.is_task)
+        {
+            _out << " task=\"" << (_node.task_checked ? "checked" : "open")
+                 << '"';
+        }
+    }
+
+
+    // markdown_xml_literal_helper
+    //   function: the text a node carries in CommonMark's XML as its
+    // character data, or null for one whose children are its content.
+    inline
+    const std::string* markdown_xml_literal_helper(
+        const DMarkdownDefaultNode&  _node
+    )
+    {
+        using I = ::djinterp::markdown::DMarkdownInlineKind;
+
+        if (_node.is_block)
+        {
+            const unsigned raw = ::djinterp::markdown::mbc_code |
+                                 ::djinterp::markdown::mbc_raw;
+            return ((markdown_category_for_block_kind(_node.block_kind) & raw)
+                    != 0u)
+                       ? &_node.text
+                       : nullptr;
+        }
+        const I k = _node.inline_kind;
+        if ( (k == I::autolink) || (k == I::autolink_email) )
+        {
+            return &_node.url;
+        }
+        return ( (k == I::image) || is_container_inline_kind(k) ||
+                 is_break_inline_kind(k) )
+                   ? nullptr
+                   : &_node.text;
+    }
+
+
+    // markdown_emit_block_xml_helper
+    //   function: a node and its subtree in CommonMark's XML, indented
+    // two spaces a level as cmark writes it. A node's text is kept as
+    // it is (xml:space="preserve"); an autolink's is its address, as
+    // a text child, and an image's alternative text is a text child.
+    inline
+    void markdown_emit_block_xml_helper(
+        std::ostream&                _out,
+        const DMarkdownDefaultNode&  _node,
+        std::size_t                  _depth
+    )
+    {
+        using I = ::djinterp::markdown::DMarkdownInlineKind;
+
+        const std::string        indent(2 * _depth, ' ');
+        const char* const        name    = markdown_xml_name_helper(_node);
+        const std::string* const literal = markdown_xml_literal_helper(_node);
+        const bool               auto_   = (!_node.is_block) &&
+                                           ( (_node.inline_kind ==
+                                              I::autolink) ||
+                                             (_node.inline_kind ==
+                                              I::autolink_email) );
+        const bool               image   = (!_node.is_block) &&
+                                           (_node.inline_kind == I::image);
+
+        _out << indent << '<' << name;
+        markdown_emit_xml_attributes_helper(_out, _node);
+        if ( (literal != nullptr) && (!auto_) )
+        {
+            _out << " xml:space=\"preserve\">";
+            markdown_xml_escape_helper(_out, *literal);
+            _out << "</" << name << ">\n";
+            return;
+        }
+        if ( (!auto_) && (!image) && _node.children.empty() )
+        {
+            _out << " />\n";
+            return;
+        }
+        _out << ">\n";
+        if ( auto_ || (image && (!_node.alt_text.empty())) )
+        {
+            _out << indent << "  <text xml:space=\"preserve\">";
+            markdown_xml_escape_helper(_out, auto_ ? _node.url
+                                                   : _node.alt_text);
+            _out << "</text>\n";
         }
         for (std::size_t i = 0; i < _node.children.size(); ++i)
         {
             if (_node.children[i])
             {
-                markdown_emit_block_plaintext_helper(
-                    _out, *_node.children[i]);
+                markdown_emit_block_xml_helper(_out, *_node.children[i],
+                                               _depth + 1);
             }
         }
-        // append a newline after block-level elements
-        if (_node.is_block)
-        {
-            using K = ::djinterp::markdown::DMarkdownBlockKind;
-            const auto k = _node.block_kind;
-            if ( (k == K::paragraph)     ||
-                 (k == K::heading_1)     || (k == K::heading_2) ||
-                 (k == K::heading_3)     || (k == K::heading_4) ||
-                 (k == K::heading_5)     || (k == K::heading_6) ||
-                 (k == K::thematic_break) ||
-                 (k == K::indented_code_block) ||
-                 (k == K::fenced_code_block) ||
-                 (k == K::math_block) )
-            {
-                _out << '\n';
-            }
-        }
+        _out << indent << "</" << name << ">\n";
     }
 
 NS_END  // internal
@@ -1499,7 +2182,7 @@ public:
         if (m_doc.root)
         {
             ::djinterp::internal::markdown_emit_block_md_helper(
-                _out, *m_doc.root, 0);
+                _out, *m_doc.root);
         }
     }
 
@@ -1557,22 +2240,21 @@ public:
 
 
     // render_to_xml
-    //   function: emits this document in CommonMark XML AST
-    // format. Stub for the default backend; intended to be
-    // overridden by adapter backends that have native XML
-    // emission (e.g. cmark's native XML renderer).
+    //   function: emits this document in CommonMark's XML form, as
+    // cmark writes it: an element per node, indented two spaces a
+    // level, text kept as it is. Kinds CommonMark lacks are written
+    // under their own names (table, strikethrough, math_inline, ...).
     void render_to_xml(
         std::ostream& _out
     ) const
     {
-        // Minimal CommonMark XML wrapper around a markdown
-        // round-trip, suitable as a starting point for adapter
-        // backends to override.
-        _out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-        _out << "<document xmlns=\"http://commonmark.org/xml/1.0\">\n";
-        ::djinterp::internal::markdown_html_escape_helper(
-            _out, this->render_to_markdown());
-        _out << "</document>\n";
+        _out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+             << "<!DOCTYPE document SYSTEM \"CommonMark.dtd\">\n";
+        if (m_doc.root)
+        {
+            ::djinterp::internal::markdown_emit_block_xml_helper(
+                _out, *m_doc.root, 0);
+        }
     }
 
     DMarkdownString render_to_xml() const

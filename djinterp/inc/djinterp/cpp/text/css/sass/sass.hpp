@@ -37,7 +37,7 @@
 * path:      /inc/djinterp/cpp/text/css/sass/sass.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -563,7 +563,10 @@ namespace at_keywords {
 //   function: constexpr null-terminated string equality.
 // Provided locally so this header stays dependency-free of
 // the html / markdown / css internal_streq variants.
-D_CONSTEXPR_INLINE
+//   D_CONSTEXPR inline, not D_CONSTEXPR_INLINE: a constexpr function is
+// inline already, and D_INLINE's force-inline (outside testing) makes
+// GCC refuse this recursive call whenever it runs at run time.
+D_CONSTEXPR inline
 bool sass_internal_streq(
     const char* _a,
     const char* _b
@@ -671,25 +674,27 @@ DSassRuleKind sass_rule_kind_from_at_rule_kind(
 
 // is_sass_variable_name
 //   function: true if `_name` begins with the Sass variable
-// prefix (`$`).
+// prefix (`$`) and names something after it.
 D_CONSTEXPR_INLINE
 bool is_sass_variable_name(
     const char* _name
 )
 {
-    return ( (_name != nullptr) && (_name[0] == '$') );
+    return ( (_name != nullptr) && (_name[0] == '$') &&
+             (_name[1] != '\0') );
 }
 
 
 // is_sass_placeholder_name
 //   function: true if `_name` begins with the Sass placeholder
-// prefix (`%`).
+// prefix (`%`) and names something after it.
 D_CONSTEXPR_INLINE
 bool is_sass_placeholder_name(
     const char* _name
 )
 {
-    return ( (_name != nullptr) && (_name[0] == '%') );
+    return ( (_name != nullptr) && (_name[0] == '%') &&
+             (_name[1] != '\0') );
 }
 
 

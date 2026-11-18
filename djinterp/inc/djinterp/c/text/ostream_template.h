@@ -40,6 +40,23 @@
 * the one compile-time limit: D_CFG_OSTREAM_TEMPLATE_DEPTH, in
 * config/c/text/cfg_ostream_template.h.
 *
+*   A VALUE WRITTEN FOR JSON IS ONE JSON VALUE. Text is a string, integers
+* are decimal, true and false are themselves, and NONE and a real that is not
+* finite (NaN, an infinity) are null. A real with no precision has the fewest
+* significant digits that read back as the same double -- 0.1, not
+* 0.10000000000000001 -- in every locale, written out in full or with an
+* exponent, whichever is shorter: 36028797018963970, not
+* 3.602879701896397e+16, but 1e+16. A precision the specification gives is
+* kept. Padding is outside the value, and is the template's. This is the
+* contract for machines: a program that writes JSON writes each value with
+* d_ostream_write_value, under a specification read from "!json".
+*
+*   TEXT FOR JSON AND XML IS UTF-8. A sequence that is not well formed (RFC
+* 3629) is written as U+FFFD, one for each maximal part, as Unicode's chapter
+* 3 has it; built with D_CFG_OSTREAM_TEMPLATE_UTF8_REFUSE, the value is not
+* written at all, padding included, and the stream fails with
+* D_OSTREAM_INVALID and EILSEQ. Raw text, CSV and Markdown pass every byte.
+*
 *   Values are 64-bit magnitudes with a sign, held as two 32-bit halves, so a
 * value has one layout in every language and at every level, ISO strict
 * C++98 included, where a 64-bit integer type may not exist.
@@ -48,7 +65,7 @@
 * path:      /inc/djinterp/c/text/ostream_template.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -505,6 +522,11 @@ int32_t d_ostream_spec_parse(struct dj_ostream_spec* _spec,
 
 /**
  * @brief Writes one value as a specification says.
+ *
+ * @note Under "!json" this is the machine entry point the file's banner
+ *       describes. Text for JSON or XML that is not UTF-8 is replaced, or,
+ *       built to refuse it, writes nothing and fails the stream with
+ *       D_OSTREAM_INVALID and EILSEQ.
  *
  * @param[in,out] _os     the stream.
  * @param[in]     _value  the value; null writes as NONE.

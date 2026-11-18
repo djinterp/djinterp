@@ -26,7 +26,7 @@
 * path:      /inc/djinterp/cpp/text/html/html_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.08
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 
 /*
@@ -456,6 +456,41 @@ NS_INTERNAL
         }
     }
 
+    // html_indent_helper
+    //   function: writes `_indent` once for each level of `_depth`.
+    inline
+    void html_indent_helper(
+        std::ostream&       _out,
+        std::size_t         _depth,
+        const char*         _indent
+    )
+    {
+        for (std::size_t i = 0; i < _depth; ++i)
+        {
+            _out << _indent;
+        }
+    }
+
+    // html_emit_text_helper
+    //   function: writes an element's text: as it is inside a raw-text
+    // element (`_raw`: script or style), escaped inside any other.
+    inline
+    void html_emit_text_helper(
+        std::ostream&       _out,
+        const DXmlString&   _text,
+        bool                _raw
+    )
+    {
+        if (_raw)
+        {
+            _out << _text;
+        }
+        else
+        {
+            html_escape_text_helper(_out, _text);
+        }
+    }
+
     // html_emit_node_helper
     //   function: recursive emitter for a single node tree under
     // HTML rules. `_xhtml` controls whether void elements are
@@ -470,10 +505,7 @@ NS_INTERNAL
     )
     {
         // indent for the opening tag.
-        for (std::size_t i = 0; i < _depth; ++i)
-        {
-            _out << _indent;
-        }
+        html_indent_helper(_out, _depth, _indent);
 
         if (_node.kind == ::djinterp::DXmlNodeKind::text)
         {
@@ -534,14 +566,7 @@ NS_INTERNAL
         // text content (if no element children).
         if (_node.children.empty())
         {
-            if (raw_text)
-            {
-                _out << _node.text;
-            }
-            else
-            {
-                html_escape_text_helper(_out, _node.text);
-            }
+            html_emit_text_helper(_out, _node.text, raw_text);
             _out << "</" << _node.name << ">\n";
             return;
         }
@@ -550,18 +575,8 @@ NS_INTERNAL
         _out << '\n';
         if (!_node.text.empty())
         {
-            for (std::size_t i = 0; i < _depth + 1; ++i)
-            {
-                _out << _indent;
-            }
-            if (raw_text)
-            {
-                _out << _node.text;
-            }
-            else
-            {
-                html_escape_text_helper(_out, _node.text);
-            }
+            html_indent_helper(_out, _depth + 1, _indent);
+            html_emit_text_helper(_out, _node.text, raw_text);
             _out << '\n';
         }
         for (std::size_t i = 0; i < _node.children.size(); ++i)
@@ -572,10 +587,7 @@ NS_INTERNAL
                     _out, *_node.children[i], _xhtml, _depth + 1, _indent);
             }
         }
-        for (std::size_t i = 0; i < _depth; ++i)
-        {
-            _out << _indent;
-        }
+        html_indent_helper(_out, _depth, _indent);
         _out << "</" << _node.name << ">\n";
     }
 
@@ -651,13 +663,9 @@ public:
         m_version(_v),
         m_doctype(html_doctype_string(_v))
     {
-        // The base DXmlDocument holds m_doc by value; route the move
-        // through its public set_root if available, otherwise via
-        // direct backend access.
-        // Default backend storage path:
-        document_type& target = const_cast<document_type&>(
-            this->backend_document());
-        target = std::move(_doc);
+        // the base holds the storage document by value: move the
+        // given one into it
+        this->backend_document() = std::move(_doc);
     }
 
 

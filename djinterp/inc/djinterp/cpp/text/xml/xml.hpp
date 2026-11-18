@@ -51,7 +51,7 @@
 * path:      /inc/djinterp/cpp/text/xml/xml.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.08
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -153,11 +153,12 @@ XIII. CONCEPTS (C++20)
       a. leaf protocol concepts       (attribute, node, element, document)
       b. capability concepts          (mutable, parseable, writable, savable)
       c.    composition concepts         (full_xml_node, full_xml_document)
-            d. backend concepts             (xml_backend_type, complete_xml_backend)
+            d. backend concepts             (xml_backend_type,
+                                             complete_xml_backend)
 */
 
-#ifndef DJINTERP_TEXT_XML_XML_HPP
-#define DJINTERP_TEXT_XML_XML_HPP 1
+#ifndef DJINTERP_TEXT_XML_HPP
+#define DJINTERP_TEXT_XML_HPP 1
 
 // FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
 // 2's rule). The owner's ruling: compile at every level first; port down only
@@ -166,11 +167,11 @@ XIII. CONCEPTS (C++20)
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <cstddef>
-#include <string>
-#include <type_traits>
+#include <cstddef>      // std::size_t
+#include <string>       // std::string
+#include <type_traits>  // std::false_type, std::true_type
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../djinterp.hpp"  // framework root
 // re_std
 #include "../../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint8_t
 
@@ -503,19 +504,45 @@ struct has_kind_method<Type, void_t<
 {};
 
 
+NS_INTERNAL
+
+    // has_get_kind_form_helper, has_node_type_form_helper
+    //   traits: the two getter forms of the kind accessor, `get_kind()`
+    // and `node_type()`, each detected on its own.
+    template<typename Type,
+             typename = void>
+    struct has_get_kind_form_helper : std::false_type
+    {};
+
+    template<typename Type>
+    struct has_get_kind_form_helper<Type, void_t<
+        decltype(std::declval<const Type&>().get_kind())
+    >> : std::true_type
+    {};
+
+    template<typename Type,
+             typename = void>
+    struct has_node_type_form_helper : std::false_type
+    {};
+
+    template<typename Type>
+    struct has_node_type_form_helper<Type, void_t<
+        decltype(std::declval<const Type&>().node_type())
+    >> : std::true_type
+    {};
+
+NS_END  // internal
+
 // has_get_kind_method
 //   trait: true if Type exposes a `get_kind()` or `node_type()` const
 // method. Detection covers `node_type()` because libxml++ exposes the
 // kind under that name.
 template<typename Type,
          typename = void>
-struct has_get_kind_method : std::false_type
-{};
-
-template<typename Type>
-struct has_get_kind_method<Type, void_t<
-    decltype(std::declval<const Type&>().node_type())
->> : std::true_type
+struct has_get_kind_method
+    : std::integral_constant<bool,
+          ( internal::has_get_kind_form_helper<Type>::value ||
+            internal::has_node_type_form_helper<Type>::value )>
 {};
 
 
@@ -1377,4 +1404,4 @@ NS_END  // djinterp
 
 #endif  // floor, for now
 
-#endif  // DJINTERP_TEXT_XML_XML_HPP
+#endif  // DJINTERP_TEXT_XML_HPP

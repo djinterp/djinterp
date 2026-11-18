@@ -27,16 +27,18 @@
 *   PRINTF IS FOR PEOPLE, AND WRITES IN PLACE. d_ostream_printf follows the
 * locale exactly as printf does. It formats straight into the stream's window
 * when the window has room, so most calls copy nothing; otherwise into a stack
-* buffer, and it allocates only for output larger than both. Its va_copy is
-* C99's, which is why formatting lives on the C side: C++98 has neither
-* va_copy nor std::vsnprintf, so a C++98 caller hands its va_list once to
-* d_ostream_vprintf.
+* buffer, and it allocates only for output larger than both. That allocation
+* comes from the default memory source (c/memory/mem_source.h), which the knob
+* D_CFG_MEM_SOURCE_DEFAULT names; where it is the null source, such output
+* fails with ENOMEM. Its va_copy is C99's, which is why formatting lives on
+* the C side: C++98 has neither va_copy nor std::vsnprintf, so a C++98 caller
+* hands its va_list once to d_ostream_vprintf.
 *
 *
 * path:      /inc/djinterp/c/text/ostream_format.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.07
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -97,8 +99,9 @@ int32_t d_ostream_write_double(struct dj_ostream* _os,
  * @brief Writes printf-formatted text.
  *
  * @note Follows the locale, as printf does. A formatting failure is recorded
- *       as D_OSTREAM_FAILED, with errno; so is an allocation that fails for
- *       output larger than the window and the stack buffer.
+ *       as D_OSTREAM_FAILED, with errno; so is an allocation from the default
+ *       memory source that fails for output larger than the window and the
+ *       stack buffer.
  *
  * @param[in,out] _os      the stream.
  * @param[in]     _format  the format.

@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/cpp/text/html/html.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.08
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -356,6 +356,7 @@ unsigned html_category_for_kind(
     DHtmlElementKind _k
 )
 {
+    // constant data: exempt from the 100-line limit
     // void elements: area, base, br, col, embed, hr, img, input,
     // link, meta, param, source, track, wbr.
     return (_k == DHtmlElementKind::area)    ? (hec_void | hec_phrasing | hec_flow)
@@ -879,7 +880,10 @@ namespace attrs {
 
 // internal_streq
 //   function: constexpr null-terminated string equality.
-D_CONSTEXPR_INLINE
+//   D_CONSTEXPR inline, not D_CONSTEXPR_INLINE: a constexpr function is
+// inline already, and D_INLINE's force-inline (outside testing) makes
+// GCC refuse this recursive call whenever it runs at run time.
+D_CONSTEXPR inline
 bool internal_streq(
     const char* _a,
     const char* _b
@@ -900,6 +904,7 @@ DHtmlElementKind html_kind_from_name(
     const char* _name
 )
 {
+    // constant data: exempt from the 100-line limit
     return (!_name)                                  ? DHtmlElementKind::unknown
          : (internal_streq(_name, tags::html_root))  ? DHtmlElementKind::html_root
          : (internal_streq(_name, tags::head))       ? DHtmlElementKind::head
@@ -948,6 +953,11 @@ DHtmlElementKind html_kind_from_name(
          : (internal_streq(_name, tags::q))          ? DHtmlElementKind::q
          : (internal_streq(_name, tags::dfn))        ? DHtmlElementKind::dfn
          : (internal_streq(_name, tags::abbr))       ? DHtmlElementKind::abbr
+         : (internal_streq(_name, tags::ruby))       ? DHtmlElementKind::ruby
+         : (internal_streq(_name, tags::rt))         ? DHtmlElementKind::rt
+         : (internal_streq(_name, tags::rp))         ? DHtmlElementKind::rp
+         : (internal_streq(_name, tags::data_))      ? DHtmlElementKind::data_
+         : (internal_streq(_name, tags::time_))      ? DHtmlElementKind::time_
          : (internal_streq(_name, tags::code))       ? DHtmlElementKind::code
          : (internal_streq(_name, tags::var_))       ? DHtmlElementKind::var_
          : (internal_streq(_name, tags::samp))       ? DHtmlElementKind::samp
@@ -958,13 +968,18 @@ DHtmlElementKind html_kind_from_name(
          : (internal_streq(_name, tags::b))          ? DHtmlElementKind::b
          : (internal_streq(_name, tags::u))          ? DHtmlElementKind::u
          : (internal_streq(_name, tags::mark))       ? DHtmlElementKind::mark
+         : (internal_streq(_name, tags::bdi))        ? DHtmlElementKind::bdi
+         : (internal_streq(_name, tags::bdo))        ? DHtmlElementKind::bdo
          : (internal_streq(_name, tags::span_))      ? DHtmlElementKind::span_
          : (internal_streq(_name, tags::br))         ? DHtmlElementKind::br
          : (internal_streq(_name, tags::wbr))        ? DHtmlElementKind::wbr
+         : (internal_streq(_name, tags::ins))        ? DHtmlElementKind::ins
+         : (internal_streq(_name, tags::del_))       ? DHtmlElementKind::del_
          : (internal_streq(_name, tags::img))        ? DHtmlElementKind::img
          : (internal_streq(_name, tags::iframe))     ? DHtmlElementKind::iframe
          : (internal_streq(_name, tags::embed))      ? DHtmlElementKind::embed
          : (internal_streq(_name, tags::object_))    ? DHtmlElementKind::object_
+         : (internal_streq(_name, tags::param))      ? DHtmlElementKind::param
          : (internal_streq(_name, tags::video))      ? DHtmlElementKind::video
          : (internal_streq(_name, tags::audio))      ? DHtmlElementKind::audio
          : (internal_streq(_name, tags::source))     ? DHtmlElementKind::source
@@ -973,6 +988,7 @@ DHtmlElementKind html_kind_from_name(
          : (internal_streq(_name, tags::picture))    ? DHtmlElementKind::picture
          : (internal_streq(_name, tags::map_))       ? DHtmlElementKind::map_
          : (internal_streq(_name, tags::area))       ? DHtmlElementKind::area
+         : (internal_streq(_name, tags::math))       ? DHtmlElementKind::math
          : (internal_streq(_name, tags::svg))        ? DHtmlElementKind::svg
          : (internal_streq(_name, tags::table))      ? DHtmlElementKind::table
          : (internal_streq(_name, tags::caption))    ? DHtmlElementKind::caption
@@ -989,14 +1005,20 @@ DHtmlElementKind html_kind_from_name(
          : (internal_streq(_name, tags::input))      ? DHtmlElementKind::input
          : (internal_streq(_name, tags::button))     ? DHtmlElementKind::button
          : (internal_streq(_name, tags::select_))    ? DHtmlElementKind::select_
+         : (internal_streq(_name, tags::datalist))   ? DHtmlElementKind::datalist
+         : (internal_streq(_name, tags::optgroup))   ? DHtmlElementKind::optgroup
          : (internal_streq(_name, tags::option))     ? DHtmlElementKind::option
          : (internal_streq(_name, tags::textarea))   ? DHtmlElementKind::textarea
+         : (internal_streq(_name, tags::output))     ? DHtmlElementKind::output
+         : (internal_streq(_name, tags::progress))   ? DHtmlElementKind::progress
+         : (internal_streq(_name, tags::meter))      ? DHtmlElementKind::meter
          : (internal_streq(_name, tags::fieldset))   ? DHtmlElementKind::fieldset
          : (internal_streq(_name, tags::legend))     ? DHtmlElementKind::legend
          : (internal_streq(_name, tags::details))    ? DHtmlElementKind::details
          : (internal_streq(_name, tags::summary))    ? DHtmlElementKind::summary
          : (internal_streq(_name, tags::dialog))     ? DHtmlElementKind::dialog
          : (internal_streq(_name, tags::template_))  ? DHtmlElementKind::template_
+         : (internal_streq(_name, tags::slot))       ? DHtmlElementKind::slot
          :    DHtmlElementKind::unknown;
 }
 
@@ -1009,102 +1031,120 @@ const char* name_from_html_kind(
     DHtmlElementKind _k
 )
 {
-    return (_k == DHtmlElementKind::html_root)   ? tags::html_root
-         : (_k == DHtmlElementKind::head)        ? tags::head
-         : (_k == DHtmlElementKind::title)       ? tags::title
-         : (_k == DHtmlElementKind::base)        ? tags::base
-         : (_k == DHtmlElementKind::link_)       ? tags::link_
-         : (_k == DHtmlElementKind::meta)        ? tags::meta
-         : (_k == DHtmlElementKind::style)       ? tags::style
-         : (_k == DHtmlElementKind::script)      ? tags::script
-         : (_k == DHtmlElementKind::noscript)    ? tags::noscript
-         : (_k == DHtmlElementKind::body)        ? tags::body
-         : (_k == DHtmlElementKind::header)      ? tags::header
-         : (_k == DHtmlElementKind::nav)         ? tags::nav
-         : (_k == DHtmlElementKind::main_)       ? tags::main_
-         : (_k == DHtmlElementKind::section)     ? tags::section
-         : (_k == DHtmlElementKind::article)     ? tags::article
-         : (_k == DHtmlElementKind::aside)       ? tags::aside
-         : (_k == DHtmlElementKind::footer)      ? tags::footer
-         : (_k == DHtmlElementKind::address)     ? tags::address
-         : (_k == DHtmlElementKind::h1)          ? tags::h1
-         : (_k == DHtmlElementKind::h2)          ? tags::h2
-         : (_k == DHtmlElementKind::h3)          ? tags::h3
-         : (_k == DHtmlElementKind::h4)          ? tags::h4
-         : (_k == DHtmlElementKind::h5)          ? tags::h5
-         : (_k == DHtmlElementKind::h6)          ? tags::h6
-         : (_k == DHtmlElementKind::hgroup)      ? tags::hgroup
-         : (_k == DHtmlElementKind::p)           ? tags::p
-         : (_k == DHtmlElementKind::hr)          ? tags::hr
-         : (_k == DHtmlElementKind::pre)         ? tags::pre
-         : (_k == DHtmlElementKind::blockquote)  ? tags::blockquote
-         : (_k == DHtmlElementKind::ol)          ? tags::ol
-         : (_k == DHtmlElementKind::ul)          ? tags::ul
-         : (_k == DHtmlElementKind::li)          ? tags::li
-         : (_k == DHtmlElementKind::dl)          ? tags::dl
-         : (_k == DHtmlElementKind::dt)          ? tags::dt
-         : (_k == DHtmlElementKind::dd)          ? tags::dd
-         : (_k == DHtmlElementKind::figure)      ? tags::figure
-         : (_k == DHtmlElementKind::figcaption)  ? tags::figcaption
-         : (_k == DHtmlElementKind::div_)        ? tags::div_
-         : (_k == DHtmlElementKind::a)           ? tags::a
-         : (_k == DHtmlElementKind::em)          ? tags::em
-         : (_k == DHtmlElementKind::strong)      ? tags::strong
-         : (_k == DHtmlElementKind::small)       ? tags::small
-         : (_k == DHtmlElementKind::s)           ? tags::s
-         : (_k == DHtmlElementKind::cite)        ? tags::cite
-         : (_k == DHtmlElementKind::q)           ? tags::q
-         : (_k == DHtmlElementKind::dfn)         ? tags::dfn
-         : (_k == DHtmlElementKind::abbr)        ? tags::abbr
-         : (_k == DHtmlElementKind::code)        ? tags::code
-         : (_k == DHtmlElementKind::var_)        ? tags::var_
-         : (_k == DHtmlElementKind::samp)        ? tags::samp
-         : (_k == DHtmlElementKind::kbd)         ? tags::kbd
-         : (_k == DHtmlElementKind::sub)         ? tags::sub
-         : (_k == DHtmlElementKind::sup)         ? tags::sup
-         : (_k == DHtmlElementKind::i)           ? tags::i
-         : (_k == DHtmlElementKind::b)           ? tags::b
-         : (_k == DHtmlElementKind::u)           ? tags::u
-         : (_k == DHtmlElementKind::mark)        ? tags::mark
-         : (_k == DHtmlElementKind::span_)       ? tags::span_
-         : (_k == DHtmlElementKind::br)          ? tags::br
-         : (_k == DHtmlElementKind::wbr)         ? tags::wbr
-         : (_k == DHtmlElementKind::img)         ? tags::img
-         : (_k == DHtmlElementKind::iframe)      ? tags::iframe
-         : (_k == DHtmlElementKind::embed)       ? tags::embed
-         : (_k == DHtmlElementKind::object_)     ? tags::object_
-         : (_k == DHtmlElementKind::video)       ? tags::video
-         : (_k == DHtmlElementKind::audio)       ? tags::audio
-         : (_k == DHtmlElementKind::source)      ? tags::source
-         : (_k == DHtmlElementKind::track)       ? tags::track
-         : (_k == DHtmlElementKind::canvas)      ? tags::canvas
-         : (_k == DHtmlElementKind::picture)     ? tags::picture
-         : (_k == DHtmlElementKind::map_)        ? tags::map_
-         : (_k == DHtmlElementKind::area)        ? tags::area
-         : (_k == DHtmlElementKind::svg)         ? tags::svg
-         : (_k == DHtmlElementKind::table)       ? tags::table
-         : (_k == DHtmlElementKind::caption)     ? tags::caption
-         : (_k == DHtmlElementKind::colgroup)    ? tags::colgroup
-         : (_k == DHtmlElementKind::col)         ? tags::col
-         : (_k == DHtmlElementKind::tbody)       ? tags::tbody
-         : (_k == DHtmlElementKind::thead)       ? tags::thead
-         : (_k == DHtmlElementKind::tfoot)       ? tags::tfoot
-         : (_k == DHtmlElementKind::tr)          ? tags::tr
-         : (_k == DHtmlElementKind::td)          ? tags::td
-         : (_k == DHtmlElementKind::th)          ? tags::th
-         : (_k == DHtmlElementKind::form)        ? tags::form
-         : (_k == DHtmlElementKind::label)       ? tags::label
-         : (_k == DHtmlElementKind::input)       ? tags::input
-         : (_k == DHtmlElementKind::button)      ? tags::button
-         : (_k == DHtmlElementKind::select_)     ? tags::select_
-         : (_k == DHtmlElementKind::option)      ? tags::option
-         : (_k == DHtmlElementKind::textarea)    ? tags::textarea
-         : (_k == DHtmlElementKind::fieldset)    ? tags::fieldset
-         : (_k == DHtmlElementKind::legend)      ? tags::legend
-         : (_k == DHtmlElementKind::details)     ? tags::details
-         : (_k == DHtmlElementKind::summary)     ? tags::summary
-         : (_k == DHtmlElementKind::dialog)      ? tags::dialog
-         : (_k == DHtmlElementKind::template_)   ? tags::template_
+    // constant data: exempt from the 100-line limit
+    return (_k == DHtmlElementKind::html_root)  ? tags::html_root
+         : (_k == DHtmlElementKind::head)       ? tags::head
+         : (_k == DHtmlElementKind::title)      ? tags::title
+         : (_k == DHtmlElementKind::base)       ? tags::base
+         : (_k == DHtmlElementKind::link_)      ? tags::link_
+         : (_k == DHtmlElementKind::meta)       ? tags::meta
+         : (_k == DHtmlElementKind::style)      ? tags::style
+         : (_k == DHtmlElementKind::script)     ? tags::script
+         : (_k == DHtmlElementKind::noscript)   ? tags::noscript
+         : (_k == DHtmlElementKind::body)       ? tags::body
+         : (_k == DHtmlElementKind::header)     ? tags::header
+         : (_k == DHtmlElementKind::nav)        ? tags::nav
+         : (_k == DHtmlElementKind::main_)      ? tags::main_
+         : (_k == DHtmlElementKind::section)    ? tags::section
+         : (_k == DHtmlElementKind::article)    ? tags::article
+         : (_k == DHtmlElementKind::aside)      ? tags::aside
+         : (_k == DHtmlElementKind::footer)     ? tags::footer
+         : (_k == DHtmlElementKind::address)    ? tags::address
+         : (_k == DHtmlElementKind::h1)         ? tags::h1
+         : (_k == DHtmlElementKind::h2)         ? tags::h2
+         : (_k == DHtmlElementKind::h3)         ? tags::h3
+         : (_k == DHtmlElementKind::h4)         ? tags::h4
+         : (_k == DHtmlElementKind::h5)         ? tags::h5
+         : (_k == DHtmlElementKind::h6)         ? tags::h6
+         : (_k == DHtmlElementKind::hgroup)     ? tags::hgroup
+         : (_k == DHtmlElementKind::p)          ? tags::p
+         : (_k == DHtmlElementKind::hr)         ? tags::hr
+         : (_k == DHtmlElementKind::pre)        ? tags::pre
+         : (_k == DHtmlElementKind::blockquote) ? tags::blockquote
+         : (_k == DHtmlElementKind::ol)         ? tags::ol
+         : (_k == DHtmlElementKind::ul)         ? tags::ul
+         : (_k == DHtmlElementKind::li)         ? tags::li
+         : (_k == DHtmlElementKind::dl)         ? tags::dl
+         : (_k == DHtmlElementKind::dt)         ? tags::dt
+         : (_k == DHtmlElementKind::dd)         ? tags::dd
+         : (_k == DHtmlElementKind::figure)     ? tags::figure
+         : (_k == DHtmlElementKind::figcaption) ? tags::figcaption
+         : (_k == DHtmlElementKind::div_)       ? tags::div_
+         : (_k == DHtmlElementKind::a)          ? tags::a
+         : (_k == DHtmlElementKind::em)         ? tags::em
+         : (_k == DHtmlElementKind::strong)     ? tags::strong
+         : (_k == DHtmlElementKind::small)      ? tags::small
+         : (_k == DHtmlElementKind::s)          ? tags::s
+         : (_k == DHtmlElementKind::cite)       ? tags::cite
+         : (_k == DHtmlElementKind::q)          ? tags::q
+         : (_k == DHtmlElementKind::dfn)        ? tags::dfn
+         : (_k == DHtmlElementKind::abbr)       ? tags::abbr
+         : (_k == DHtmlElementKind::ruby)       ? tags::ruby
+         : (_k == DHtmlElementKind::rt)         ? tags::rt
+         : (_k == DHtmlElementKind::rp)         ? tags::rp
+         : (_k == DHtmlElementKind::data_)      ? tags::data_
+         : (_k == DHtmlElementKind::time_)      ? tags::time_
+         : (_k == DHtmlElementKind::code)       ? tags::code
+         : (_k == DHtmlElementKind::var_)       ? tags::var_
+         : (_k == DHtmlElementKind::samp)       ? tags::samp
+         : (_k == DHtmlElementKind::kbd)        ? tags::kbd
+         : (_k == DHtmlElementKind::sub)        ? tags::sub
+         : (_k == DHtmlElementKind::sup)        ? tags::sup
+         : (_k == DHtmlElementKind::i)          ? tags::i
+         : (_k == DHtmlElementKind::b)          ? tags::b
+         : (_k == DHtmlElementKind::u)          ? tags::u
+         : (_k == DHtmlElementKind::mark)       ? tags::mark
+         : (_k == DHtmlElementKind::bdi)        ? tags::bdi
+         : (_k == DHtmlElementKind::bdo)        ? tags::bdo
+         : (_k == DHtmlElementKind::span_)      ? tags::span_
+         : (_k == DHtmlElementKind::br)         ? tags::br
+         : (_k == DHtmlElementKind::wbr)        ? tags::wbr
+         : (_k == DHtmlElementKind::ins)        ? tags::ins
+         : (_k == DHtmlElementKind::del_)       ? tags::del_
+         : (_k == DHtmlElementKind::img)        ? tags::img
+         : (_k == DHtmlElementKind::iframe)     ? tags::iframe
+         : (_k == DHtmlElementKind::embed)      ? tags::embed
+         : (_k == DHtmlElementKind::object_)    ? tags::object_
+         : (_k == DHtmlElementKind::param)      ? tags::param
+         : (_k == DHtmlElementKind::video)      ? tags::video
+         : (_k == DHtmlElementKind::audio)      ? tags::audio
+         : (_k == DHtmlElementKind::source)     ? tags::source
+         : (_k == DHtmlElementKind::track)      ? tags::track
+         : (_k == DHtmlElementKind::canvas)     ? tags::canvas
+         : (_k == DHtmlElementKind::picture)    ? tags::picture
+         : (_k == DHtmlElementKind::map_)       ? tags::map_
+         : (_k == DHtmlElementKind::area)       ? tags::area
+         : (_k == DHtmlElementKind::math)       ? tags::math
+         : (_k == DHtmlElementKind::svg)        ? tags::svg
+         : (_k == DHtmlElementKind::table)      ? tags::table
+         : (_k == DHtmlElementKind::caption)    ? tags::caption
+         : (_k == DHtmlElementKind::colgroup)   ? tags::colgroup
+         : (_k == DHtmlElementKind::col)        ? tags::col
+         : (_k == DHtmlElementKind::tbody)      ? tags::tbody
+         : (_k == DHtmlElementKind::thead)      ? tags::thead
+         : (_k == DHtmlElementKind::tfoot)      ? tags::tfoot
+         : (_k == DHtmlElementKind::tr)         ? tags::tr
+         : (_k == DHtmlElementKind::td)         ? tags::td
+         : (_k == DHtmlElementKind::th)         ? tags::th
+         : (_k == DHtmlElementKind::form)       ? tags::form
+         : (_k == DHtmlElementKind::label)      ? tags::label
+         : (_k == DHtmlElementKind::input)      ? tags::input
+         : (_k == DHtmlElementKind::button)     ? tags::button
+         : (_k == DHtmlElementKind::select_)    ? tags::select_
+         : (_k == DHtmlElementKind::datalist)   ? tags::datalist
+         : (_k == DHtmlElementKind::optgroup)   ? tags::optgroup
+         : (_k == DHtmlElementKind::option)     ? tags::option
+         : (_k == DHtmlElementKind::textarea)   ? tags::textarea
+         : (_k == DHtmlElementKind::output)     ? tags::output
+         : (_k == DHtmlElementKind::progress)   ? tags::progress
+         : (_k == DHtmlElementKind::meter)      ? tags::meter
+         : (_k == DHtmlElementKind::fieldset)   ? tags::fieldset
+         : (_k == DHtmlElementKind::legend)     ? tags::legend
+         : (_k == DHtmlElementKind::details)    ? tags::details
+         : (_k == DHtmlElementKind::summary)    ? tags::summary
+         : (_k == DHtmlElementKind::dialog)     ? tags::dialog
+         : (_k == DHtmlElementKind::template_)  ? tags::template_
+         : (_k == DHtmlElementKind::slot)       ? tags::slot
          :    "";
 }
 

@@ -12,12 +12,14 @@
 * are formatted here and by snprintf, and must agree byte for byte; so must
 * random doubles under f, e and g. Binary and centring, which printf does not
 * have, are checked by hand.
+*   JSON's own groups -- reals that read back, text as UTF-8 -- are in
+* ostream_template_tests_json.c, through the helpers shared in the header.
 *
 *
 * path:      /tests/djinterp/c/text/ostream_template_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 #include "ostream_template_tests.h"  // the suite's entry point, DTest's C face
 // std
@@ -33,36 +35,32 @@
 #include "../../../../inc/re_std/c/cstdint/dstdint.h"  // int64_t, uint64_t
 
 
-// D_TESTS_TEMPLATE_CHECK
-//   macro: one check: counts it, and prints the expression and line on
-// failure.
-#define D_TESTS_TEMPLATE_CHECK(expr)                                           \
-    d_tests_template_check(((expr) ? 1 : 0), #expr, __LINE__)
-
 // D_TESTS_TEMPLATE_OPS
 //   constant: the operations a test template may compile to.
 #define D_TESTS_TEMPLATE_OPS  64u
 
 // d_tests_template_suite
 //   the suite being built, for the checks; set by d_tests_template_all.
-static struct dj_test_suite* d_tests_template_suite;
+struct dj_test_suite* d_tests_template_suite = NULL;
 static uint64_t dj_tests_template_state = 0x9E3779B97F4A7C15u;
 
 /*
 d_tests_template_check
-  Records one check against the open test.
+  Records one check against the open test, at the file and line of the
+macro that made it.
 */
-static bool
+bool
 d_tests_template_check(
     int         _ok,
     const char* _expression,
+    const char* _file,
     int         _line
 )
 {
     return d_test_suite_check(d_tests_template_suite,
                               (_ok != 0),
                               _expression,
-                              __FILE__,
+                              _file,
                               _line);
 }
 
@@ -70,7 +68,7 @@ d_tests_template_check(
 d_tests_template_open
   Opens a group's test, with its descriptor.
 */
-static void
+void
 d_tests_template_open(
     const char* _name,
     const char* _descriptor
@@ -86,7 +84,7 @@ d_tests_template_open(
 d_tests_template_next
   xorshift64*: a repeatable stream of random numbers.
 */
-static uint64_t
+uint64_t
 d_tests_template_next(void)
 {
     dj_tests_template_state ^= dj_tests_template_state >> 12;
@@ -101,7 +99,7 @@ d_tests_template_format
   Writes one value with a specification's text into a buffer, NUL-
 terminated, and returns the buffer.
 */
-static const char*
+const char*
 d_tests_template_format(
     char*                          _buffer,
     size_t                         _size,
@@ -130,7 +128,7 @@ d_tests_template_format(
 d_tests_template_is
   Whether a value formats as expected.
 */
-static int
+int
 d_tests_template_is(
     struct dj_ostream_value _value,
     const char*             _spec,
@@ -418,7 +416,7 @@ d_tests_template_integers(void)
 d_tests_template_reals
   Tests the following:
   - styles and precision, signs and zero padding
-  - JSON: 17 significant digits; nan and the infinities as null
+  - JSON: the fewest digits that read back; nan and the infinities as null
   - non-finite values are never zero-padded
 */
 static void
@@ -437,7 +435,7 @@ d_tests_template_reals(void)
     D_TESTS_TEMPLATE_CHECK(d_tests_template_is(d_ostream_value_real(1234.5),
                                                ":.2e", "1.23e+03"));
     D_TESTS_TEMPLATE_CHECK(d_tests_template_is(d_ostream_value_real(0.1),
-                                               "!json", "0.10000000000000001"));
+                                               "!json", "0.1"));
     D_TESTS_TEMPLATE_CHECK(d_tests_template_is(d_ostream_value_real(NAN),
                                                "!json", "null"));
     D_TESTS_TEMPLATE_CHECK(d_tests_template_is(d_ostream_value_real(-INFINITY),
@@ -1019,6 +1017,9 @@ d_tests_template_all(
     d_tests_template_reals();
     d_tests_template_random_integers();
     d_tests_template_random_reals();
+    d_tests_template_json_reals();
+    d_tests_template_json_random();
+    d_tests_template_json_utf8();
     d_tests_template_templates();
     d_tests_template_errors();
     d_tests_template_limits();

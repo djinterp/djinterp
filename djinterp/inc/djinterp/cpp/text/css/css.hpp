@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/cpp/text/css/css.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -876,7 +876,10 @@ namespace pseudo_elements {
 //   function: constexpr null-terminated string equality.
 // Mirrors the helper used in `html.hpp` so this header stays
 // dependency-free of the html module.
-D_CONSTEXPR_INLINE
+//   D_CONSTEXPR inline, not D_CONSTEXPR_INLINE: a constexpr function is
+// inline already, and D_INLINE's force-inline (outside testing) makes
+// GCC refuse this recursive call whenever it runs at run time.
+D_CONSTEXPR inline
 bool css_internal_streq(
     const char* _a,
     const char* _b
@@ -888,10 +891,37 @@ bool css_internal_streq(
 }
 
 
+// css_internal_lower
+//   function: an ASCII letter in lower case; any other byte as it is.
+D_CONSTEXPR inline
+char css_internal_lower(
+    char _c
+)
+{
+    return ( (_c >= 'A') && (_c <= 'Z') ) ? static_cast<char>(_c + 32) : _c;
+}
+
+
+// css_internal_streq_ci
+//   function: constexpr string equality ignoring ASCII case, as CSS
+// compares keywords: @MEDIA is @media. D_CONSTEXPR inline, as
+// css_internal_streq is, for the same reason.
+D_CONSTEXPR inline
+bool css_internal_streq_ci(
+    const char* _a,
+    const char* _b
+)
+{
+    return ( (css_internal_lower(*_a) == css_internal_lower(*_b)) &&
+             ( (*_a == '\0') ||
+               (css_internal_streq_ci(_a + 1, _b + 1)) ) );
+}
+
+
 // at_rule_kind_from_name
 //   function: maps an at-keyword (without the leading `@`) to
-// its `DCssAtRuleKind`. Returns `unknown` for unrecognised
-// keywords.
+// its `DCssAtRuleKind`, ignoring ASCII case as CSS does. Returns
+// `unknown` for unrecognised keywords.
 D_CONSTEXPR_INLINE
 DCssAtRuleKind at_rule_kind_from_name(
     const char* _name
@@ -899,25 +929,25 @@ DCssAtRuleKind at_rule_kind_from_name(
 {
     using K = DCssAtRuleKind;
     return (!_name)                                              ? K::unknown
-         : (css_internal_streq(_name, at_rules::media))          ? K::media
-         : (css_internal_streq(_name, at_rules::supports))       ? K::supports
-         : (css_internal_streq(_name, at_rules::keyframes))      ? K::keyframes
-         : (css_internal_streq(_name, at_rules::font_face))      ? K::font_face
-         : (css_internal_streq(_name, at_rules::page))           ? K::page
-         : (css_internal_streq(_name, at_rules::namespace_))     ? K::namespace_
-         : (css_internal_streq(_name, at_rules::import_))        ? K::import_
-         : (css_internal_streq(_name, at_rules::charset))        ? K::charset
-         : (css_internal_streq(_name, at_rules::document))       ? K::document
-         : (css_internal_streq(_name, at_rules::container))      ? K::container
-         : (css_internal_streq(_name, at_rules::layer))          ? K::layer
-         : (css_internal_streq(_name, at_rules::scope))          ? K::scope
-         : (css_internal_streq(_name, at_rules::starting_style)) ? K::starting_style
-         : (css_internal_streq(_name, at_rules::counter_style))  ? K::counter_style
-         : (css_internal_streq(_name, at_rules::font_feature_values))
+         : (css_internal_streq_ci(_name, at_rules::media))          ? K::media
+         : (css_internal_streq_ci(_name, at_rules::supports))       ? K::supports
+         : (css_internal_streq_ci(_name, at_rules::keyframes))      ? K::keyframes
+         : (css_internal_streq_ci(_name, at_rules::font_face))      ? K::font_face
+         : (css_internal_streq_ci(_name, at_rules::page))           ? K::page
+         : (css_internal_streq_ci(_name, at_rules::namespace_))     ? K::namespace_
+         : (css_internal_streq_ci(_name, at_rules::import_))        ? K::import_
+         : (css_internal_streq_ci(_name, at_rules::charset))        ? K::charset
+         : (css_internal_streq_ci(_name, at_rules::document))       ? K::document
+         : (css_internal_streq_ci(_name, at_rules::container))      ? K::container
+         : (css_internal_streq_ci(_name, at_rules::layer))          ? K::layer
+         : (css_internal_streq_ci(_name, at_rules::scope))          ? K::scope
+         : (css_internal_streq_ci(_name, at_rules::starting_style)) ? K::starting_style
+         : (css_internal_streq_ci(_name, at_rules::counter_style))  ? K::counter_style
+         : (css_internal_streq_ci(_name, at_rules::font_feature_values))
                                                                  ? K::font_feature_values
-         : (css_internal_streq(_name, at_rules::property))       ? K::property
-         : (css_internal_streq(_name, at_rules::viewport))       ? K::viewport
-         : (css_internal_streq(_name, at_rules::apply))          ? K::apply
+         : (css_internal_streq_ci(_name, at_rules::property))       ? K::property
+         : (css_internal_streq_ci(_name, at_rules::viewport))       ? K::viewport
+         : (css_internal_streq_ci(_name, at_rules::apply))          ? K::apply
          :    K::unknown;
 }
 
@@ -988,7 +1018,8 @@ DCssRuleKind rule_kind_from_at_rule_kind(
 
 // is_custom_property_name
 //   function: true if `_name` begins with the CSS custom-
-// property prefix (`--`).
+// property prefix (`--`) and has more after it: `--` alone is
+// reserved (CSS Custom Properties, section 2).
 D_CONSTEXPR_INLINE
 bool is_custom_property_name(
     const char* _name
@@ -996,7 +1027,8 @@ bool is_custom_property_name(
 {
     return ( (_name != nullptr)  &&
              (_name[0] == '-')   &&
-             (_name[1] == '-') );
+             (_name[1] == '-')   &&
+             (_name[2] != '\0') );
 }
 
 

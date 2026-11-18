@@ -44,7 +44,7 @@
 * path:      /inc/djinterp/cpp/text/css/sass/sass_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -389,16 +389,25 @@ public:
         {
             return DSassString();
         }
-        const DSassString&      pre = this->prelude();
+        const DSassString&      pre   = this->prelude();
         const std::size_t       open  = pre.find('(');
-        const std::size_t       close = pre.rfind(')');
-        if ( (open == DSassString::npos) ||
-             (close == DSassString::npos) ||
-             (close <= open + 1) )
+        std::size_t             depth = 0;
+
+        // close on the ')' that matches the first '(': a default can
+        // hold its own, `($c: rgb(0, 0, 0))`, and `@include m($a)
+        // using ($b)` has a second list after it
+        for (std::size_t i = open;
+             (open != DSassString::npos) && (i < pre.size());
+             ++i)
         {
-            return DSassString();
+            depth += (pre[i] == '(') ? 1u : 0u;
+            depth -= (pre[i] == ')') ? 1u : 0u;
+            if ( (pre[i] == ')') && (depth == 0u) )
+            {
+                return pre.substr(open + 1, i - open - 1);
+            }
         }
-        return pre.substr(open + 1, close - open - 1);
+        return DSassString();
     }
 
     DSassString get_parameters() const
@@ -505,29 +514,25 @@ public:
         {
             return DSassString();
         }
-        // Strip surrounding quotes if present.
+        // a quoted URL whole, its escapes undone; otherwise up to the
+        // first whitespace, before an `as` or a `with`
         const DSassString&      pre = this->prelude();
         std::size_t             a   = 0;
-        std::size_t             b   = pre.size();
-        while ( (a < b) && ( (pre[a] == ' ') || (pre[a] == '\t') ) )
+        std::size_t             end = 0;
+        while ( (a < pre.size()) && ( (pre[a] == ' ') || (pre[a] == '\t') ) )
         {
             ++a;
         }
-        // up to first whitespace / `as` keyword / `with` keyword.
-        std::size_t end = a;
-        while ( (end < b) &&
-                (pre[end] != ' ') && (pre[end] != '\t') )
+        if ( (a < pre.size()) && ( (pre[a] == '\'') || (pre[a] == '"') ) )
         {
-            ++end;
+            return ::djinterp::internal::css_unquoted_helper(pre, a);
         }
-        DSassString   url = pre.substr(a, end - a);
-        if ( (url.size() >= 2) &&
-             ((url.front() == '\'') || (url.front() == '"')) &&
-             (url.back() == url.front()) )
+        for (end = a;
+             (end < pre.size()) && (pre[end] != ' ') && (pre[end] != '\t');
+             ++end)
         {
-            url = url.substr(1, url.size() - 2);
         }
-        return url;
+        return pre.substr(a, end - a);
     }
 
 
@@ -560,10 +565,61 @@ NS_INTERNAL
     }
 
 
+    // sass_takes_block_helper
+    //   function: whether an at-rule is written with a block even
+    // when it holds nothing: a CSS kind that holds one (but an
+    // empty @layer, which is a statement), and Sass's @mixin,
+    // @function, @if, @else, @each, @for, @while and @at-root.
+    inline
+    bool sass_takes_block_helper(
+        const ::djinterp::internal::DCssDefaultNode&  _node
+    )
+    {
+        using K = ::djinterp::sass::DSassAtRuleKind;
+
+        const K kind = ::djinterp::sass::sass_at_rule_kind_from_name(
+                           _node.at_keyword.c_str());
+
+        if (_node.rule_kind == ::djinterp::css::DCssRuleKind::layer_rule)
+        {
+            return !_node.children.empty();
+        }
+        return ::djinterp::css::is_grouping_rule_kind(_node.rule_kind) ||
+               (kind == K::mixin) || (kind == K::function) ||
+               (kind == K::if_)   || (kind == K::else_)    ||
+               (kind == K::each)  || (kind == K::for_)     ||
+               (kind == K::while_) || (kind == K::at_root);
+    }
+
+
+    // sass_emit_declaration_helper
+    //   function: a declaration, ended by `_end`: a variable's
+    // importance is its !default, a property's its !important.
+    inline
+    void sass_emit_declaration_helper(
+        std::ostream&                                 _out,
+        const ::djinterp::internal::DCssDefaultNode&  _node,
+        const char*                                   _end
+    )
+    {
+        _out << _node.property << ": " << _node.value;
+        if (_node.importance == ::djinterp::css::DCssImportance::important)
+        {
+            _out << ( ( (!_node.property.empty()) &&
+                        (_node.property[0] == '$') )
+                          ? " !default"
+                          : " !important" );
+        }
+        _out << _end;
+    }
+
+
     // sass_emit_rule_scss_helper
     //   function: emits a single rule (and its descendants)
     // as SCSS source. Recursive for grouping rules and nested
-    // style rules.
+    // style rules. A comment can't end early, as CSS's can't; a
+    // keyframe is written as its selector and block; an at-rule
+    // keeps its block when it holds something or takes one.
     inline
     void sass_emit_rule_scss_helper(
         std::ostream&                                 _out,
@@ -573,41 +629,46 @@ NS_INTERNAL
     {
         using K = ::djinterp::css::DCssRuleKind;
 
+        const bool at    = ::djinterp::css::is_at_rule_kind(_node.rule_kind);
+        const bool style = (_node.rule_kind == K::style_rule) ||
+                           (_node.rule_kind == K::keyframe_rule);
+
+        if ( (_node.rule_kind != K::comment)           &&
+             (_node.rule_kind != K::declaration_block) &&
+             (!style) && (!at) )
+        {
+            // unknown / unsupported -- skip silently.
+            return;
+        }
+        sass_emit_indent_helper(_out, _depth);
         if (_node.rule_kind == K::comment)
         {
-            sass_emit_indent_helper(_out, _depth);
-            _out << "/*" << _node.comment_text << "*/\n";
+            ::djinterp::internal::css_emit_comment_helper(
+                _out, _node.comment_text);
+            _out << '\n';
             return;
         }
-
         if (_node.rule_kind == K::declaration_block)
         {
-            sass_emit_indent_helper(_out, _depth);
-            // Variable declaration?
-            if ( (!_node.property.empty()) && (_node.property[0] == '$') )
-            {
-                _out << _node.property << ": " << _node.value;
-                if (_node.importance ==
-                        ::djinterp::css::DCssImportance::important)
-                {
-                    _out << " !default";
-                }
-                _out << ";\n";
-                return;
-            }
-            _out << _node.property << ": " << _node.value;
-            if (_node.importance == ::djinterp::css::DCssImportance::important)
-            {
-                _out << " !important";
-            }
-            _out << ";\n";
+            sass_emit_declaration_helper(_out, _node, ";\n");
             return;
         }
-
-        if (_node.rule_kind == K::style_rule)
+        if (style)
         {
-            sass_emit_indent_helper(_out, _depth);
-            _out << _node.selector << " {\n";
+            _out << _node.selector;
+        }
+        else
+        {
+            _out << '@' << _node.at_keyword;
+            if (!_node.prelude.empty())
+            {
+                _out << ' ' << _node.prelude;
+            }
+        }
+        if ( style || (!_node.children.empty()) ||
+             sass_takes_block_helper(_node) )
+        {
+            _out << " {\n";
             for (std::size_t i = 0; i < _node.children.size(); ++i)
             {
                 if (_node.children[i])
@@ -620,50 +681,46 @@ NS_INTERNAL
             _out << "}\n";
             return;
         }
+        _out << ";\n";
+    }
 
-        if (::djinterp::css::is_at_rule_kind(_node.rule_kind))
+
+    // sass_emit_comment_indented_helper
+    //   function: a comment in the indented syntax: "//", then each
+    // later line of its text a level deeper, so that it stays in
+    // the comment.
+    inline
+    void sass_emit_comment_indented_helper(
+        std::ostream&       _out,
+        const std::string&  _text,
+        std::size_t         _depth
+    )
+    {
+        std::size_t start = 0;
+
+        _out << "// ";
+        for (;;)
         {
-            sass_emit_indent_helper(_out, _depth);
-            _out << '@' << _node.at_keyword;
-            if (!_node.prelude.empty())
-            {
-                _out << ' ' << _node.prelude;
-            }
-            // Body? Sass at-rules with bodies cover both CSS
-            // grouping at-rules and Sass-only ones (@if, @each,
-            // @for, @while, @mixin, @function, @at-root).
-            const bool  has_body =
-                ( ::djinterp::css::is_grouping_rule_kind(_node.rule_kind) ||
-                  (!_node.children.empty()) );
-            if (has_body)
-            {
-                _out << " {\n";
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        sass_emit_rule_scss_helper(
-                            _out, *_node.children[i], _depth + 1);
-                    }
-                }
-                sass_emit_indent_helper(_out, _depth);
-                _out << "}\n";
-            }
-            else
-            {
-                _out << ";\n";
-            }
-            return;
-        }
+            const std::size_t nl = _text.find('\n', start);
 
-        // unknown / unsupported -- skip silently.
+            _out << _text.substr(start, (nl == std::string::npos)
+                                            ? std::string::npos
+                                            : (nl - start))
+                 << '\n';
+            if (nl == std::string::npos)
+            {
+                return;
+            }
+            start = nl + 1;
+            sass_emit_indent_helper(_out, _depth + 1);
+        }
     }
 
 
     // sass_emit_rule_indented_helper
     //   function: emits a single rule (and its descendants)
     // as Sass-indented source (no braces, no semicolons; nesting
-    // by indentation).
+    // by indentation). A keyframe is written as a style rule is.
     inline
     void sass_emit_rule_indented_helper(
         std::ostream&                                 _out,
@@ -673,65 +730,48 @@ NS_INTERNAL
     {
         using K = ::djinterp::css::DCssRuleKind;
 
+        const bool at    = ::djinterp::css::is_at_rule_kind(_node.rule_kind);
+        const bool style = (_node.rule_kind == K::style_rule) ||
+                           (_node.rule_kind == K::keyframe_rule);
+
+        if ( (_node.rule_kind != K::comment)           &&
+             (_node.rule_kind != K::declaration_block) &&
+             (!style) && (!at) )
+        {
+            return;
+        }
+        sass_emit_indent_helper(_out, _depth);
         if (_node.rule_kind == K::comment)
         {
-            sass_emit_indent_helper(_out, _depth);
-            _out << "// " << _node.comment_text << '\n';
+            sass_emit_comment_indented_helper(_out, _node.comment_text,
+                                              _depth);
             return;
         }
-
         if (_node.rule_kind == K::declaration_block)
         {
-            sass_emit_indent_helper(_out, _depth);
-            _out << _node.property << ": " << _node.value;
-            if (_node.importance == ::djinterp::css::DCssImportance::important)
-            {
-                if ( (!_node.property.empty()) && (_node.property[0] == '$') )
-                {
-                    _out << " !default";
-                }
-                else
-                {
-                    _out << " !important";
-                }
-            }
-            _out << '\n';
+            sass_emit_declaration_helper(_out, _node, "\n");
             return;
         }
-
-        if (_node.rule_kind == K::style_rule)
+        if (style)
         {
-            sass_emit_indent_helper(_out, _depth);
             _out << _node.selector << '\n';
-            for (std::size_t i = 0; i < _node.children.size(); ++i)
-            {
-                if (_node.children[i])
-                {
-                    sass_emit_rule_indented_helper(
-                        _out, *_node.children[i], _depth + 1);
-                }
-            }
-            return;
         }
-
-        if (::djinterp::css::is_at_rule_kind(_node.rule_kind))
+        else
         {
-            sass_emit_indent_helper(_out, _depth);
             _out << '@' << _node.at_keyword;
             if (!_node.prelude.empty())
             {
                 _out << ' ' << _node.prelude;
             }
             _out << '\n';
-            for (std::size_t i = 0; i < _node.children.size(); ++i)
+        }
+        for (std::size_t i = 0; i < _node.children.size(); ++i)
+        {
+            if (_node.children[i])
             {
-                if (_node.children[i])
-                {
-                    sass_emit_rule_indented_helper(
-                        _out, *_node.children[i], _depth + 1);
-                }
+                sass_emit_rule_indented_helper(
+                    _out, *_node.children[i], _depth + 1);
             }
-            return;
         }
     }
 
@@ -868,6 +908,7 @@ public:
         {
             n->importance = ::djinterp::css::DCssImportance::important;
         }
+        n->parent = this->backend_stylesheet().root.get();
         rule_node_type* raw = n.get();
         const_cast<typename base_type::stylesheet_type&>(
             this->backend_stylesheet()).root->children.push_back(std::move(n));
@@ -975,7 +1016,7 @@ public:
         const DSassString& _namespace = DSassString()
     )
     {
-        DSassString   prelude = DSassString("'") + _url + DSassString("'");
+        DSassString   prelude = ::djinterp::internal::css_quoted_helper(_url);
         if (!_namespace.empty())
         {
             prelude += " as ";
@@ -990,7 +1031,8 @@ public:
         const DSassString& _url
     )
     {
-        DSassString   prelude = DSassString("'") + _url + DSassString("'");
+        const DSassString prelude =
+            ::djinterp::internal::css_quoted_helper(_url);
         return this->add_sass_at_rule_(at_keywords::forward, prelude);
     }
 

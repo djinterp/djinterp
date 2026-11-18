@@ -41,7 +41,7 @@
 * path:      /inc/djinterp/cpp/text/css/less/less.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -543,7 +543,10 @@ namespace at_keywords {
 
 // less_internal_streq
 //   function: constexpr null-terminated string equality.
-D_CONSTEXPR_INLINE
+//   D_CONSTEXPR inline, not D_CONSTEXPR_INLINE: a constexpr function is
+// inline already, and D_INLINE's force-inline (outside testing) makes
+// GCC refuse this recursive call whenever it runs at run time.
+D_CONSTEXPR inline
 bool less_internal_streq(
     const char* _a,
     const char* _b
@@ -556,17 +559,19 @@ bool less_internal_streq(
 
 
 // less_at_rule_kind_from_name
-//   function: maps an at-keyword to its `DLessAtRuleKind`.
+//   function: maps an at-keyword to its `DLessAtRuleKind`,
+// ignoring ASCII case, as Less and CSS compare keywords.
 D_CONSTEXPR_INLINE
 DLessAtRuleKind less_at_rule_kind_from_name(
     const char* _name
 )
 {
     using K = DLessAtRuleKind;
-    return (!_name)                                                 ? K::unknown
-         : (less_internal_streq(_name, at_keywords::import_))       ? K::import_
-         : (less_internal_streq(_name, at_keywords::plugin))        ? K::plugin
-         : (less_internal_streq(_name, at_keywords::options))       ? K::options
+    using ::djinterp::css::css_internal_streq_ci;
+    return (!_name)                                           ? K::unknown
+         : (css_internal_streq_ci(_name, at_keywords::import_)) ? K::import_
+         : (css_internal_streq_ci(_name, at_keywords::plugin))  ? K::plugin
+         : (css_internal_streq_ci(_name, at_keywords::options)) ? K::options
          :    K::unknown;
 }
 
@@ -589,43 +594,65 @@ const char* name_from_less_at_rule_kind(
 
 // is_less_variable_name
 //   function: true if `_name` begins with the Less variable
-// prefix (`@`).
+// prefix (`@`) and names something after it.
 D_CONSTEXPR_INLINE
 bool is_less_variable_name(
     const char* _name
 )
 {
-    return ( (_name != nullptr) && (_name[0] == '@') );
+    return ( (_name != nullptr) && (_name[0] == '@') &&
+             (_name[1] != '\0') );
 }
 
 
 // is_less_property_variable_name
 //   function: true if `_name` begins with the Less property-
-// reference prefix (`$`).
+// reference prefix (`$`) and names something after it.
 D_CONSTEXPR_INLINE
 bool is_less_property_variable_name(
     const char* _name
 )
 {
-    return ( (_name != nullptr) && (_name[0] == '$') );
+    return ( (_name != nullptr) && (_name[0] == '$') &&
+             (_name[1] != '\0') );
+}
+
+
+// less_internal_has_paren
+//   function: whether a string holds a '(' -- a loop, which a
+// constexpr function may hold from C++14, so nothing recursive is
+// forced inline.
+D_CONSTEXPR inline
+bool less_internal_has_paren(
+    const char* _text
+)
+{
+    for (; *_text != '\0'; ++_text)
+    {
+        if (*_text == '(')
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 
 // is_less_mixin_selector
 //   function: true if `_selector` looks like a Less mixin
-// callable (begins with `.` or `#` and ends with `()` or has
-// a parameter list). Heuristic; adapter backends with full
-// parsing should override.
+// callable: it begins with `.` or `#` and holds a parameter
+// list, `()` included, as `.m()` and `#ns.m(@a)` do; a plain
+// class selector, `.a`, does not. Heuristic; adapter backends
+// with full parsing should override.
 D_CONSTEXPR_INLINE
 bool is_less_mixin_selector(
     const char* _selector
 )
 {
-    // First char must be `.` or `#`; we treat trailing `()`
-    // (or any selector containing `(`) as the mixin marker.
-    // Walk via recursion to stay constexpr in C++11.
     return ( (_selector != nullptr) &&
-             ((_selector[0] == '.') || (_selector[0] == '#')) );
+             ((_selector[0] == '.') || (_selector[0] == '#')) &&
+             less_internal_has_paren(_selector) );
 }
 
 

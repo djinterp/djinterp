@@ -13,23 +13,32 @@
 *   NUMBERS NEED NO 64-BIT TYPE. A magnitude is divided as four 16-bit limbs
 * in 32-bit arithmetic, so this unit gives the same digits on every target.
 *
+*   JSON AND XML ARE WRITTEN VALID. A JSON real has the fewest significant
+* digits that read back as the same double, found by printf and strtod with
+* a power of two's wider interval above it allowed for; a text value that
+* isn't valid UTF-8 has each invalid run replaced by U+FFFD, or is refused
+* (D_CFG_OSTREAM_TEMPLATE_UTF8).
+*
 *
 * path:      /src/djinterp/c/text/ostream_template.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/text/ostream_template.h"
 // std
-#include <errno.h>   // EINVAL
+#include <errno.h>   // EINVAL, EILSEQ, errno
+#include <float.h>   // DBL_MAX, DBL_MIN
 #include <limits.h>  // LONG_MAX, LONG_MIN
+#include <locale.h>  // localeconv, struct lconv
 #include <stddef.h>  // size_t, NULL
+#include <stdlib.h>  // strtod
 #include <string.h>  // memcmp, memcpy, strchr, strcspn, strlen
 // djinterp
 #include "../../../../inc/djinterp/c/util/ostream/ostream.h"  // d_ostream_*
 #include "../../../../inc/djinterp/c/text/ostream_format.h"   // doubles
 #include "../../../../inc/djinterp/config/c/text/cfg_ostream_template.h"
-                                                              // depth
+                                                              // depth, UTF-8
 // re_std
 #include "../../../../inc/re_std/c/cstdint/dstdint.h"  // int32_t, uint32_t,
                                                        // uint16_t, uint8_t
@@ -806,6 +815,127 @@ d_internal_template_replacement(
 }
 
 /**
+ * @brief The length of the valid UTF-8 sequence that _text starts with, or 0
+ *        and the length of the invalid run to replace.
+ *
+ * @param[in]  _text  the text, not empty.
+ * @param[in]  _size  its length.
+ * @param[out] _bad   on 0, the bytes of the invalid run: the lead byte and
+ *                    the continuation bytes that fit it, the "maximal
+ *                    subpart" Unicode's chapter 3 replaces as one U+FFFD.
+ * @return 1 to 4, or 0.
+ *
+ * RFC 3629's well-formed sequences: no overlong forms (C0, C1, E0 below A0,
+ * F0 below 90), no surrogates (ED above 9F), nothing past U+10FFFF (F4
+ * above 8F, F5 and up).
+ */
+static size_t
+d_internal_template_utf8_length(
+    const unsigned char* _text,
+    size_t               _size,
+    size_t*              _bad
+)
+{
+    const unsigned char lead = _text[0];
+    unsigned char       low  = 0x80u;
+    unsigned char       high = 0xBFu;
+    size_t              need = 0u;
+    size_t              i;
+
+    if (lead < 0x80u)
+    {
+        return 1u;
+    }
+
+    // how many continuation bytes, and the second byte's narrower range
+    if ( (lead >= 0xC2u) &&
+         (lead <= 0xDFu) )
+    {
+        need = 1u;
+    }
+    else if ( (lead >= 0xE0u) &&
+              (lead <= 0xEFu) )
+    {
+        need = 2u;
+        low  = (lead == 0xE0u) ? 0xA0u : 0x80u;
+        high = (lead == 0xEDu) ? 0x9Fu : 0xBFu;
+    }
+    else if ( (lead >= 0xF0u) &&
+              (lead <= 0xF4u) )
+    {
+        need = 3u;
+        low  = (lead == 0xF0u) ? 0x90u : 0x80u;
+        high = (lead == 0xF4u) ? 0x8Fu : 0xBFu;
+    }
+    else
+    {
+        *_bad = 1u;
+
+        return 0u;
+    }
+
+    for (i = 1u; ( (i <= need) && (i < _size) ); ++i)
+    {
+        const unsigned char floor   = (i == 1u) ? low : 0x80u;
+        const unsigned char ceiling = (i == 1u) ? high : 0xBFu;
+
+        if ( (_text[i] < floor) ||
+             (_text[i] > ceiling) )
+        {
+            break;
+        }
+    }
+
+    if (i > need)
+    {
+        return need + 1u;
+    }
+
+    *_bad = i;
+
+    return 0u;
+}
+
+#if (D_CFG_NORM(D_CFG_OSTREAM_TEMPLATE_UTF8) ==                                \
+     D_CFG_OSTREAM_TEMPLATE_UTF8_REFUSE)
+
+/**
+ * @brief Whether text is valid UTF-8.
+ *
+ * @param[in] _text  the text.
+ * @param[in] _size  its length.
+ * @return 1 or 0.
+ */
+static int32_t
+d_internal_template_utf8_valid(
+    const char* _text,
+    size_t      _size
+)
+{
+    size_t i = 0u;
+
+    while (i < _size)
+    {
+        size_t       bad    = 0u;
+        const size_t length = d_internal_template_utf8_length(
+                                  (const unsigned char*)_text + i,
+                                  _size - i,
+                                  &bad);
+
+        if (length == 0u)
+        {
+            return 0;
+        }
+
+        i += length;
+    }
+
+    return 1;
+}
+
+#endif  // REFUSE
+
+/**
  * @brief Whether a CSV field must be quoted: it holds a separator, a quote
  *        or a line break, or begins or ends with a space.
  *
@@ -863,8 +993,11 @@ d_internal_template_convert_text(
                              ( (_convert == D_OSTREAM_CONVERT_CSV) &&
                                (d_internal_template_csv_quoted(_text, _size)
                                 != 0) ) ) ? 1 : 0;
+    const int32_t utf8   = ( (_convert == D_OSTREAM_CONVERT_JSON) ||
+                             (_convert == D_OSTREAM_CONVERT_XML) ) ? 1 : 0;
     char          buffer[8];
     size_t        run = 0u;
+    size_t        i   = 0u;
 
     // raw text is one run
     if (_convert == D_OSTREAM_CONVERT_RAW)
@@ -879,22 +1012,46 @@ d_internal_template_convert_text(
         d_internal_template_emit(_emitter, "\"", 1u);
     }
 
-    for (size_t i = 0u; i < _size; ++i)
+    while (i < _size)
     {
-        size_t            length      = 0u;
-        const char* const replacement =
-            d_internal_template_replacement(_convert,
-                                            (unsigned char)_text[i],
-                                            buffer,
-                                            &length);
+        const unsigned char c           = (unsigned char)_text[i];
+        size_t              step        = 1u;
+        size_t              length      = 0u;
+        const char*         replacement = NULL;
 
-        // the run so far, then the byte's replacement
+        // JSON and XML: a valid sequence stays; an invalid run is U+FFFD
+        if ( (utf8 != 0) &&
+             (c >= 0x80u) )
+        {
+            size_t bad = 0u;
+
+            step = d_internal_template_utf8_length(
+                       (const unsigned char*)_text + i, _size - i, &bad);
+
+            if (step == 0u)
+            {
+                step        = bad;
+                replacement = "\xEF\xBF\xBD";
+                length      = 3u;
+            }
+        }
+        else
+        {
+            replacement = d_internal_template_replacement(_convert,
+                                                          c,
+                                                          buffer,
+                                                          &length);
+        }
+
+        // the run so far, then the replacement
         if (replacement != NULL)
         {
             d_internal_template_emit(_emitter, _text + run, i - run);
             d_internal_template_emit(_emitter, replacement, length);
-            run = i + 1u;
+            run = i + step;
         }
+
+        i += step;
     }
 
     d_internal_template_emit(_emitter, _text + run, _size - run);
@@ -1213,6 +1370,296 @@ d_internal_template_write_integer(
 }
 
 /**
+ * @brief A double in the C form, with some digits.
+ *
+ * @param[in]  _value      a finite double.
+ * @param[in]  _style      'g', or 'e'.
+ * @param[in]  _precision  the digits: significant ones for 'g', after the
+ *                         point for 'e'.
+ * @param[out] _text       the text, NUL-terminated.
+ * @param[in]  _capacity   its room.
+ * @return the text's length, or 0 when it didn't fit.
+ */
+static size_t
+d_internal_template_real_text(
+    double  _value,
+    char    _style,
+    int32_t _precision,
+    char*   _text,
+    size_t  _capacity
+)
+{
+    struct dj_ostream       os;
+    struct dj_ostream_fixed fixed;
+
+    (void)d_ostream_init_fixed(&os, &fixed, _text, _capacity, 1);
+    (void)d_ostream_write_double(&os, _value, _style, _precision);
+    (void)d_ostream_close(&os);
+
+    return (d_ostream_fixed_truncated(&fixed) != 0)
+               ? 0u
+               : d_ostream_fixed_length(&fixed);
+}
+
+/**
+ * @brief Whether a real's text in the C form reads back as a double.
+ *
+ * @param[in] _text   the text.
+ * @param[in] _size   its length, not 0.
+ * @param[in] _value  the double.
+ * @return 1 or 0.
+ *
+ * strtod reads the current locale's decimal point, so the C form's point is
+ * put in that form first, as ostream_format.c's rewriting does the other
+ * way. errno is left as it was: strtod sets ERANGE for a subnormal it reads
+ * exactly, and for an overflow.
+ */
+static int32_t
+d_internal_template_reads_back(
+    const char* _text,
+    size_t      _size,
+    double      _value
+)
+{
+    char                      local[64];
+    const struct lconv* const conv  = localeconv();
+    const char* const         point = ( (conv != NULL) &&
+                                        (conv->decimal_point != NULL) &&
+                                        (conv->decimal_point[0] != '\0') )
+                                          ? conv->decimal_point
+                                          : ".";
+    const size_t              width = strlen(point);
+    const int                 saved = errno;
+    size_t                    out   = 0u;
+    char*                     end   = NULL;
+
+    for (size_t i = 0u; i < _size; ++i)
+    {
+        const size_t take = (_text[i] == '.') ? width : 1u;
+
+        if ((out + take) >= sizeof(local))
+        {
+            return 0;
+        }
+
+        memcpy(local + out, (_text[i] == '.') ? point : (_text + i), take);
+        out += take;
+    }
+
+    local[out] = '\0';
+
+    const double back = strtod(local, &end);
+
+    errno = saved;
+
+    return ( (end == (local + out)) &&
+             (back == _value) ) ? 1 : 0;
+}
+
+/**
+ * @brief Whether a finite double other than zero is a power of two.
+ *
+ * @param[in] _value  the double.
+ * @return 1 or 0.
+ *
+ * Scaling by a power of two is exact for a normal double, so the magnitude
+ * is brought into [1, 2) without rounding, and a power of two arrives at 1.
+ * No library call: math.h's functions are a link dependency here, and its
+ * classification macros differ between C libraries.
+ */
+static int32_t
+d_internal_template_power_of_two(
+    double _value
+)
+{
+    const double big       = 4294967296.0;  // 2^32
+    double       magnitude = (_value < 0.0) ? -_value : _value;
+
+    while (magnitude >= big)
+    {
+        magnitude /= big;
+    }
+
+    while (magnitude >= 2.0)
+    {
+        magnitude /= 2.0;
+    }
+
+    while ( (magnitude != 0.0) &&
+            (magnitude < (1.0 / big)) )
+    {
+        magnitude *= big;
+    }
+
+    while ( (magnitude != 0.0) &&
+            (magnitude < 1.0) )
+    {
+        magnitude *= 2.0;
+    }
+
+    return (magnitude == 1.0) ? 1 : 0;
+}
+
+/**
+ * @brief The 16-digit decimal one step above the nearest, in magnitude.
+ *
+ * @param[in]  _value     a finite double.
+ * @param[out] _text      the text, NUL-terminated, in %e's form.
+ * @param[in]  _capacity  its room.
+ * @return the text's length, or 0 when the step would carry: a decimal with
+ *         fewer digits, which the search before has already tried.
+ */
+static size_t
+d_internal_template_real_above(
+    double _value,
+    char*  _text,
+    size_t _capacity
+)
+{
+    const size_t size = d_internal_template_real_text(_value, 'e', 15,
+                                                      _text, _capacity);
+    const char*  mark = (size != 0u)
+                            ? (const char*)memchr(_text, 'e', size)
+                            : NULL;
+
+    if ( (mark == NULL) ||
+         (mark == _text) ||
+         (mark[-1] < '0') ||
+         (mark[-1] > '8') )
+    {
+        return 0u;
+    }
+
+    ++_text[(size_t)(mark - _text) - 1u];
+
+    return size;
+}
+
+/**
+ * @brief A finite double's JSON text: the fewest significant digits that
+ *        read back as the same double, in full or with an exponent,
+ *        whichever is shorter.
+ *
+ * @param[in]  _value     a finite double.
+ * @param[out] _text      the text, NUL-terminated; 40 bytes hold any.
+ * @param[in]  _capacity  its room.
+ * @return the text's length, or 0 when it didn't fit.
+ *
+ * A normal double carries nearly 16 digits, so when some form of 15 or fewer
+ * reads back, it is the nearest 15-digit one, which %g writes without its
+ * trailing zeros: 0.1 is "0.1", not 0.10000000000000001. The search can
+ * start at 15, and 17 always reads back. A subnormal carries fewer, so its
+ * search starts at 1: the smallest is "5e-324". An integer below 10^15 is
+ * exact at 15 digits, and is written without the search.
+ *   At 16 digits the nearest can fail where another reads back: a power of
+ * two's interval is twice as wide above it as below, so when %g's nearest
+ * falls below and outside, the decimal one step above is tried too.
+ *   %g writes an exponent once it reaches the precision. Below 10^17 the
+ * same digits written out in full can be shorter, and are then chosen:
+ * 36028797018963970, not 3.602879701896397e+16. The decimal is the same
+ * either way -- the shortest, and of the shortest the nearest -- so only
+ * the notation is a choice.
+ */
+static size_t
+d_internal_template_json_real(
+    double _value,
+    char*  _text,
+    size_t _capacity
+)
+{
+    char    wide[40];
+    size_t  size      = 0u;
+    int32_t precision = ( (_value < DBL_MIN) &&
+                          (_value > -DBL_MIN) &&
+                          (_value != 0.0) ) ? 1 : 15;
+
+    // an integer of 15 digits or fewer is exact at 15: nothing to read back
+    if ( (_value > -1e15) &&
+         (_value < 1e15) &&
+         (_value == (double)(long long)_value) )
+    {
+        return d_internal_template_real_text(_value, 'g', 15, _text,
+                                             _capacity);
+    }
+
+    for (; precision <= 16; ++precision)
+    {
+        size = d_internal_template_real_text(_value, 'g', precision, _text,
+                                             _capacity);
+
+        if ( (size != 0u) &&
+             (d_internal_template_reads_back(_text, size, _value) != 0) )
+        {
+            break;
+        }
+    }
+
+    // %g's 16 digits in an exponent's form, below a power of two
+    if ( (precision > 16) &&
+         (size != 0u) &&
+         (memchr(_text, 'e', size) != NULL) &&
+         (d_internal_template_power_of_two(_value) != 0) )
+    {
+        size = d_internal_template_real_above(_value, _text, _capacity);
+
+        if ( (size != 0u) &&
+             (d_internal_template_reads_back(_text, size, _value) != 0) )
+        {
+            precision = 16;
+        }
+    }
+
+    if (precision > 16)
+    {
+        return d_internal_template_real_text(_value, 'g', 17, _text,
+                                             _capacity);
+    }
+
+    const char* const exponent = (const char*)memchr(_text, 'e', size);
+
+    // a two-digit positive exponent below 17: the digits in full, when that
+    // is shorter, padded with zeros to the units
+    if ( (exponent != NULL) &&
+         ((size_t)(exponent - _text) + 4u == size) &&
+         (exponent[1] == '+') )
+    {
+        const size_t power = (size_t)(((exponent[2] - '0') * 10) +
+                                      (exponent[3] - '0'));
+        const size_t sign  = (_text[0] == '-') ? 1u : 0u;
+        const size_t full  = sign + power + 1u;
+        size_t       count = sign;
+        size_t       i     = sign;
+
+        // the mantissa's digits, which %g never gives more of than fit
+        for (; (power < 17u) && (_text + i < exponent) && (count < full); ++i)
+        {
+            if (_text[i] != '.')
+            {
+                wide[count++] = _text[i];
+            }
+        }
+
+        if ( (power < 17u) &&
+             (_text + i == exponent) &&
+             (full < size) &&
+             (full < _capacity) )
+        {
+            while (count < full)
+            {
+                wide[count++] = '0';
+            }
+
+            memcpy(_text + sign, wide + sign, full - sign);
+            _text[full] = '\0';
+
+            return full;
+        }
+    }
+
+    return size;
+}
+
+/**
  * @brief Writes a double: through d_ostream_write_double into a buffer, so
  *        its length is known before the padding.
  *
@@ -1235,8 +1682,10 @@ d_internal_template_write_real(
     char                    style = 'g';
     int32_t                 precision = -1;
     size_t                  lead  = 0u;
+    size_t                  size  = 0u;
+    int32_t                 truncated = 0;
 
-    // printf's style, and the precision: JSON's default round-trips
+    // printf's style, and the precision; JSON's default is below
     if ( (_spec->type == 'f') ||
          (_spec->type == 'e') )
     {
@@ -1252,16 +1701,32 @@ d_internal_template_write_real(
         precision = 17;
     }
 
-    // one byte kept in front for a '+' or ' ' sign
-    (void)d_ostream_init_fixed(&local, &fixed, buffer + 1, sizeof(buffer) - 1u,
-                               0);
-    (void)d_ostream_write_double(&local, _value, style, precision);
-    (void)d_ostream_close(&local);
+    // one byte kept in front for a '+' or ' ' sign; JSON's default for a
+    // finite value is the fewest digits that read back
+    if ( (json != 0) &&
+         (style == 'g') &&
+         (_spec->precision == D_OSTREAM_SPEC_NO_PRECISION) &&
+         (_value == _value) &&
+         (_value <= DBL_MAX) &&
+         (_value >= -DBL_MAX) )
+    {
+        size = d_internal_template_json_real(_value, buffer + 1,
+                                             sizeof(buffer) - 1u);
+        truncated = (size == 0u) ? 1 : 0;
+    }
+    else
+    {
+        (void)d_ostream_init_fixed(&local, &fixed, buffer + 1,
+                                   sizeof(buffer) - 1u, 0);
+        (void)d_ostream_write_double(&local, _value, style, precision);
+        (void)d_ostream_close(&local);
+        size      = d_ostream_fixed_length(&fixed);
+        truncated = d_ostream_fixed_truncated(&fixed);
+    }
 
-    size_t      size = d_ostream_fixed_length(&fixed);
     const char* body = buffer + 1;
 
-    if ( (d_ostream_fixed_truncated(&fixed) != 0) ||
+    if ( (truncated != 0) ||
          (size == 0u) )
     {
         (void)d_ostream_fail(_os, D_OSTREAM_FAILED, 0);
@@ -1342,6 +1807,20 @@ d_internal_template_write_text(
     {
         size = d_internal_template_prefix(_text, _size, _spec->precision);
     }
+
+#if (D_CFG_NORM(D_CFG_OSTREAM_TEMPLATE_UTF8) ==                                \
+     D_CFG_OSTREAM_TEMPLATE_UTF8_REFUSE)
+    // JSON and XML can't carry invalid UTF-8: refused before any of it is
+    // written, padding included
+    if ( ( (_spec->convert == D_OSTREAM_CONVERT_JSON) ||
+           (_spec->convert == D_OSTREAM_CONVERT_XML) ) &&
+         (d_internal_template_utf8_valid(_text, size) == 0) )
+    {
+        (void)d_ostream_fail(_os, D_OSTREAM_INVALID, EILSEQ);
+
+        return;
+    }
+#endif
 
     // raw text with no width, the commonest field of all, is one write
     if ( (_spec->width == 0u) &&

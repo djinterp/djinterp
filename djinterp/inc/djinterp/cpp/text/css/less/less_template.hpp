@@ -35,7 +35,7 @@
 * path:      /inc/djinterp/cpp/text/css/less/less_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -315,15 +315,23 @@ public:
         }
         const DLessString&      sel  = this->selector();
         const std::size_t       open = sel.find('(');
-        // close on the matching ')' before any subsequent `when`
-        const std::size_t       close = sel.rfind(')');
-        if ( (open == DLessString::npos) ||
-             (close == DLessString::npos) ||
-             (close <= open + 1) )
+        std::size_t             depth = 0;
+
+        // close on the ')' that matches the first '(': a guard's
+        // parentheses come after it, and a parameter's default can
+        // hold its own, as `.m(@c: rgb(0, 0, 0))` does
+        for (std::size_t i = open;
+             (open != DLessString::npos) && (i < sel.size());
+             ++i)
         {
-            return DLessString();
+            depth += (sel[i] == '(') ? 1u : 0u;
+            depth -= (sel[i] == ')') ? 1u : 0u;
+            if ( (sel[i] == ')') && (depth == 0u) )
+            {
+                return sel.substr(open + 1, i - open - 1);
+            }
         }
-        return sel.substr(open + 1, close - open - 1);
+        return DLessString();
     }
 
     DLessString get_parameters() const
@@ -468,16 +476,11 @@ public:
         {
             return DLessString();
         }
-        // strip surrounding quotes if present
+        // strip surrounding quotes, and undo escapes, if present
         char    quote = pre[i];
         if ( (quote == '\'') || (quote == '"') )
         {
-            const std::size_t   close = pre.find(quote, i + 1);
-            if (close == DLessString::npos)
-            {
-                return pre.substr(i + 1);
-            }
-            return pre.substr(i + 1, close - i - 1);
+            return ::djinterp::internal::css_unquoted_helper(pre, i);
         }
         // unquoted form (url(...)?); take rest until whitespace
         const std::size_t       sp = pre.find_first_of(" \t", i);
@@ -531,12 +534,7 @@ public:
         char    quote = pre[0];
         if ( (quote == '\'') || (quote == '"') )
         {
-            const std::size_t   close = pre.find(quote, 1);
-            if (close == DLessString::npos)
-            {
-                return pre.substr(1);
-            }
-            return pre.substr(1, close - 1);
+            return ::djinterp::internal::css_unquoted_helper(pre, 0);
         }
         return pre;
     }
@@ -570,10 +568,40 @@ NS_INTERNAL
     }
 
 
+    // less_emit_block_helper
+    //   function: a rule's children inside braces, a level deeper.
+    void less_emit_rule_helper(
+        std::ostream&                                 _out,
+        const ::djinterp::internal::DCssDefaultNode&  _node,
+        std::size_t                                   _depth);
+
+    inline
+    void less_emit_block_helper(
+        std::ostream&                                 _out,
+        const ::djinterp::internal::DCssDefaultNode&  _node,
+        std::size_t                                   _depth
+    )
+    {
+        _out << " {\n";
+        for (std::size_t i = 0; i < _node.children.size(); ++i)
+        {
+            if (_node.children[i])
+            {
+                less_emit_rule_helper(_out, *_node.children[i], _depth + 1);
+            }
+        }
+        less_emit_indent_helper(_out, _depth);
+        _out << "}\n";
+    }
+
+
     // less_emit_rule_helper
     //   function: emits a single rule (and its descendants)
     // as Less source. Recursive for grouping rules and nested
-    // style rules.
+    // style rules. A comment can't end early (as CSS's can't);
+    // a keyframe is written as its selector and block; an
+    // at-rule keeps its block when its kind holds one or it has
+    // children, and an empty @layer is the statement.
     inline
     void less_emit_rule_helper(
         std::ostream&                                 _out,
@@ -583,72 +611,56 @@ NS_INTERNAL
     {
         using K = ::djinterp::css::DCssRuleKind;
 
-        if (_node.rule_kind == K::comment)
+        const bool at = ::djinterp::css::is_at_rule_kind(_node.rule_kind);
+
+        if ( (_node.rule_kind != K::comment)           &&
+             (_node.rule_kind != K::declaration_block) &&
+             (_node.rule_kind != K::style_rule)        &&
+             (_node.rule_kind != K::keyframe_rule)     &&
+             (!at) )
         {
-            less_emit_indent_helper(_out, _depth);
-            _out << "/*" << _node.comment_text << "*/\n";
             return;
         }
-
-        if (_node.rule_kind == K::declaration_block)
+        less_emit_indent_helper(_out, _depth);
+        if (_node.rule_kind == K::comment)
         {
-            less_emit_indent_helper(_out, _depth);
+            ::djinterp::internal::css_emit_comment_helper(
+                _out, _node.comment_text);
+            _out << '\n';
+        }
+        else if (_node.rule_kind == K::declaration_block)
+        {
             _out << _node.property << ": " << _node.value;
             if (_node.importance == ::djinterp::css::DCssImportance::important)
             {
                 _out << " !important";
             }
             _out << ";\n";
-            return;
         }
-
-        if (_node.rule_kind == K::style_rule)
+        else if (!at)
         {
-            less_emit_indent_helper(_out, _depth);
-            _out << _node.selector << " {\n";
-            for (std::size_t i = 0; i < _node.children.size(); ++i)
-            {
-                if (_node.children[i])
-                {
-                    less_emit_rule_helper(
-                        _out, *_node.children[i], _depth + 1);
-                }
-            }
-            less_emit_indent_helper(_out, _depth);
-            _out << "}\n";
-            return;
+            _out << _node.selector;
+            less_emit_block_helper(_out, _node, _depth);
         }
-
-        if (::djinterp::css::is_at_rule_kind(_node.rule_kind))
+        else
         {
-            less_emit_indent_helper(_out, _depth);
             _out << '@' << _node.at_keyword;
             if (!_node.prelude.empty())
             {
                 _out << ' ' << _node.prelude;
             }
-            const bool  has_body =
-                ( ::djinterp::css::is_grouping_rule_kind(_node.rule_kind) ||
-                  (!_node.children.empty()) );
-            if (has_body)
+            const bool statement = (_node.rule_kind == K::layer_rule) &&
+                                   _node.children.empty();
+            if ( (!_node.children.empty()) ||
+                 ( (!statement) &&
+                   ::djinterp::css::is_grouping_rule_kind(_node.rule_kind) ) )
             {
-                _out << " {\n";
-                for (std::size_t i = 0; i < _node.children.size(); ++i)
-                {
-                    if (_node.children[i])
-                    {
-                        less_emit_rule_helper(
-                            _out, *_node.children[i], _depth + 1);
-                    }
-                }
-                less_emit_indent_helper(_out, _depth);
-                _out << "}\n";
+                less_emit_block_helper(_out, _node, _depth);
             }
             else
             {
                 _out << ";\n";
             }
-            return;
         }
     }
 
@@ -732,7 +744,8 @@ public:
         n->property  = ( (!_name.empty()) && (_name[0] == '@') )
             ? _name
             : DLessString("@") + _name;
-        n->value = _value;
+        n->value  = _value;
+        n->parent = this->backend_stylesheet().root.get();
         rule_node_type* raw = n.get();
         const_cast<typename base_type::stylesheet_type&>(
             this->backend_stylesheet()).root->children.push_back(std::move(n));
@@ -769,6 +782,7 @@ public:
             n->selector += _guard;
             n->selector += ')';
         }
+        n->parent = this->backend_stylesheet().root.get();
         rule_node_type* raw = n.get();
         const_cast<typename base_type::stylesheet_type&>(
             this->backend_stylesheet()).root->children.push_back(std::move(n));
@@ -803,9 +817,7 @@ public:
             prelude.push_back(')');
             prelude.push_back(' ');
         }
-        prelude.push_back('\'');
-        prelude += _url;
-        prelude.push_back('\'');
+        prelude += ::djinterp::internal::css_quoted_helper(_url);
         auto css_r = this->add_at_rule(at_keywords::import_, prelude);
         return rule_facade(css_r.backend_handle());
     }
@@ -816,7 +828,8 @@ public:
         const DLessString& _url
     )
     {
-        DLessString   prelude = DLessString("'") + _url + DLessString("'");
+        const DLessString prelude =
+            ::djinterp::internal::css_quoted_helper(_url);
         auto css_r = this->add_at_rule(at_keywords::plugin, prelude);
         return rule_facade(css_r.backend_handle());
     }

@@ -58,7 +58,7 @@
 * path:      /inc/djinterp/cpp/text/markup_string_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.09
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.15
 *******************************************************************************/
 
 /*
@@ -93,16 +93,16 @@ VI.   FREE HELPERS / FACTORIES
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <cstddef>
-#include <map>
-#include <memory>
-#include <ostream>
-#include <sstream>
-#include <string>
-#include <utility>
-#include <vector>
+#include <cstddef>  // std::size_t
+#include <map>      // std::map
+#include <memory>   // std::shared_ptr, std::make_shared
+#include <ostream>  // std::ostream
+#include <sstream>  // std::ostringstream
+#include <string>   // std::string, std::to_string
+#include <utility>  // std::move
+#include <vector>   // std::vector
 // djinterp
-#include "../djinterp.hpp"
+#include "../djinterp.hpp"  // framework root
 // re_std
 #include "../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint8_t
 
@@ -746,8 +746,7 @@ public:
             DMarkupStringTemplateSyntaxDefault::comment_marker),
         m_source(),
         m_partials(),
-        m_tokens(),
-        m_dirty(true)
+        m_tokens()
     {}
 
     // DMarkupStringTemplate (from source, default syntax)
@@ -759,6 +758,7 @@ public:
     :   DMarkupStringTemplate()
     {
         m_source = _source;
+        this->parse_now();
     }
 
     // DMarkupStringTemplate (from source + syntax policy)
@@ -779,9 +779,10 @@ public:
         m_comment_marker(Syntax::comment_marker),
         m_source(_source),
         m_partials(),
-        m_tokens(),
-        m_dirty(true)
-    {}
+        m_tokens()
+    {
+        this->parse_now();
+    }
 
     // DMarkupStringTemplate (from source + explicit delimiters)
     //   ctor: takes source text and explicit open/close
@@ -796,20 +797,20 @@ public:
         m_source    = _source;
         m_open_tag  = _open_tag;
         m_close_tag = _close_tag;
+        this->parse_now();
     }
 
 
     /// configuration
 
     // set_source
-    //   function: replaces the template source. Marks the
-    // parsed-token cache dirty.
+    //   function: replaces the template source, and parses it.
     void set_source(
         const std::string& _source
     )
     {
         m_source = _source;
-        m_dirty  = true;
+        this->parse_now();
     }
 
     // source
@@ -830,7 +831,7 @@ public:
     {
         m_open_tag  = _open_tag;
         m_close_tag = _close_tag;
-        m_dirty     = true;
+        this->parse_now();
     }
 
     // set_markers
@@ -849,7 +850,7 @@ public:
         m_section_open_marker  = _section_open_marker;
         m_section_close_marker = _section_close_marker;
         m_comment_marker       = _comment_marker;
-        m_dirty                = true;
+        this->parse_now();
     }
 
 
@@ -926,10 +927,6 @@ public:
         const context_t& _ctx
     ) const
     {
-        if (m_dirty)
-        {
-            this->parse_now();
-        }
         this->render_token_list_to(_out, m_tokens, _ctx);
     }
 
@@ -938,16 +935,18 @@ private:
     /// parsing
 
     // parse_now
-    //   function: re-parses the source into m_tokens and clears
-    // the dirty flag. `mutable` because the parsed cache is
-    // logically const (lazily derived from public state).
-    void parse_now() const
+    //   function: re-parses the source into m_tokens. Every
+    // change to the source, the delimiters or the markers calls
+    // it, so the tokens are always current and rendering, which
+    // only reads them, is const in fact: one template may be
+    // rendered from several threads at once.
+    void parse_now()
     {
         m_tokens.clear();
         if (!m_open_tag.empty())
         {
             std::size_t pos = 0;
-            m_tokens = this->parse_token_list(pos, std::string());
+            m_tokens = this->parse_token_list(pos, std::string(), false);
         }
         else
         {
@@ -957,18 +956,22 @@ private:
             t.text = m_source;
             m_tokens.push_back(std::move(t));
         }
-        m_dirty = false;
     }
 
     // parse_token_list
     //   function: recursive descent over the source. Reads
-    // tokens until either end-of-source or a section_close
-    // matching `_section_terminator`. On match it consumes the
-    // close directive and returns. `_pos` is updated by
+    // tokens until either end-of-source or, inside a section
+    // (`_in_section`), a section_close matching
+    // `_section_terminator`. On match it consumes the close
+    // directive and returns. Outside every section a close
+    // directive closes nothing, so it is literal text -- even
+    // one with an empty name, which a section named "" would
+    // otherwise share with the top level. `_pos` is updated by
     // reference so callers can pick up where parsing stopped.
     std::vector<internal::DMarkupStringTemplateToken> parse_token_list(
         std::size_t&       _pos,
-        const std::string& _section_terminator
+        const std::string& _section_terminator,
+        bool               _in_section
     ) const
     {
         std::vector<internal::DMarkupStringTemplateToken>     out;
@@ -1019,7 +1022,8 @@ private:
                 std::string name =
                     internal::markup_string_template_trim_helper(
                         directive.substr(m_section_close_marker.size()));
-                if (name == _section_terminator)
+                if ( _in_section &&
+                     (name == _section_terminator) )
                 {
                     _pos = after_close;
                     return out;
@@ -1043,64 +1047,62 @@ private:
                 t.kind = internal::DMarkupStringTemplateTokenKind::section;
                 t.text = name;
                 _pos   = after_close;
-                t.children = this->parse_token_list(_pos, name);
+                t.children = this->parse_token_list(_pos, name, true);
                 out.push_back(std::move(t));
                 continue;
             }
 
-            // partial include?
-            if ( (!m_partial_marker.empty()) &&
-                 internal::markup_string_template_starts_with_helper(
-                    directive, m_partial_marker) )
-            {
-                internal::DMarkupStringTemplateToken  t;
-                t.kind =
-                    internal::DMarkupStringTemplateTokenKind::partial_include;
-                t.text = internal::markup_string_template_trim_helper(
-                    directive.substr(m_partial_marker.size()));
-                out.push_back(std::move(t));
-                _pos = after_close;
-                continue;
-            }
-
-            // comment?
-            if ( (!m_comment_marker.empty()) &&
-                 internal::markup_string_template_starts_with_helper(
-                    directive, m_comment_marker) )
-            {
-                internal::DMarkupStringTemplateToken  t;
-                t.kind = internal::DMarkupStringTemplateTokenKind::comment;
-                // text intentionally discarded
-                out.push_back(std::move(t));
-                _pos = after_close;
-                continue;
-            }
-
-            // raw variable?
-            if ( (!m_raw_marker.empty()) &&
-                 internal::markup_string_template_starts_with_helper(
-                    directive, m_raw_marker) )
-            {
-                internal::DMarkupStringTemplateToken  t;
-                t.kind =
-                    internal::DMarkupStringTemplateTokenKind::variable_raw;
-                t.text = internal::markup_string_template_trim_helper(
-                    directive.substr(m_raw_marker.size()));
-                out.push_back(std::move(t));
-                _pos = after_close;
-                continue;
-            }
-
-            // default: escaped variable.
-            internal::DMarkupStringTemplateToken  t;
-            t.kind =
-                internal::DMarkupStringTemplateTokenKind::variable_escaped;
-            t.text = directive;
-            out.push_back(std::move(t));
+            // a partial include, a comment, or a variable.
+            out.push_back(this->directive_token(directive));
             _pos = after_close;
         }
 
         return out;
+    }
+
+    // directive_token
+    //   function: the token for a directive that neither opens nor
+    // closes a section. Its markers are tried in order: a partial
+    // include, then a comment (whose text is discarded), then a raw
+    // variable; anything else is an escaped variable.
+    internal::DMarkupStringTemplateToken directive_token(
+        const std::string& _directive
+    ) const
+    {
+        internal::DMarkupStringTemplateToken  t;
+
+        if ( (!m_partial_marker.empty()) &&
+             internal::markup_string_template_starts_with_helper(
+                _directive, m_partial_marker) )
+        {
+            t.kind =
+                internal::DMarkupStringTemplateTokenKind::partial_include;
+            t.text = internal::markup_string_template_trim_helper(
+                _directive.substr(m_partial_marker.size()));
+        }
+        else if ( (!m_comment_marker.empty()) &&
+                  internal::markup_string_template_starts_with_helper(
+                     _directive, m_comment_marker) )
+        {
+            t.kind = internal::DMarkupStringTemplateTokenKind::comment;
+        }
+        else if ( (!m_raw_marker.empty()) &&
+                  internal::markup_string_template_starts_with_helper(
+                     _directive, m_raw_marker) )
+        {
+            t.kind =
+                internal::DMarkupStringTemplateTokenKind::variable_raw;
+            t.text = internal::markup_string_template_trim_helper(
+                _directive.substr(m_raw_marker.size()));
+        }
+        else
+        {
+            t.kind =
+                internal::DMarkupStringTemplateTokenKind::variable_escaped;
+            t.text = _directive;
+        }
+
+        return t;
     }
 
     // push_literal
@@ -1280,15 +1282,9 @@ private:
     partial_map_t   m_partials;
 
     // m_tokens
-    //   field: cached parsed token tree. Mutable because the
-    // cache is rebuilt lazily on the first render after any
-    // public-state change.
-    mutable std::vector<internal::DMarkupStringTemplateToken>     m_tokens;
-
-    // m_dirty
-    //   field: true if m_tokens needs re-parsing before next
-    // render. Mutable for the same reason as m_tokens.
-    mutable bool    m_dirty;
+    //   field: the parsed token tree, rebuilt by parse_now on
+    // every change to the source, the delimiters or the markers.
+    std::vector<internal::DMarkupStringTemplateToken>     m_tokens;
 };
 
 
@@ -1319,7 +1315,8 @@ DMarkupStringTemplate<EscapePolicy> make_markup_string_template(
 template<typename EscapePolicy,
          typename Syntax>
 inline
-std::shared_ptr<DMarkupStringTemplate<EscapePolicy>> make_shared_markup_string_template(
+std::shared_ptr<DMarkupStringTemplate<EscapePolicy>>
+make_shared_markup_string_template(
     const std::string& _source,
     Syntax             _syntax_tag = Syntax()
 )

@@ -8,7 +8,7 @@
 * path:      /src/djinterp/c/text/ostream_format.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.07
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 // enable POSIX.1-2008 (newlocale, uselocale, freelocale) under a strict C
 // compiler; a feature-test macro must precede every include, so it sits ahead
@@ -28,10 +28,11 @@
                      // freelocale or _create_locale, _free_locale
 #include <stdarg.h>  // va_list, va_copy, va_start, va_end
 #include <stdio.h>   // snprintf, vsnprintf, _snprintf_s_l
-#include <stdlib.h>  // malloc, free, _TRUNCATE
+#include <stdlib.h>  // _TRUNCATE
 #include <string.h>  // memmove, strcmp, strlen, strstr
 // djinterp
 #include "../../../../inc/djinterp/c/dckdint.h"  // d_ckd_add
+#include "../../../../inc/djinterp/c/memory/mem_source.h"  // the heap
 #include "../../../../inc/djinterp/c/util/ostream/ostream.h"  // reserve
 #include "../../../../inc/djinterp/config/c/text/cfg_ostream_format.h"  // knob
 // re_std
@@ -545,6 +546,12 @@ d_ostream_write_double(
  * The second pass of an output too large for the first: room for the length
  * and its terminator, then the commit of the length alone, or, from a
  * transport too small to give that room, an allocation exactly as large.
+ *
+ * The allocation comes from the default memory source: an unset source,
+ * resolved, which is what D_CFG_MEM_SOURCE_DEFAULT names. Where that is the
+ * null source, every request is refused, and the output fails as any failed
+ * allocation does. The release hands back the request's size and alignment,
+ * as mem_source.h requires.
  */
 static int32_t
 d_internal_format_long_vprintf(
@@ -571,7 +578,13 @@ d_internal_format_long_vprintf(
         return d_ostream_commit(_os, _length);
     }
 
-    char* const heap = (char*)malloc(size);
+    // the length came from vsnprintf's int, so the size fits dj_mem_size
+    // at every width it can have
+    const struct dj_mem_source unset  = { NULL, NULL };
+    const struct dj_mem_source source = d_mem_source_resolve(&unset);
+    const dj_mem_size          bytes  = (dj_mem_size)size;
+    char* const                heap   =
+        (char*)d_mem_source_allocate(&source, bytes, 0u);
 
     if (heap == NULL)
     {
@@ -582,7 +595,7 @@ d_internal_format_long_vprintf(
 
     const int32_t result = d_ostream_write(_os, heap, _length);
 
-    free(heap);
+    d_mem_source_release(&source, heap, bytes, 0u);
 
     return result;
 }

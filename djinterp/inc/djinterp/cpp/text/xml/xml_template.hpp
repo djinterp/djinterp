@@ -39,7 +39,7 @@
 * path:      /inc/djinterp/cpp/text/xml/xml_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.08
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -96,8 +96,8 @@ V.    FREE FUNCTIONS
       c.    find_child_by_path  (slash-delimited XPath subset)
 */
 
-#ifndef DJINTERP_TEXT_XML_XML_TEMPLATE_HPP
-#define DJINTERP_TEXT_XML_XML_TEMPLATE_HPP 1
+#ifndef DJINTERP_TEXT_XML_TEMPLATE_HPP
+#define DJINTERP_TEXT_XML_TEMPLATE_HPP 1
 
 // FLOOR, FOR NOW: below C++20 this file is empty, rather than an error (round
 // 2's rule). The owner's ruling: compile at every level first; port down only
@@ -106,11 +106,11 @@ V.    FREE FUNCTIONS
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 // std
-#include <cstddef>
-#include <memory>
-#include <string>
-#include <utility>
-#include <vector>
+#include <cstddef>  // std::size_t
+#include <memory>   // std::unique_ptr
+#include <string>   // std::string
+#include <utility>  // std::move
+#include <vector>   // std::vector
 // djinterp
 #include "../../djinterp.hpp"  // framework root
 #include "./xml.hpp"              // DXmlString, DXmlSize, DXmlNodeKind,
@@ -176,6 +176,45 @@ struct DXmlAttribute
 ///////////////////////////////////////////////////////////////////////////////
 
 NS_INTERNAL
+
+    // xml_escape_append_helper
+    //   function: appends _in to _out with XML's markup characters
+    // escaped: &, < and > always, and the double quote too when
+    // _attribute says _in is a value written in double quotes.
+    inline
+    void xml_escape_append_helper(
+        DXmlString&       _out,
+        const DXmlString& _in,
+        bool              _attribute
+    )
+    {
+        for (const char c : _in)
+        {
+            if (c == '&')
+            {
+                _out += "&amp;";
+            }
+            else if (c == '<')
+            {
+                _out += "&lt;";
+            }
+            else if (c == '>')
+            {
+                _out += "&gt;";
+            }
+            else if ( _attribute &&
+                      (c == '"') )
+            {
+                _out += "&quot;";
+            }
+            else
+            {
+                _out += c;
+            }
+        }
+
+        return;
+    }
 
     // DDefaultNode
     //   struct: internal in-memory node used by the default
@@ -629,6 +668,21 @@ public:
     // root_element
     //   function: returns a node facade wrapping the root
     // element. Empty if no root has been attached.
+    // backend_document
+    //   function: the backend's document itself, for facades over
+    // this template (DHtmlDocument) and for adapters that work on
+    // the storage directly; the counterpart of a node's
+    // backend_handle.
+    const document_type& backend_document() const
+    {
+        return m_doc;
+    }
+
+    document_type& backend_document()
+    {
+        return m_doc;
+    }
+
     node_facade root_element() const
     {
         return node_facade(m_doc.root.get());
@@ -659,10 +713,9 @@ public:
     // ---------------------------------------------------------------
 
     // parse
-    //   function: ingests serialised XML. The default-backend
-    // implementation is intentionally minimal; full-featured
-    // parsing is the job of an adapted library backend. Returns
-    // true on (apparent) success.
+    //   function: ingests serialised XML. The default backend has
+    // no parser: it returns false and leaves the document as it
+    // was. Parsing is the job of an adapted library backend.
     bool parse(
         const DXmlString& _xml
     )
@@ -678,17 +731,20 @@ public:
     // write
     //   function: serialises the document to a string. The
     // default implementation produces a minimal well-formed
-    // document; adapter specialisations should defer to the
-    // underlying library.
+    // document: text and attribute values are escaped (&, < and
+    // >, and " in a value), so any text round-trips; names are
+    // written as they are, valid names being the caller's (or a
+    // dialect's) to check. Adapter specialisations should defer
+    // to the underlying library.
     DXmlString write() const
     {
         DXmlString out;
         out.reserve(256);
 
         out += "<?xml version=\"";
-        out += m_doc.version;
+        internal::xml_escape_append_helper(out, m_doc.version, true);
         out += "\" encoding=\"";
-        out += m_doc.encoding;
+        internal::xml_escape_append_helper(out, m_doc.encoding, true);
         out += "\"";
 
         if (m_doc.standalone == DXmlStandalone::yes)
@@ -751,7 +807,7 @@ private:
             _out += " ";
             _out += a.name;
             _out += "=\"";
-            _out += a.value;
+            internal::xml_escape_append_helper(_out, a.value, true);
             _out += "\"";
         }
 
@@ -768,7 +824,7 @@ private:
 
         if (!_n.text.empty())
         {
-            _out += _n.text;
+            internal::xml_escape_append_helper(_out, _n.text, false);
         }
 
         if (!_n.children.empty())
@@ -887,4 +943,4 @@ NS_END  // djinterp
 
 #endif  // floor, for now
 
-#endif  // DJINTERP_TEXT_XML_XML_TEMPLATE_HPP
+#endif  // DJINTERP_TEXT_XML_TEMPLATE_HPP
