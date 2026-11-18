@@ -41,7 +41,7 @@
 * path:      /inc/djinterp/cpp/util/document/layout/layout_interpret.hpp
 * link(s):   ch-synthesis.tex
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -86,7 +86,7 @@ VII.  RENDER_DOCUMENT                     (the whole pipeline)
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../../djinterp.hpp"                 // NS_*, gates, D_NODISCARD
+#include "../../../djinterp.hpp"                 // framework root
 #include "./layout.hpp"                       // DLayoutDoc, DLayoutAtom, builders, observers
 #include "../templates/document_attributes.hpp"          // DDocAttributes, attr_or, doc_attr_*
 #include "../templates/document_renderer.hpp"            // DDocumentRenderer

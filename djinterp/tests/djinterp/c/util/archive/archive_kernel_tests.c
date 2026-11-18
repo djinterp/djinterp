@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/c/util/archive/archive_kernel_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.11
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "archive_kernel_tests.h"  // the suite's entry point and helpers
 // std
@@ -307,6 +307,7 @@ d_tests_archive_kernel_all(
     d_tests_ak_pax();
     d_tests_ak_reader();
     d_tests_ak_zip();
+    d_tests_ak_gzip();
 
     d_tests_ak_suite = NULL;
 

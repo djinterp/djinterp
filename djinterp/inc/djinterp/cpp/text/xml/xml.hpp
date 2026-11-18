@@ -51,7 +51,7 @@
 * path:      /inc/djinterp/cpp/text/xml/xml.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.08
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -391,6 +391,14 @@ struct is_xml_backend
     D_STATIC_CONSTEXPR bool is_xml_backend_v =
         is_xml_backend<Type>::value;
 #endif
+
+
+// Sections V to XIII, the structural traits, their variable templates and
+// concepts, live in djinterp::xml, as each markup module's do in its own
+// namespace: their generic names (has_save_method, has_children_method, ...)
+// then can't collide with another module's probes of the same name. The
+// vocabulary above (sections I to IV) stays in djinterp.
+namespace xml {
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1398,6 +1406,9 @@ concept complete_xml_backend =
       has_make_document_method<Type>::value );
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+
+}  // namespace xml
 
 
 NS_END  // djinterp

@@ -3,16 +3,14 @@
 *
 *   The group for html/html_printer.hpp: DHtmlPrintPolicy's escaping and
 * element forms, and a document of cpp/util/document printed through it, at
-* compile time (DHtmlDocument) and boxed (html_policy). Kept apart from the
-* tree's unit: html_printer.hpp includes cpp/util/document/document.hpp,
-* whose DXmlDocument clashes with xml_template.hpp's, until the clash is
-* settled.
+* compile time (DHtmlDocument) and boxed (html_policy). That this header and
+* the tree's can share a unit is checked in html_tests_tree.cpp.
 *
 *
 * path:      /tests/djinterp/cpp/text/html_tests_printer.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "html_tests.hpp"  // D_TESTS_TEXT_CHECK, the groups
 // std

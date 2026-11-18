@@ -44,7 +44,7 @@
 * path:      /inc/djinterp/cpp/util/document/document_format.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.05
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -75,7 +75,7 @@ III.  CLASSIFICATION                 (format_is_markup / format_is_binary)
 #include <cstddef>
 #include <string>
 // djinterp
-#include "../../djinterp.hpp"   // NS_*, D_NODISCARD, D_NOEXCEPT, gates
+#include "../../djinterp.hpp"   // framework root
 
 
 NS_DJINTERP

@@ -8,20 +8,28 @@
 *   The freestanding factories (make_div and the rest) are not called here:
 * each allocates a node that nothing can adopt, so each leaks, until that is
 * settled.
+*   It also includes html_printer.hpp, whose printed documents (djinterp's
+* DHtmlDocument and DXmlDocument) share their names with the trees
+* (djinterp::html's and djinterp::xml's), to check they share a unit.
 *
 *
 * path:      /tests/djinterp/cpp/text/html_tests_tree.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "html_tests.hpp"  // D_TESTS_TEXT_CHECK, the groups
 // std
 #include <string>  // std::string
 #include <vector>  // std::vector
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    #include <type_traits>  // std::is_same
+#endif
 // djinterp
 #include "../../../../inc/djinterp/cpp/djinterp.hpp"  // framework root
 #include "../../../../inc/djinterp/cpp/text/html/html_template.hpp"  // tree
+#include "../../../../inc/djinterp/cpp/text/html/html_printer.hpp"  // printer
+#include "../../../../inc/djinterp/cpp/text/xml/xml_template.hpp"  // XML tree
 
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
@@ -32,7 +40,7 @@ typedef djinterp::html::DHtmlDocument<djinterp::html::DHtmlDefaultBackend>
     html_document;
 typedef djinterp::html::DHtmlElement<djinterp::html::DHtmlDefaultBackend>
     html_element;
-typedef djinterp::DXmlNode<djinterp::html::DHtmlDefaultBackend> xml_node;
+typedef djinterp::xml::DXmlNode<djinterp::html::DHtmlDefaultBackend> xml_node;
 
 
 /*
@@ -223,14 +231,51 @@ d_tests_html_tree_traits(void)
     D_TESTS_TEXT_CHECK(is_html_backend<DHtmlDefaultBackend>::value &&
                        is_html_backend_complete<DHtmlDefaultBackend>::value &&
                        djinterp::is_xml_backend<DHtmlDefaultBackend>::value &&
-                       djinterp::is_xml_backend_complete<
+                       djinterp::xml::is_xml_backend_complete<
                            DHtmlDefaultBackend>::value);
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
     D_TESTS_TEXT_CHECK(full_html_element<html_element> &&
                        full_html_document<html_document>);
     D_TESTS_TEXT_CHECK(complete_html_backend<DHtmlDefaultBackend> &&
-                       djinterp::complete_xml_backend<DHtmlDefaultBackend>);
+                       djinterp::xml::complete_xml_backend<
+                           DHtmlDefaultBackend>);
 #endif
+
+    return;
+}
+
+/*
+d_tests_html_tree_beside_printer
+  The trees and the printer's documents in one unit. Each name means its own
+type: the printed documents are djinterp's, the trees djinterp::html's and
+djinterp::xml's.
+  Tests the following:
+  - djinterp::DHtmlDocument (a document printed as HTML) is not
+    djinterp::html::DHtmlDocument (the tree), and each can be made here
+  - djinterp::DXmlDocument (a document printed as XML) is not
+    djinterp::xml::DXmlDocument (the tree), and each can be made here
+*/
+void
+d_tests_html_tree_beside_printer(void)
+{
+    typedef djinterp::xml::DXmlDocument<djinterp::xml::DXmlDefaultBackend>
+        xml_document;
+
+    const html_document           tree;
+    const djinterp::DHtmlDocument printed;
+    const xml_document            xml_tree =
+        djinterp::xml::make_default_document();
+    const djinterp::DXmlDocument  xml_printed;
+
+    D_TESTS_TEXT_CHECK((!std::is_same<djinterp::DHtmlDocument,
+                                      html_document>::value));
+    D_TESTS_TEXT_CHECK((!std::is_same<djinterp::DXmlDocument,
+                                      xml_document>::value));
+    D_TESTS_TEXT_CHECK(tree.html_version() ==
+                       djinterp::html::DHtmlVersion::html5);
+    (void)printed;
+    (void)xml_tree;
+    (void)xml_printed;
 
     return;
 }

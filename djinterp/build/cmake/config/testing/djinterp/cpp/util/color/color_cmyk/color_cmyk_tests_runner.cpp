@@ -12,20 +12,18 @@
 *       ./color_cmyk_tests
 *
 *
-* path:      /tests/djinterp/cpp/util/color/color_cmyk_tests_runner.cpp
-*            color_cmyk_tests_runner.cpp
+* path:      /build/cmake/config/testing/djinterp/cpp/util/color/color_cmyk/color_cmyk_tests_runner.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #define DTEST_SPEC_MODE 1
 
 // std
-#include <string>
+#include <string>  // std::string
 // djinterp
-// djinterp [tests]
-#include "color_cmyk_tests.hpp"
+#include "color_cmyk_tests.hpp"  // the suite's spec
 
 
 // main

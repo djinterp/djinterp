@@ -16,7 +16,7 @@
 * path:      /inc/djinterp/cpp/util/document/templates/table_model_dialect.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.23
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_DOCUMENT_TEMPLATES_TABLE_MODEL_DIALECT_HPP
@@ -31,7 +31,7 @@
 // std
 #include <string>
 // djinterp
-#include "../../../djinterp.hpp"        // NS_*, D_NODISCARD
+#include "../../../djinterp.hpp"        // framework root
 #include "../document_format.hpp"       // DDocumentFormat
 #include "./document_dialect.hpp"       // DDocumentDialect, make_document_dialect
 #include "./table_model_render.hpp"     // render_table_model, table_render_*

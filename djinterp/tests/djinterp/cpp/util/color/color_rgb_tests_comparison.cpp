@@ -5,10 +5,10 @@
 * path:      /tests/djinterp/cpp/util/color/color_rgb_tests_comparison.cpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 // djinterp
-#include "color_rgb_tests.hpp"
+#include "color_rgb_tests.hpp"  // the suite's declarations
 
 NS_DJINTERP
 NS_TESTING
@@ -243,6 +243,44 @@ bool tests_color_rgba_equality_is_constexpr()
     D_CR_CHECK(same);
     D_CR_CHECK(!diff);
     D_CR_CHECK(ne);
+
+    return true;
+}
+
+
+/*
+tests_color_rgb_equality_accepts_the_c_struct
+  Verifies == and != accept the C kernel's struct as either operand. The
+  operators are hidden friends, so the struct converts on whichever side it
+  sits, at every level: a member operator would accept it only on the right,
+  and at C++20 a declared operator!= stops == being tried reversed.
+  Tests the following:
+  - dj_color_rgb == rgb and rgb == dj_color_rgb, and the same for !=
+  - dj_color_rgba == rgba and rgba == dj_color_rgba, and the same for !=
+*/
+bool tests_color_rgb_equality_accepts_the_c_struct()
+{
+    const rgb           c(channel_t(0.25), channel_t(0.5), channel_t(0.75));
+    const dj_color_rgb  same = c;
+    const dj_color_rgb  other = rgb(channel_t(0.25), channel_t(0.5),
+                                    channel_t(0.125));
+    const rgba          ca(channel_t(0.25), channel_t(0.5), channel_t(0.75),
+                           channel_t(0.5));
+    const dj_color_rgba same_a = ca;
+    const dj_color_rgba other_a = rgba(channel_t(0.25), channel_t(0.5),
+                                       channel_t(0.75), channel_t(1.0));
+
+    D_CR_CHECK(same == c);
+    D_CR_CHECK(c == same);
+    D_CR_CHECK(other != c);
+    D_CR_CHECK(c != other);
+    D_CR_CHECK(!(same != c));
+    D_CR_CHECK(!(c == other));
+
+    D_CR_CHECK(same_a == ca);
+    D_CR_CHECK(ca == same_a);
+    D_CR_CHECK(other_a != ca);
+    D_CR_CHECK(ca != other_a);
 
     return true;
 }

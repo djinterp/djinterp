@@ -49,7 +49,7 @@
 * path:      /inc/djinterp/cpp/util/pdf/pdf.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.22
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -87,7 +87,7 @@ X.    DOCUMENT FACADE
 */
 
 #ifndef DJINTERP_UTIL_PDF_PDF_HPP
-#define DJINTERP_UTIL_PDF_PDF_HPP
+#define DJINTERP_UTIL_PDF_PDF_HPP 1
 
 // FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
 // 2's rule). The owner's ruling: compile at every level first; port down only

@@ -12,8 +12,10 @@ From the agreement of 2026-11-13 until 12-11:
   agreement of those who use it (the table under "Who uses what").
 - **Additions are allowed**: a new function, a new constant, a new
   destination. No member is added to a struct that callers declare or
-  copy (`dj_pack_sink`, `dj_ostream`, `dj_ostream_value`, `dj_ostream_spec`,
-  `dj_ostream_template`), since that changes its layout.
+  copy, since that changes its layout: `dj_pack_text`, `dj_pack_bytes`,
+  `dj_pack_sink`, `dj_pack_counting_sink`, `dj_pack_buffer_sink`,
+  `dj_ostream`, `dj_ostream_value`, `dj_ostream_spec` and
+  `dj_ostream_template`.
 - **Every change is announced** with the delivery that makes it, to those
   who use what changed.
 
@@ -21,7 +23,7 @@ From the agreement of 2026-11-13 until 12-11:
 
 | Header | What it is | Its unit |
 |---|---|---|
-| `c/util/sink_common.h` | the sink: `struct dj_pack_sink` (a write function and its context), `d_sink_emit`, and the counting and buffer sinks | `sink_common.c`, in the runtime |
+| `c/util/sink_common.h` | the spans (`struct dj_pack_text` and `struct dj_pack_bytes`, with their makers and comparison), the sink (`struct dj_pack_sink`, a write function and its context), `d_sink_emit`, and the counting and buffer sinks | `sink_common.c`, in the runtime |
 | `c/util/ostream/ostream.h` | the stream: a window of writable bytes and a slow path, transports and storage, a sticky status, integers, cursors, a fixed array, a `dj_string`, a fan-out | `ostream.c` in the runtime; `ostream_string.c`, listed by its users |
 | `c/util/ostream/ostream_file.h` | a `FILE*`, lent or owned, through `c/filesys` | `ostream_file.c`, listed by its users |
 | `c/util/ostream/ostream_console.h` | standard output and error, written as the platform needs | `ostream_console.c`, listed by its users |
@@ -44,14 +46,43 @@ The knobs, each fixed when compiling:
 
 ## What each promises
 
+### The spans
+
+- `struct dj_pack_text` is `data` and `length`; `struct dj_pack_bytes` is
+  `data` and `size`. Both are borrowed, own nothing, are passed by value,
+  and have one layout in C and C++.
+- **The length is what counts, not a NUL.** A text span may run past a NUL
+  or have none at its end. Its encoding isn't implied.
+- `D_PACK_TEXT_NONE` and `D_PACK_BYTES_NONE` are the empty spans, as brace
+  initialisers.
+- `d_pack_text_from_cstr` measures to the NUL; `d_pack_text_from_span` and
+  `d_pack_bytes_from_span` take the length given. A null pointer is the
+  empty span, whatever length comes with it. None allocates or fails.
+- `d_pack_text_equal` compares the lengths, then the bytes, so an interior
+  NUL counts. Two empty spans are equal whatever their pointers.
+  `d_pack_text_is_empty` holds for a null pointer or a zero length.
+
 ### The sink
 
-- `struct dj_pack_sink` is two members, `write` and `context`, passed by
-  value. It owns nothing.
+- `struct dj_pack_sink` is two members, `write` (a `dj_pack_sink_write_fn`)
+  and `context`, passed by value. It owns nothing.
 - `write(context, data, size)` returns the number of bytes it took. Fewer
   than `size` is a failure, and the sink may set `errno` to say why.
-- `d_sink_emit` returns 1 when the sink took every byte, and 0 otherwise. A
-  zero-size write succeeds without calling the sink.
+- `d_sink_emit` returns 1 when the sink took every byte, and 0 otherwise: a
+  short write, or a sink with no write function. A zero-size write to a sink
+  with one succeeds without calling it.
+- **A counting sink** (`struct dj_pack_counting_sink`,
+  `d_pack_counting_sink_init`, `d_pack_sink_from_counter`) takes everything
+  and keeps the total in `total`.
+- **A buffer sink** (`struct dj_pack_buffer_sink`, `d_pack_buffer_sink_init`,
+  `d_pack_sink_from_buffer`) writes into memory the caller owns, `capacity`
+  bytes of it. It takes every write and counts every byte offered in
+  `needed`, which stops at `SIZE_MAX`. A write that fits whole is copied and
+  added to `written`. One that doesn't is not copied, `overflow` is set, and
+  nothing is copied after that, so the buffer always holds the output's
+  first `written` bytes. With no buffer and no capacity it only measures.
+- A sink over a counter or a buffer borrows it, so the counter or buffer
+  must outlive the sink.
 
 ### The stream
 
@@ -150,17 +181,22 @@ The knobs, each fixed when compiling:
 
 ## Who uses what
 
-On the tree of 2026-11-13:
+On the tree of 2026-11-17:
 
 | Where | What it uses |
 |---|---|
 | DTest's `test_event.h` and `test_object.h` | `struct dj_pack_sink` |
-| the environment printer (`env_printer.h`, `.hpp`, `.c`) | the stream (`d_ostream_init_file`, `_set_buffer`, `_write`, `_write_char`, `_write_cstr`, `_fail`, `_close`, `_status`, `_is_ok`), templates (`_template_compile`, `_template_render`), values (`d_ostream_value_bool`, `_int64`, `_long`, `_none`, `_real`, `_size`, `_text`, `_text_n`, `_to_long`), and `DOutputStream` |
-| desc (`desc.h`, `desc_units.h`, `desc_units.c`) | `struct dj_ostream_value`, `d_ostream_value_none`, `_text` and `_text_n` |
-| the argument parser, C and C++ | `struct dj_pack_sink`, `d_sink_emit` |
-| vparse's command line | `struct dj_pack_sink` |
-| the CLI kit, the djinterp program, bitwisedom's command line, the interpreter's `djin.c` | `struct dj_pack_sink`, `d_sink_emit` |
-| net (`pop`, `imap`, `net_common`, `net_memory`) | `struct dj_pack_sink`, `d_sink_emit` |
+| the environment printer (`env_printer.h`, `.hpp`, `.c`) | the stream (`d_ostream_init_file`, `_set_buffer`, `_write`, `_write_char`, `_write_cstr`, `_fail`, `_close`, `_status`, `_is_ok`), templates (`_template_compile`, `_template_render`), values (`d_ostream_value_bool`, `_int64`, `_long`, `_none`, `_real`, `_size`, `_text`, `_text_n`, `_to_long`), the codes `D_OSTREAM_OK` and `D_OSTREAM_INVALID`, and `DOutputStream` |
+| desc (`desc.h`, `desc_units.h`, `desc_units.c`, its machines, and option_env's `option_env_desc.c`) | the fixed stream (`d_ostream_init_fixed`, `_fixed_length`, `_fixed_truncated`), `d_ostream_fill`, `_write`, `_write_char`, `_write_cstr`, `_write_value`, `_is_ok`, `_close` and `_spec_init`; `struct dj_ostream_value`, `d_ostream_value_none`, `_text`, `_text_n`, `_int64`, `_real` and `_bool`, and `D_OSTREAM_VALUE_*`; `D_OSTREAM_CONVERT_JSON` and `_RAW` |
+| the log | everything desc uses; the console (`d_ostream_init_console`, `D_OSTREAM_CONSOLE_ERR`), `d_ostream_open_file`, `_set_buffer` and `_flush`; templates (`d_ostream_template_compile`, `_template_render`, `D_OSTREAM_TEMPLATE_OK` and `_INVALID`), for its codes' templates, in the template language (`{name}`, `{name!json}`, `{name:spec}`, `{?name}...{:}...{/}`); the values `d_ostream_value_long`, `_ulong`, `_uint64` and `_size` |
+| the argument parser, C and C++ | `struct dj_pack_sink`, `d_sink_emit`; `struct dj_pack_text` throughout its public headers, and `D_PACK_TEXT_NONE`; `d_pack_text_from_cstr` and `d_pack_text_equal` in its suites |
+| vparse's command line | `struct dj_pack_sink`, `struct dj_pack_text` |
+| the CLI kit (`tools/cli`), in its public headers and their C++ faces | `struct dj_pack_sink`, `dj_pack_sink_write_fn`, `struct dj_pack_text`, `D_PACK_TEXT_NONE`, `d_pack_text_from_cstr`, `d_pack_text_equal` |
+| the djinterp program | `struct dj_pack_sink`, `d_sink_emit`, `struct dj_pack_text` |
+| bitwisedom's command line, the interpreter's `djin.c` and `djin.h` | `struct dj_pack_sink`, `d_sink_emit` |
+| the interpreter's suite | `struct dj_pack_buffer_sink`, `d_pack_buffer_sink_init`, `d_pack_sink_from_buffer` |
+| net, C and C++, throughout (its root, `codec`, `curl`, `ftp`, `http`, `imap`, `pop`, `sftp`, `smtp`, `ssh`, `ssl`, `starttls`, `tcp`, `tls`) | `struct dj_pack_text`, `struct dj_pack_bytes`, `struct dj_pack_sink`, `d_pack_text_from_cstr`; `d_pack_text_from_span` in `imap`'s suite; `d_sink_emit` in `pop` and `imap` |
+| compression and archiving | `struct dj_pack_sink`, `d_sink_emit`, the counting and buffer sinks |
 
 Writers of JSON for machines, such as log records and descriptions, use the
 entry point under "JSON".

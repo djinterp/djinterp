@@ -54,7 +54,7 @@
 * path:      /inc/djinterp/cpp/util/pdf/pdf_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.25
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_PDF_PDF_TEMPLATE_HPP
@@ -70,7 +70,7 @@
 #include <map>
 #include <string>
 // djinterp
-#include "../../djinterp.hpp"                        // NS_*, D_NODISCARD, D_NOEXCEPT
+#include "../../djinterp.hpp"                        // framework root
 #include "../document/document_template.hpp"         // DDocumentTemplate, DTemplateContext,
                                                      // DTemplateElement, render_template
 #include "./pdf_canvas.hpp"                          // DPdfPageSize, DPdfUnit, canvas_style,

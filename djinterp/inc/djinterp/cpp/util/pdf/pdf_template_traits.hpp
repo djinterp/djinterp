@@ -27,7 +27,7 @@
 * path:      /inc/djinterp/cpp/util/pdf/pdf_template_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.22
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -55,8 +55,8 @@ VII.  C++20 CONCEPT WRAPPERS
       ----------------------
 */
 
-#ifndef DJINTERP_UTIL_PDF_PDF_TEMPLATE_TRAITS_HPP
-#define DJINTERP_UTIL_PDF_PDF_TEMPLATE_TRAITS_HPP 1
+#ifndef DJINTERP_UTIL_PDF_TEMPLATE_TRAITS_HPP
+#define DJINTERP_UTIL_PDF_TEMPLATE_TRAITS_HPP 1
 
 // FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
 // 2's rule). The owner's ruling: compile at every level first; port down only
@@ -65,12 +65,11 @@ VII.  C++20 CONCEPT WRAPPERS
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 // std
-#include <cstddef>
-#include <string>
-#include <type_traits>
+#include <string>       // std::string
+#include <type_traits>  // std::false_type, std::true_type, std::declval
 // djinterp
-#include "../../djinterp.hpp"
-#include "./pdf.hpp"
+#include "../../djinterp.hpp"  // framework root
+#include "./pdf.hpp"           // DPdfPoint, DPdfPageSize, DPdfTextOptions
 
 
 NS_DJINTERP
@@ -79,6 +78,12 @@ NS_DJINTERP
 ///////////////////////////////////////////////////////////////////////////////
 ///                I.   BACKEND METHOD DETECTION                             ///
 ///////////////////////////////////////////////////////////////////////////////
+
+// The 20 structural probes (sections I to III) live in djinterp::pdf, so
+// that their generic names (has_save_method, has_open_method, ...) can't
+// collide with another module's probes of the same name. The composites
+// is_pdf_backend and is_pdf_document, and pdf_class, stay in djinterp.
+namespace pdf {
 
 // has_begin_document_method
 //   trait: true if Type exposes begin_document().
@@ -283,6 +288,8 @@ struct has_output_protocol
           has_save_method<clean_t<Type>>::value );
 };
 
+}  // namespace pdf
+
 // is_pdf_backend
 //   trait: composite - Type satisfies the full common-subset
 // backend protocol structurally, whether or not it derives from
@@ -291,18 +298,20 @@ template<typename Type>
 struct is_pdf_backend
 {
     static constexpr bool value =
-        ( has_document_lifecycle<clean_t<Type>>::value     &&
-          has_page_lifecycle<clean_t<Type>>::value         &&
-          has_drawing_protocol<clean_t<Type>>::value       &&
-          has_set_metadata_method<clean_t<Type>>::value    &&
-          has_capabilities_method<clean_t<Type>>::value    &&
-          has_output_protocol<clean_t<Type>>::value );
+        ( pdf::has_document_lifecycle<clean_t<Type>>::value     &&
+          pdf::has_page_lifecycle<clean_t<Type>>::value         &&
+          pdf::has_drawing_protocol<clean_t<Type>>::value       &&
+          pdf::has_set_metadata_method<clean_t<Type>>::value    &&
+          pdf::has_capabilities_method<clean_t<Type>>::value    &&
+          pdf::has_output_protocol<clean_t<Type>>::value );
 };
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                III. DOCUMENT METHOD DETECTION                            ///
 ///////////////////////////////////////////////////////////////////////////////
+
+namespace pdf {
 
 // has_open_method
 //   trait: true if Type exposes open().
@@ -373,6 +382,8 @@ struct has_to_bytes_method<Type, void_t<
 >> : std::true_type
 {};
 
+}  // namespace pdf
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                IV.  DOCUMENT COMPOSITE                                   ///
@@ -385,11 +396,11 @@ template<typename Type>
 struct is_pdf_document
 {
     static constexpr bool value =
-        ( has_open_method<clean_t<Type>>::value       &&
-          has_close_method<clean_t<Type>>::value      &&
-          has_add_page_method<clean_t<Type>>::value   &&
-          has_text_method<clean_t<Type>>::value       &&
-          has_save_method<clean_t<Type>>::value );
+        ( pdf::has_open_method<clean_t<Type>>::value       &&
+          pdf::has_close_method<clean_t<Type>>::value      &&
+          pdf::has_add_page_method<clean_t<Type>>::value   &&
+          pdf::has_text_method<clean_t<Type>>::value       &&
+          pdf::has_save_method<clean_t<Type>>::value );
 };
 
 
@@ -407,17 +418,17 @@ struct pdf_class
     // Backend Protocol
     // -----------------------------------------------------------------
     static constexpr bool has_doc_lifecycle =
-        has_document_lifecycle<clean_t<Type>>::value;
+        pdf::has_document_lifecycle<clean_t<Type>>::value;
     static constexpr bool has_page_lifecycle =
-        ::djinterp::has_page_lifecycle<clean_t<Type>>::value;
+        ::djinterp::pdf::has_page_lifecycle<clean_t<Type>>::value;
     static constexpr bool has_drawing =
-        has_drawing_protocol<clean_t<Type>>::value;
+        pdf::has_drawing_protocol<clean_t<Type>>::value;
     static constexpr bool has_metadata =
-        has_set_metadata_method<clean_t<Type>>::value;
+        pdf::has_set_metadata_method<clean_t<Type>>::value;
     static constexpr bool has_caps =
-        has_capabilities_method<clean_t<Type>>::value;
+        pdf::has_capabilities_method<clean_t<Type>>::value;
     static constexpr bool has_output =
-        has_output_protocol<clean_t<Type>>::value;
+        pdf::has_output_protocol<clean_t<Type>>::value;
     static constexpr bool is_backend =
         is_pdf_backend<clean_t<Type>>::value;
 
@@ -425,9 +436,9 @@ struct pdf_class
     // Document Façade
     // -----------------------------------------------------------------
     static constexpr bool has_paging =
-        has_add_page_method<clean_t<Type>>::value;
+        pdf::has_add_page_method<clean_t<Type>>::value;
     static constexpr bool has_text =
-        has_text_method<clean_t<Type>>::value;
+        pdf::has_text_method<clean_t<Type>>::value;
     static constexpr bool is_document =
         is_pdf_document<clean_t<Type>>::value;
 };
@@ -438,6 +449,8 @@ struct pdf_class
 ///////////////////////////////////////////////////////////////////////////////
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+
+namespace pdf {
 
     template<typename Type>
     D_CONSTEXPR bool has_draw_text_method_v =
@@ -458,6 +471,8 @@ struct pdf_class
     template<typename Type>
     D_CONSTEXPR bool has_output_protocol_v =
         has_output_protocol<clean_t<Type>>::value;
+
+}  // namespace pdf
 
     template<typename Type>
     D_CONSTEXPR bool is_pdf_backend_v =
@@ -497,4 +512,4 @@ NS_END  // djinterp
 
 #endif  // floor, for now
 
-#endif  // DJINTERP_UTIL_PDF_PDF_TEMPLATE_TRAITS_HPP
+#endif  // DJINTERP_UTIL_PDF_TEMPLATE_TRAITS_HPP

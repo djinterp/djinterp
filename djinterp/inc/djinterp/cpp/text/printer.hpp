@@ -49,7 +49,7 @@
 * path:      /inc/djinterp/cpp/text/printer.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.18
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -197,7 +197,7 @@ NS_INTERNAL
         const Node& _node
     )
     {
-        if constexpr (has_name_method<Node>::value)
+        if constexpr (xml::has_name_method<Node>::value)
         {
             return to_string_value(_node.name());
         }
@@ -216,7 +216,7 @@ NS_INTERNAL
         const Node& _node
     )
     {
-        if constexpr (has_text_method<Node>::value)
+        if constexpr (xml::has_text_method<Node>::value)
         {
             return to_string_value(_node.text());
         }
@@ -237,7 +237,7 @@ NS_INTERNAL
         const Node& _node
     )
     {
-        if constexpr (has_kind_method<Node>::value)
+        if constexpr (xml::has_kind_method<Node>::value)
         {
             return static_cast<DXmlNodeKind>(_node.kind());
         }
@@ -257,7 +257,7 @@ NS_INTERNAL
         const Node& _node
     )
     {
-        if constexpr (has_attributes_method<Node>::value)
+        if constexpr (xml::has_attributes_method<Node>::value)
         {
             return _node.attributes();
         }
@@ -276,7 +276,7 @@ NS_INTERNAL
         const Node& _node
     )
     {
-        if constexpr (has_children_method<Node>::value)
+        if constexpr (xml::has_children_method<Node>::value)
         {
             return _node.children();
         }
@@ -295,7 +295,7 @@ NS_INTERNAL
         const Attribute& _attribute
     )
     {
-        if constexpr (has_name_method<Attribute>::value)
+        if constexpr (xml::has_name_method<Attribute>::value)
         {
             return to_string_value(_attribute.name());
         }
@@ -314,7 +314,7 @@ NS_INTERNAL
         const Attribute& _attribute
     )
     {
-        if constexpr (has_value_method<Attribute>::value)
+        if constexpr (xml::has_value_method<Attribute>::value)
         {
             return to_string_value(_attribute.value());
         }
@@ -616,12 +616,12 @@ public:
     )
     {
         static_assert(
-            is_xml_node<Node>::value,
+            xml::is_xml_node<Node>::value,
             "DDocumentPrinter::print requires a type satisfying the XML node "
             "protocol (a name accessor and child traversal).");
         static_assert(
-            ( has_children_method<Node>::value ||
-              has_get_children_method<Node>::value ),
+            ( xml::has_children_method<Node>::value ||
+              xml::has_get_children_method<Node>::value ),
             "DDocumentPrinter::print requires an iterable child accessor "
             "(children() or get_children()).");
 
@@ -734,8 +734,8 @@ private:
             case DXmlNodeKind::text:
             {
                 m_indent(_depth);
-                if constexpr (has_text_method<Node>::value ||
-                              has_get_text_method<Node>::value)
+                if constexpr (xml::has_text_method<Node>::value ||
+                              xml::has_get_text_method<Node>::value)
                 {
                     m_put(m_policy.escape_text(internal::read_text(_node)));
                 }
@@ -747,8 +747,8 @@ private:
             {
                 m_indent(_depth);
                 m_put("<!--");
-                if constexpr (has_text_method<Node>::value ||
-                              has_get_text_method<Node>::value)
+                if constexpr (xml::has_text_method<Node>::value ||
+                              xml::has_get_text_method<Node>::value)
                 {
                     m_put(internal::read_text(_node));
                 }
@@ -761,8 +761,8 @@ private:
             {
                 m_indent(_depth);
                 m_put("<![CDATA[");
-                if constexpr (has_text_method<Node>::value ||
-                              has_get_text_method<Node>::value)
+                if constexpr (xml::has_text_method<Node>::value ||
+                              xml::has_get_text_method<Node>::value)
                 {
                     m_put(internal::read_text(_node));
                 }
@@ -808,8 +808,8 @@ private:
 
         DXmlString   _text;
         bool         _has_text = false;
-        if constexpr (has_text_method<Node>::value ||
-                      has_get_text_method<Node>::value)
+        if constexpr (xml::has_text_method<Node>::value ||
+                      xml::has_get_text_method<Node>::value)
         {
             if (!_has_children)
             {
@@ -886,15 +886,15 @@ private:
         const Node& _node
     )
     {
-        if constexpr (has_attributes_method<Node>::value ||
-                      has_get_attributes_method<Node>::value)
+        if constexpr (xml::has_attributes_method<Node>::value ||
+                      xml::has_get_attributes_method<Node>::value)
         {
             auto&& _attributes = internal::read_attributes(_node);
             for (const auto& _attribute : _attributes)
             {
                 using attribute_type = clean_t<decltype(_attribute)>;
                 static_assert(
-                    is_xml_attribute<attribute_type>::value,
+                    xml::is_xml_attribute<attribute_type>::value,
                     "DDocumentPrinter: the attribute type yielded by the node "
                     "must expose a name and a value accessor.");
 
@@ -919,8 +919,8 @@ private:
         const Node& _node
     )
     {
-        if constexpr (has_kind_method<Node>::value ||
-                      has_get_kind_method<Node>::value)
+        if constexpr (xml::has_kind_method<Node>::value ||
+                      xml::has_get_kind_method<Node>::value)
         {
             return internal::read_kind(_node);
         }

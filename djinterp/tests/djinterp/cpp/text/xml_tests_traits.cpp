@@ -12,7 +12,7 @@
 * path:      /tests/djinterp/cpp/text/xml_tests_traits.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "xml_tests.hpp"  // D_TESTS_TEXT_CHECK, the groups
 // std
@@ -190,6 +190,7 @@ void
 d_tests_xml_vocabulary(void)
 {
     using namespace djinterp;
+    using namespace djinterp::xml;
 
     D_CONSTEXPR const char* ascii = xml_encoding_name(DXmlEncoding::us_ascii);
 
@@ -271,6 +272,7 @@ void
 d_tests_xml_accessors(void)
 {
     using namespace djinterp;
+    using namespace djinterp::xml;
 
     D_TESTS_TEXT_CHECK(has_name_method<DTestsXmlShortAttribute>::value &&
                        !has_get_name_method<DTestsXmlShortAttribute>::value);
@@ -318,6 +320,7 @@ void
 d_tests_xml_structure(void)
 {
     using namespace djinterp;
+    using namespace djinterp::xml;
 
     typedef DXmlNodeClass<DTestsXmlFullNode>   full;
     typedef DXmlNodeClass<DTestsXmlGetterNode> getter;
@@ -406,6 +409,7 @@ void
 d_tests_xml_documents(void)
 {
     using namespace djinterp;
+    using namespace djinterp::xml;
 
     typedef DXmlDocumentClass<DTestsXmlFullDocument> full;
     typedef DXmlDocumentClass<DTestsXmlDomDocument>  dom;
@@ -506,6 +510,7 @@ void
 d_tests_xml_dialect_properties(void)
 {
     using namespace djinterp;
+    using namespace djinterp::xml;
 
     typedef DXmlDialect<DXmlDialectFlag::custom> custom;
 
@@ -577,6 +582,7 @@ void
 d_tests_xml_dialect_names(void)
 {
     using namespace djinterp;
+    using namespace djinterp::xml;
 
     D_TESTS_TEXT_CHECK(DXmlDialect1_0::is_valid_element_name("a") &&
                        DXmlDialect1_0::is_valid_element_name("_x") &&
@@ -611,6 +617,7 @@ void
 d_tests_xml_dialect_detection(void)
 {
     using namespace djinterp;
+    using namespace djinterp::xml;
 
     D_TESTS_TEXT_CHECK(is_xml_dialect<DXmlDialect1_0>::value &&
                        is_xml_dialect<DXmlDialectCanonical1_1>::value &&

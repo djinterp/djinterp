@@ -15,8 +15,8 @@
 *   The HTML methods are non-virtual and resolve at compile time.
 *
 *   DEFAULT BACKEND REUSE:
-*   `DHtmlDefaultBackend` reuses XML's `internal::DDefaultNode` and
-*   `internal::DDefaultDocument` types verbatim. The backend exposes
+*   `DHtmlDefaultBackend` reuses XML's `xml::internal::DDefaultNode` and
+*   `xml::internal::DDefaultDocument` types verbatim. The backend exposes
 *   BOTH `backend_tag = DXmlDefaultBackendTag` (so XML traits classify
 *   it as a complete XML backend) AND
 *   `DHtmlBackendTag = DHtmlDefaultBackendTag` (so HTML traits
@@ -26,7 +26,7 @@
 * path:      /inc/djinterp/cpp/text/html/html_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.08
-*                                                            revised: 2026.11.15
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -79,7 +79,7 @@ namespace html {
 // DHtmlDefaultBackend
 //   struct: bundled in-memory backend for the HTML facades.
 // Reuses the XML default backend's storage types verbatim --
-// `internal::DDefaultNode` and `internal::DDefaultDocument` are
+// `xml::internal::DDefaultNode` and `xml::internal::DDefaultDocument` are
 // already perfect for HTML's tag/attribute/child/text shape, so
 // no parallel storage hierarchy is needed. Exposes BOTH the XML
 // backend tag (for XML-trait classification) and the HTML backend
@@ -99,15 +99,15 @@ struct DHtmlDefaultBackend
 
     // node_type
     //   type: storage type for nodes -- shared with XML.
-    using node_type        = internal::DDefaultNode;
+    using node_type        = xml::internal::DDefaultNode;
 
     // attribute_type
     //   type: storage type for attributes -- shared with XML.
-    using attribute_type   = DXmlAttribute;
+    using attribute_type   = xml::DXmlAttribute;
 
     // document_type
     //   type: storage type for documents -- shared with XML.
-    using document_type    = internal::DDefaultDocument;
+    using document_type    = xml::internal::DDefaultDocument;
 
     // element_type
     //   type: alias for node_type. Satisfies the
@@ -174,12 +174,12 @@ struct DHtmlDefaultBackend
 // sizeof(DXmlNode<B>)`.
 template<typename Backend>
 class DHtmlElement
-:   public DXmlNode<Backend>
+:   public xml::DXmlNode<Backend>
 {
 public:
     // base_type
     //   type: alias for the underlying XML node facade.
-    using base_type      = DXmlNode<Backend>;
+    using base_type      = xml::DXmlNode<Backend>;
 
     // node_type
     //   type: backend storage node type, inherited from base.
@@ -497,11 +497,11 @@ NS_INTERNAL
     // self-closed (`<br/>` for XHTML) or open (`<br>` for HTML5/4).
     inline
     void html_emit_node_helper(
-        std::ostream&       _out,
-        const DDefaultNode& _node,
-        bool                _xhtml,
-        std::size_t         _depth,
-        const char*         _indent
+        std::ostream&                      _out,
+        const xml::internal::DDefaultNode& _node,
+        bool                               _xhtml,
+        std::size_t                        _depth,
+        const char*                        _indent
     )
     {
         // indent for the opening tag.
@@ -528,7 +528,7 @@ NS_INTERNAL
         _out << '<' << _node.name;
         for (std::size_t i = 0; i < _node.attributes.size(); ++i)
         {
-            const ::djinterp::DXmlAttribute& a = _node.attributes[i];
+            const ::djinterp::xml::DXmlAttribute& a = _node.attributes[i];
             _out << ' ' << a.name << "=\"";
             html_escape_attr_helper(_out, a.value);
             _out << '"';
@@ -605,12 +605,12 @@ namespace html {
 // head/body/title shortcuts, HTML-aware emission).
 template<typename Backend>
 class DHtmlDocument
-:   public DXmlDocument<Backend>
+:   public xml::DXmlDocument<Backend>
 {
 public:
     // base_type
     //   type: alias for the underlying XML document facade.
-    using base_type     = DXmlDocument<Backend>;
+    using base_type     = xml::DXmlDocument<Backend>;
 
     // backend_type
     //   type: alias for the backend.

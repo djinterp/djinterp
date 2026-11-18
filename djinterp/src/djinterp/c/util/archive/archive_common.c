@@ -47,7 +47,7 @@
 * path:      /src/djinterp/c/util/archive/archive_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -841,6 +841,14 @@ void d_internal_resolve_blocks(
         {
             d_internal_knob_default(&_work->tar.format, D_TAR_FORMAT_PAX);
             d_internal_knob_default(&_work->tar.numeric_owner, 1);
+
+            // a .tar.gz's stream has gzip's header too
+            if (_format == D_FORMAT_ID_TAR_GZ)
+            {
+                d_internal_knob_default(&_work->gz.store_name,  0);
+                d_internal_knob_default(&_work->gz.store_mtime, 0);
+            }
+
             break;
         }
         case D_FORMAT_ID_GZ:
@@ -5163,6 +5171,127 @@ d_internal_archive_prepare(
 }
 
 /*
+d_internal_gz_header_of
+  The gzip header a create call writes, from the gz knobs.  With neither
+store flag set there is none at all, so the output stays byte-reproducible.
+A stored name is gz.original_name when it is set, and otherwise the last
+component of _name, as GNU gzip stores it.  A stored time is _mtime, when
+RFC 1952's field can hold it (1970 to 2106); otherwise none.
+
+Parameter(s):
+  _options: the archive options; their gz block is read.
+  _name:    the name to store when gz.original_name is empty; may be empty.
+  _mtime:   the time to store, in seconds since 1970; 0 for none.
+  _header:  receives the header.
+Return:
+  1 when a header is to be written; 0 when the stream keeps zlib's own.
+*/
+static int
+d_internal_gz_header_of(
+    const struct dj_archive_options* _options,
+    struct dj_pack_text              _name,
+    int64_t                          _mtime,
+    struct dj_gzip_header*           _header
+)
+{
+    const struct dj_gzip_header none = D_GZIP_HEADER_NONE;
+    size_t                      i;
+
+    *_header = none;
+
+    if ( (!_options->gz.store_name) &&
+         (!_options->gz.store_mtime) )
+    {
+        return 0;
+    }
+
+    if (_options->gz.store_name)
+    {
+        if (_options->gz.original_name.length > 0u)
+        {
+            _header->name = _options->gz.original_name;
+        }
+        else
+        {
+            // the last path component, after any '/'
+            for (i = _name.length; i > 0u; --i)
+            {
+                if (_name.data[i - 1u] == '/')
+                {
+                    break;
+                }
+            }
+
+            _header->name = d_pack_text_from_span(_name.data + i,
+                                                  _name.length - i);
+        }
+    }
+
+    if ( (_options->gz.store_mtime) &&
+         (_mtime > 0)                &&
+         (_mtime <= (int64_t)0xFFFFFFFFu) )
+    {
+        _header->mtime = (uint32_t)_mtime;
+    }
+
+    return 1;
+}
+
+/*
+d_internal_gz_name_size
+  The room a gzip stream's FNAME needs, NUL included, read from its RFC 1952
+header: 0 when it has none, or when the header is malformed (which the
+inflater then reports).
+
+Parameter(s):
+  _in:      the stream.
+  _in_size: how many bytes.
+Return:
+  The name's length plus one, or 0.
+*/
+static size_t
+d_internal_gz_name_size(
+    const void* _in,
+    size_t      _in_size
+)
+{
+    const unsigned char* p  = (const unsigned char*)_in;
+    size_t               at = 10u;
+    size_t               i;
+
+    if ( (p == NULL)    ||
+         (_in_size < 10u) ||
+         (p[0] != 0x1fu)  ||
+         (p[1] != 0x8bu)  ||
+         (p[2] != 8u)     ||
+         (!(p[3] & 0x08u)) )
+    {
+        return 0u;
+    }
+
+    // FEXTRA: two bytes of length, then the field
+    if (p[3] & 0x04u)
+    {
+        if (_in_size < 12u)
+        {
+            return 0u;
+        }
+
+        at = 12u + ((size_t)p[10] | ((size_t)p[11] << 8));
+    }
+
+    for (i = at; i < _in_size; ++i)
+    {
+        if (p[i] == 0u)
+        {
+            return (i - at) + 1u;
+        }
+    }
+
+    return 0u;
+}
+
+/*
 d_internal_tar_gz_create
   Write a tarball through a stage: the tar into the stage, then gzip from the
 stage into the sink.
@@ -5193,8 +5322,12 @@ d_internal_tar_gz_create(
     struct dj_pack_sink              _sink
 )
 {
+    const struct dj_pack_text  empty  = D_PACK_TEXT_NONE;
     struct dj_pack_buffer_sink tar;
     struct dj_pack_sink        sink;
+    struct dj_gzip_header      header;
+    int64_t                    newest = 0;
+    size_t                     i;
     enum dj_pack_status        status;
 
     d_pack_buffer_sink_init(&tar, _stage, _stage_cap);
@@ -5213,8 +5346,17 @@ d_internal_tar_gz_create(
         return D_PACK_STATUS_BACKEND_ERROR;
     }
 
-    return d_compress_to_sink(D_CODEC_ID_GZIP, _stage, tar.written,
-                              &_options->codec, _sink, NULL);
+    // the stream's time is the newest member's; its name only the knob's
+    for (i = 0u; i < _count; ++i)
+    {
+        newest = (_entries[i].mtime > newest) ? _entries[i].mtime : newest;
+    }
+
+    return d_internal_gz_header_of(_options, empty, newest, &header)
+        ? d_compress_gzip_to_sink(_stage, tar.written, &_options->codec,
+                                  &header, _sink, NULL)
+        : d_compress_to_sink(D_CODEC_ID_GZIP, _stage, tar.written,
+                             &_options->codec, _sink, NULL);
 }
 
 /*
@@ -5294,6 +5436,8 @@ d_internal_archive_write(
     struct dj_pack_sink              _sink
 )
 {
+    struct dj_gzip_header header;
+
     switch (_format)
     {
         case D_FORMAT_ID_TAR:
@@ -5314,10 +5458,16 @@ d_internal_archive_write(
                 return D_PACK_STATUS_INVALID_ARGUMENT;
             }
 
-            return d_compress_to_sink(D_CODEC_ID_GZIP,
-                                      _entries[0].data.data,
-                                      _entries[0].data.size,
-                                      &_options->codec, _sink, NULL);
+            return d_internal_gz_header_of(_options, _entries[0].name,
+                                           _entries[0].mtime, &header)
+                ? d_compress_gzip_to_sink(_entries[0].data.data,
+                                          _entries[0].data.size,
+                                          &_options->codec, &header, _sink,
+                                          NULL)
+                : d_compress_to_sink(D_CODEC_ID_GZIP,
+                                     _entries[0].data.data,
+                                     _entries[0].data.size,
+                                     &_options->codec, _sink, NULL);
         }
         case D_FORMAT_ID_TAR_GZ:
         {
@@ -5795,7 +5945,9 @@ d_archive_bound(
 
 /*
 d_internal_gz_read
-  Measure or extract a gz: one member, the whole stream, with no name.
+  Measure or extract a gz: one member, the whole stream, named and timed from
+its header when it carries them.  The arena holds the name, with its NUL,
+then the payload.
 
 Parameter(s):
   As d_internal_archive_read.
@@ -5804,22 +5956,42 @@ Return:
 */
 static enum dj_pack_status
 d_internal_gz_read(
-    const void*              _in,
-    size_t                   _in_size,
+    const void*               _in,
+    size_t                    _in_size,
     struct dj_archive_entry*  _entries,
-    size_t                   _entry_cap,
-    void*                    _arena,
-    size_t                   _arena_size,
+    size_t                    _entry_cap,
+    void*                     _arena,
+    size_t                    _arena_size,
     struct dj_archive_layout* _out
 )
 {
-    size_t             got = 0;
-    enum dj_pack_status status;
+    struct dj_pack_buffer_sink payload;
+    struct dj_gzip_header      header;
+    size_t                     name_size = d_internal_gz_name_size(_in,
+                                                                   _in_size);
+    char*                      name      = NULL;
+    unsigned char*             arena     = (unsigned char*)_arena;
+    enum dj_pack_status        status;
 
-    status            = d_decompress(D_CODEC_ID_GZIP, _in, _in_size,
-                                     _arena, _arena_size, &got);
+    // the name first, then the payload; with no room for the name, measure
+    if ( (arena != NULL) &&
+         (_arena_size >= name_size) )
+    {
+        name = (name_size > 0u) ? (char*)arena : NULL;
+        d_pack_buffer_sink_init(&payload, arena + name_size,
+                                _arena_size - name_size);
+    }
+    else
+    {
+        d_pack_buffer_sink_init(&payload, NULL, 0u);
+    }
+
+    status = d_decompress_gzip_to_sink(_in, _in_size, &header, name,
+                                       (name != NULL) ? name_size : 0u,
+                                       d_pack_sink_from_buffer(&payload),
+                                       NULL);
     _out->entry_count = 1u;
-    _out->arena_size  = got;
+    _out->arena_size  = name_size + payload.needed;
 
     if ( (status != D_PACK_STATUS_OK) ||
          ( (_entries == NULL) &&
@@ -5827,19 +5999,21 @@ d_internal_gz_read(
     {
         return status;
     }
-    if ( (_entries == NULL) ||
-         (_entry_cap < 1u) )
+    if ( (_entries == NULL)              ||
+         (_entry_cap < 1u)               ||
+         (arena == NULL)                 ||
+         (_arena_size < _out->arena_size) )
     {
         return D_PACK_STATUS_BUFFER_TOO_SMALL;
     }
 
-    _entries[0].name.data    = NULL;
-    _entries[0].name.length  = 0u;
-    _entries[0].data.data    = _arena;
-    _entries[0].data.size    = got;
+    _entries[0].name.data    = (name != NULL) ? header.name.data : NULL;
+    _entries[0].name.length  = (name != NULL) ? header.name.length : 0u;
+    _entries[0].data.data    = arena + name_size;
+    _entries[0].data.size    = payload.written;
     _entries[0].is_directory = 0;
     _entries[0].mode         = (uint32_t)D_ARCHIVE_MODE_FILE_DEFAULT;
-    _entries[0].mtime        = 0;
+    _entries[0].mtime        = (int64_t)header.mtime;
 
     return D_PACK_STATUS_OK;
 }

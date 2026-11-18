@@ -39,7 +39,7 @@
 * path:      /inc/djinterp/cpp/text/xml/xml_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.08
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -118,6 +118,11 @@ V.    FREE FUNCTIONS
 
 
 NS_DJINTERP
+
+// The tree lives in djinterp::xml, beside its traits, as HTML's lives in
+// djinterp::html; the vocabulary it uses (DXmlString, the enumerations, the
+// backend tags) stays in djinterp.
+namespace xml {
 
 
 // forward declarations
@@ -937,6 +942,9 @@ DXmlNode<Backend> find_child_by_path(
 
     return current;
 }
+
+
+}  // namespace xml
 
 
 NS_END  // djinterp

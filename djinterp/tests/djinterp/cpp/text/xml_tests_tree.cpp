@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/cpp/text/xml_tests_tree.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "xml_tests.hpp"  // D_TESTS_TEXT_CHECK, the groups
 // std
@@ -27,8 +27,10 @@
 
 // xml_document, xml_node
 //   the tree on its default backend.
-typedef djinterp::DXmlDocument<djinterp::DXmlDefaultBackend> xml_document;
-typedef djinterp::DXmlNode<djinterp::DXmlDefaultBackend>     xml_node;
+typedef djinterp::xml::DXmlDocument<djinterp::xml::DXmlDefaultBackend>
+    xml_document;
+typedef djinterp::xml::DXmlNode<djinterp::xml::DXmlDefaultBackend>
+    xml_node;
 
 
 /*
@@ -56,8 +58,8 @@ d_tests_xml_tree_attributes
 void
 d_tests_xml_tree_attributes(void)
 {
-    using djinterp::DXmlAttribute;
-    using djinterp::make_attribute;
+    using djinterp::xml::DXmlAttribute;
+    using djinterp::xml::make_attribute;
 
     const DXmlAttribute blank;
     const DXmlAttribute lang("lang", "en");
@@ -90,7 +92,7 @@ d_tests_xml_tree_nodes
 void
 d_tests_xml_tree_nodes(void)
 {
-    using djinterp::DXmlAttribute;
+    using djinterp::xml::DXmlAttribute;
     using djinterp::DXmlNodeKind;
 
     xml_document         doc("catalog");
@@ -160,7 +162,7 @@ void
 d_tests_xml_tree_documents(void)
 {
     using djinterp::DXmlStandalone;
-    using djinterp::make_default_document;
+    using djinterp::xml::make_default_document;
 
     const xml_document none;
     xml_document       doc("a");
@@ -276,7 +278,7 @@ d_tests_xml_tree_path
 void
 d_tests_xml_tree_path(void)
 {
-    using djinterp::find_child_by_path;
+    using djinterp::xml::find_child_by_path;
 
     xml_document doc("root");
     xml_node     root = doc.root_element();
@@ -308,6 +310,7 @@ void
 d_tests_xml_tree_traits(void)
 {
     using namespace djinterp;
+    using namespace djinterp::xml;
 
     D_TESTS_TEXT_CHECK(is_xml_node<xml_node>::value &&
                        is_xml_element<xml_node>::value);

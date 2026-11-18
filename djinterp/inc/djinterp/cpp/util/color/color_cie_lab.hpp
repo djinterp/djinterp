@@ -12,7 +12,7 @@
 * path:      /inc/djinterp/cpp/util/color/color_cie_lab.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -22,19 +22,19 @@ I.    cie_xyz
       -------
       a. model_tag, value_type, channels
       b. constructors / converting constructor
-      c.    operator==
+      c.    operator==, operator!=
             d. is_valid / clamp
 
 II.   cie_lab
       -------
       a. model_tag, value_type, channels
       b. constructors / converting constructor
-      c.    operator==
+      c.    operator==, operator!=
             d. is_valid / clamp
 */
 
-#ifndef DJINTERP_UTIL_COLOR_COLOR_CIE_LAB_HPP
-#define DJINTERP_UTIL_COLOR_COLOR_CIE_LAB_HPP 1
+#ifndef DJINTERP_UTIL_COLOR_CIE_LAB_HPP
+#define DJINTERP_UTIL_COLOR_CIE_LAB_HPP 1
 
 // FLOOR, FOR NOW: below C++14 this file is empty, rather than an error (round
 // 2's rule). The owner's ruling: compile at every level first; port down only
@@ -43,9 +43,9 @@ II.   cie_lab
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 // djinterp
-#include "../../djinterp.hpp"
-#include "../../../c/util/color/color_lab.h"
-#include "./color_common.hpp"
+#include "../../djinterp.hpp"  // framework root
+#include "../../../c/util/color/color_lab.h"  // dj_color_xyz, dj_color_lab
+#include "./color_common.hpp"  // channel_t, model tags
 
 
 NS_DJINTERP
@@ -88,15 +88,31 @@ struct cie_xyz : dj_color_xyz
     {}
 
     // operator==
-    //   compare: exact channel equality.
-    D_CONSTEXPR
+    //   compare: exact channel equality. A hidden friend rather than a
+    // member, so either operand may be the C struct, converted, at every
+    // level; found only when one operand is a cie_xyz.
+    friend D_CONSTEXPR
     bool operator==(
-        const cie_xyz& _other
-    ) const
+        const cie_xyz& _lhs,
+        const cie_xyz& _rhs
+    )
     {
-        return ( (x == _other.x) &&
-                 (y == _other.y) &&
-                 (z == _other.z) );
+        return ( (_lhs.x == _rhs.x) &&
+                 (_lhs.y == _rhs.y) &&
+                 (_lhs.z == _rhs.z) );
+    }
+
+    // operator!=
+    //   compare: the negation of operator==. Declared, so that it exists at
+    // every supported level; C++20 would otherwise rewrite a != b from ==,
+    // and earlier levels would not compile it at all.
+    friend D_CONSTEXPR
+    bool operator!=(
+        const cie_xyz& _lhs,
+        const cie_xyz& _rhs
+    )
+    {
+        return !(_lhs == _rhs);
     }
 
     // is_valid
@@ -154,15 +170,31 @@ struct cie_lab : dj_color_lab
     {}
 
     // operator==
-    //   compare: exact channel equality.
-    D_CONSTEXPR
+    //   compare: exact channel equality. A hidden friend rather than a
+    // member, so either operand may be the C struct, converted, at every
+    // level; found only when one operand is a cie_lab.
+    friend D_CONSTEXPR
     bool operator==(
-        const cie_lab& _other
-    ) const
+        const cie_lab& _lhs,
+        const cie_lab& _rhs
+    )
     {
-        return ( (l == _other.l) &&
-                 (a == _other.a) &&
-                 (b == _other.b) );
+        return ( (_lhs.l == _rhs.l) &&
+                 (_lhs.a == _rhs.a) &&
+                 (_lhs.b == _rhs.b) );
+    }
+
+    // operator!=
+    //   compare: the negation of operator==. Declared, so that it exists at
+    // every supported level; C++20 would otherwise rewrite a != b from ==,
+    // and earlier levels would not compile it at all.
+    friend D_CONSTEXPR
+    bool operator!=(
+        const cie_lab& _lhs,
+        const cie_lab& _rhs
+    )
+    {
+        return !(_lhs == _rhs);
     }
 
     // is_valid
@@ -187,4 +219,4 @@ NS_END  // djinterp
 
 #endif  // floor, for now
 
-#endif  // DJINTERP_UTIL_COLOR_COLOR_CIE_LAB_HPP
+#endif  // DJINTERP_UTIL_COLOR_CIE_LAB_HPP

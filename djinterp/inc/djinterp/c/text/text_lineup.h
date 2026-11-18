@@ -27,7 +27,7 @@
 * path:      /inc/djinterp/c/text/text_lineup.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.17
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -47,8 +47,8 @@ TABLE OF CONTENTS
     4.  d_text_lineup
 */
 
-#ifndef DJINTERP_C_TEXT_TEXT_LINEUP_H
-#define DJINTERP_C_TEXT_TEXT_LINEUP_H 1
+#ifndef DJINTERP_C_TEXT_LINEUP_H
+#define DJINTERP_C_TEXT_LINEUP_H 1
 
 // std
 #include <stddef.h>  // size_t
@@ -267,4 +267,4 @@ bool d_text_lineup(const struct dj_text_lineup_template* _template,
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_C_TEXT_TEXT_LINEUP_H
+#endif  // DJINTERP_C_TEXT_LINEUP_H

@@ -32,11 +32,11 @@
 * path:      /inc/djinterp/c/text/symbol/emoji/emoji.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.09.22
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
-#ifndef DJINTERP_C_TEXT_SYMBOL_EMOJI_EMOJI_H
-#define DJINTERP_C_TEXT_SYMBOL_EMOJI_EMOJI_H 1
+#ifndef DJINTERP_C_TEXT_SYMBOL_EMOJI_H
+#define DJINTERP_C_TEXT_SYMBOL_EMOJI_H 1
 
 // std
 #include <stddef.h>         // size_t
@@ -1432,4 +1432,4 @@ D_EXTERN_C_END
 #endif  // D_THREAD_LOCAL_AVAILABLE
 
 
-#endif  // DJINTERP_C_TEXT_SYMBOL_EMOJI_EMOJI_H
+#endif  // DJINTERP_C_TEXT_SYMBOL_EMOJI_H

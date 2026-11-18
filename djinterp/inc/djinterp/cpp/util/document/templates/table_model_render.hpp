@@ -56,7 +56,7 @@
 * path:      /inc/djinterp/cpp/util/document/templates/table_model_render.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.23
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -89,7 +89,7 @@ IV.   ONE-SHOT CONVENIENCE         (see table_model_dialect.hpp)
 #include <string>
 #include <vector>
 // djinterp
-#include "../../../djinterp.hpp"      // NS_*, D_NODISCARD, D_NOEXCEPT
+#include "../../../djinterp.hpp"      // framework root
 #include "../document_format.hpp"     // DDocumentFormat, format_is_markup
 #include "./document_attributes.hpp"  // DDocAttributes, doc_attr_*, DTextAlignment
 #include "./document_renderer.hpp"    // DDocumentRenderer

@@ -49,7 +49,7 @@
 * path:      /inc/djinterp/cpp/util/pdf/pdf_canvas_document_renderer.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.23
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -81,7 +81,7 @@ I.    DPdfCanvasDocumentRenderer (class)
 #include <string>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"                       // NS_*, D_NODISCARD
+#include "../../djinterp.hpp"                       // framework root
 #include "../document/templates/document_renderer.hpp"
                                                     // DDocumentRenderer,
                                                     // DDocAttributes, D_OVERRIDE

@@ -42,7 +42,7 @@
 * path:      /src/djinterp/c/util/compress/compress_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -1875,6 +1875,8 @@ void* d_internal_unconst(
 
 #if D_INTERNAL_COMPRESS_ZLIB_LEAF
 
+// std
+#include <stdlib.h>  // malloc, free: a gzip header's name
 // zlib
 #include <zlib.h>
 
@@ -1920,6 +1922,190 @@ d_internal_zlib_window_bits(
 }
 
 /*
+d_internal_zlib_default_os
+  The OS byte zlib writes in a gzip header of its own choosing, read from the
+header of an empty stream: zlib's own value on this platform, not a copy of
+its table.
+
+Return:
+  The byte, or D_GZIP_OS_UNKNOWN when zlib can't make the stream.
+*/
+static int
+d_internal_zlib_default_os(void)
+{
+    unsigned char out[32];
+    z_stream      zs;
+    int           os = D_GZIP_OS_UNKNOWN;
+
+    memset(&zs, 0, sizeof(zs));
+
+    if (deflateInit2(&zs, Z_DEFAULT_COMPRESSION, Z_DEFLATED, MAX_WBITS + 16,
+                     8, Z_DEFAULT_STRATEGY) != Z_OK)
+    {
+        return os;
+    }
+
+    zs.next_out  = out;
+    zs.avail_out = (uInt)sizeof(out);
+
+    // an empty gzip stream is 20 bytes; OS is the header's tenth
+    if ( (deflate(&zs, Z_FINISH) == Z_STREAM_END) &&
+         (zs.total_out > 9u) )
+    {
+        os = (int)out[9];
+    }
+
+    (void)deflateEnd(&zs);
+
+    return os;
+}
+
+/*
+d_internal_zlib_set_header
+  Hand zlib the gzip header to write, after deflateInit2 and before the first
+deflate.  zlib reads _gh and the name while it writes the header, so both
+must outlive the deflate calls.
+
+Parameter(s):
+  _zs:     the deflate stream, initialised for gzip.
+  _header: the header asked for; its name has no NUL (checked by the caller).
+  _gh:     receives zlib's header record.
+  _name:   receives a NUL-terminated copy of the name, to free after deflate;
+           NULL when there is no name.
+Return:
+  D_PACK_STATUS_OK, D_PACK_STATUS_NO_MEMORY, or D_PACK_STATUS_BACKEND_ERROR.
+*/
+static enum dj_pack_status
+d_internal_zlib_set_header(
+    z_stream*                    _zs,
+    const struct dj_gzip_header* _header,
+    gz_header*                   _gh,
+    char**                       _name
+)
+{
+    memset(_gh, 0, sizeof(*_gh));
+    *_name = NULL;
+
+    if (_header->name.length > 0u)
+    {
+        *_name = (char*)malloc(_header->name.length + 1u);
+
+        if (*_name == NULL)
+        {
+            return D_PACK_STATUS_NO_MEMORY;
+        }
+
+        memcpy(*_name, _header->name.data, _header->name.length);
+        (*_name)[_header->name.length] = '\0';
+        _gh->name = (Bytef*)*_name;
+    }
+
+    _gh->time = (uLong)_header->mtime;
+    _gh->os   = (_header->os == D_GZIP_OS_DEFAULT)
+              ? d_internal_zlib_default_os()
+              : (int)_header->os;
+
+    return (deflateSetHeader(_zs, _gh) == Z_OK)
+         ? D_PACK_STATUS_OK
+         : D_PACK_STATUS_BACKEND_ERROR;
+}
+
+/*
+d_internal_zlib_get_header
+  Ask zlib to record the gzip header it reads, after inflateInit2 and before
+the first inflate.  With no buffer for the name, a one-byte stand-in of no
+capacity still shows whether the stream has one.
+
+Parameter(s):
+  _zs:       the inflate stream, initialised for gzip.
+  _gh:       receives zlib's header record.
+  _name:     the caller's buffer for FNAME; may be NULL.
+  _capacity: its size, NUL included; clamped to what zlib can address.
+  _stand_in: a byte to point at when _name is NULL.
+*/
+static void
+d_internal_zlib_get_header(
+    z_stream*  _zs,
+    gz_header* _gh,
+    char*      _name,
+    size_t     _capacity,
+    char*      _stand_in
+)
+{
+    memset(_gh, 0, sizeof(*_gh));
+
+    if ( (_name != NULL) &&
+         (_capacity > 0u) )
+    {
+        // the last byte is cleared, so a name zlib had to cut is told apart
+        // from one that fitted
+        _name[_capacity - 1u] = '\0';
+        _gh->name             = (Bytef*)_name;
+        _gh->name_max         = (uInt)_capacity;
+    }
+    else
+    {
+        _gh->name     = (Bytef*)_stand_in;
+        _gh->name_max = 0u;
+    }
+
+    (void)inflateGetHeader(_zs, _gh);
+
+    return;
+}
+
+/*
+d_internal_zlib_take_header
+  Fill the caller's header from what zlib read.  zlib clears gz_header's name
+when the stream has none, and copies at most name_max bytes, ending in a NUL
+only when it fits.
+
+Parameter(s):
+  _gh:       zlib's header record, done.
+  _name:     the caller's buffer; may be NULL.
+  _capacity: its size, as given to d_internal_zlib_get_header.
+  _header:   receives the name, time and OS byte.
+*/
+static void
+d_internal_zlib_take_header(
+    const gz_header*       _gh,
+    char*                  _name,
+    size_t                 _capacity,
+    struct dj_gzip_header* _header
+)
+{
+    _header->mtime          = (uint32_t)_gh->time;
+    _header->os             = (int32_t)_gh->os;
+    _header->name.data      = NULL;
+    _header->name.length    = 0u;
+    _header->name_truncated = 0;
+
+    if (_gh->name == Z_NULL)
+    {
+        return;
+    }
+
+    if ( (_name == NULL) ||
+         (_capacity == 0u) )
+    {
+        _header->name_truncated = 1;
+
+        return;
+    }
+
+    if (_name[_capacity - 1u] != '\0')
+    {
+        _name[_capacity - 1u]   = '\0';
+        _header->name_truncated = 1;
+    }
+
+    _header->name.data   = _name;
+    _header->name.length = strlen(_name);
+
+    return;
+}
+
+/*
 d_internal_zlib_compress
   The DEFLATE-family compress leaf, serving raw DEFLATE, zlib and gzip -- one
 implementation with one framing parameter, rather than three near-copies.
@@ -1936,16 +2122,19 @@ Return:
 static enum dj_pack_status
 d_internal_zlib_compress(
     enum dj_codec_id                  _codec,
-    const void*                      _in,
-    size_t                           _in_size,
+    const void*                       _in,
+    size_t                            _in_size,
     const struct dj_compress_options* _options,
-    struct dj_pack_sink               _sink
+    struct dj_pack_sink               _sink,
+    const struct dj_gzip_header*      _header
 )
 {
-    unsigned char      stage[D_INTERNAL_COMPRESS_CHUNK];
-    z_stream           zs;
+    unsigned char       stage[D_INTERNAL_COMPRESS_CHUNK];
+    z_stream            zs;
+    gz_header           gh;
+    char*               name   = NULL;
     enum dj_pack_status status = D_PACK_STATUS_OK;
-    int                rc;
+    int                 rc;
 
     memset(&zs, 0, sizeof(zs));
 
@@ -1966,6 +2155,19 @@ d_internal_zlib_compress(
         return (rc == Z_MEM_ERROR)
              ? D_PACK_STATUS_NO_MEMORY
              : D_PACK_STATUS_BACKEND_ERROR;
+    }
+
+    if (_header != NULL)
+    {
+        status = d_internal_zlib_set_header(&zs, _header, &gh, &name);
+
+        if (status != D_PACK_STATUS_OK)
+        {
+            (void)deflateEnd(&zs);
+            free(name);
+
+            return status;
+        }
     }
 
     zs.next_in  = (Bytef*)d_internal_unconst(_in);
@@ -1997,6 +2199,7 @@ d_internal_zlib_compress(
     while (rc != Z_STREAM_END);
 
     (void)deflateEnd(&zs);
+    free(name);
 
     return status;
 }
@@ -2016,16 +2219,22 @@ D_PACK_STATUS_TRUNCATED_INPUT when it ends early.
 */
 static enum dj_pack_status
 d_internal_zlib_decompress(
-    enum dj_codec_id    _codec,
-    const void*        _in,
-    size_t             _in_size,
-    struct dj_pack_sink _sink
+    enum dj_codec_id       _codec,
+    const void*            _in,
+    size_t                 _in_size,
+    struct dj_pack_sink    _sink,
+    struct dj_gzip_header* _header,
+    char*                  _name,
+    size_t                 _name_capacity
 )
 {
-    unsigned char      stage[D_INTERNAL_COMPRESS_CHUNK];
-    z_stream           zs;
-    enum dj_pack_status status = D_PACK_STATUS_OK;
-    int                rc;
+    unsigned char       stage[D_INTERNAL_COMPRESS_CHUNK];
+    z_stream            zs;
+    gz_header           gh;
+    char                stand_in = '\0';
+    size_t              capacity = _name_capacity;
+    enum dj_pack_status status   = D_PACK_STATUS_OK;
+    int                 rc;
 
     memset(&zs, 0, sizeof(zs));
 
@@ -2036,6 +2245,17 @@ d_internal_zlib_decompress(
         return (rc == Z_MEM_ERROR)
              ? D_PACK_STATUS_NO_MEMORY
              : D_PACK_STATUS_BACKEND_ERROR;
+    }
+
+    // zlib counts a name's room in a uInt
+    if (capacity > (size_t)(uInt)~(uInt)0)
+    {
+        capacity = (size_t)(uInt)~(uInt)0;
+    }
+
+    if (_header != NULL)
+    {
+        d_internal_zlib_get_header(&zs, &gh, _name, capacity, &stand_in);
     }
 
     zs.next_in  = (Bytef*)d_internal_unconst(_in);
@@ -2077,6 +2297,12 @@ d_internal_zlib_decompress(
             status = D_PACK_STATUS_TRUNCATED_INPUT;
             break;
         }
+    }
+
+    if ( (_header != NULL) &&
+         (status == D_PACK_STATUS_OK) )
+    {
+        d_internal_zlib_take_header(&gh, _name, capacity, _header);
     }
 
     (void)inflateEnd(&zs);
@@ -2752,6 +2978,69 @@ d_internal_brotli_decompress(
 // lives here; no buffer-protocol knowledge lives in a backend leaf.
 
 /*
+d_internal_compress_prepare
+  What every compress entry point checks before a transform runs: its
+arguments, that the codec can compress here, and the options resolved for it
+(and validated, under D_CFG_COMPRESS_VALIDATE).
+
+Parameter(s):
+  _codec:    the codec.
+  _in:       the bytes; may be null when _in_size is 0.
+  _in_size:  how many.
+  _options:  the tuning; may be null.
+  _sink:     the destination.
+  _resolved: receives the resolved options.
+Return:
+  D_PACK_STATUS_OK, or the status describing what failed.
+*/
+static enum dj_pack_status
+d_internal_compress_prepare(
+    enum dj_codec_id                  _codec,
+    const void*                       _in,
+    size_t                            _in_size,
+    const struct dj_compress_options* _options,
+    struct dj_pack_sink               _sink,
+    struct dj_compress_options*       _resolved
+)
+{
+    enum dj_pack_status status;
+
+    if ( ((_in == NULL) && (_in_size != 0u)) ||
+         (_sink.write == NULL) )
+    {
+        return D_PACK_STATUS_INVALID_ARGUMENT;
+    }
+    if (!D_CODEC_ID_IS_VALID(_codec))
+    {
+        return D_PACK_STATUS_INVALID_ARGUMENT;
+    }
+    if (!d_codec_can_compress(_codec))
+    {
+        return D_PACK_STATUS_UNAVAILABLE;
+    }
+
+    status = d_compress_options_resolve(_codec, _options, _resolved);
+
+    if (status != D_PACK_STATUS_OK)
+    {
+        return status;
+    }
+
+#if D_INTERNAL_COMPRESS_VALIDATE
+    // D_CFG_COMPRESS_VALIDATE: name an out-of-range knob here rather than let
+    // the backend fail on it
+    status = d_compress_options_validate(_codec, _resolved, NULL);
+
+    if (status != D_PACK_STATUS_OK)
+    {
+        return status;
+    }
+#endif
+
+    return D_PACK_STATUS_OK;
+}
+
+/*
 d_compress_to_sink
   Compress _in into _sink under _codec.
 
@@ -2782,37 +3071,13 @@ d_compress_to_sink(
     struct dj_compress_options resolved;
     enum dj_pack_status        status;
 
-    if ( ((_in == NULL) && (_in_size != 0u)) ||
-         (_sink.write == NULL) )
-    {
-        return D_PACK_STATUS_INVALID_ARGUMENT;
-    }
-    if (!D_CODEC_ID_IS_VALID(_codec))
-    {
-        return D_PACK_STATUS_INVALID_ARGUMENT;
-    }
-    if (!d_codec_can_compress(_codec))
-    {
-        return D_PACK_STATUS_UNAVAILABLE;
-    }
-
-    status = d_compress_options_resolve(_codec, _options, &resolved);
+    status = d_internal_compress_prepare(_codec, _in, _in_size, _options,
+                                         _sink, &resolved);
 
     if (status != D_PACK_STATUS_OK)
     {
         return status;
     }
-
-#if D_INTERNAL_COMPRESS_VALIDATE
-    // D_CFG_COMPRESS_VALIDATE: name an out-of-range knob here rather than let
-    // the backend fail on it
-    status = d_compress_options_validate(_codec, &resolved, NULL);
-
-    if (status != D_PACK_STATUS_OK)
-    {
-        return status;
-    }
-#endif
 
     // interpose a tee so the produced size is always known, whatever the
     // caller's sink does with the bytes.
@@ -2831,7 +3096,7 @@ d_compress_to_sink(
         case D_CODEC_ID_GZIP:
         {
             status = d_internal_zlib_compress(_codec, _in, _in_size,
-                                              &resolved, counted);
+                                              &resolved, counted, NULL);
             break;
         }
 #endif
@@ -2938,7 +3203,7 @@ d_decompress_to_sink(
         case D_CODEC_ID_GZIP:
         {
             status = d_internal_zlib_decompress(_codec, _in, _in_size,
-                                                counted);
+                                                counted, NULL, NULL, 0u);
             break;
         }
 #endif
@@ -2977,6 +3242,159 @@ d_decompress_to_sink(
     }
 
     return status;
+}
+
+/*
+d_compress_gzip_to_sink
+  Compress _in into _sink as gzip, with the header given: its name, its time,
+and its OS byte.  With a null header, exactly d_compress_to_sink under GZIP.
+
+Parameter(s):
+  _in:       the bytes; may be null when _in_size is 0.
+  _in_size:  how many.
+  _options:  the tuning; may be null.
+  _header:   the header to write; may be null.  Its name is written as the
+             bytes given, and may not hold a NUL.
+  _sink:     the destination.
+  _out_size: receives the number of bytes produced; may be null.
+Return:
+  D_PACK_STATUS_OK; D_PACK_STATUS_INVALID_ARGUMENT for a name with a NUL, or
+an OS byte outside 0 to 255 and not D_GZIP_OS_DEFAULT; otherwise as
+d_compress_to_sink.
+*/
+enum dj_pack_status
+d_compress_gzip_to_sink(
+    const void*                       _in,
+    size_t                            _in_size,
+    const struct dj_compress_options* _options,
+    const struct dj_gzip_header*      _header,
+    struct dj_pack_sink               _sink,
+    size_t*                           _out_size
+)
+{
+    struct dj_compress_options resolved;
+    enum dj_pack_status        status;
+
+    if (_header == NULL)
+    {
+        return d_compress_to_sink(D_CODEC_ID_GZIP, _in, _in_size, _options,
+                                  _sink, _out_size);
+    }
+
+    if ( ( (_header->name.data == NULL) &&
+           (_header->name.length != 0u) ) ||
+         ( (_header->name.length != 0u) &&
+           (memchr(_header->name.data, '\0', _header->name.length) != NULL) ) ||
+         (_header->os < D_GZIP_OS_DEFAULT) ||
+         (_header->os > 255) )
+    {
+        return D_PACK_STATUS_INVALID_ARGUMENT;
+    }
+
+    status = d_internal_compress_prepare(D_CODEC_ID_GZIP, _in, _in_size,
+                                         _options, _sink, &resolved);
+
+    if (status != D_PACK_STATUS_OK)
+    {
+        return status;
+    }
+
+#if D_INTERNAL_COMPRESS_ZLIB_LEAF
+    {
+        struct dj_internal_tee tally;
+        struct dj_pack_sink    counted = d_internal_tee_bind(&tally, _sink);
+
+        status = d_internal_zlib_compress(D_CODEC_ID_GZIP, _in, _in_size,
+                                          &resolved, counted, _header);
+
+        if ( (status == D_PACK_STATUS_OK) &&
+             (_out_size != NULL) )
+        {
+            *_out_size = tally.total;
+        }
+    }
+
+    return status;
+#else
+    return D_PACK_STATUS_UNAVAILABLE;
+#endif
+}
+
+/*
+d_decompress_gzip_to_sink
+  Decompress a gzip stream into _sink, and read its header: the name into
+_name, and the time and OS byte into _header.  With a null header, exactly
+d_decompress_to_sink under GZIP.
+
+Parameter(s):
+  _in:            the compressed bytes; may be null when _in_size is 0.
+  _in_size:       how many.
+  _header:        receives the header; may be null.  On success its name
+                  points into _name, and is empty when the stream has none.
+  _name:          receives FNAME, NUL-terminated; may be null.
+  _name_capacity: _name's size, NUL included.  A longer name is cut, and sets
+                  name_truncated, as does any name when _name is null.
+  _sink:          the destination.
+  _out_size:      receives the number of bytes produced; may be null.
+Return:
+  As d_decompress_to_sink.  The header is filled only on success; otherwise it
+is left as D_GZIP_HEADER_NONE.
+*/
+enum dj_pack_status
+d_decompress_gzip_to_sink(
+    const void*            _in,
+    size_t                 _in_size,
+    struct dj_gzip_header* _header,
+    char*                  _name,
+    size_t                 _name_capacity,
+    struct dj_pack_sink    _sink,
+    size_t*                _out_size
+)
+{
+    const struct dj_gzip_header none = D_GZIP_HEADER_NONE;
+
+    if (_header == NULL)
+    {
+        return d_decompress_to_sink(D_CODEC_ID_GZIP, _in, _in_size, _sink,
+                                    _out_size);
+    }
+
+    *_header = none;
+
+    if ( ((_in == NULL) && (_in_size != 0u)) ||
+         (_sink.write == NULL) )
+    {
+        return D_PACK_STATUS_INVALID_ARGUMENT;
+    }
+    if (!d_codec_can_decompress(D_CODEC_ID_GZIP))
+    {
+        return D_PACK_STATUS_UNAVAILABLE;
+    }
+
+#if D_INTERNAL_COMPRESS_ZLIB_LEAF
+    {
+        struct dj_internal_tee tally;
+        struct dj_pack_sink    counted = d_internal_tee_bind(&tally, _sink);
+        enum dj_pack_status    status;
+
+        status = d_internal_zlib_decompress(D_CODEC_ID_GZIP, _in, _in_size,
+                                            counted, _header, _name,
+                                            _name_capacity);
+
+        if ( (status == D_PACK_STATUS_OK) &&
+             (_out_size != NULL) )
+        {
+            *_out_size = tally.total;
+        }
+
+        return status;
+    }
+#else
+    (void)_name;
+    (void)_name_capacity;
+
+    return D_PACK_STATUS_UNAVAILABLE;
+#endif
 }
 
 /*

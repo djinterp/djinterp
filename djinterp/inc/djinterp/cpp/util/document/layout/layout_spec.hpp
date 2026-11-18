@@ -27,7 +27,7 @@
 * path:      /inc/djinterp/cpp/util/document/layout/layout_spec.hpp
 * link(s):   ch-synthesis.tex
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_DOCUMENT_LAYOUT_LAYOUT_SPEC_HPP
@@ -44,7 +44,7 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../../djinterp.hpp"    // NS_*, gates, D_NODISCARD
+#include "../../../djinterp.hpp"    // framework root
 #include "./layout.hpp"          // DLayoutDoc, apply_node, make_leaf_node
 
 

@@ -64,7 +64,7 @@
 * path:      /inc/djinterp/c/util/archive/archive_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.29
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -108,7 +108,7 @@ X.    TRANSFORM LEAVES          (create / measure / extract)
 // c
 #include <stddef.h>
 // djinterp
-#include "../../djinterp.h"                  // D_STATIC_ASSERT, D_EXTERN_C_*
+#include "../../djinterp.h"                  // framework root
 #include "../compress/compress_common.h"  // status, sink, dj_compress_options
 #include "../../../config/c/util/archive/cfg_archive.h"  // D_INTERNAL_ARCHIVE_*
 // re_std
@@ -295,9 +295,13 @@ struct dj_tar_options
 };
 
 // dj_gz_options
-//   struct: the gzip header block.  `store_name` and `store_mtime` are flags;
-// clearing both is what produces a byte-reproducible .gz, since the RFC 1952
-// header otherwise records the source filename and the current time.
+//   struct: the gzip header block, for a .gz and a .tar.gz's stream.
+// `store_name` and `store_mtime` are flags, both clear by default, which keeps
+// the output byte-reproducible.  Set, a .gz records its entry's name (its last
+// component) and time, and a .tar.gz its newest member's time; a set
+// `original_name` is the name recorded instead, and the only name a .tar.gz
+// records.  A time RFC 1952 can't hold (before 1970, after 2106) is recorded
+// as none.  Reading a .gz gives its entry the name and time it carries.
 struct dj_gz_options
 {
     int32_t             store_name;

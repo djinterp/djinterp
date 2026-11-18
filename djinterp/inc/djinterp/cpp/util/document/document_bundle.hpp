@@ -53,7 +53,7 @@
 * path:      /inc/djinterp/cpp/util/document/document_bundle.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.27
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -82,7 +82,7 @@ IV.   CONVENIENCE WRITES      (write_to_disk / write_to_buffer / write_custom)
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"              // NS_*, D_NODISCARD, D_NOEXCEPT, gates
+#include "../../djinterp.hpp"              // framework root
 #include "../output/output_packaging.hpp"  // pack_mode, output_config, sinks, ...
 #include "../compress/compress.hpp"                 // byte_blob, status, internal leaves
 #include "../archive/archive.hpp"                  // entry, entry_list, internal leaves

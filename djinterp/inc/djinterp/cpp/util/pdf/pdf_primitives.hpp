@@ -5,10 +5,10 @@
 * path:      /inc/djinterp/cpp/util/pdf/pdf_primitives.hpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #ifndef DJINTERP_UTIL_PDF_PDF_PRIMITIVES_HPP
-#define DJINTERP_UTIL_PDF_PDF_PRIMITIVES_HPP
+#define DJINTERP_UTIL_PDF_PDF_PRIMITIVES_HPP 1
 
 // FLOOR, FOR NOW: below C++17 this file is empty, rather than an error (round
 // 2's rule). The owner's ruling: compile at every level first; port down only
@@ -37,7 +37,7 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../djinterp.hpp"  // framework root
 #include "../color/color.hpp"  // native color models + color_cast
 #include "../../text/font.hpp"                 // native font (resolved onto base-14)
 #include "../../text/text_align.hpp"           // native DTextAlignment (alias target)

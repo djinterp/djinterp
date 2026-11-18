@@ -10,10 +10,9 @@
 * C++14, html_printer.hpp C++17 and html_template.hpp C++20.
 *   The groups live in the section files: html_tests_vocabulary.cpp (html.hpp
 * and html_dialect.hpp), html_tests_printer.cpp (html_printer.hpp) and
-* html_tests_tree.cpp (html_template.hpp). The printer and the tree are kept
-* in separate units: html_printer.hpp includes cpp/util/document/document.hpp,
-* whose DXmlDocument clashes with xml_template.hpp's, until the clash is
-* settled.
+* html_tests_tree.cpp (html_template.hpp). The tree's unit also includes
+* html_printer.hpp, and checks that the two can share a unit: the printed
+* documents are djinterp's, the trees djinterp::xml's and djinterp::html's.
 *
 *
 * TABLE OF CONTENTS
@@ -29,7 +28,7 @@
 * path:      /tests/djinterp/cpp/text/html_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_CPP_TEXT_HTML_TESTS_HPP
@@ -80,6 +79,7 @@ void d_tests_html_tree_elements(void);
 void d_tests_html_tree_documents(void);
 void d_tests_html_tree_write(void);
 void d_tests_html_tree_traits(void);
+void d_tests_html_tree_beside_printer(void);
 #endif  // C++20
 
 

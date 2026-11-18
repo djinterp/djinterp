@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/cpp/text/html/html.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.08
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -1601,7 +1601,7 @@ template<typename Type>
 struct is_html_element
 {
     D_STATIC_CONSTEXPR bool value =
-        ( is_xml_element<Type>::value &&
+        ( xml::is_xml_element<Type>::value &&
           has_html_kind_access<Type>::value );
 };
 
@@ -1614,7 +1614,7 @@ template<typename Type>
 struct is_html_element_loose
 {
     D_STATIC_CONSTEXPR bool value =
-        is_xml_element<Type>::value;
+        xml::is_xml_element<Type>::value;
 };
 
 
@@ -1628,9 +1628,9 @@ struct DHtmlElementClass
     D_STATIC_CONSTEXPR bool is_html_elem      =
         is_html_element<Type>::value;
     D_STATIC_CONSTEXPR bool is_xml_node       =
-        ::djinterp::is_xml_node<Type>::value;
+        ::djinterp::xml::is_xml_node<Type>::value;
     D_STATIC_CONSTEXPR bool is_xml_element    =
-        ::djinterp::is_xml_element<Type>::value;
+        ::djinterp::xml::is_xml_element<Type>::value;
 
     // HTML semantic accessors
     D_STATIC_CONSTEXPR bool has_html_kind     =
@@ -1667,7 +1667,7 @@ template<typename Type>
 struct is_html_document
 {
     D_STATIC_CONSTEXPR bool value =
-        ( is_xml_document<Type>::value &&
+        ( xml::is_xml_document<Type>::value &&
           ( has_doctype_access<Type>::value      ||
             has_html_version_method<Type>::value ) );
 };
@@ -1680,7 +1680,7 @@ template<typename Type>
 struct is_html_document_loose
 {
     D_STATIC_CONSTEXPR bool value =
-        is_xml_document<Type>::value;
+        xml::is_xml_document<Type>::value;
 };
 
 
@@ -1694,7 +1694,7 @@ struct DHtmlDocumentClass
     D_STATIC_CONSTEXPR bool is_html_doc       =
         is_html_document<Type>::value;
     D_STATIC_CONSTEXPR bool is_xml_doc        =
-        ::djinterp::is_xml_document<Type>::value;
+        ::djinterp::xml::is_xml_document<Type>::value;
 
     // doctype
     D_STATIC_CONSTEXPR bool has_doctype       =
@@ -1849,7 +1849,7 @@ struct is_html_backend_complete
 // `html_kind()` or `get_html_kind()`).
 template<typename Type>
 concept html_element_type =
-       ( ::djinterp::xml_element_type<Type> )
+       ( ::djinterp::xml::xml_element_type<Type> )
     && ( has_html_kind_access<Type>::value );
 
 
@@ -1859,7 +1859,7 @@ concept html_element_type =
 // adapting third-party DOM types into the HTML facades.
 template<typename Type>
 concept html_element_loose_type =
-       ( ::djinterp::xml_element_type<Type> );
+       ( ::djinterp::xml::xml_element_type<Type> );
 
 
 // ---------------------------------------------------------------------
@@ -1872,7 +1872,7 @@ concept html_element_loose_type =
 // version accessor.
 template<typename Type>
 concept html_document_type =
-       ( ::djinterp::xml_document_type<Type> )
+       ( ::djinterp::xml::xml_document_type<Type> )
     && (    ( has_doctype_access<Type>::value )
          || ( has_html_version_method<Type>::value ) );
 
@@ -1882,7 +1882,7 @@ concept html_document_type =
 // protocol is treated as an HTML document candidate.
 template<typename Type>
 concept html_document_loose_type =
-       ( ::djinterp::xml_document_type<Type> );
+       ( ::djinterp::xml::xml_document_type<Type> );
 
 
 // ---------------------------------------------------------------------

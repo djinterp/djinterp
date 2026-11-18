@@ -5,10 +5,10 @@
 * path:      /inc/djinterp/c/text/number_to_string_en.h
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #ifndef DJINTERP_C_TEXT_NUMBER_TO_STRING_EN_H
-#define DJINTERP_C_TEXT_NUMBER_TO_STRING_EN_H
+#define DJINTERP_C_TEXT_NUMBER_TO_STRING_EN_H 1
 
 // std
 #include <stddef.h>
@@ -107,4 +107,4 @@ size_t nts_ordinal_abbrev_i64(
 
 #endif  // RE_STD_HAS_INT64
 
-#endif /* DJINTERP_C_TEXT_NUMBER_TO_STRING_EN_H */
+#endif  // DJINTERP_C_TEXT_NUMBER_TO_STRING_EN_H

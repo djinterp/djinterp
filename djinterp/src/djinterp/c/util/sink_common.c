@@ -9,14 +9,13 @@
 * path:      /src/djinterp/c/util/sink_common.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.17
 *******************************************************************************/
-#include "../../../../inc/djinterp/c/util/sink_common.h"
+#include "../../../../inc/djinterp/c/util/sink_common.h"  // the header
 
 
 // std
-// c
-#include <string.h>
+#include <string.h>  // memcpy, memcmp, strlen
 
 
 // =============================================================================
@@ -184,8 +183,8 @@ d_internal_count_write(
 }
 
 /**
- * @brief The buffer sink's write: copy what fits, and keep counting what does
- *        not.
+ * @brief The buffer sink's write: copy a write that fits whole, and count
+ *        every byte offered.
  *
  * @param[in] _context  a struct dj_pack_buffer_sink.
  * @param[in] _data     the bytes offered.
@@ -197,6 +196,11 @@ d_internal_count_write(
  * exact size to grow to: the encoder runs to completion, the sink knows the
  * full requirement, and the caller retries once rather than measuring
  * separately.
+ *
+ * A write that does not fit whole copies nothing, and raises `overflow`; from
+ * then on nothing more is copied, so the buffer always holds the output's
+ * first `written` bytes and never a later piece after a gap.  `needed` stops
+ * at SIZE_MAX rather than wrapping.
  */
 static size_t
 d_internal_buffer_write(
@@ -212,10 +216,14 @@ d_internal_buffer_write(
         return 0;
     }
 
-    b->needed += _size;
+    // (size_t)-1 is SIZE_MAX, without <stdint.h>
+    b->needed = (_size <= ((size_t)-1 - b->needed)) ? (b->needed + _size)
+                                                    : (size_t)-1;
 
-    if ( (b->buffer != NULL) &&
-         ((b->written + _size) <= b->capacity) )
+    // written never exceeds capacity, so the room left cannot wrap
+    if ( (!b->overflow)       &&
+         (b->buffer != NULL)  &&
+         (_size <= (b->capacity - b->written)) )
     {
         if (_size != 0u)
         {

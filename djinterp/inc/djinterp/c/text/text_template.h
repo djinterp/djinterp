@@ -33,17 +33,17 @@
 * path:      /inc/djinterp/c/text/text_template.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.02.26
-*                                                            revised: 2026.09.29
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
-#ifndef DJINTERP_C_TEXT_TEXT_TEMPLATE_H
-#define DJINTERP_C_TEXT_TEXT_TEMPLATE_H 1
+#ifndef DJINTERP_C_TEXT_TEMPLATE_H
+#define DJINTERP_C_TEXT_TEMPLATE_H 1
 
 // std
-#include <stddef.h>
+#include <stddef.h>  // size_t, NULL
 // djinterp
-#include "../djinterp.h"
-#include "./str_interp.h"
+#include "../djinterp.h"    // framework root
+#include "./str_interp.h"  // struct dj_str_interp_context
 
 
 // =============================================================================
@@ -496,4 +496,4 @@ const char* d_text_template_error_string(
 );
 
 
-#endif  // DJINTERP_C_TEXT_TEXT_TEMPLATE_H
+#endif  // DJINTERP_C_TEXT_TEMPLATE_H

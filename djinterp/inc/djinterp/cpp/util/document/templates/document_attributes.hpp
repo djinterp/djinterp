@@ -38,7 +38,7 @@
 * path:      /inc/djinterp/cpp/util/document/templates/document_attributes.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -71,7 +71,7 @@ IV.   Accessors                      (attr_has / attr_or / attr_flag / attr_alig
 #include <string>
 #include <utility>
 // djinterp
-#include "../../../djinterp.hpp"                       // NS_*, gates
+#include "../../../djinterp.hpp"                       // framework root
 #include "../../../text/text_align.hpp"                // DTextAlignment
 #include "../../../container/container_metadata.hpp"   // DContainerMetadata
 

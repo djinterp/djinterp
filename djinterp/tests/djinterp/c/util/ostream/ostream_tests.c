@@ -24,7 +24,7 @@
 * path:      /tests/djinterp/c/util/ostream/ostream_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "ostream_tests.h"  // the suite's entry point, DTest's C face
 // std
@@ -42,7 +42,7 @@
                                                                       // console
 #include "../../../../../inc/djinterp/c/util/ostream/ostream_file.h"  // FILE*
 #include "../../../../../inc/djinterp/c/text/ostream_format.h"        // doubles
-#include "../../../../../inc/djinterp/c/util/sink_common.h"  // d_sink_emit
+#include "../../../../../inc/djinterp/c/util/sink_common.h"  // spans, sinks
 #include "../../../../../inc/djinterp/c/dstring.h"  // dj_string
 // re_std
 #include "../../../../../inc/re_std/c/cstdint/dstdint.h"
@@ -838,6 +838,153 @@ d_tests_ostream_fanout(void)
     D_TESTS_OSTREAM_CHECK(d_ostream_init_fanout(&fan, &fanout) == 0);
     free(one.data);
     free(two.data);
+
+    return true;
+}
+
+/*
+d_tests_ostream_spans
+  sink_common.h's spans, held to 12-11 for their callers outside the stream.
+  Tests the following:
+  - D_PACK_TEXT_NONE and D_PACK_BYTES_NONE are empty
+  - from_cstr measures to the NUL, and a null pointer is the empty span
+  - from_span and bytes_from_span keep the length, past a NUL too, and a null
+    pointer is empty whatever the length
+  - equal compares the length, then the bytes, so an interior NUL counts,
+    and two empty spans are equal whatever their pointers
+  - is_empty holds for a null pointer or a zero length
+*/
+static bool
+d_tests_ostream_spans(void)
+{
+    const struct dj_pack_text  none_text  = D_PACK_TEXT_NONE;
+    const struct dj_pack_bytes none_bytes = D_PACK_BYTES_NONE;
+    const char                 ab[3]      = { 'a', '\0', 'b' };
+    const char                 ac[3]      = { 'a', '\0', 'c' };
+    struct dj_pack_text        text;
+    struct dj_pack_bytes       bytes;
+
+    D_TESTS_OSTREAM_CHECK( (none_text.data == NULL) &&
+                           (none_text.length == 0u) );
+    D_TESTS_OSTREAM_CHECK( (none_bytes.data == NULL) &&
+                           (none_bytes.size == 0u) );
+
+    text = d_pack_text_from_cstr("hello");
+    D_TESTS_OSTREAM_CHECK(text.length == 5u);
+    text = d_pack_text_from_cstr(NULL);
+    D_TESTS_OSTREAM_CHECK( (text.data == NULL) && (text.length == 0u) );
+
+    text = d_pack_text_from_span(ab, 3u);
+    D_TESTS_OSTREAM_CHECK( (text.data == ab) && (text.length == 3u) );
+    text = d_pack_text_from_span(NULL, 7u);
+    D_TESTS_OSTREAM_CHECK(text.length == 0u);
+    bytes = d_pack_bytes_from_span(ab, 3u);
+    D_TESTS_OSTREAM_CHECK( (bytes.data == ab) && (bytes.size == 3u) );
+    bytes = d_pack_bytes_from_span(NULL, 7u);
+    D_TESTS_OSTREAM_CHECK(bytes.size == 0u);
+
+    D_TESTS_OSTREAM_CHECK(d_pack_text_equal(d_pack_text_from_span(ab, 3u),
+                                            d_pack_text_from_span(ab, 3u)));
+    D_TESTS_OSTREAM_CHECK(!d_pack_text_equal(d_pack_text_from_span(ab, 3u),
+                                             d_pack_text_from_span(ac, 3u)));
+    D_TESTS_OSTREAM_CHECK(!d_pack_text_equal(d_pack_text_from_span(ab, 3u),
+                                             d_pack_text_from_cstr("a")));
+    D_TESTS_OSTREAM_CHECK(d_pack_text_equal(none_text,
+                                            d_pack_text_from_span(ab, 0u)));
+
+    D_TESTS_OSTREAM_CHECK(d_pack_text_is_empty(none_text));
+    D_TESTS_OSTREAM_CHECK(d_pack_text_is_empty(d_pack_text_from_span(ab,
+                                                                      0u)));
+    D_TESTS_OSTREAM_CHECK(!d_pack_text_is_empty(d_pack_text_from_cstr("a")));
+
+    return true;
+}
+
+// d_tests_ostream_sink_calls
+//   the number of times d_tests_ostream_half_write has been called.
+static size_t d_tests_ostream_sink_calls = 0u;
+
+/*
+d_tests_ostream_half_write
+  A sink's write that takes half of what it is offered, rounded down, and
+counts its calls.
+*/
+static size_t
+d_tests_ostream_half_write(
+    void*       _context,
+    const void* _data,
+    size_t      _size
+)
+{
+    (void)_context;
+    (void)_data;
+    ++d_tests_ostream_sink_calls;
+
+    return _size / 2u;
+}
+
+/*
+d_tests_ostream_sinks
+  sink_common.h's counting and buffer sinks, and d_sink_emit.
+  Tests the following:
+  - a counting sink takes everything and keeps the total
+  - a buffer sink copies a write that fits, and counts every byte offered
+    in needed
+  - a write that doesn't fit copies nothing and raises overflow, and a later
+    write that would fit copies nothing either: the buffer holds the
+    output's first `written` bytes
+  - with no buffer and no capacity, a buffer sink only measures
+  - d_sink_emit gives 1 when every byte was taken, and 0 for a short write
+    or a sink with no write function; a zero-size write succeeds without
+    calling the sink
+*/
+static bool
+d_tests_ostream_sinks(void)
+{
+    struct dj_pack_counting_sink counter;
+    struct dj_pack_buffer_sink   buffer;
+    struct dj_pack_sink          sink;
+    unsigned char                array[8];
+
+    d_pack_counting_sink_init(&counter);
+    sink = d_pack_sink_from_counter(&counter);
+    D_TESTS_OSTREAM_CHECK(d_sink_emit(sink, "hello", 5u) == 1);
+    D_TESTS_OSTREAM_CHECK(d_sink_emit(sink, "!", 1u) == 1);
+    D_TESTS_OSTREAM_CHECK(counter.total == 6u);
+
+    memset(array, '.', sizeof(array));
+    d_pack_buffer_sink_init(&buffer, array, sizeof(array));
+    sink = d_pack_sink_from_buffer(&buffer);
+    D_TESTS_OSTREAM_CHECK(d_sink_emit(sink, "abcde", 5u) == 1);
+    D_TESTS_OSTREAM_CHECK( (buffer.written == 5u) && (!buffer.overflow) );
+    D_TESTS_OSTREAM_CHECK(memcmp(array, "abcde", 5u) == 0);
+
+    // four more would pass the capacity of eight: nothing of them is copied
+    D_TESTS_OSTREAM_CHECK(d_sink_emit(sink, "fghi", 4u) == 1);
+    D_TESTS_OSTREAM_CHECK( (buffer.written == 5u) && (buffer.overflow) );
+
+    // two would fit, but after an overflow nothing more is copied
+    D_TESTS_OSTREAM_CHECK(d_sink_emit(sink, "jk", 2u) == 1);
+    D_TESTS_OSTREAM_CHECK(buffer.written == 5u);
+    D_TESTS_OSTREAM_CHECK(memcmp(array, "abcde...", 8u) == 0);
+    D_TESTS_OSTREAM_CHECK(buffer.needed == 11u);
+
+    d_pack_buffer_sink_init(&buffer, NULL, 0u);
+    sink = d_pack_sink_from_buffer(&buffer);
+    D_TESTS_OSTREAM_CHECK(d_sink_emit(sink, "abc", 3u) == 1);
+    D_TESTS_OSTREAM_CHECK( (buffer.needed == 3u) &&
+                           (buffer.written == 0u) );
+
+    sink.write                 = &d_tests_ostream_half_write;
+    sink.context               = NULL;
+    d_tests_ostream_sink_calls = 0u;
+    D_TESTS_OSTREAM_CHECK(d_sink_emit(sink, "abcd", 4u) == 0);
+    D_TESTS_OSTREAM_CHECK(d_sink_emit(sink, "abcd", 0u) == 1);
+    D_TESTS_OSTREAM_CHECK(d_tests_ostream_sink_calls == 1u);
+
+    sink.write = NULL;
+    D_TESTS_OSTREAM_CHECK(d_sink_emit(sink, "abcd", 4u) == 0);
+    D_TESTS_OSTREAM_CHECK(d_sink_emit(sink, "abcd", 0u) == 0);
 
     return true;
 }
@@ -1644,6 +1791,12 @@ d_tests_ostream_all(
 {
     static const struct dj_tests_ostream_group groups[] =
     {
+        { "sink_common.h", "spans",
+          "the text and byte spans, their makers and their comparison",
+          &d_tests_ostream_spans },
+        { "sink_common.h", "sinks",
+          "the counting and buffer sinks, and d_sink_emit",
+          &d_tests_ostream_sinks },
         { "ostream.h", "init",
           "the contract of d_ostream_init and its refusals",
           &d_tests_ostream_init },

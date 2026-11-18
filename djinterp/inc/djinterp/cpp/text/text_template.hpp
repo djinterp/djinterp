@@ -38,7 +38,7 @@
 * path:      /inc/djinterp/cpp/text/text_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.14
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #ifndef DJINTERP_TEXT_TEXT_TEMPLATE_HPP
@@ -58,7 +58,7 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../djinterp.hpp"                 // NS_*, D_NODISCARD, language gates
+#include "../djinterp.hpp"                 // framework root
 
 
 // std::string_view is the spine of the source contract; below C++17 this

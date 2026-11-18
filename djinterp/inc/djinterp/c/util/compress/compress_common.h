@@ -93,7 +93,7 @@
 * path:      /inc/djinterp/c/util/compress/compress_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.29
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -158,6 +158,7 @@ TABLE OF CONTENTS
 9.  TRANSFORM LEAVES
     ----------------
     1.  Bound, compress, and decompress
+    2.  gzip's header
 */
 
 #ifndef DJINTERP_C_UTIL_COMPRESS_COMPRESS_COMMON_H
@@ -964,6 +965,69 @@ enum dj_pack_status d_decompress_to_sink(
     size_t              _in_size,
     struct dj_pack_sink _sink,
     size_t*             _out_size
+);
+
+// 9.2    gzip's header
+//------------------------------------------------------------------------------
+//   RFC 1952 lets a gzip stream carry the original file's name (FNAME), its
+// modification time (MTIME) and the system that wrote it (OS).  The GZIP codec
+// above writes none of them, and reads past them: that is what makes its
+// output byte-reproducible.  These two functions write and read them, through
+// zlib's own header support.
+//
+//   Writing with a null header is exactly d_compress_to_sink under GZIP, byte
+// for byte.  A header's name is written as the bytes given: RFC 1952 calls the
+// field ISO 8859-1, and like GNU gzip this writes UTF-8 or anything else
+// unchanged.  A name can't hold a NUL, since the field ends at one.
+//
+//   Reading fills the header, and the name goes into the caller's buffer;
+// header->name then points into it.  A name that doesn't fit is cut, ends in a
+// NUL all the same, and sets name_truncated.  Only the first member of a
+// multi-member stream is read, as d_decompress_to_sink does.
+
+// D_GZIP_OS_DEFAULT
+//   constant: as dj_gzip_header's os, the byte zlib writes on this platform
+// when it writes no header of its own choosing.  Storing a name or a time then
+// changes those bytes and no others.
+#define D_GZIP_OS_DEFAULT  (-1)
+
+// D_GZIP_OS_UNKNOWN
+//   constant: RFC 1952's OS byte for "unknown".
+#define D_GZIP_OS_UNKNOWN  255
+
+// dj_gzip_header
+//   struct: the parts of a gzip header a caller can choose and read back.
+// `name` is FNAME, empty for none; `mtime` is MTIME, seconds since 1970-01-01
+// UTC, 0 for none; `os` is the OS byte, 0 to 255, or D_GZIP_OS_DEFAULT when
+// writing.  `name_truncated` is set by reading only.
+struct dj_gzip_header
+{
+    struct dj_pack_text name;
+    uint32_t            mtime;
+    int32_t             os;
+    int32_t             name_truncated;
+};
+
+// D_GZIP_HEADER_NONE
+//   constant: a header with no name and no time, as a brace initialiser.
+#define D_GZIP_HEADER_NONE  { { NULL, 0u }, 0u, D_GZIP_OS_DEFAULT, 0 }
+
+enum dj_pack_status d_compress_gzip_to_sink(
+    const void*                       _in,
+    size_t                            _in_size,
+    const struct dj_compress_options* _options,
+    const struct dj_gzip_header*      _header,
+    struct dj_pack_sink               _sink,
+    size_t*                           _out_size
+);
+enum dj_pack_status d_decompress_gzip_to_sink(
+    const void*            _in,
+    size_t                 _in_size,
+    struct dj_gzip_header* _header,
+    char*                  _name,
+    size_t                 _name_capacity,
+    struct dj_pack_sink    _sink,
+    size_t*                _out_size
 );
 
 

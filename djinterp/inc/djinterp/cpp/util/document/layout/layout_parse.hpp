@@ -36,7 +36,7 @@
 * path:      /inc/djinterp/cpp/util/document/layout/layout_parse.hpp
 * link(s):   ch-parsing.tex, ch-synthesis.tex
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -70,7 +70,7 @@ IV.   ENTRY                               (parse_document)
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../../djinterp.hpp"          // NS_*, gates, D_NODISCARD
+#include "../../../djinterp.hpp"          // framework root
 #include "./layout.hpp"                // DLayoutDoc, DLayoutAtom, apply_node,
                                        // make_leaf_node
 #include "../../../modules/parse/parse.hpp"    // parse_state, parse_result, DParseStatus, DParseStatus*

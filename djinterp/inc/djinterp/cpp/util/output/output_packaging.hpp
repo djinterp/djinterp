@@ -42,7 +42,7 @@
 * path:      /inc/djinterp/cpp/util/output/output_packaging.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.27
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -75,7 +75,7 @@ IV.   OUTPUT SINKS            (output_sink / disk_output_sink /
 #include <sstream>
 #include <string>
 // djinterp
-#include "../../djinterp.hpp"        // NS_*, D_NODISCARD, D_NOEXCEPT, gates
+#include "../../djinterp.hpp"        // framework root
 #include "../compress/compress.hpp"           // byte_blob, status, DCodecId, leaves
 #include "../archive/archive.hpp"            // entry, entry_list, format_id, leaves
 #include "../compress/compress_options.hpp"   // compress_options

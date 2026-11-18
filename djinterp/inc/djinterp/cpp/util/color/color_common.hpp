@@ -26,7 +26,7 @@
 * path:      /inc/djinterp/cpp/util/color/color_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_COLOR_COLOR_COMMON_HPP
@@ -41,7 +41,7 @@
 // std
 #include <type_traits>
 // djinterp
-#include "../../djinterp.hpp"   // NS_*, D_CONSTEXPR*, D_INLINE, feature gates
+#include "../../djinterp.hpp"   // framework root
 
 
 NS_DJINTERP

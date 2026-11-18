@@ -8,7 +8,7 @@
 * path:      /tests/djinterp/cpp/text/html_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "html_tests.hpp"  // the suite's entry point, DTest's C face
 
@@ -100,6 +100,11 @@ d_tests_html_all(
     d_tests_text_run(_suite, "traits",
         "the tree's own types meet html.hpp's protocol, at no cost in size",
         D_TESTS_TEXT_AT_CPP20(d_tests_html_tree_traits),
+        "below C++20, html_template.hpp's floor");
+    d_tests_text_run(_suite, "beside the printer",
+        "the trees and html_printer.hpp's printed documents share a unit, "
+        "each name meaning its own type",
+        D_TESTS_TEXT_AT_CPP20(d_tests_html_tree_beside_printer),
         "below C++20, html_template.hpp's floor");
 
     d_tests_text_bind(NULL);

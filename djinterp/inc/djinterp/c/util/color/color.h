@@ -16,7 +16,7 @@
 * path:      /inc/djinterp/c/util/color/color.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -34,12 +34,16 @@ II.   RGB MANIPULATION (HSL-mediated)
 
 III.  PERCEPTUAL DIFFERENCE
       ---------------------
-      a. d_color_delta_e        (CIEDE2000, on L*a*b*)
-      b. d_color_rgb_delta_e    (convenience, via L*a*b*)
+      a. d_internal_color_de_hue_delta
+      b. d_internal_color_de_hue_mean
+      c. d_internal_color_de_hue_weight
+      d. d_internal_color_de_rotation
+      e. d_color_delta_e        (CIEDE2000, on L*a*b*)
+      f. d_color_rgb_delta_e    (convenience, via L*a*b*)
 */
 
-#ifndef DJINTERP_C_UTIL_COLOR_COLOR_H
-#define DJINTERP_C_UTIL_COLOR_COLOR_H 1
+#ifndef DJINTERP_C_UTIL_COLOR_H
+#define DJINTERP_C_UTIL_COLOR_H 1
 
 // FLOOR, FOR NOW: its C++ face is empty below C++11, rather than an
 // error (README rule 5). The owner's ruling: compile at every level first;
@@ -49,17 +53,17 @@ III.  PERCEPTUAL DIFFERENCE
       (D_ENV_LANG_IS_CPP11_OR_HIGHER) )
 
 // std
-#include <math.h>
+#include <math.h>              // sqrtf, atan2f, sinf, cosf, expf
 // djinterp
-#include "../../djinterp.h"
-#include "./color_common.h"
-#include "./color_rgb.h"
-#include "./color_cmyk.h"
-#include "./color_hsv.h"
-#include "./color_hsl.h"
-#include "./color_lab.h"
-#include "./color_ycbcr.h"
-#include "./color_convert.h"
+#include "../../djinterp.h"    // framework root
+#include "./color_common.h"    // D_COLOR_FN, D_COLOR_EPSILON, d_color_fabsf
+#include "./color_rgb.h"       // struct dj_color_rgb
+#include "./color_cmyk.h"      // struct dj_color_cmyk
+#include "./color_hsv.h"       // struct dj_color_hsv
+#include "./color_hsl.h"       // struct dj_color_hsl
+#include "./color_lab.h"       // struct dj_color_lab
+#include "./color_ycbcr.h"     // struct dj_color_ycbcr
+#include "./color_convert.h"   // d_color_convert_*
 
 
 D_COLOR_NS_OPEN
@@ -159,9 +163,133 @@ struct dj_color_rgb d_color_rgb_rotate_hue(
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
+d_internal_color_de_hue_delta
+  CIEDE2000's hue-angle difference, h2' - h1' taken the short way round the
+  circle, in degrees. 0 when either color is achromatic (C1'C2' = 0), whose
+  hue is undefined.
+
+Parameter(s):
+  _h1:   the first color's hue angle h1', in [0, 360).
+  _h2:   the second color's hue angle h2', in [0, 360).
+  _c1c2: the product of the two adjusted chromas, C1'C2'.
+Return:
+  The difference, in [-180, 180].
+*/
+D_COLOR_FN
+float d_internal_color_de_hue_delta(
+    float _h1,
+    float _h2,
+    float _c1c2
+)
+{
+    if (_c1c2 < D_COLOR_EPSILON)
+    {
+        return 0.0f;
+    }
+
+    if (d_color_fabsf(_h2 - _h1) <= 180.0f)
+    {
+        return _h2 - _h1;
+    }
+
+    return (_h2 > _h1) ? (_h2 - _h1 - 360.0f)
+                       : (_h2 - _h1 + 360.0f);
+}
+
+/*
+d_internal_color_de_hue_mean
+  CIEDE2000's mean hue angle, taken on the short arc between the two. When
+  either color is achromatic it is the sum of the two angles, which is the
+  other color's hue (or 0 when both are achromatic), as the formula
+  specifies.
+
+Parameter(s):
+  _h1:   the first color's hue angle h1', in [0, 360).
+  _h2:   the second color's hue angle h2', in [0, 360).
+  _c1c2: the product of the two adjusted chromas, C1'C2'.
+Return:
+  The mean hue angle, in degrees.
+*/
+D_COLOR_FN
+float d_internal_color_de_hue_mean(
+    float _h1,
+    float _h2,
+    float _c1c2
+)
+{
+    if (_c1c2 < D_COLOR_EPSILON)
+    {
+        return _h1 + _h2;
+    }
+
+    if (d_color_fabsf(_h1 - _h2) <= 180.0f)
+    {
+        return (_h1 + _h2) * 0.5f;
+    }
+
+    return (_h1 + _h2 < 360.0f) ? ((_h1 + _h2 + 360.0f) * 0.5f)
+                                : ((_h1 + _h2 - 360.0f) * 0.5f);
+}
+
+/*
+d_internal_color_de_hue_weight
+  CIEDE2000's T, the periodic term in the hue weighting S_H. Runtime-only.
+
+Parameter(s):
+  _h_mean: the mean hue angle, in degrees.
+Return:
+  T.
+*/
+D_COLOR_FN_RT
+float d_internal_color_de_hue_weight(
+    float _h_mean
+)
+{
+    return 1.0f
+         - 0.17f * cosf((_h_mean - 30.0f)        * D_COLOR_PI / 180.0f)
+         + 0.24f * cosf((2.0f * _h_mean)         * D_COLOR_PI / 180.0f)
+         + 0.32f * cosf((3.0f * _h_mean + 6.0f)  * D_COLOR_PI / 180.0f)
+         - 0.20f * cosf((4.0f * _h_mean - 63.0f) * D_COLOR_PI / 180.0f);
+}
+
+/*
+d_internal_color_de_rotation
+  CIEDE2000's rotation term R_T = -sin(2 * dtheta) * R_C, which corrects
+  the interaction of chroma and hue differences in the blue region.
+  R_C = 2 * sqrt(C'^7 / (C'^7 + 25^7)) is computed from the mean of the
+  ADJUSTED chromas, C1' and C2'; the mean of the unadjusted chromas belongs
+  only to G. Runtime-only.
+
+Parameter(s):
+  _h_mean:       the mean hue angle, in degrees.
+  _c_prime_mean: the mean adjusted chroma, (C1' + C2') / 2.
+Return:
+  R_T.
+*/
+D_COLOR_FN_RT
+float d_internal_color_de_rotation(
+    float _h_mean,
+    float _c_prime_mean
+)
+{
+    float c7     = _c_prime_mean * _c_prime_mean * _c_prime_mean *
+                   _c_prime_mean * _c_prime_mean * _c_prime_mean *
+                   _c_prime_mean;
+    float spread = (_h_mean - 275.0f) / 25.0f;
+
+    return -2.0f * sqrtf(c7 / (c7 + 6103515625.0f)) *
+           sinf(60.0f * expf(-spread * spread) * D_COLOR_PI / 180.0f);
+}
+
+/*
 d_color_delta_e
-  CIEDE2000 perceptual color difference between two L*a*b* colors. Runtime-
-  only (uses sqrt/atan2/sin/cos/exp).
+  CIEDE2000 perceptual color difference between two L*a*b* colors, with the
+  parametric factors k_L = k_C = k_H = 1. Symmetric in its arguments. The
+  implementation follows Sharma, Wu and Dalal, "The CIEDE2000
+  Color-Difference Formula: Implementation Notes, Supplementary Test Data,
+  and Mathematical Observations", Color Research and Application 30(1),
+  2005, and reproduces that paper's 34 test pairs to four decimal places.
+  Runtime-only (uses sqrt, atan2, sin, cos and exp).
 
 Parameter(s):
   _lab1: first color.
@@ -175,109 +303,56 @@ float d_color_delta_e(
     struct dj_color_lab _lab2
 )
 {
-    float delta_l = _lab2.l - _lab1.l;
-    float l_mean  = (_lab1.l + _lab2.l) * 0.5f;
-
-    float c1     = sqrtf(_lab1.a * _lab1.a + _lab1.b * _lab1.b);
-    float c2     = sqrtf(_lab2.a * _lab2.a + _lab2.b * _lab2.b);
-    float c_mean = (c1 + c2) * 0.5f;
-
+    float c1      = sqrtf(_lab1.a * _lab1.a + _lab1.b * _lab1.b);
+    float c2      = sqrtf(_lab2.a * _lab2.a + _lab2.b * _lab2.b);
+    float c_mean  = (c1 + c2) * 0.5f;
     float c_mean7 = c_mean * c_mean * c_mean * c_mean *
                     c_mean * c_mean * c_mean;
-    float g       = 0.5f * (1.0f - sqrtf(c_mean7 / (c_mean7 + 6103515625.0f)));
-
+    float g       = 0.5f * (1.0f - sqrtf(c_mean7 /
+                                         (c_mean7 + 6103515625.0f)));
     float a1_prime = _lab1.a * (1.0f + g);
     float a2_prime = _lab2.a * (1.0f + g);
-
-    float c1_prime      = sqrtf(a1_prime * a1_prime + _lab1.b * _lab1.b);
-    float c2_prime      = sqrtf(a2_prime * a2_prime + _lab2.b * _lab2.b);
-    float c_prime_mean  = (c1_prime + c2_prime) * 0.5f;
-    float delta_c_prime = c2_prime - c1_prime;
-
+    float c1_prime     = sqrtf(a1_prime * a1_prime + _lab1.b * _lab1.b);
+    float c2_prime     = sqrtf(a2_prime * a2_prime + _lab2.b * _lab2.b);
+    float c_prime_mean = (c1_prime + c2_prime) * 0.5f;
     float h1_prime = atan2f(_lab1.b, a1_prime) * 180.0f / D_COLOR_PI;
     float h2_prime = atan2f(_lab2.b, a2_prime) * 180.0f / D_COLOR_PI;
-
-    float delta_h_prime     = 0.0f;
-    float delta_big_h_prime = 0.0f;
-    float h_prime_mean      = 0.0f;
-    float t                 = 0.0f;
-    float s_l               = 0.0f;
-    float s_c               = 0.0f;
-    float s_h               = 0.0f;
-    float r_t               = 0.0f;
-    float k_l               = 1.0f;
-    float k_c               = 1.0f;
-    float k_h               = 1.0f;
+    float h_mean   = 0.0f;
+    float l_dev    = 0.0f;
+    float d_l      = 0.0f;
+    float d_c      = 0.0f;
+    float d_h      = 0.0f;
 
     if (h1_prime < 0.0f)
     {
         h1_prime += 360.0f;
     }
+
     if (h2_prime < 0.0f)
     {
         h2_prime += 360.0f;
     }
 
-    if (c1_prime * c2_prime < D_COLOR_EPSILON)
-    {
-        delta_h_prime = 0.0f;
-    }
-    else if (d_color_fabsf(h2_prime - h1_prime) <= 180.0f)
-    {
-        delta_h_prime = h2_prime - h1_prime;
-    }
-    else if (h2_prime > h1_prime)
-    {
-        delta_h_prime = h2_prime - h1_prime - 360.0f;
-    }
-    else
-    {
-        delta_h_prime = h2_prime - h1_prime + 360.0f;
-    }
+    h_mean = d_internal_color_de_hue_mean(h1_prime,
+                                          h2_prime,
+                                          c1_prime * c2_prime);
+    l_dev  = (_lab1.l + _lab2.l) * 0.5f - 50.0f;
 
-    delta_big_h_prime = 2.0f * sqrtf(c1_prime * c2_prime) *
-                        sinf(delta_h_prime * D_COLOR_PI / 360.0f);
+    // each difference over its weighting function S_L, S_C or S_H
+    d_l = (_lab2.l - _lab1.l) /
+          (1.0f + (0.015f * l_dev * l_dev) / sqrtf(20.0f + l_dev * l_dev));
+    d_c = (c2_prime - c1_prime) / (1.0f + 0.045f * c_prime_mean);
+    d_h = 2.0f * sqrtf(c1_prime * c2_prime) *
+          sinf(d_internal_color_de_hue_delta(h1_prime,
+                                             h2_prime,
+                                             c1_prime * c2_prime) *
+               D_COLOR_PI / 360.0f) /
+          (1.0f + 0.015f * c_prime_mean *
+                  d_internal_color_de_hue_weight(h_mean));
 
-    if (c1_prime * c2_prime < D_COLOR_EPSILON)
-    {
-        h_prime_mean = h1_prime + h2_prime;
-    }
-    else if (d_color_fabsf(h2_prime - h1_prime) <= 180.0f)
-    {
-        h_prime_mean = (h1_prime + h2_prime) * 0.5f;
-    }
-    else if (h1_prime + h2_prime < 360.0f)
-    {
-        h_prime_mean = (h1_prime + h2_prime + 360.0f) * 0.5f;
-    }
-    else
-    {
-        h_prime_mean = (h1_prime + h2_prime - 360.0f) * 0.5f;
-    }
-
-    t = 1.0f
-      - 0.17f * cosf((h_prime_mean - 30.0f)        * D_COLOR_PI / 180.0f)
-      + 0.24f * cosf((2.0f * h_prime_mean)         * D_COLOR_PI / 180.0f)
-      + 0.32f * cosf((3.0f * h_prime_mean + 6.0f)  * D_COLOR_PI / 180.0f)
-      - 0.20f * cosf((4.0f * h_prime_mean - 63.0f) * D_COLOR_PI / 180.0f);
-
-    s_l = 1.0f + (0.015f * (l_mean - 50.0f) * (l_mean - 50.0f)) /
-                 sqrtf(20.0f + (l_mean - 50.0f) * (l_mean - 50.0f));
-    s_c = 1.0f + 0.045f * c_prime_mean;
-    s_h = 1.0f + 0.015f * c_prime_mean * t;
-
-    r_t = -2.0f * sqrtf(c_mean7 / (c_mean7 + 6103515625.0f)) *
-          sinf(60.0f * expf(-((h_prime_mean - 275.0f) / 25.0f) *
-                             ((h_prime_mean - 275.0f) / 25.0f)) *
-               D_COLOR_PI / 180.0f);
-
-    return sqrtf(
-        (delta_l / (k_l * s_l)) * (delta_l / (k_l * s_l)) +
-        (delta_c_prime / (k_c * s_c)) * (delta_c_prime / (k_c * s_c)) +
-        (delta_big_h_prime / (k_h * s_h)) * (delta_big_h_prime / (k_h * s_h)) +
-        r_t * (delta_c_prime / (k_c * s_c)) *
-              (delta_big_h_prime / (k_h * s_h))
-    );
+    return sqrtf(d_l * d_l + d_c * d_c + d_h * d_h +
+                 d_internal_color_de_rotation(h_mean, c_prime_mean) *
+                     d_c * d_h);
 }
 
 /*
@@ -309,4 +384,4 @@ D_COLOR_NS_CLOSE
 #endif  // floor, for now
 
 
-#endif  // DJINTERP_C_UTIL_COLOR_COLOR_H
+#endif  // DJINTERP_C_UTIL_COLOR_H

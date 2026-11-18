@@ -21,23 +21,23 @@
 * path:      /tests/djinterp/cpp/util/color/color_rgb_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_COLOR_RGB_TESTS_
 #define DJINTERP_TESTS_COLOR_RGB_TESTS_ 1
 
 // std
-#include <cstdio>
-#include <limits>
-#include <type_traits>
+#include <cstdio>       // std::printf
+#include <limits>       // std::numeric_limits
+#include <type_traits>  // std::is_same
 // djinterp
-#include <djinterp/cpp/djinterp.hpp>
+#include <djinterp/cpp/djinterp.hpp>  // framework root
 #ifndef DTEST_SPEC_MODE
-#include "color_rgb.hpp"                        // the header under test
+#include "../../../../../inc/djinterp/cpp/util/color/color_rgb.hpp"  // tested
 #endif
 #ifdef DTEST_SPEC_MODE
-#include "djinterp/cpp/modules/test/test_defaults.hpp"      // module_spec + run_module
+#include "djinterp/cpp/modules/test/test_defaults.hpp"  // dt::module_spec
 #endif
 
 
@@ -177,6 +177,7 @@ bool tests_color_rgb_equality_is_constexpr();
 bool tests_color_rgba_equality_includes_alpha();
 bool tests_color_rgba_inequality_is_declared_not_rewritten();
 bool tests_color_rgba_equality_is_constexpr();
+bool tests_color_rgb_equality_accepts_the_c_struct();
 
 // III. TYPE TRAITS                    (color_rgb_tests_traits.cpp)
 bool tests_color_rgb_model_type_identity();
@@ -194,6 +195,14 @@ bool tests_color_rgba_to_rgb_is_constexpr();
 bool tests_color_rgba_round_trips_through_rgb();
 bool tests_color_rgba_alpha_is_independent_of_color();
 bool tests_color_rgba_to_rgb_ignores_the_alpha_value();
+
+// V.   INTERPOLATION                  (color_rgb_tests_interpolation.cpp)
+bool tests_color_rgb_lerp_reaches_its_endpoints();
+bool tests_color_rgb_lerp_is_linear_per_channel();
+bool tests_color_rgb_lerp_does_not_clamp();
+bool tests_color_rgb_lerp_matches_the_c_kernel();
+bool tests_color_rgba_lerp_includes_alpha();
+bool tests_color_rgba_lerp_returns_rgba();
 
 
 // -- the spec provider - spec mode only --------------------------------------
@@ -305,6 +314,10 @@ dt::module_spec color_rgb_spec()
                       "rgba operator== and operator!= are usable in a constant "
                       "expression",
                       &tests_color_rgba_equality_is_constexpr },
+                    { "tests_color_rgb_equality_accepts_the_c_struct",
+                      "== and != accept the C struct on either side, for rgb "
+                      "and rgba, at every level",
+                      &tests_color_rgb_equality_accepts_the_c_struct },
                 }
             },
             dt::block_spec{
@@ -375,6 +388,35 @@ dt::module_spec color_rgb_spec()
                       "to_rgb performs no premultiplication: the colour is "
                       "returned unscaled even at zero alpha",
                       &tests_color_rgba_to_rgb_ignores_the_alpha_value },
+                }
+            },
+            dt::block_spec{
+                "interpolation",
+                "lerp on rgb and on rgba: the C kernel's straight line from "
+                "one colour to another, per channel, alpha included, and "
+                "unclamped.",
+                {
+                    { "tests_color_rgb_lerp_reaches_its_endpoints",
+                      "t = 0 gives the first colour and t = 1 the second, "
+                      "exactly",
+                      &tests_color_rgb_lerp_reaches_its_endpoints },
+                    { "tests_color_rgb_lerp_is_linear_per_channel",
+                      "each channel moves on its own line, whichever way it "
+                      "goes",
+                      &tests_color_rgb_lerp_is_linear_per_channel },
+                    { "tests_color_rgb_lerp_does_not_clamp",
+                      "t outside [0, 1] extrapolates, and channels may leave "
+                      "the unit range",
+                      &tests_color_rgb_lerp_does_not_clamp },
+                    { "tests_color_rgb_lerp_matches_the_c_kernel",
+                      "the C++ lerp gives d_color_rgb_lerp's channels exactly",
+                      &tests_color_rgb_lerp_matches_the_c_kernel },
+                    { "tests_color_rgba_lerp_includes_alpha",
+                      "alpha moves on the same line as the colour channels",
+                      &tests_color_rgba_lerp_includes_alpha },
+                    { "tests_color_rgba_lerp_returns_rgba",
+                      "lerp keeps each overload's type: rgba stays rgba",
+                      &tests_color_rgba_lerp_returns_rgba },
                 }
             },
         }

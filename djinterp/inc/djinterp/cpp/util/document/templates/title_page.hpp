@@ -30,7 +30,7 @@
 * path:      /inc/djinterp/cpp/util/document/templates/title_page.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.11
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -61,7 +61,7 @@ II.   DTitlePage (class)
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../../djinterp.hpp"        // NS_*, D_NODISCARD, D_NOEXCEPT
+#include "../../../djinterp.hpp"        // framework root
 #include "./document_attributes.hpp"    // DDocAttributes, doc_attr_*, DTextAlignment
 #include "./document_renderer.hpp"      // DDocumentRenderer, DPlainDocumentRenderer
 

@@ -20,7 +20,7 @@
 * path:      /inc/djinterp/cpp/util/document/report_surfaces.hpp
 * link(s):   ch-synthesis.tex
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -54,7 +54,7 @@ IV.   EQUIVALENCE                         (moved -> test_layout_suite.hpp)
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"      // NS_*, gates, D_NODISCARD
+#include "../../djinterp.hpp"      // framework root
 #include "./report_dialect.hpp"    // DReportOp, builders, make_report_signature, render_document
 #include "layout/layout_build.hpp"      // DLayoutCursor
 #include "layout/layout_spec.hpp"       // DSpecNode, to_layout

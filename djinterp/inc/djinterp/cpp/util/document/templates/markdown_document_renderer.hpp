@@ -42,7 +42,7 @@
 * path:      /inc/djinterp/cpp/util/document/templates/markdown_document_renderer.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.23
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -67,7 +67,7 @@ I.    DMarkdownDocumentRenderer   (the renderer)
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../../djinterp.hpp"      // NS_*, D_NODISCARD, D_NOEXCEPT
+#include "../../../djinterp.hpp"      // framework root
 #include "./document_attributes.hpp"  // DDocAttributes, attr_*, DTextAlignment
 #include "./document_renderer.hpp"    // DDocumentRenderer, D_OVERRIDE
 #include "../../output/output_stream.hpp"  // DOutputStream: write_to

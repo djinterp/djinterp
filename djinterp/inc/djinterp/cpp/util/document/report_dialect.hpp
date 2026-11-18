@@ -31,7 +31,7 @@
 * path:      /inc/djinterp/cpp/util/document/report_dialect.hpp
 * link(s):   ch-synthesis.tex
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -69,7 +69,7 @@ V.    DEMO                               (moved -> test_layout_suite.hpp)
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"         // NS_*, gates, D_NODISCARD
+#include "../../djinterp.hpp"         // framework root
 #include "layout/layout_interpret.hpp"     // DLayoutDoc, builders, signature, render pipeline
 #include "./templates/document_renderer.hpp"    // DDocumentRenderer, DPlainDocumentRenderer
 #include "./templates/title_page.hpp"           // DTitlePage (cover lowers by driving it)

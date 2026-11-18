@@ -49,7 +49,7 @@
 * path:      /inc/djinterp/cpp/util/document/layout/layout.hpp
 * link(s):   ch-recursion.tex, ch-synthesis.tex
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
-*                                                            revised: 2026.10.03
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -88,7 +88,7 @@ V.    FORGET / ANNOTATE                  (bridge to the bare expression term)
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../../djinterp.hpp"                       // NS_*, gates, D_NODISCARD
+#include "../../../djinterp.hpp"                       // framework root
 #include "../../../modules/parse/expression/expression.hpp"          // expression, expr_layer,
                                                     // expr_leaf/apply, annotated_expression
 #include "../../../modules/parse/expression/expression_ops.hpp"      // evaluate (for annotate)

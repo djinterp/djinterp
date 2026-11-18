@@ -4,8 +4,9 @@
 * The archive kernel's suite in DTest's C face (c/modules/test/test_suite.h).
 *   One entry point builds the module "archive_kernel": the staged create
 * (tar.gz and ZIP through a caller's stage), tar.gz read with nothing staged,
-* the pax extended headers, the tar reader's extensions and damage, and the
-* ZIP reader's checks.  The section files share the helpers declared here.
+* the pax extended headers, the tar reader's extensions and damage, the ZIP
+* reader's checks, and gzip's header (a name and a time) in .gz and .tar.gz.
+* The section files share the helpers declared here.
 *
 *
 * TABLE OF CONTENTS
@@ -18,7 +19,7 @@
 * path:      /tests/djinterp/c/util/archive/archive_kernel_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.11
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_C_UTIL_ARCHIVE_ARCHIVE_KERNEL_TESTS_H
@@ -88,6 +89,7 @@ void d_tests_ak_staged(void);
 void d_tests_ak_pax(void);
 void d_tests_ak_reader(void);
 void d_tests_ak_zip(void);
+void d_tests_ak_gzip(void);
 
 
 D_EXTERN_C_END

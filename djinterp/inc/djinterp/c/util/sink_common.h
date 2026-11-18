@@ -38,7 +38,7 @@
 * path:      /inc/djinterp/c/util/sink_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -187,9 +187,11 @@ struct dj_pack_counting_sink
 // 2.2.2
 // dj_pack_buffer_sink
 //   struct: the context of a sink that writes into a fixed caller-owned
-// buffer.  `overflow` is raised as soon as a write would exceed `capacity`,
-// and `needed` continues to accumulate the full requirement, which is what
-// lets the buffer form report the size to grow to on failure.
+// buffer.  A write that would pass `capacity` copies nothing and raises
+// `overflow`, and nothing is copied after that, so the buffer always holds the
+// output's first `written` bytes.  `needed` keeps accumulating the full
+// requirement (stopping at SIZE_MAX), which is what lets the buffer form report
+// the size to grow to on failure.
 struct dj_pack_buffer_sink
 {
     unsigned char* buffer;

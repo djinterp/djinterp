@@ -40,7 +40,7 @@
 * path:      /inc/djinterp/cpp/util/document/document_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.24
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -76,7 +76,7 @@ IV.   render_template             (bind + emit through a renderer)
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"                    // NS_*, D_NODISCARD, D_NOEXCEPT
+#include "../../djinterp.hpp"                    // framework root
 #include "../../text/text_template.hpp"          // DTextTemplate (the token layer)
 #include "./templates/document_attributes.hpp"   // DDocAttributes, doc_attr_*
 #include "./templates/document_renderer.hpp"     // DDocumentRenderer
