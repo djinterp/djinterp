@@ -31,7 +31,7 @@
 * path:      /inc/djinterp/env/os/env_linux.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.28
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 /*
@@ -85,6 +85,7 @@ TABLE OF CONTENTS
          2.  D_ENV_LINUX_GLIBC_AT_LEAST
     2.  musl
          1.  D_ENV_LINUX_LIBC_MUSL
+         2.  D_ENV_LINUX_MUSL_HAS_GETAUXVAL
     3.  uClibc
          1.  D_ENV_LINUX_LIBC_UCLIBC
     4.  Bionic
@@ -530,6 +531,19 @@ TABLE OF CONTENTS
     #endif  // D_ENV_LINUX_LIBC_NAME
 #else
     #define D_ENV_LINUX_LIBC_MUSL       0
+#endif
+
+// 2.2.2
+// D_ENV_LINUX_MUSL_HAS_GETAUXVAL
+//   feature: detect if musl's getauxval() is available, for AT_SECURE: the
+// run-time privilege check before a plugin is loaded. musl has had it since
+// 1.1.0 (2014) and gives no version macro, so it follows the build's word
+// that the C library is musl (D_ENV_LINUX_LIBC_MUSL); glibc's is
+// D_ENV_LINUX_GLIBC_HAS_GETAUXVAL.
+#if D_ENV_LINUX_LIBC_MUSL
+    #define D_ENV_LINUX_MUSL_HAS_GETAUXVAL 1
+#else
+    #define D_ENV_LINUX_MUSL_HAS_GETAUXVAL 0
 #endif
 
 // 2.3    uClibc

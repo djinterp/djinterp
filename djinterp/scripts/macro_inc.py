@@ -1,6 +1,10 @@
 # gen_inc.py
 import argparse
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import macro_frame  # noqa: E402
 
 def _is_c_ident(s: str) -> bool:
     # Simple "good enough" identifier check (covers typical C idents)
@@ -59,7 +63,7 @@ def main() -> None:
     for i in range(num_macros):
         lines.append(inc_line(i, args.macro_prefix, args.offset, args.param_start))
 
-    Path(args.out).write_text("\n".join(lines) + "\n", encoding="utf-8")
+    changed = macro_frame.write(args.out, "\n".join(lines) + "\n")
     
     # Calculate the actual range for display
     first_param = args.param_start
@@ -67,7 +71,7 @@ def main() -> None:
     first_value = first_param + args.offset
     last_value = last_param + args.offset
     
-    print(f"Wrote {args.out} (N={args.start}..{args.max}, "
+    print(f"{'Wrote' if changed else 'Unchanged'} {args.out} (N={args.start}..{args.max}, "
           f"prefix={args.macro_prefix}, offset={args.offset:+d}, "
           f"param_start={args.param_start}, param_step={args.param_step})")
     print(f"  Generated: {args.macro_prefix}{first_param} -> {first_value}, "

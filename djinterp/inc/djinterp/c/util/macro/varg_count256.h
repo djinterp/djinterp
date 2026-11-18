@@ -5,12 +5,13 @@
 * path:      /inc/djinterp/c/util/macro/varg_count256.h
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 /* Auto-generated. Do not edit by hand. */
 /* Variadic, so absent without variadic macros (ISO strict C++98). */
 #include "../../../env/env.h"  /* D_ENV_PP_HAS_VARIADIC_MACROS */
 #if D_ENV_PP_HAS_VARIADIC_MACROS
+D_ENV_PP_VARIADIC_QUIET_BEGIN
 
 /* --- D_INTERNAL_VARG_COUNT_HELPER + D_VARG_COUNT --- */
 
@@ -60,4 +61,5 @@
         35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, \
         22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, \
         9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
+D_ENV_PP_VARIADIC_QUIET_END
 #endif  /* D_ENV_PP_HAS_VARIADIC_MACROS */

@@ -1,6 +1,10 @@
 # gen_varg_count.py
 import argparse
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import macro_frame  # noqa: E402
 
 
 def _is_c_ident(s: str) -> bool:
@@ -95,8 +99,8 @@ def main() -> None:
         else:
             lines.append(f"        {joined}, \\")
 
-    Path(args.out).write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print(f"Wrote {args.out} (max={args.max}, helper={args.helper_name}, count={args.count_name}, param_prefix={args.param_prefix}, param_start={args.param_start}, param_step={args.param_step})")
+    changed = macro_frame.write(args.out, "\n".join(lines) + "\n")
+    print(f"{'Wrote' if changed else 'Unchanged'} {args.out} (max={args.max}, helper={args.helper_name}, count={args.count_name}, param_prefix={args.param_prefix}, param_start={args.param_start}, param_step={args.param_step})")
 
 
 if __name__ == "__main__":

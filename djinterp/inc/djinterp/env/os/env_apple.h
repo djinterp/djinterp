@@ -30,7 +30,7 @@
 * path:      /inc/djinterp/env/os/env_apple.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.28
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 /*
@@ -79,6 +79,7 @@ TABLE OF CONTENTS
          3.  D_ENV_APPLE_HAS_MACH
          4.  D_ENV_APPLE_HAS_KQUEUE
          5.  D_ENV_APPLE_HAS_POSIX
+         6.  D_ENV_APPLE_HAS_ISSETUGID
     2.  Apple Clang and toolchain
          1.  D_ENV_APPLE_IS_APPLE_CLANG
          2.  D_ENV_APPLE_CLANG_BUILD_VER
@@ -583,6 +584,17 @@ TABLE OF CONTENTS
     #define D_ENV_APPLE_HAS_POSIX       1
 #else
     #define D_ENV_APPLE_HAS_POSIX       0
+#endif
+
+// 3.1.6
+// D_ENV_APPLE_HAS_ISSETUGID
+//   feature: detect if issetugid() is available: whether the process was
+// made setuid or setgid, the run-time privilege check before a plugin is
+// loaded. Darwin's libc has it on every macOS and iOS version.
+#if D_ENV_APPLE_IS_APPLE
+    #define D_ENV_APPLE_HAS_ISSETUGID   1
+#else
+    #define D_ENV_APPLE_HAS_ISSETUGID   0
 #endif
 
 // 3.2    Apple Clang and toolchain

@@ -4,3 +4,12 @@
 /build/cmake/msvs/
 /bin/
 /lib/
+
+# editors' temporary and backup files: Visual Studio's and Office's
+# save-in-progress copies (name.ext~RF1a2b3c.TMP) and Emacs's and others'
+# backups (name.ext~); *.TMP matches .tmp too where Git ignores case
+*.TMP
+*~*
+
+# Python's compiled caches, which running the scripts under scripts/ leaves
+__pycache__/

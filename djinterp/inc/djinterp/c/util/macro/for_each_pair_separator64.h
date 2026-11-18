@@ -5,12 +5,13 @@
 * path:      /inc/djinterp/c/util/macro/for_each_pair_separator64.h
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 /* Auto-generated. Do not edit by hand. */
 /* Variadic, so absent without variadic macros (ISO strict C++98). */
 #include "../../../env/env.h"  /* D_ENV_PP_HAS_VARIADIC_MACROS */
 #if D_ENV_PP_HAS_VARIADIC_MACROS
+D_ENV_PP_VARIADIC_QUIET_BEGIN
 
 /* --- D_INTERNAL_FOR_EACH_PAIR_SEPARATOR_N (even only) --- */
 
@@ -80,4 +81,5 @@
 #define D_INTERNAL_FOR_EACH_PAIR_SEPARATOR_62(_fn, _sep, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, _51, _52, _53, _54, _55, _56, _57, _58, _59, _60, _61, _62) _fn(_1, _2) _sep _fn(_3, _4) _sep _fn(_5, _6) _sep _fn(_7, _8) _sep _fn(_9, _10) _sep _fn(_11, _12) _sep _fn(_13, _14) _sep _fn(_15, _16) _sep _fn(_17, _18) _sep _fn(_19, _20) _sep _fn(_21, _22) _sep _fn(_23, _24) _sep _fn(_25, _26) _sep _fn(_27, _28) _sep _fn(_29, _30) _sep _fn(_31, _32) _sep _fn(_33, _34) _sep _fn(_35, _36) _sep _fn(_37, _38) _sep _fn(_39, _40) _sep _fn(_41, _42) _sep _fn(_43, _44) _sep _fn(_45, _46) _sep _fn(_47, _48) _sep _fn(_49, _50) _sep _fn(_51, _52) _sep _fn(_53, _54) _sep _fn(_55, _56) _sep _fn(_57, _58) _sep _fn(_59, _60) _sep _fn(_61, _62)
 #define D_INTERNAL_FOR_EACH_PAIR_SEPARATOR_63(_fn, _sep, ...) D_INTERNAL_FOR_EACH_PAIR__ODD_ARG_COUNT_ERROR
 #define D_INTERNAL_FOR_EACH_PAIR_SEPARATOR_64(_fn, _sep, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, _51, _52, _53, _54, _55, _56, _57, _58, _59, _60, _61, _62, _63, _64) _fn(_1, _2) _sep _fn(_3, _4) _sep _fn(_5, _6) _sep _fn(_7, _8) _sep _fn(_9, _10) _sep _fn(_11, _12) _sep _fn(_13, _14) _sep _fn(_15, _16) _sep _fn(_17, _18) _sep _fn(_19, _20) _sep _fn(_21, _22) _sep _fn(_23, _24) _sep _fn(_25, _26) _sep _fn(_27, _28) _sep _fn(_29, _30) _sep _fn(_31, _32) _sep _fn(_33, _34) _sep _fn(_35, _36) _sep _fn(_37, _38) _sep _fn(_39, _40) _sep _fn(_41, _42) _sep _fn(_43, _44) _sep _fn(_45, _46) _sep _fn(_47, _48) _sep _fn(_49, _50) _sep _fn(_51, _52) _sep _fn(_53, _54) _sep _fn(_55, _56) _sep _fn(_57, _58) _sep _fn(_59, _60) _sep _fn(_61, _62) _sep _fn(_63, _64)
+D_ENV_PP_VARIADIC_QUIET_END
 #endif  /* D_ENV_PP_HAS_VARIADIC_MACROS */

@@ -37,7 +37,7 @@
 * path:      /inc/djinterp/env/os/env_bsd.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.28
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 /*
@@ -134,6 +134,7 @@ TABLE OF CONTENTS
          3.  D_ENV_BSD_HAS_EXPLICIT_BZERO
          4.  D_ENV_BSD_HAS_FLOCK
          5.  D_ENV_BSD_HAS_CLOSEFROM
+         6.  D_ENV_BSD_HAS_ISSETUGID
     5.  sysctl
          1.  D_ENV_BSD_HAS_SYSCTL
          2.  D_ENV_BSD_HAS_SYSCTLBYNAME
@@ -892,6 +893,20 @@ TABLE OF CONTENTS
     #define D_ENV_BSD_HAS_CLOSEFROM     1
 #else
     #define D_ENV_BSD_HAS_CLOSEFROM     0
+#endif
+
+// 3.4.6
+// D_ENV_BSD_HAS_ISSETUGID
+//   feature: detect if issetugid() is available: whether the process was
+// made setuid or setgid, the run-time privilege check before a plugin is
+// loaded. OpenBSD 2.0+, FreeBSD 3.0+, NetBSD 1.5+, DragonFly.
+#if ( (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
+    #define D_ENV_BSD_HAS_ISSETUGID     1
+#else
+    #define D_ENV_BSD_HAS_ISSETUGID     0
 #endif
 
 // 3.5    sysctl

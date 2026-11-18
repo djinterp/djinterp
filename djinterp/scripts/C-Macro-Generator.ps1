@@ -215,13 +215,14 @@ function Write-TextUtf8NoBom {
 function Get-IncludeGuardFromFileName {
     param([string]$fileName)
 
-    # e.g. "for_each256.h" -> "DJINTERP_FOR_EACH256_H"
+    # the tables live in inc/djinterp/c/util/macro/, so the guard is that
+    # path's: "for_each256.h" -> "DJINTERP_C_UTIL_MACRO_FOR_EACH256_H"
     $base = [System.IO.Path]::GetFileName($fileName)
     $base = $base.ToUpperInvariant()
     $base = ($base -replace '[^A-Z0-9]+', '_')
     $base = $base.Trim('_')
 
-    return ("DJINTERP_{0}" -f $base)
+    return ("DJINTERP_C_UTIL_MACRO_{0}" -f $base)
 }
 
 function Get-RelativeIncludePath {
@@ -245,8 +246,32 @@ function Get-RelativeIncludePath {
     return ($rel -replace '\\', '/')
 }
 
+function Write-MacroTable {
+    # writes a table through macro_frame.py, which keeps an existing banner,
+    # frames variadic tables and leaves an unchanged file alone
+    param(
+        [hashtable]$py,
+        [string]$path,
+        [string]$text
+    )
+
+    $frame = Join-Path (Split-Path -Parent $PSCommandPath) "macro_frame.py"
+    $saved = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $text | & $py.Exe @($py.Extra) $frame $path
+    } finally {
+        $ErrorActionPreference = $saved
+    }
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "macro_frame.py failed (exit $LASTEXITCODE): $path"
+    }
+}
+
 function Write-AliasHeader {
     param(
+        [hashtable]$py,
         [string]$outRoot,
         [string]$aliasRelPath,
         [string]$targetRelPath
@@ -270,12 +295,13 @@ function Write-AliasHeader {
 
     $txt = @"
 #ifndef $guard
-#define $guard
+#define $guard 1
+// djinterp
 #include "$include"
-#endif
+#endif  // $guard
 "@
 
-    Write-TextUtf8NoBom $aliasAbs $txt
+    Write-MacroTable -py $py -path $aliasAbs -text $txt
 }
 
 function Invoke-Py {
@@ -439,6 +465,12 @@ if ((Has-Flag $Args "--generate-all-modules") -or (Has-Flag $Args "--generate-al
 
     Write-Host "[all-modules] Non-MSVC: core families..." -ForegroundColor Green
     foreach ($fam in $coreFamilies) {
+        # the alias step below writes these two names, so a family generated
+        # under them would only be overwritten (and its banner's date moved)
+        if ($aliasEnabled -and
+            (($fam.Name -eq $aliasForEach) -or ($fam.Name -eq $aliasForEachPair))) {
+            continue
+        }
         Invoke-Py $py $genForEach (@(
             "--only", $fam.Family,
             "--no-tuples", "--no-wrappers",
@@ -573,11 +605,11 @@ if ((Has-Flag $Args "--generate-all-modules") -or (Has-Flag $Args "--generate-al
     if ($aliasEnabled) {
         Write-Host "[all-modules] Aliases..." -ForegroundColor Green
         foreach ($m in $maxima) {
-            Write-AliasHeader -outRoot $outRoot -aliasRelPath ($aliasForEach.Replace("#", $m.ToString()))         -targetRelPath ("for_each_1_tuple_sep{0}.h" -f $m)
-            Write-AliasHeader -outRoot $outRoot -aliasRelPath ($aliasForEachPair.Replace("#", $m.ToString()))     -targetRelPath ("for_each_2_tuple_sep{0}.h" -f $m)
+            Write-AliasHeader -py $py -outRoot $outRoot -aliasRelPath ($aliasForEach.Replace("#", $m.ToString()))         -targetRelPath ("for_each_1_tuple_sep{0}.h" -f $m)
+            Write-AliasHeader -py $py -outRoot $outRoot -aliasRelPath ($aliasForEachPair.Replace("#", $m.ToString()))     -targetRelPath ("for_each_2_tuple_sep{0}.h" -f $m)
         }
-        Write-AliasHeader -outRoot $outRoot -aliasRelPath $aliasForEachMSVC     -targetRelPath "for_each_1_tuple_sep_mvc.h"
-        Write-AliasHeader -outRoot $outRoot -aliasRelPath $aliasForEachPairMSVC -targetRelPath "for_each_2_tuple_sep_mvc.h"
+        Write-AliasHeader -py $py -outRoot $outRoot -aliasRelPath $aliasForEachMSVC     -targetRelPath "for_each_1_tuple_sep_mvc.h"
+        Write-AliasHeader -py $py -outRoot $outRoot -aliasRelPath $aliasForEachPairMSVC -targetRelPath "for_each_2_tuple_sep_mvc.h"
     }
 
     Write-Host "[all-modules] Done. Output: $outRoot" -ForegroundColor Green

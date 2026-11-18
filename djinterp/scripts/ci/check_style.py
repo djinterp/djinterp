@@ -12,13 +12,21 @@
 #     B  the banner: its rules, its title line (the file's own name on
 #        character 80), its fields at character 14, its path (the file's own),
 #        its dates (YYYY.MM.DD, ending on character 80), the two blank lines
-#        before path:; its tag is not checked while ruling #33 leaves the tags
-#        as they are
+#        before path:; its tag, the one its path derives (ruled 2026.11.17):
+#        [<language>][<module>], the language the c or cpp folder in the path
+#        (config/c/ counts), else the extension, the module the first folder
+#        under it without modules/ or core/, util/ as utility; env, tools/
+#        (every tool, and inc/ui) and config/'s own files their own module;
+#        a file directly in a language folder its language alone, and re_std
+#        [re_std]; tests and runners as their subject's path. Until the tree's
+#        banners are converted (banner_tags.py), a one-bracket tag is still
+#        accepted
 #     G  a header's include guard: missing, or not the one its path derives
 #        (djinterp's headers: DJINTERP_, then C_ for the C tree and nothing for
 #        the C++ tree, CONFIG_ and C_ or CPP_ for config/, the folders without
 #        modules/, the stem, _H or _HPP; the roots DJINTERP and DJINTERP_CPP;
 #        re_std's: RE_STD_, C_ for its C tree, its path with the extension;
+#        inc/ui's: DJINTERP_UI_ and its path (ruled 2026.11.17);
 #        then, by ruling #71, each repeated run of words merged, as
 #        DJINTERP_C_TEST_TEST_COMMON_H to DJINTERP_C_TEST_COMMON_H, unless
 #        that is another header's guard, merged or not, when all are kept);
@@ -26,6 +34,10 @@
 #     R  an include of djinterp.h or djinterp.hpp whose comment is not
 #        "// framework root" (a source's own header says
 #        "// corresponding header")
+#     V  a header's (under inc/) variadic macro defined outside env's pair,
+#        D_ENV_PP_VARIADIC_QUIET_BEGIN to D_ENV_PP_VARIADIC_QUIET_END, so
+#        that a pedantic C++98 or C90 build warns about it (ruled
+#        2026.11.17: every header that defines one quiets its own)
 #   Warnings, which are counted and shown but do not fail a run:
 #     W  a line over 80 characters (the limit is a target: a long path or
 #        string may pass it)
@@ -38,6 +50,11 @@
 #        is exempt (ruled 2026.11.11)
 #     M  an include guard with every segment kept where ruling #71 merges
 #        them: still accepted, while the tree's headers move
+#     H  a header under inc/ whose banner lacks HOW TO USE, OPTIONS or
+#        CONFIGURATION, each a heading over its own row of dashes, in that
+#        order (ruled 2026.11.17: every header carries them). The punch
+#        list tracks it: a count above its line is shown, and does not
+#        fail a run
 #   Generated files (a banner or first lines that say so) are left out, as
 # the guides exempt them.
 #   Most files met the rules when the guides were written, and some do not
@@ -51,7 +68,9 @@
 #                                 new ones git does not track yet)
 #            --known FILE         the punch list a run is held to
 #            --write-known FILE   write this run's counts as the list
-#            --show N             lines shown per file and code (default 3)
+#            --show N             lines shown per file and code (default 3;
+#                                 0 shows them all); a summary line counts
+#                                 the ones left out
 #            --warnings           list the files with warnings too, not only
 #                                 the totals
 #            --tree DIR           the tree to check (default: the one this
@@ -65,7 +84,7 @@
 # path:      /scripts/ci/check_style.py
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-#                                                            revised: 2026.11.16
+#                                                            revised: 2026.11.18
 #*******************************************************************************
 import argparse
 import collections
@@ -78,16 +97,25 @@ import unicodedata
 TREE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
     __file__))))
 EXTENSIONS = ('.h', '.c', '.hpp', '.cpp')
-ERRORS = 'TSUXBGR'
-WARNINGS = 'WCFM'
+ERRORS = 'TSUXBGRV'
+WARNINGS = 'WCFMH'
+# warnings the punch list tracks: one above its line is shown, not failed
+TRACKED = 'H'
+SECTIONS = ('HOW TO USE', 'OPTIONS', 'CONFIGURATION')
 GENERATED = re.compile(r'(auto-?generated|generated (by|from|with)\b|'
                        r'do not (edit|modify))', re.I)
 RULE_OPEN = '/' + '*' * 79
 RULE_CLOSE = '*' * 79 + '/'
-TITLE = re.compile(r'^\* djinterp \[[^\]]*\] +(\S+)$')
+TITLE = re.compile(r'^\* djinterp (\[[^\]]*\](?:\[[^\]]*\])?) +(\S+)$')
+# a one-bracket tag that isn't the derived one is accepted until the tree's
+# banners are converted by banner_tags.py (2026.11.20), then refused
+ONE_BRACKET_ACCEPTED = True
 DATE = re.compile(r'^\d{4}\.\d{2}\.\d{2}$')
 INCLUDE = re.compile(r'^\s*#\s*include\s*([<"])([^>"]+)[>"](.*)$')
 GUARD = re.compile(r'^\s*#\s*ifndef\s+(\w+)\s*$')
+MACRO = re.compile(r'^\s*#\s*define\s+(\w+)\(([^)]*)\)')
+QUIET_BEGIN = 'D_ENV_PP_VARIADIC_QUIET_BEGIN'
+QUIET_END = 'D_ENV_PP_VARIADIC_QUIET_END'
 OPENER = re.compile(r'^\s*(namespace\b|extern\s+"C"|class\b|struct\b|'
                     r'union\b|enum\b)')
 
@@ -111,6 +139,12 @@ def path_guard(path):
                 out.append('C')
             folders = folders[1:]
         guard = '_'.join(out + folders + [parts[-1]])
+        return re.sub(r'[^A-Za-z0-9]+', '_', guard).upper()
+    if parts[:2] == ['inc', 'ui']:
+        # the tools' interface tree (ruled 2026.11.17): DJINTERP_UI_, then
+        # its path, as a tool's own headers under inc/djinterp/tools/ are
+        guard = '_'.join(['DJINTERP'] + parts[1:-1] +
+                         [stem, extension[1:]])
         return re.sub(r'[^A-Za-z0-9]+', '_', guard).upper()
     if parts[:2] != ['inc', 'djinterp']:
         return None
@@ -198,6 +232,68 @@ def derive_guard(path):
     return merged
 
 
+def derive_tag(path):
+    """The banner tag a file's path derives (ruled 2026.11.17), or None where
+    the path is outside the trees the rule covers."""
+    parts = path.split('/')
+    extension = os.path.splitext(parts[-1])[1]
+    if extension not in EXTENSIONS:
+        return None
+    language = 'c' if extension in ('.h', '.c') else 'cpp'
+    folders = parts[:-1]
+    if folders[:4] == ['build', 'cmake', 'config', 'testing']:
+        folders = folders[4:]
+    elif folders[:1] in (['inc'], ['src'], ['tests']):
+        folders = folders[1:]
+    else:
+        return None
+    # tests outside djinterp/ that mirror a subject's path
+    if folders[:1] in (['unintegrated'], ['bench']):
+        folders = folders[1:]
+    if not folders:
+        return None
+    top = folders[0]
+    if top == 're_std':
+        return '[re_std]'
+    if top in ('ui', 'dawk'):
+        return '[%s][tools]' % tag_language(folders[1:], language)
+    if top == 'parse':
+        return '[%s][parse]' % language
+    if top == 'util':
+        return '[%s][utility]' % language
+    if top == 'djinterp':
+        folders = folders[1:]
+    elif top not in ('c', 'cpp'):
+        return None
+    if not folders:
+        return '[%s]' % language
+    if folders[0] == 'config':
+        folders = folders[1:]
+        if not folders or folders[0] not in ('c', 'cpp', 'env', 'tools'):
+            return '[%s][config]' % language
+    if folders[0] == 'tools':
+        return '[%s][tools]' % tag_language(folders[1:], language)
+    if folders[0] == 'env':
+        return '[%s][env]' % language
+    if folders[0] not in ('c', 'cpp'):
+        return None
+    language, rest = folders[0], folders[1:]
+    while rest and rest[0] in ('modules', 'core'):
+        rest = rest[1:]
+    if not rest:
+        return '[%s]' % language
+    module = 'utility' if rest[0] == 'util' else rest[0]
+    return '[%s][%s]' % (language, module)
+
+
+def tag_language(folders, fallback):
+    """The first c or cpp folder among folders, else fallback."""
+    for folder in folders:
+        if folder in ('c', 'cpp'):
+            return folder
+    return fallback
+
+
 def check_banner(path, lines, report):
     """The banner's fixed template."""
     if not lines or lines[0] != RULE_OPEN:
@@ -213,11 +309,21 @@ def check_banner(path, lines, report):
     title = TITLE.match(banner[1]) if len(banner) > 1 else None
     if not title:
         report('B', 2, 'the title line is not "* djinterp [tag] <file>"')
-    elif title.group(1) != os.path.basename(path):
-        report('B', 2, 'the title names %s' % title.group(1))
-    elif len(banner[1]) != 80:
+    elif title.group(2) != os.path.basename(path):
+        report('B', 2, 'the title names %s' % title.group(2))
+    elif len(banner[1]) != 80 and not (
+            len(banner[1]) > 80 and
+            banner[1] == '* djinterp %s %s' % (title.group(1),
+                                               title.group(2))):
+        # past 80 only where the tag and the name can't both fit, with one
+        # space between them
         report('B', 2, 'the file name ends on character %d, not 80' %
                len(banner[1]))
+    if title:
+        tag, want = title.group(1), derive_tag(path)
+        if (want is not None and tag != want and
+                not (ONE_BRACKET_ACCEPTED and tag.count('[') == 1)):
+            report('B', 2, 'the tag is %s; the path derives %s' % (tag, want))
 
     fields = {}
     for number, line in enumerate(banner, 1):
@@ -258,6 +364,25 @@ def check_banner(path, lines, report):
                    match.group(1))
 
 
+def check_sections(lines, report):
+    """A header's banner: HOW TO USE, OPTIONS and CONFIGURATION, each over
+    its row of dashes, in that order."""
+    if not lines or lines[0] != RULE_OPEN or RULE_CLOSE not in lines:
+        return
+    banner = lines[:lines.index(RULE_CLOSE)]
+    found = []
+    for number in range(len(banner) - 1):
+        heading = banner[number][2:] if banner[number].startswith('* ') \
+            else ''
+        if (heading in SECTIONS and
+                banner[number + 1] == '* ' + '-' * len(heading)):
+            found.append(heading)
+    if found != list(SECTIONS):
+        missing = [name for name in SECTIONS if name not in found]
+        report('H', 1, 'the banner lacks %s' % ', '.join(missing)
+               if missing else 'the banner\'s sections are out of order')
+
+
 def check_guard(path, lines, report):
     """A header's guard: present, derived, defined to 1, closed by name."""
     want = derive_guard(path)
@@ -292,6 +417,29 @@ def check_guard(path, lines, report):
     if not re.match(r'^\s*#\s*endif\s+//\s*%s\s*$' % re.escape(guard), last):
         report('G', closing[-1] if closing else 1,
                'the last line is not "#endif  // %s"' % guard)
+
+
+def check_variadic(lines, report):
+    """A header's variadic macros: each defined between env's pair."""
+    quiet = False
+    number = 0
+    while number < len(lines):
+        start = number + 1
+        line = lines[number]
+        while line.endswith('\\') and number + 1 < len(lines):
+            number += 1
+            line = line[:-1] + ' ' + lines[number]
+        number += 1
+        stripped = line.strip()
+        if stripped == QUIET_BEGIN:
+            quiet = True
+        elif stripped == QUIET_END:
+            quiet = False
+        else:
+            match = MACRO.match(line)
+            if match and '...' in match.group(2) and not quiet:
+                report('V', start, '%s is variadic, outside %s and %s' % (
+                    match.group(1), QUIET_BEGIN, QUIET_END))
 
 
 def check_includes(path, lines, report):
@@ -432,6 +580,11 @@ def check_file(path):
     check_banner(path, lines, report)
     if path.endswith(('.h', '.hpp')):
         check_guard(path, lines, report)
+        # the library's headers: a test's header is built at C++11 and
+        # later only, where a variadic macro is standard
+        if path.startswith('inc/'):
+            check_variadic(lines, report)
+            check_sections(lines, report)
     check_includes(path, lines, report)
     if not is_test(path):
         check_functions(lines, report)
@@ -530,15 +683,20 @@ def main():
         if code in ERRORS:
             failed += 1
             tag = 'FAIL'
-        elif options.warnings:
+        elif options.warnings or (options.known and code in TRACKED):
             tag = 'warn'
         else:
             continue
         print('%s %s %s: %d%s' % (tag, path, code, count,
                                   (' (the punch list has %d)' % allowed)
                                   if allowed else ''))
-        for number, message in details[(path, code)][:options.show]:
+        listed = details[(path, code)]
+        shown = listed if options.show <= 0 else listed[:options.show]
+        for number, message in shown:
             print('       %d: %s' % (number, message))
+        if len(listed) > len(shown):
+            print('       and %d more (--show 0 lists them all)' % (
+                len(listed) - len(shown)))
     if options.known:
         for (path, code), allowed in sorted(known.items()):
             if path in checked and counts.get((path, code), 0) < allowed:
@@ -553,9 +711,10 @@ def main():
             handle.write('# djinterp style punch list: file<TAB>code<TAB>'
                          'count, written by scripts/ci/check_style.py '
                          '--write-known\n')
-            # errors only: a warning fails nothing, so it needs no line
+            # errors, and the warnings the list tracks; another warning
+            # fails nothing and is tracked by nothing, so it needs no line
             for (path, code), count in sorted(counts.items()):
-                if code in ERRORS:
+                if code in ERRORS or code in TRACKED:
                     handle.write('%s\t%s\t%d\n' % (path, code, count))
     return 1 if failed else 0
 

@@ -15,7 +15,7 @@
 * path:      /inc/djinterp/env/env_compiler.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 /*
@@ -54,6 +54,8 @@ TABLE OF CONTENTS
     ---------------------
     1.  Variadic macros
          1.  D_ENV_PP_HAS_VARIADIC_MACROS
+         2.  D_ENV_PP_VARIADIC_QUIET_BEGIN
+         3.  D_ENV_PP_VARIADIC_QUIET_END
     2.  __VA_OPT__
          1.  D_ENV_PP_HAS_VA_OPT
          2.  D_ENV_PP_HAS_VA_OPT_ENABLED
@@ -521,6 +523,54 @@ TABLE OF CONTENTS
     #endif
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 
+// 2.1.2
+// D_ENV_PP_VARIADIC_QUIET_BEGIN
+//   macro: silences the variadic-macro warning on the definitions that
+// follow, to D_ENV_PP_VARIADIC_QUIET_END. Below C99 and C++11, with
+// -Wpedantic, GCC and Clang warn once for each variadic macro a header
+// defines; a header that defines them puts its definitions between the two,
+// so that only a user's own variadic macros still warn (ruled 2026.11.17).
+// GCC honours the pragma for a preprocessor warning in C++ only from GCC 13
+// (its PR 53431); before that, in C++, the header marks itself a system
+// header, which also quiets any other warning in it from there on. MSVC has
+// no such warning.
+//   usage: in a header, before its first variadic #define, and the end
+// after its last:
+//     D_ENV_PP_VARIADIC_QUIET_BEGIN
+//     #define D_MY_FAMILY(...)  ...
+//     D_ENV_PP_VARIADIC_QUIET_END
+#if defined(__clang__)
+    #define D_ENV_PP_VARIADIC_QUIET_BEGIN                                      \
+        _Pragma("clang diagnostic push")                                       \
+        _Pragma("clang diagnostic ignored \"-Wvariadic-macros\"")
+#elif ( (defined(__GNUC__))                                    &&              \
+        ( (!defined(__cplusplus)) || (__GNUC__ >= 13) )        &&              \
+        ( (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)) ) )
+    #define D_INTERNAL_ENV_PP_VARIADIC_QUIET_PUSHES 1
+    #define D_ENV_PP_VARIADIC_QUIET_BEGIN                                      \
+        _Pragma("GCC diagnostic push")                                         \
+        _Pragma("GCC diagnostic ignored \"-Wvariadic-macros\"")
+#elif defined(__GNUC__)
+    #define D_ENV_PP_VARIADIC_QUIET_BEGIN                                      \
+        _Pragma("GCC system_header")
+#else
+    #define D_ENV_PP_VARIADIC_QUIET_BEGIN
+#endif
+
+// 2.1.3
+// D_ENV_PP_VARIADIC_QUIET_END
+//   macro: ends D_ENV_PP_VARIADIC_QUIET_BEGIN's silence, so the warning
+// holds again for what follows.
+#if defined(__clang__)
+    #define D_ENV_PP_VARIADIC_QUIET_END                                        \
+        _Pragma("clang diagnostic pop")
+#elif defined(D_INTERNAL_ENV_PP_VARIADIC_QUIET_PUSHES)
+    #define D_ENV_PP_VARIADIC_QUIET_END                                        \
+        _Pragma("GCC diagnostic pop")
+#else
+    #define D_ENV_PP_VARIADIC_QUIET_END
+#endif
+
 // 2.2    __VA_OPT__
 //------------------------------------------------------------------------------
 // 2.2.1
@@ -554,21 +604,32 @@ TABLE OF CONTENTS
             (D_ENV_LANG_C_STANDARD <= D_ENV_LANG_C_STANDARD_C17) )
         #define D_ENV_PP_HAS_VA_OPT 0
     #else
-        //   a dummy argument (~) keeps __VA_ARGS__ non-empty:
-        //     __VA_OPT__ works:    __VA_OPT__(,) -> ",", third argument 1
-        //     __VA_OPT__ literal:  no comma inserted, third argument 0
+        //   a dummy argument (~) keeps __VA_ARGS__ non-empty, and the
+        // tildes around __VA_OPT__(,) and at the end keep every argument
+        // non-empty, since an empty macro argument is itself an extension
+        // before C99 and C++11:
+        //     __VA_OPT__ works:    "~ , ~" is two arguments, third is 1
+        //     __VA_OPT__ literal:  "~ __VA_OPT__(,) ~" is one, third is 0
+        //   The answer is computed here, once, and kept as a literal 0 or
+        // 1, so a later #if never expands the probe again.
 
         // D_INTERNAL_ENV_VA_OPT_EXPAND / D_INTERNAL_ENV_VA_OPT_THIRD_ARG_ /
         // D_INTERNAL_ENV_VA_OPT_THIRD_ARG / D_INTERNAL_ENV_VA_OPT_PROBE
         //   macro (internal): the probe's argument-selection machinery.
+        D_ENV_PP_VARIADIC_QUIET_BEGIN
         #define D_INTERNAL_ENV_VA_OPT_EXPAND(x) x
         #define D_INTERNAL_ENV_VA_OPT_THIRD_ARG_(a, b, c, ...) c
         #define D_INTERNAL_ENV_VA_OPT_THIRD_ARG(...)                           \
             D_INTERNAL_ENV_VA_OPT_EXPAND(                                      \
                 D_INTERNAL_ENV_VA_OPT_THIRD_ARG_(__VA_ARGS__))
         #define D_INTERNAL_ENV_VA_OPT_PROBE(...)                               \
-            D_INTERNAL_ENV_VA_OPT_THIRD_ARG(__VA_OPT__(,), 1, 0, )
-        #define D_ENV_PP_HAS_VA_OPT D_INTERNAL_ENV_VA_OPT_PROBE(~)
+            D_INTERNAL_ENV_VA_OPT_THIRD_ARG(~ __VA_OPT__(,) ~, 1, 0, ~)
+        #if D_INTERNAL_ENV_VA_OPT_PROBE(~)
+            #define D_ENV_PP_HAS_VA_OPT 1
+        #else
+            #define D_ENV_PP_HAS_VA_OPT 0
+        #endif
+        D_ENV_PP_VARIADIC_QUIET_END
     #endif
 #endif  // D_ENV_PP_HAS_VA_OPT
 

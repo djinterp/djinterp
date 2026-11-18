@@ -5,12 +5,13 @@
 * path:      /inc/djinterp/c/util/macro/varg_get_arg64.h
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 /* Auto-generated. Do not edit by hand. */
 /* Variadic, so absent without variadic macros (ISO strict C++98). */
 #include "../../../env/env.h"  /* D_ENV_PP_HAS_VARIADIC_MACROS */
 #if D_ENV_PP_HAS_VARIADIC_MACROS
+D_ENV_PP_VARIADIC_QUIET_BEGIN
 
 /* --- D_VARG_GET_ARG_XX --- */
 
@@ -385,4 +386,5 @@
                           _51, _52, _53, _54, _55, _56, _57, _58, _59, _60, \
                           _61, _62, _63, _64, ...) \
     _64
+D_ENV_PP_VARIADIC_QUIET_END
 #endif  /* D_ENV_PP_HAS_VARIADIC_MACROS */

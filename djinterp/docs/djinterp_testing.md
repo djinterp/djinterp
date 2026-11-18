@@ -461,6 +461,21 @@ The helper links `djinterp_c_runtime`, defines `D_TESTING=1`, builds C++20/C17
 `/permissive- /Zc:preprocessor` under MSVC, and registers CTest
 (`ctest -R something_tests`).
 
+Each suite stays its own executable, and each module also has one target and
+one CTest label over all of its suites (ruled 2026.11.17): the module is the
+first folder under `testing/djinterp/<language>/`, with `modules/` and `core/`
+skipped and `util/` as `utility`; `env/` and `tools/` are modules of their own;
+a suite directly in a language folder is `root`. So, for every suite of the
+container module, in both languages:
+
+```
+cmake --build build --target djinterp_tests_container    # build them
+ctest --test-dir build -L container                      # run them
+```
+
+The label and the target come from the suite's path, so a new suite needs
+nothing more than its leaf.
+
 ---
 
 ## 7. Delivering a suite — the zip and its tree

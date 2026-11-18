@@ -1,6 +1,10 @@
 # gen_varg_get_arg.py
 import argparse
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import macro_frame  # noqa: E402
 
 
 def _is_c_ident(s: str) -> bool:
@@ -63,6 +67,7 @@ def main() -> None:
     ap.add_argument("--param-prefix", default="_", help="Prefix for parameter names")
     ap.add_argument("--param-start", type=int, default=1, help="Starting number for parameter indices")
     ap.add_argument("--param-step", type=int, default=1, help="Step amount for parameter indices")
+    ap.add_argument("--pad-width", type=int, default=0, help="Zero-pad the number in each name to this width (0: none)")
     args = ap.parse_args()
 
     if args.start < 1:
@@ -76,7 +81,8 @@ def main() -> None:
     if args.param_step < 1:
         raise SystemExit(f"--param-step must be >= 1 (got {args.param_step})")
 
-    pad_width = max(2, len(str(args.max)))
+    # the tree's names are unpadded (D_VARG_GET_ARG_1), as dmacro.h calls them
+    pad_width = args.pad_width
 
     lines: list[str] = []
     lines.append("/* Auto-generated. Do not edit by hand. */")
@@ -88,8 +94,8 @@ def main() -> None:
         lines.append(make_get_arg_macro(i, args.macro_prefix, pad_width, args.per_line, args.param_prefix, args.param_start, args.param_step))
         lines.append("")
 
-    Path(args.out).write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
-    print(f"Wrote {args.out} (N={args.start}..{args.max}, prefix={args.macro_prefix}, param_prefix={args.param_prefix}, param_start={args.param_start}, param_step={args.param_step})")
+    changed = macro_frame.write(args.out, "\n".join(lines).rstrip() + "\n")
+    print(f"{'Wrote' if changed else 'Unchanged'} {args.out} (N={args.start}..{args.max}, prefix={args.macro_prefix}, param_prefix={args.param_prefix}, param_start={args.param_start}, param_step={args.param_step})")
 
 
 if __name__ == "__main__":

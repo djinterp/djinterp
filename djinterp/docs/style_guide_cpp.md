@@ -111,23 +111,29 @@ single underscore. Then merge each run of words that repeats the run before it
 into one: `DJINTERP_C_TEST_TEST_COMMON_H` is `DJINTERP_C_TEST_COMMON_H`, and
 `DJINTERP_TEST_ARCHIVE_TEST_ARCHIVE_HPP` is `DJINTERP_TEST_ARCHIVE_HPP`. Where
 the merged guard would be another header's guard, merged or not, keep every
-segment: `c/text/symbol/emoji/emoji.h` keeps `..._SYMBOL_EMOJI_EMOJI_H`,
-because `c/text/symbol/emoji.h` is `..._SYMBOL_EMOJI_H`. Do not drop segments
+segment: `cpp/modules/parse/parsers/cpp/cpp_dom_node.hpp` keeps
+`DJINTERP_PARSE_PARSERS_CPP_CPP_DOM_NODE_HPP`, because `dom_node.hpp` in the
+same folder is `DJINTERP_PARSE_PARSERS_CPP_DOM_NODE_HPP`. Do not drop segments
 otherwise, and do not abbreviate.
 
 | Header, under `inc/djinterp/`             | Guard                                         |
 |-------------------------------------------|-----------------------------------------------|
 | `c/djinterp.h`                            | `DJINTERP`                                    |
 | `cpp/djinterp.hpp`                        | `DJINTERP_CPP`                                |
-| `c/core/memory/dmemory.h`                 | `DJINTERP_C_MEMORY_DMEMORY_H`                 |
+| `c/memory/dmemory.h`                      | `DJINTERP_C_MEMORY_DMEMORY_H`                 |
 | `c/modules/parse/charset.h`               | `DJINTERP_C_PARSE_CHARSET_H`                  |
-| `cpp/core/db/sqlite/sqlite_face.hpp`      | `DJINTERP_DB_SQLITE_FACE_HPP`                 |
+| `cpp/db/sqlite/sqlite_face.hpp`           | `DJINTERP_DB_SQLITE_FACE_HPP`                 |
 | `cpp/modules/net/net.hpp`                 | `DJINTERP_NET_HPP`                            |
-| `config/c/core/filesys/cfg_file_common.h` | `DJINTERP_CONFIG_C_FILESYS_CFG_FILE_COMMON_H` |
+| `config/c/filesys/cfg_file_common.h`      | `DJINTERP_CONFIG_C_FILESYS_CFG_FILE_COMMON_H` |
 | `env/env.h`                               | `DJINTERP_ENV_H`                              |
 | `tools/cli/c/cli.h`                       | `DJINTERP_TOOLS_CLI_C_CLI_H`                  |
 
 The two framework roots keep the short guards `DJINTERP` and `DJINTERP_CPP`.
+
+**inc/ui**, the tools' interface tree, sits outside `inc/djinterp/`. Its
+guards are `DJINTERP_UI_`, then the header's path under `inc/ui/`, as a tool's
+own headers under `inc/djinterp/tools/` are guarded (ruled 2026.11.17):
+`inc/ui/vparse/view.hpp` is `DJINTERP_UI_VPARSE_VIEW_HPP`.
 
 **re_std is the exception.** It includes nothing from djinterp and builds on
 its own, so its guards are derived from its own path: `RE_STD_`, then `C_`
@@ -142,24 +148,25 @@ and `config.hpp`.
 
 **Subsystem table**
 
-| Folder                  | Macro prefix | Skippable | Namespace  | Banner tag                       |
-|-------------------------|--------------|-----------|------------|----------------------------------|
-| `djinterp/`             | `D_`         | no        | `djinterp` |                                  |
-| `c/`, `cpp/`            | none         | yes       | none       | `[c]`, `[cpp]` for the roots     |
-| `core/`                 | none         | yes       | none       | `[c/core]`, `[cpp/core]`         |
-| `modules/jit/` (C)      | `JIT_`       | no        | none       | `[c/jit]`                        |
-| `modules/math/` (C++)   | `MATH_`      | no        | `math`     | `[cpp/math]`                     |
-| `modules/net/`          | `NET_`       | yes       | `net`      | `[c/net]`, `[cpp/net]`           |
-| `modules/parse/`        | `PARSE_`     | yes       | `parse`    | `[c/parse]`, `[cpp/parse]`       |
-| `modules/parsegen/`     | `PARSEGEN_`  | yes       | `parsegen` | `[c/parsegen]`, `[cpp/parsegen]` |
-| `modules/render/` (C++) | `RENDER_`    | no        | `render3d` | `[cpp/render]`                   |
-| `modules/test/`         | `TEST_`      | no        | `test`     | `[c/test]`, `[cpp/test]`         |
-| `config/`               | `CFG_`       | no        | none       | `[config]`                       |
-| `env/`                  | `ENV_`       | no        | none       | `[env]`                          |
-| `tools/`                | `TOOLS_`     | no        | none       | `[tools]`                        |
-| `tools/ui/`             | `UI_`        | no        | `ui`       | `[tools]`                        |
-| `re_std/`               | `RE_STD_`    | no        | `re_std`   | `[re_std]`                       |
+| Folder                  | Macro prefix | Skippable | Namespace  |
+|-------------------------|--------------|-----------|------------|
+| `djinterp/`             | `D_`         | no        | `djinterp` |
+| `c/`, `cpp/`            | none         | yes       | none       |
+| `core/`                 | none         | yes       | none       |
+| `modules/jit/` (C)      | `JIT_`       | no        | none       |
+| `modules/math/` (C++)   | `MATH_`      | no        | `math`     |
+| `modules/net/`          | `NET_`       | yes       | `net`      |
+| `modules/parse/`        | `PARSE_`     | yes       | `parse`    |
+| `modules/parsegen/`     | `PARSEGEN_`  | yes       | `parsegen` |
+| `modules/render/` (C++) | `RENDER_`    | no        | `render3d` |
+| `modules/test/`         | `TEST_`      | no        | `test`     |
+| `config/`               | `CFG_`       | no        | none       |
+| `env/`                  | `ENV_`       | no        | none       |
+| `tools/`                | `TOOLS_`     | no        | none       |
+| `ui/` (in `inc/ui/`)    | `UI_`        | no        | `ui`       |
+| `re_std/`               | `RE_STD_`    | no        | `re_std`   |
 
+The banner tags are under **Header File Header Comments**.
 
 Namespaces nest inside `djinterp`, so `modules/math/` is `djinterp::math` --
 except `re_std`, which stands on its own and is the top-level namespace
@@ -192,8 +199,8 @@ except `re_std`, which stands on its own and is the top-level namespace
 -   The closing `#endif` names the guard in a trailing comment.
 
 **Why the merge gives way.** Merging a repeated segment alone is not safe: an
-umbrella header and a same-named file inside its own subdirectory shorten to
-the same symbol, `c/text/symbol/emoji.h` against `c/text/symbol/emoji/emoji.h`.
+header and a same-named file beside it can shorten to the same symbol,
+`parsers/cpp/cpp_dom_node.hpp` against `parsers/cpp/dom_node.hpp`.
 Ruling #71 (2026-11-04) merges wherever that does not happen and keeps every
 segment where it does. The cost is that one header's guard can depend on
 whether another exists: adding a header can lengthen a neighbour's guard,
@@ -546,15 +553,29 @@ the same columns, with every line of fixed geometry ending on character 80.
 
 **Format:**
 
-```c
+```cpp
 /*******************************************************************************
-* djinterp [c]                                                        djinterp.h
+* djinterp [cpp][meta]                                          trait_detect.hpp
 *
-* Brief description of the header file.
+* Detection of a type's members, the probes the trait engine builds on.
 *   Extended description providing more details about the purpose and contents
 * of this header.
 *
-* path:      /inc/djinterp/c/djinterp.h
+* HOW TO USE
+* ----------
+*   How a caller includes the header and uses it, with a short example where
+* one helps.
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   The D_CFG_ knobs that change it at build time, and where each is set.
+*
+*
+* path:      /inc/djinterp/cpp/meta/trait_detect.hpp
 * link(s):   TBA
 * author(s): Author Name                                     created: YYYY.MM.DD
 *                                                            revised: YYYY.MM.DD
@@ -565,18 +586,78 @@ the same columns, with every line of fixed geometry ending on character 80.
 
 The banner is a fixed template. Every header and every source file carries the
 same one, with the same fields in the same order at the same columns. There are
-no optional fields and no local variants.
+no optional fields and no local variants. `scripts/ci/check_style.py` checks
+all of it (its `B` check), and its `H` warning checks the three sections.
 
 Geometry (counted in characters, as defined under **Line Length**):
 
 -   The opening rule is `/` followed by 79 `*`, ending on character 80.
 -   The closing rule is 79 `*` followed by `/`, ending on character 80.
 -   On the title line, the filename's last character sits on character 80.
+    Where the first word, the tag and the filename can't fit, the filename
+    follows the tag after one space, past character 80.
 -   On the `author(s):` line, the `created:` value's last character sits on
     character 80. The `revised:` line aligns beneath it and ends there too.
 -   `path:`, `link(s):`, and `author(s):` values all begin on character 14.
+-   Two blank `*` lines precede `path:`.
 -   Description lines are prose and are not padded; they wrap at 80 characters like
     any other line.
+
+The title line:
+
+-   It reads `* djinterp`, the tag, then the filename. Its first word is
+    `djinterp` in every file of the tree, the tools' and the interface's
+    included (ruled 2026.11.17).
+-   The tag is `[<language>][<module>]`, derived from the file's path, not
+    chosen (ruled 2026.11.10, 2026.11.11 and 2026.11.17), so it can be
+    checked:
+    -   The language is the `c` or `cpp` folder in the path (`config/c/` and
+        `config/cpp/` count); a path with neither takes its extension's (`.h`
+        and `.c` are `c`, `.hpp` and `.cpp` are `cpp`).
+    -   The module is the first folder under the language folder, with
+        `modules/` and `core/` skipped and `util/` written `utility`.
+    -   `env/`, `tools/` (every tool, and `inc/ui/`) and `config/`'s own
+        files, outside its language folders, are modules of their own.
+    -   A file directly in a language folder takes its language alone, and
+        `re_std`'s files take `[re_std]`.
+    -   Sources, tests, runners, `tests/unintegrated/` and benchmarks take the
+        tag of the path they mirror under `inc/`.
+
+    | Path | Tag |
+    |------|-----|
+    | `inc/djinterp/c/djinterp.h` | `[c]` |
+    | `inc/djinterp/c/container/vector/vector.h` | `[c][container]` |
+    | `inc/djinterp/cpp/modules/parse/expression/expression.hpp` | `[cpp][parse]` |
+    | `inc/djinterp/cpp/core/meta/trait_detect.hpp` | `[cpp][meta]` |
+    | `inc/djinterp/c/util/macro/for_each64.h` | `[c][utility]` |
+    | `inc/djinterp/env/os/env_linux.h` | `[c][env]` |
+    | `inc/djinterp/config/dconfig.h` | `[c][config]` |
+    | `inc/djinterp/config/c/util/cfg_dmacro.h` | `[c][utility]` |
+    | `inc/djinterp/tools/dawk/dlex.h` | `[c][tools]` |
+    | `inc/ui/vparse/view.hpp` | `[cpp][tools]` |
+    | `inc/re_std/cpp/cstdint/cstdint.hpp` | `[re_std]` |
+    | `tests/djinterp/c/container/vector/vector_tests.c` | `[c][container]` |
+
+-   The filename is the file's own name, which must match the file on disk and
+    the include guard derived from it.
+
+The sections (ruled 2026.11.17):
+
+-   Every header under `inc/` carries HOW TO USE, OPTIONS and CONFIGURATION,
+    in that order, after the description. Each heading stands over a row of
+    dashes as long as itself, and its text is indented as the description's
+    first line is.
+-   HOW TO USE says how a caller includes the header and uses it; OPTIONS,
+    what it lets a run choose; CONFIGURATION, the `D_CFG_` knobs that change
+    it at build time. A section with nothing to say says so in one line:
+    `None: nothing in this header is chosen at run time.`
+-   A generated header gets its sections from its generator.
+-   `check_style.py` warns (`H`) on a header without them. The warning fails
+    no run; the punch list tracks the headers still without them.
+
+Capitals: in a banner, only the three dashed headings are uppercase. The
+uppercase rule for numbered sections (see **Header Structure, Numbering, and
+Tables of Contents**) is for the header's body.
 
 Fields:
 
@@ -589,16 +670,6 @@ Fields:
 -   `created:` records the original creation date and never changes afterward.
 -   `revised:` records the most recent revision date.
 -   Both dates use the format `YYYY.MM.DD`.
--   The title line's tag is derived from the file's path, in square
-    brackets, as the subsystem table gives it: `[c]` or `[cpp]` for a framework
-    root; `[c/core]` or `[cpp/core]` for the core; `[c/<module>]` or
-    `[cpp/<module>]` for a module (`[cpp/net]`, `[c/parse]`); `[config]`,
-    `[env]`, `[tools]` and `[re_std]` for the shared folders. It is derived,
-    not chosen, so a folder name such as `[container]` or `[util]` is never a
-    tag.
-    This makes the tag checkable; a tag nobody can check drifts.
--   The filename is the file's own name, which must match the file on disk and
-    the include guard derived from it.
 
 ### Header Structure, Numbering, and Tables of Contents
 
@@ -866,12 +937,18 @@ Function declarations in header files must follow these rules:
 1.  **Group functions by general functionality** — related functions should be
     placed together in logical sections or subsections.
 2.  **Include parameter names, not just types.**
-3.  **One shape for every signature**, declaration and definition alike:
+3.  **Two shapes, by scope** (ruled 2026.11.17), declaration and definition
+    alike:
+
+    At namespace scope, free functions and function templates take the shape
+    C's take, the definition minus its body:
 
     ```text
     template<...>                  the template head first, on its own line(s)
-    static inline                  specifiers and attributes on their own line
-    int d_snprintf(                return type and name on one line
+    static inline                  specifiers, attributes and a library's
+                                   export macro, each on its own line
+    int                            the return type alone on its line
+    d_snprintf(                    the name and ( on the next
         char*       _buffer,       one parameter per line, four spaces in,
         size_t      _size,         names aligned within the signature
         const char* _format,
@@ -880,94 +957,97 @@ Function declarations in header files must follow these rules:
                                    or { on the next line for a definition
     ```
 
-    `(void)` and `()` stay on one line, with any qualifiers after them
-    (`int count() const;`). A single parameter takes a line of its own too.
-    Whatever follows the `)` stays on its line (`) const`, `) noexcept`).
-    Nothing is aligned across declarations: a signature's names line up
-    within it and nowhere else. The return type and the name share a line
-    even where it runs past 80 characters.
+    A class's members keep the return type and the name on one line, then the
+    same parameter lines:
 
-4.  **No empty lines between functions** — functions within the same group have
-    no blank lines separating them.
+    ```text
+    bool insert(                   return type and name on one line
+        const key_type& _key,      one parameter per line, four spaces in
+        value_type      _value
+    );
+    ```
+
+    In both shapes, `(void)` and `()` stay on the name's line, with any
+    qualifiers after them (`int count() const;`). A single parameter takes a
+    line of its own. Whatever follows the `)` stays on its line (`) const`,
+    `) noexcept`). Nothing is aligned across declarations: a signature's names
+    line up within it and nowhere else. A member's return type and name share
+    a line even where it runs past 80 characters. Since what only a
+    declaration carries (an export macro, a default argument's `= value`)
+    sits on lines of its own or at a parameter's end, a namespace-scope
+    declaration can be made from its definition, and checked against it, line
+    for line.
+
+4.  **One empty line between declarations** — every function declaration, free
+    or member, is separated from the next by one empty line, within a group as
+    between groups (ruled 2026.11.10 and 2026.11.17). A declaration's own
+    comment block sits directly above it, with no empty line between them.
 5.  **Use the common decimal header hierarchy** — section, subsection, and item
     delineations must follow the formats defined under **Header Structure,
     Numbering, and Tables of Contents**.
 6.  **Keep the table of contents synchronized** — any header using structural
     delineations must contain matching ToC entries.
-7.  **Use one blank line between distinct declaration groups when useful.**
-8.  **Document declarations per the rules under Function Comments.** A group
+7.  **Document declarations per the rules under Function Comments.** A group
     comment carries the shared contract for a run of related declarations; a
     function that allocates, invalidates, transfers ownership, or can fail
     carries its own block.
 
 **Example (correct):**
 
-```c
+```cpp
 // 3.1    secure file opening
 //------------------------------------------------------------------------------
-FILE* d_fopen(
+FILE*
+d_fopen(
     const char* _filename,
     const char* _mode
 );
-int d_fopen_s(
+
+int
+d_fopen_s(
     FILE**      _stream,
     const char* _filename,
     const char* _mode
 );
-FILE* d_fdopen(
-    int         _fd,
-    const char* _mode
-);
 
-// 3.2    large file support
+// 3.2    file descriptor operations
 //------------------------------------------------------------------------------
-int d_fseeko(
-    FILE*    _stream,
-    dj_off_t _offset,
-    int      _whence
-);
-dj_off_t d_ftello(
-    FILE* _stream
-);
-
-// 3.3    file descriptor operations
-//------------------------------------------------------------------------------
-int d_fileno(
-    FILE* _stream
-);
-ssize_t d_read(
+ssize_t
+d_read(
     int    _fd,
     void*  _buf,
     size_t _count
 );
-int d_open(
-    const char* _path,
-    int         _flags,
-    ...
-);
 
-// 3.4    directory operations
+long
+d_page_size();
+
+// 3.3    a class's members
 //------------------------------------------------------------------------------
-struct dj_dir_t* d_opendir(
-    const char* _path
-);
-struct dj_dirent_t* d_readdir(
-    struct dj_dir_t* _dir
-);
-void d_rewinddir(
-    struct dj_dir_t* _dir
-);
+class DFileTable
+{
+public:
+    std::size_t size() const noexcept;
+
+    bool insert(
+        const char* _path,
+        int         _fd
+    );
+
+    void clear();
+};
 ```
 
 **Incorrect (do NOT do this):**
 
-```c
+```cpp
 /// d_arg_parser_init
 ///   function: initialize a parser with default settings.
 /// Returns 0 on success, non-zero on failure.
 int                  d_arg_parser_init(struct dj_arg_parser* _parser);
-
-int                  d_some_other_function(void);
+int d_some_other_function(
+    const char* _name
+);
 ```
 
 This is wrong because:
@@ -976,9 +1056,10 @@ This is wrong because:
 -   Documents a declaration in free text (`/// ... Returns 0 on success`)
     instead of a `/** */` contract with `@param` and `@return`, so
     `-Wdocumentation` has nothing to check
--   Pads the return types into a column, and keeps the parameter on the
-    name's line: neither is the signature's shape
--   Has empty lines between functions in the same group
+-   Pads the first return type into a column, and keeps its parameter on the
+    name's line; the second keeps the return type on the name's line, the
+    shape of a class's member, at namespace scope
+-   Has no empty line between the two declarations
 
 ### Function Definitions
 
@@ -1003,7 +1084,8 @@ In the header, on the declaration -- the contract:
  *         any pointer or iterator this call invalidates.
  * @return `true` if the operation succeeds, `false` otherwise.
  */
-bool d_some_boolean_fn(
+bool
+d_some_boolean_fn(
     const void*       _param1,
     const void* const _param2
 );
@@ -1018,7 +1100,8 @@ d_some_boolean_fn
 break. No parameter list and no return description: those are in the header,
 and a second copy of them would drift.
 */
-bool d_some_boolean_fn(
+bool
+d_some_boolean_fn(
     const void*       _param1,
     const void* const _param2
 )
@@ -1083,7 +1166,8 @@ prose after them.
  * C locale the way tolower does.
  */
 static
-int d_internal_ascii_tolower(
+int
+d_internal_ascii_tolower(
     int _c
 )
 {
@@ -1097,21 +1181,28 @@ function is a different case: its class declares it, in a header, and its
 contract goes on that declaration, as for any member.
 
 **Not every declaration needs a block.** A group comment carries the shared
-contract for a run of related declarations, which keeps aligned declaration
-blocks together:
+contract for a run of related declarations, which keeps the declarations of a
+group together:
 
 ```c
 // basic accessors -- all O(1), none allocate, all require a non-NULL _string
-size_t d_string_length(
+size_t
+d_string_length(
     const struct dj_string* _string
 );
-size_t d_string_size(
+
+size_t
+d_string_size(
     const struct dj_string* _string
 );
-const char* d_string_cstr(
+
+const char*
+d_string_cstr(
     const struct dj_string* _string
 );
-bool d_string_is_empty(
+
+bool
+d_string_is_empty(
     const struct dj_string* _string
 );
 ```
@@ -1139,7 +1230,8 @@ Declaration, in the header:
  * @param[in] _some_struct  the struct to free; may be `NULL`.
  * @post Every pointer previously obtained from `_some_struct` is invalid.
  */
-void d_some_struct_free(
+void
+d_some_struct_free(
     struct dj_some_struct* _some_struct
 );
 ```
@@ -1152,7 +1244,8 @@ d_some_struct_free
   Members are released before the struct itself so the free order stays
 readable; the NULL check is first so callers need no guard of their own.
 */
-void d_some_struct_free(
+void
+d_some_struct_free(
     struct dj_some_struct* _some_struct
 )
 {
@@ -1179,10 +1272,13 @@ in the header (declarations) \*.h file:
 ```c
 // group of tests name (corresponding one section of the module's header
 // file, if applicable)
-bool d_tests_some_feature(
+bool
+d_tests_some_feature(
     parameters
 );
-bool d_tests_another_feature(
+
+bool
+d_tests_another_feature(
     parameters
 );
 ```
@@ -1200,7 +1296,8 @@ d_tests_some_feature
   - specifically tested
   - in this function
 */
-bool d_tests_some_feature(
+bool
+d_tests_some_feature(
     parameters
 )
 {
@@ -1293,6 +1390,33 @@ bool d_tests_some_feature(
 Since all of the subfunctions called by `D_EVAL` are only called by `D_EVAL`,
 and will probably only ever be used in that context, one comment for the entire
 block is sufficient.
+
+-   **Variadic macros** stay quiet in the headers that define them (ruled
+    2026.11.17). Pedantic C++98 and C90 builds warn once for each variadic
+    macro a header defines, in every unit that includes it, so a header that
+    defines one includes `env.h` and puts its variadic definitions between
+    env's pair, `D_ENV_PP_VARIADIC_QUIET_BEGIN` and
+    `D_ENV_PP_VARIADIC_QUIET_END` (`env_compiler.h`, 2.1.2 and 2.1.3). The pair
+    silences that one warning for those definitions alone, so a user's own
+    variadic macros still warn. Definitions that must vanish without variadic
+    macros (ISO strict C++98) also sit inside
+    `#if D_ENV_PP_HAS_VARIADIC_MACROS`, with the pair inside it.
+    `check_style.py`'s `V` check refuses a variadic macro defined outside the
+    pair in a header under `inc/`; its punch list holds the headers not yet
+    converted. A generated header gets the pair from its generator.
+```c
+#include "../../env/env.h"  // D_ENV_PP_HAS_VARIADIC_MACROS and the pair
+
+#if D_ENV_PP_HAS_VARIADIC_MACROS
+D_ENV_PP_VARIADIC_QUIET_BEGIN
+
+// D_SOME_LIST_MACRO
+//   macro: applies _fn to each of its other arguments.
+#define D_SOME_LIST_MACRO(_fn, ...) D_INTERNAL_SOME_LIST(_fn, __VA_ARGS__)
+
+D_ENV_PP_VARIADIC_QUIET_END
+#endif  // D_ENV_PP_HAS_VARIADIC_MACROS
+```
 
 ## Language Standard and Diagnostics
 

@@ -5,12 +5,13 @@
 * path:      /inc/djinterp/c/util/macro/varg_has_args128.h
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 /* Auto-generated. Do not edit by hand. */
 /* Variadic, so absent without variadic macros (ISO strict C++98). */
 #include "../../../env/env.h"  /* D_ENV_PP_HAS_VARIADIC_MACROS */
 #if D_ENV_PP_HAS_VARIADIC_MACROS
+D_ENV_PP_VARIADIC_QUIET_BEGIN
 /* D_HAS_ARGS: max=128, placeholders=129, trailing_ones=129 */
 
 /* --- D_INTERNAL_HAS_ARGS_HELPER + D_HAS_ARGS --- */
@@ -39,4 +40,5 @@
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, \
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, \
         1, 0)
+D_ENV_PP_VARIADIC_QUIET_END
 #endif  /* D_ENV_PP_HAS_VARIADIC_MACROS */

@@ -28,7 +28,7 @@
 * path:      /inc/djinterp/env/c/env_vendor_attributes.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.11.12
-*                                                            revised: 2026.10.23
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 /*
@@ -75,6 +75,7 @@ TABLE OF CONTENTS
          1.  D_EXPORT
          2.  D_IMPORT
          3.  D_HIDDEN
+         4.  D_<NAME>_API
     2.  Linkage
          1.  D_WEAK
 7.  SECTIONS AND LIFETIME
@@ -318,6 +319,7 @@ TABLE OF CONTENTS
 //     1. GCC 4.3+ / Clang - __attribute__((alloc_size(…))).
 //     2. No-op fallback.
 #ifndef D_ALLOC_SIZE
+    D_ENV_PP_VARIADIC_QUIET_BEGIN
     #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #if D_ENV_PP_HAS_VARIADIC_MACROS
         #define D_ALLOC_SIZE(...) __attribute__((alloc_size(__VA_ARGS__)))
@@ -327,6 +329,7 @@ TABLE OF CONTENTS
         #define D_ALLOC_SIZE(...)
         #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
     #endif
+    D_ENV_PP_VARIADIC_QUIET_END
 #endif  // D_ALLOC_SIZE
 
 // 3.1.3
@@ -427,6 +430,7 @@ TABLE OF CONTENTS
 //     1. GCC / Clang - __attribute__((nonnull(…))).
 //     2. No-op fallback.
 #ifndef D_NONNULL
+    D_ENV_PP_VARIADIC_QUIET_BEGIN
     #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #if D_ENV_PP_HAS_VARIADIC_MACROS
         #define D_NONNULL(...) __attribute__((nonnull(__VA_ARGS__)))
@@ -436,6 +440,7 @@ TABLE OF CONTENTS
         #define D_NONNULL(...)
         #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
     #endif
+    D_ENV_PP_VARIADIC_QUIET_END
 #endif  // D_NONNULL
 
 // 4.1.2
@@ -546,13 +551,14 @@ TABLE OF CONTENTS
 //   macro: marks a symbol as exported from a shared library or DLL.
 //
 //   resolution order:
-//     1. MSVC, or any compiler targeting Windows (_WIN32) -
+//     1. MSVC, or any compiler targeting Windows (_WIN32) or Cygwin -
 //        __declspec(dllexport).
 //     2. GCC 4+ / Clang - __attribute__((visibility("default"))).
 //     3. No-op fallback.
 #ifndef D_EXPORT
     #if ( (defined(D_INTERNAL_ENV_ATTR_MSVC)) ||                               \
-          (defined(_WIN32)) )
+          (defined(_WIN32))                   ||                               \
+          (defined(__CYGWIN__)) )
         #define D_EXPORT __declspec(dllexport)
     #elif defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_EXPORT __attribute__((visibility("default")))
@@ -566,14 +572,15 @@ TABLE OF CONTENTS
 //   macro: marks a symbol as imported from a shared library or DLL.
 //
 //   resolution order:
-//     1. MSVC, or any compiler targeting Windows (_WIN32) -
+//     1. MSVC, or any compiler targeting Windows (_WIN32) or Cygwin -
 //        __declspec(dllimport).
 //     2. GCC / Clang - __attribute__((visibility("default"))), since ELF does
 //        not distinguish import from export at the symbol level.
 //     3. No-op fallback.
 #ifndef D_IMPORT
     #if ( (defined(D_INTERNAL_ENV_ATTR_MSVC)) ||                               \
-          (defined(_WIN32)) )
+          (defined(_WIN32))                   ||                               \
+          (defined(__CYGWIN__)) )
         #define D_IMPORT __declspec(dllimport)
     #elif defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_IMPORT __attribute__((visibility("default")))
@@ -597,6 +604,39 @@ TABLE OF CONTENTS
         #define D_HIDDEN
     #endif
 #endif  // D_HIDDEN
+
+// 6.1.4
+// D_<NAME>_API
+//   pattern: each library's own export macro, defined in its public header
+// (not here: the preprocessor cannot build a macro name to test). A library
+// made with djinterp_add_library(... API <NAME> ...) is built shared or
+// static as BUILD_SHARED_LIBS says; shared, the build defines D_<NAME>_SHARED
+// for the library and everything that links it, and D_<NAME>_BUILDING for
+// the library's own sources only. Its symbols are hidden unless marked, so
+// every function and object its header declares for others carries the
+// macro:
+//
+//     #include "djinterp/env/c/env_vendor_attributes.h"
+//
+//     #if defined(D_RUNTIME_SHARED)
+//         #if defined(D_RUNTIME_BUILDING)
+//             #define D_RUNTIME_API D_EXPORT
+//         #else
+//             #define D_RUNTIME_API D_IMPORT
+//         #endif
+//     #else
+//         #define D_RUNTIME_API
+//     #endif
+//
+//     D_RUNTIME_API
+//     int64_t
+//     d_counter_value(
+//         const struct dj_counter* _counter
+//     );
+//
+//   Static, the macro is empty. A library that links another publicly is
+// built the same way, so one copy of each library's state exists in a
+// program.
 
 // 6.2    Linkage
 //------------------------------------------------------------------------------

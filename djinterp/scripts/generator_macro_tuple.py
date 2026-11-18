@@ -58,6 +58,9 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import List, Tuple, Dict, Optional, Set, Callable, Any
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import macro_frame  # noqa: E402  (banner, variadic frame, unchanged files)
+
 
 # ============================================================================
 # Constants & Regex
@@ -862,10 +865,11 @@ def write_file(path: str, content: str, config: GeneratorConfig, logger: Logger)
     
     try:
         mkdir_p(os.path.dirname(path) or ".")
-        with open(path, "w", newline="\n") as f:
-            f.write(content)
+        changed = macro_frame.write(path, content)
         duration_ms = (time.perf_counter() - start_time) * 1000
-        return GenerationResult(path=path, success=True, duration_ms=duration_ms)
+        return GenerationResult(path=path, success=True, duration_ms=duration_ms,
+                                skipped=not changed,
+                                skip_reason="" if changed else "unchanged")
     except Exception as e:
         duration_ms = (time.perf_counter() - start_time) * 1000
         return GenerationResult(path=path, success=False, error=str(e), duration_ms=duration_ms)

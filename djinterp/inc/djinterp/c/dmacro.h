@@ -19,7 +19,7 @@
 * path:      /inc/djinterp/c/dmacro.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.23
-*                                                            revised: 2026.11.06
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 /*
@@ -230,23 +230,11 @@ XIII. COMPILE-TIME ASSERTIONS
 // variadic macro this family defines: 453 warnings from one include. The
 // families stay wherever the preprocessor has variadic macros (D_CFG_ENV_
 // ISO_STRICT removes them), so the warning is silenced on this family's own
-// definitions only. It is pushed here and popped at the end of this header,
-// so a user's own variadic macros still warn. GCC honours the pragma for a
-// preprocessor warning in C++ only from GCC 13 (PR 53431); before that, in
-// C++, this header marks itself a system header, which also quiets any other
-// warning in its definitions. MSVC has no such warning.
-#if defined(D_ENV_COMPILER_CLANG)
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wvariadic-macros"
-#elif ( defined(D_ENV_COMPILER_GCC)                                    &&     \
-        ( (!defined(__cplusplus)) || (__GNUC__ >= 13) )                &&     \
-        ( (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)) ) )
-    #define D_INTERNAL_DMACRO_DIAG_PUSHED 1
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wvariadic-macros"
-#elif defined(D_ENV_COMPILER_GCC)
-    #pragma GCC system_header
-#endif
+// definitions only, by env's pair (env_compiler.h, 2.1.2 and 2.1.3): begun
+// here and ended at the end of this header, so a user's own variadic macros
+// still warn. Each generated table that defines a variadic macro carries the
+// pair too, so it is quiet when included on its own.
+D_ENV_PP_VARIADIC_QUIET_BEGIN
 
 #include "./dmacro_token.h"  // D_CONCAT, D_STRINGIFY, D_EMPTY, ...
 
@@ -1620,13 +1608,8 @@ XIII. COMPILE-TIME ASSERTIONS
                     "Size mismatch: " #type1 " vs " #type2)
 
 
-// the variadic-macro warning, popped (pushed at the top of this header)
-#if defined(D_ENV_COMPILER_CLANG)
-    #pragma clang diagnostic pop
-#elif defined(D_INTERNAL_DMACRO_DIAG_PUSHED)
-    #pragma GCC diagnostic pop
-    #undef D_INTERNAL_DMACRO_DIAG_PUSHED
-#endif
+// the variadic-macro warning, ended (begun at the top of this header)
+D_ENV_PP_VARIADIC_QUIET_END
 
 
 #endif  // DJINTERP_C_DMACRO_H

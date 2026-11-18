@@ -281,6 +281,19 @@ function(djinterp_add_test_executable _target)
                  WORKING_DIRECTORY "$<TARGET_FILE_DIR:${_target}>")
     endif()
 
+    # The module's CTest label and its target djinterp_tests_<module>
+    # (ruled 2026.11.17): `ctest -L '^container$'` runs a module's suites,
+    # and djinterp_add_module_test_targets makes the target that builds them.
+    djinterp_test_module(_module "${CMAKE_CURRENT_SOURCE_DIR}")
+    if (_module)
+        if (BUILD_TESTING)
+            set_tests_properties(${_target} PROPERTIES LABELS "${_module}")
+        endif()
+        set_property(GLOBAL APPEND PROPERTY DJINTERP_TEST_MODULES ${_module})
+        set_property(GLOBAL APPEND PROPERTY
+                     "DJINTERP_TEST_MODULE_${_module}" ${_target})
+    endif()
+
     # Register in the global aggregate registry.  Stored as parallel lists
     # of (target_name, source_dir) so djinterp_add_test_subtree can pick out
     # everything below a given directory.
@@ -378,4 +391,62 @@ function(djinterp_add_test_subtree _aggregate_name)
                               FOLDER "${_rel}")
     endif()
 
+endfunction()
+
+
+# -----------------------------------------------------------------------------
+# djinterp_test_module
+#   The module a leaf's directory tests, as the banner tag names it: under
+# testing/djinterp/, the first folder below c/ or cpp/ without modules/ or
+# core/, util/ as utility; env and tools/ their own; a leaf for a file of the
+# language folder itself (dstring, dtime, ...) "root". Empty outside
+# testing/djinterp/.
+# -----------------------------------------------------------------------------
+function(djinterp_test_module _out_var _dir)
+    set(_module "")
+    file(RELATIVE_PATH _leaf "${DJINTERP_CONFIG_ROOT}/testing/djinterp" "${_dir}")
+    if (_leaf AND NOT _leaf MATCHES "^\\.\\.")
+        string(REPLACE "/" ";" _parts "${_leaf}")
+        list(GET _parts 0 _first)
+        if (_first STREQUAL "tools")
+            set(_module "tools")
+        elseif (_first STREQUAL "c" OR _first STREQUAL "cpp")
+            list(REMOVE_AT _parts 0)
+            foreach(_part IN LISTS _parts)
+                if (NOT _part STREQUAL "modules" AND NOT _part STREQUAL "core")
+                    set(_module "${_part}")
+                    break()
+                endif()
+            endforeach()
+            if (_module STREQUAL "util")
+                set(_module "utility")
+            elseif (_module AND NOT _module STREQUAL "env" AND
+                    NOT IS_DIRECTORY "${DJINTERP_INC_ROOT}/djinterp/${_first}/${_module}" AND
+                    NOT IS_DIRECTORY "${DJINTERP_INC_ROOT}/djinterp/${_first}/modules/${_module}")
+                set(_module "root")
+            endif()
+        endif()
+    endif()
+    set(${_out_var} "${_module}" PARENT_SCOPE)
+endfunction()
+
+
+# -----------------------------------------------------------------------------
+# djinterp_add_module_test_targets
+#   One target a module, djinterp_tests_<module>, that builds every suite of
+# the module, C and C++ alike. Called once, after the testing tree.
+# -----------------------------------------------------------------------------
+function(djinterp_add_module_test_targets)
+    get_property(_modules GLOBAL PROPERTY DJINTERP_TEST_MODULES)
+    if (NOT _modules)
+        return()
+    endif()
+    list(REMOVE_DUPLICATES _modules)
+    foreach(_module IN LISTS _modules)
+        get_property(_targets GLOBAL PROPERTY "DJINTERP_TEST_MODULE_${_module}")
+        add_custom_target(djinterp_tests_${_module})
+        add_dependencies(djinterp_tests_${_module} ${_targets})
+        set_target_properties(djinterp_tests_${_module} PROPERTIES
+                              FOLDER "djinterp/modules")
+    endforeach()
 endfunction()
