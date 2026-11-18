@@ -4,9 +4,6 @@ inc/djinterp/c/modules/parse/parsers/bnf/parse_bnf_common.h	stdint.h
 inc/djinterp/c/modules/test/test_event.h	stdint.h
 inc/djinterp/c/modules/test/test_metadata.h	stdint.h
 inc/djinterp/c/modules/test/test_object.h	stdint.h
-inc/djinterp/c/text/symbol/emoji.h	stdint.h
-inc/djinterp/c/util/kv.h	stdint.h
-inc/djinterp/c/util/lookup.h	stdint.h
 inc/djinterp/c/util/type_info_common.h	stdint.h
 inc/djinterp/cpp/modules/net/web.hpp	cstdint
 inc/djinterp/tools/dawk/dawk.h	stdint.h
@@ -57,10 +54,6 @@ tests/djinterp/c/text/test_number_to_string_pt.c	inttypes.h
 tests/djinterp/c/util/cli/test_cli_option_sa.h	stdint.h
 tests/djinterp/c/util/cli/test_cli_unix_sa.h	stdint.h
 tests/djinterp/c/util/cli/test_common_tests_sa.h	stdint.h
-tests/djinterp/cpp/container/array/array_options_edge_tests.cpp	cstdint
-tests/djinterp/cpp/container/array/atomic_array_core_tests.cpp	cstdint
-tests/djinterp/cpp/container/array/cow_array_core_tests.cpp	cstdint
-tests/djinterp/cpp/container/array/threadsafe_array_core_tests.cpp	cstdint
 tests/djinterp/cpp/event/event_handler_tests.hpp	cstdint
 tests/djinterp/cpp/functional/test_functional_parity_quantifiers.cpp	cstdint
 tests/djinterp/cpp/modules/parse/parse_tests.hpp	cstdint
