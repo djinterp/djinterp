@@ -7,7 +7,11 @@
 * health, provenance, contents, cost; names joined by '|', and '+' or '-' to
 * edit the value in force) what it is about. A type declared to desc
 * (d_desc_declare) is a scope of the djin, so desc.file_tree.ring sets its
-* ring alone. Defaults come from D_CFG_DESC_RING and D_CFG_DESC_LAYERS.
+* ring alone. `style` (units, facts), `form` (facts, text), `format` (text,
+* json) and `text` (report, line) say how describe writes it
+* (desc_machines.h), each per type as well. Defaults come from the knobs:
+* D_CFG_DESC_RING, _LAYERS, _STYLE, _FORM, _FORMAT and _TEXT_PRESET; a
+* choice the knobs did not build is refused by name.
 *
 *   The djin is static and ready before the program runs. A program
 * registers it to read settings into it with the registry's calls:
@@ -20,7 +24,7 @@
 * path:      /inc/djinterp/c/desc/desc_options.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -29,7 +33,7 @@ TABLE OF CONTENTS
 1.  THE DJIN
     --------
     1.  D_DESC_OPTIONS_BUILT
-    2.  D_DESC_VAR_RING, D_DESC_VAR_LAYERS
+    2.  D_DESC_VAR_*
     3.  d_desc_djin
     4.  d_desc_register
 */
@@ -61,12 +65,16 @@ TABLE OF CONTENTS
 D_EXTERN_C_BEGIN
 
 // 1.2
-// D_DESC_VAR_RING, D_DESC_VAR_LAYERS
+// D_DESC_VAR_*
 //   constants: the djin's variables, by their place among its declarations;
 // D_OPTION_ENV_ID(d_desc_djin()->depth, place) is a variable's id.
 #define D_DESC_VAR_RING    0u
 #define D_DESC_VAR_LAYERS  1u
-#define D_DESC_VARS        2u
+#define D_DESC_VAR_STYLE   2u
+#define D_DESC_VAR_FORM    3u
+#define D_DESC_VAR_FORMAT  4u
+#define D_DESC_VAR_TEXT    5u
+#define D_DESC_VARS        6u
 
 /**
  * @brief desc's djin: its frame, static, ready before the program runs.

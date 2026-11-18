@@ -10,7 +10,7 @@
 * path:      /tests/djinterp/c/desc/desc_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_C_DESC_TESTS_H
@@ -36,6 +36,16 @@ layer, each test in the block of desc_units.h, in the module d_tests_desc
 opened; call it after d_tests_desc.
 */
 void d_tests_desc_units(
+    struct dj_test_suite* _suite
+);
+
+/*
+d_tests_desc_machines
+  section: desc's text, JSON and collecting machines, and describing to a
+stream as the options say, each test in the block of desc_machines.h, in the
+module d_tests_desc opened; call it after d_tests_desc_units.
+*/
+void d_tests_desc_machines(
     struct dj_test_suite* _suite
 );
 

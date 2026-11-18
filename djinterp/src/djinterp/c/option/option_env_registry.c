@@ -375,6 +375,54 @@ d_option_env_registry_assign(
 }
 
 /*
+d_option_env_registry_check
+  The setting split at its first '=', as `djinterp set` splits it; then the
+frame the name addresses, and option_env's check there.
+*/
+size_t
+d_option_env_registry_check(
+    struct dj_option_env_registry* _registry,
+    const char*                    _setting,
+    size_t                         _size,
+    int32_t                        _source,
+    char*                          _buffer,
+    size_t                         _capacity,
+    struct dj_option_result*       _result
+)
+{
+    const char* const equals = (_setting != NULL)
+                                   ? (const char*)memchr(_setting, '=', _size)
+                                   : NULL;
+    const size_t      name   = (equals != NULL)
+                                   ? (size_t)(equals - _setting)
+                                   : 0u;
+    struct dj_option_env* const target =
+        (name != 0u) ? d_option_env_registry_target(_registry, _setting, name)
+                     : NULL;
+
+    if (target == NULL)
+    {
+        if ( (_buffer != NULL) &&
+             (_capacity != 0u) )
+        {
+            _buffer[0] = '\0';
+        }
+
+        if (_result != NULL)
+        {
+            *_result = d_option_fail(
+                           (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
+        }
+
+        return (size_t)-1;
+    }
+
+    return d_option_env_check_from(target, _setting, name, equals + 1,
+                                   _size - name - 1u, _source, _buffer,
+                                   _capacity, _result);
+}
+
+/*
 d_option_env_registry_put
   The statement whole, to the frame its name addresses.
 */
@@ -484,15 +532,18 @@ d_option_env_registry_load(
 }
 
 /*
-d_option_env_registry_import
+d_option_env_registry_import_each
   The root under the prefix, then each djin under the prefix, its name
 upper-cased, and an underscore. A djin whose prefix would not fit is passed
-over, as option_env passes over a name that would not.
+over, as option_env passes over a name that would not. Every failure goes to
+the report.
 */
 struct dj_option_result
-d_option_env_registry_import(
+d_option_env_registry_import_each(
     struct dj_option_env_registry* _registry,
-    const char*                    _prefix
+    const char*                    _prefix,
+    fn_option_env_report           _report,
+    void*                          _context
 )
 {
     char              prefix[D_INTERNAL_OPTION_ENV_REGISTRY_PREFIX];
@@ -505,8 +556,8 @@ d_option_env_registry_import(
     }
 
     struct dj_option_result failure = d_option_ok(0u);
-    struct dj_option_result result  = d_option_env_import(&_registry->frame,
-                                                          base);
+    struct dj_option_result result  =
+        d_option_env_import_each(&_registry->frame, base, _report, _context);
     uint32_t                count   = result.is_ok ? result.payload.value : 0u;
 
     failure = result.is_ok ? failure : result;
@@ -533,7 +584,8 @@ d_option_env_registry_import(
 
         prefix[length + size]      = '_';
         prefix[length + size + 1u] = '\0';
-        result = d_option_env_import(_registry->djins[i], prefix);
+        result = d_option_env_import_each(_registry->djins[i], prefix,
+                                          _report, _context);
         count += result.is_ok ? result.payload.value : 0u;
 
         if ( (!result.is_ok) &&
@@ -544,6 +596,19 @@ d_option_env_registry_import(
     }
 
     return failure.is_ok ? d_option_ok(count) : failure;
+}
+
+/*
+d_option_env_registry_import
+  Every failure but the first unreported.
+*/
+struct dj_option_result
+d_option_env_registry_import(
+    struct dj_option_env_registry* _registry,
+    const char*                    _prefix
+)
+{
+    return d_option_env_registry_import_each(_registry, _prefix, NULL, NULL);
 }
 
 /**

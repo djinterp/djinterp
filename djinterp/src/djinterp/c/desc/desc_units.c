@@ -6,23 +6,27 @@
 * what each slot's separators are; then write, front to back, once. A
 * separator is chosen from counts known before the first byte is written, an
 * article from the first unit's own text or value, and a capital as its
-* letter goes out, so nothing written is ever changed.
+* letter goes out, so nothing written is ever changed. Numbers are written by
+* the stream's writer of values, in the C form under every locale, so prose
+* and a machine's output never differ in their digits.
 *
 *
 * path:      /src/djinterp/c/desc/desc_units.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 #include "../../../../inc/djinterp/c/desc/desc_units.h"  // corresponding header
 
 // std
 #include <ctype.h>   // tolower, toupper
-#include <stdio.h>   // fwrite, snprintf
+#include <stdio.h>   // fwrite
 #include <string.h>  // strchr, strlen
 // djinterp
 #include "../../../../inc/djinterp/c/desc/desc_macro.h"  // D_DESC_MACRO_BUILD
+#include "../../../../inc/djinterp/c/util/ostream/ostream.h"  // fixed
+                                                               // streams
 
 
 #if D_CFG_DESC_ENABLED && D_CFG_DESC_MACRO && D_CFG_DESC_AT_BUILD
@@ -353,40 +357,6 @@ d_internal_desc_lead(
 }
 
 /*
-d_internal_desc_decimal
-  Writes a magnitude in decimal, a '-' before it when negative, into a
-buffer of 24 bytes; returns where the digits start.
-*/
-static const char*
-d_internal_desc_decimal(
-    uint64_t _magnitude,
-    int32_t  _negative,
-    char*    _buffer,
-    size_t*  _size
-)
-{
-    char* at = _buffer + 23;
-
-    *at = '\0';
-
-    do
-    {
-        *--at       = (char)('0' + (int)(_magnitude % 10u));
-        _magnitude /= 10u;
-    }
-    while (_magnitude != 0u);
-
-    if (_negative != 0)
-    {
-        *--at = '-';
-    }
-
-    *_size = (size_t)((_buffer + 23) - at);
-
-    return at;
-}
-
-/*
 d_internal_desc_value
   Writes a value's text, and notes whether a number was 1, for the plural
 marks after it.
@@ -397,9 +367,11 @@ d_internal_desc_value(
     const struct dj_ostream_value* _value
 )
 {
-    char        buffer[32];
-    const char* text = NULL;
-    size_t      size = 0u;
+    char                    buffer[48];
+    const char*             text = NULL;
+    size_t                  size = 0u;
+    struct dj_ostream       os;
+    struct dj_ostream_fixed fixed;
 
     switch (_value->kind)
     {
@@ -408,21 +380,23 @@ d_internal_desc_value(
             size = _value->size;
             break;
         case D_OSTREAM_VALUE_INTEGER:
-            text = d_internal_desc_decimal(d_internal_desc_magnitude(_value),
-                                           _value->negative, buffer, &size);
-            _run->last_one = (d_internal_desc_magnitude(_value) == 1u)
-                                 ? 1u : 0u;
+        case D_OSTREAM_VALUE_REAL:
+            // the stream's digits: one writer for prose and machines alike
+            (void)d_ostream_init_fixed(&os, &fixed, buffer, sizeof(buffer),
+                                       0);
+            (void)d_ostream_write_value(&os, _value, NULL);
+            (void)d_ostream_close(&os);
+            text = buffer;
+            size = d_ostream_fixed_length(&fixed);
+            _run->last_one =
+                (_value->kind == D_OSTREAM_VALUE_INTEGER)
+                    ? ( (d_internal_desc_magnitude(_value) == 1u) ? 1u : 0u )
+                    : ( ( (_value->real == 1.0) ||
+                          (_value->real == -1.0) ) ? 1u : 0u );
             break;
         case D_OSTREAM_VALUE_BOOLEAN:
             text = (_value->low != 0u) ? "true" : "false";
             size = strlen(text);
-            break;
-        case D_OSTREAM_VALUE_REAL:
-            (void)snprintf(buffer, sizeof(buffer), "%g", _value->real);
-            text           = buffer;
-            size           = strlen(buffer);
-            _run->last_one = ( (_value->real == 1.0) ||
-                               (_value->real == -1.0) ) ? 1u : 0u;
             break;
         default:
             break;

@@ -257,6 +257,24 @@ are built on this table, and a program writes any other. A table is
 usually a static const, shared by every sink that writes to that kind of
 machine.
 
+### desc's machines (`desc_machines.h`)
+
+| Machine | Writes | Switches |
+|---|---|---|
+| text, `report` preset | a line per fact, the label padded to a column, a level per indent: what `describe` and the env report show | keys for labels, each fact's truth, its layer |
+| text, `line` preset | `key=value` pairs on one line, a nested key dotted (`items.0=nail`), text quoted where it must be: what a log line carries | a closing line break |
+| JSON | an object a level (`"key": {`), compact or pretty | integers as strings (OTLP's rule), non-finite reals as strings, members only (`BARE`, for a caller's own object) |
+| collecting | nothing: facts and levels kept in the caller's array, then given to any machine by `d_desc_replay`; past the array's room, facts are counted | |
+
+Every key and value is written by the stream's writer of values
+(`d_ostream_write_value`), so JSON, and a quoted text in a line, are escaped
+by the stream's one escaper. A text describer's words arrive in pieces, and
+are escaped a piece at a time, cut where a UTF-8 character starts, into one
+string. A machine's state is the caller's, and nothing allocates.
+
+Keys within a level are unique, so every machine's output is well formed: a
+describer of a list keys its items by position (`"0"`, `"1"`).
+
 ### The sink
 
 A describer emits into a `struct dj_desc_sink`, which the caller owns,
@@ -380,10 +398,16 @@ type that gives neither fails to compile.
 | `D_CFG_DESC_MACRO` | 1 | the macro layer |
 | `D_CFG_DESC_AT_BUILD` | 0 | desc's build sentence, printed while compiling |
 
-With the machines on Monday 11-16 come `D_CFG_DESC_STYLE` (which engine
-`describe` uses when nobody says), `D_CFG_DESC_TEXT`, `D_CFG_DESC_FORM`
-and `D_CFG_DESC_MACHINES` (E20, E28); with the name registry in week 3,
-`D_CFG_DESC_REGISTRY` (E33).
+| `D_CFG_DESC_TEXT` | 1 | desc's support for text describers: the machines' text operations, and `desc.form=text` |
+| `D_CFG_DESC_MACHINES` | 0x7 | the machines built: 0x1 text, 0x2 JSON, 0x4 collecting |
+| `D_CFG_DESC_STYLE` | 0 (1 without units) | how `describe` writes: 0 prose from the units, 1 facts |
+| `D_CFG_DESC_FORM` | 0 | the describer run when there are both: 0 facts, 1 text |
+| `D_CFG_DESC_FORMAT` | 0 | the machine facts are written by: 0 text, 1 JSON |
+| `D_CFG_DESC_TEXT_PRESET` | 0 | the text machine's preset: 0 report, 1 line |
+
+A choice a knob leaves out is refused by name in its option
+(`POLICY_REJECTED`), as option_env refuses a value ruled but not built.
+With the name registry in week 3 comes `D_CFG_DESC_REGISTRY` (E33).
 
 ## Options: desc's djin (`desc_options.h`)
 
@@ -395,7 +419,11 @@ knob:
 |---|---|---|
 | `ring` | choice | name, line, sentence, detailed |
 | `layers` | flags | identity, type, state, intent, policy, health, provenance, contents, cost, all, none; joined by '\|', and '+' or '-' to edit the value in force |
-| `<type>.ring` | choice | as `ring`, for one type |
+| `style` | choice | units, facts |
+| `form` | choice | facts, text |
+| `format` | choice | text, json |
+| `text` | choice | report, line |
+| `<type>.<variable>` | as above | any of them, for one type |
 
 A type declared to desc with `d_desc_declare` is a scope of the djin, so
 `desc.shelf.ring=detailed`, from a file or the command line, sets its ring
@@ -405,8 +433,16 @@ does for every djin.) `d_desc_register(NULL)` registers the
 djin in the program's registry. Without the djin (`D_CFG_DESC_OPTIONS 0`,
 or below the option core's 64-bit floor) the knobs decide alone.
 
-With the machines on Monday come `style`, `form` and `format`, per run and
-per type (E20, E28).
+`d_desc_write(os, type, object, style)` describes an object as these say:
+in prose at `desc.ring`, or as facts through `desc.format`'s machine; a
+style with nothing to say for a type gives way to the other.
+`d_desc_write_with(os, scope, facts, text, object)` runs the describer
+`desc.form` chooses, or the other when one is null: what a djin's
+`describe` slot is written with.
+
+desc's prose writes its numbers through the stream's writer of values, as
+the machines do, so a number is in the C form under every locale ("0.5",
+never "0,5"), and prose and JSON never differ in their digits.
 
 ## Where a describer is found (E33 (c))
 
@@ -446,8 +482,9 @@ test, db, net.
   its derived facts; desc's djin; the macro layer; the C++ face; their
   suites (`c_desc_tests`: 17 tests, 121 checks; the C++ face's harness,
   `tests/unintegrated/cpp/desc/t_desc_units.cpp`, from C++98).
-- **Monday 11-16**: desc's text and JSON machines, with the log's code;
-  the `style`, `form` and `format` options and their knobs.
+- **Monday 11-16**: desc's text, JSON and collecting machines, with the
+  log's code; the `style`, `form`, `format` and `text` options and their
+  knobs; `d_desc_write` and `d_desc_write_with`.
 - **Week 3**: the name registry (E33); describers in E34's order; the
   declaring macros per family, with lanes C and H (E31).
 

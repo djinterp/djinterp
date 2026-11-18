@@ -2046,7 +2046,9 @@ d_option_env_layers
   Every bearing cell of the chain, put in rank order as it is found; the
 ranking is the one d_option_env_get applies, so the first is the one in
 force. The cells of the listed layers are kept beside them, on the stack, so
-ranks are compared exactly; past 64 layers the list keeps the top 64.
+ranks are compared exactly; past 64 layers the list keeps the top 64. The
+default comes last, below every binding, so a variable nothing binds has one
+layer, and it is the one in force.
 */
 size_t
 d_option_env_layers(
@@ -2086,6 +2088,7 @@ d_option_env_layers(
             layer.frame = f;
             layer.scope = D_INTERNAL_OPTION_ENV_KEY_SCOPE(cell->key);
             layer.shown = 0;
+            layer.knob  = NULL;
             d_internal_option_env_default(decl, &layer.value);
             d_internal_option_env_read(f, cell, &layer.value);
             d_internal_option_env_name_value(decl, &layer.value);
@@ -2095,8 +2098,20 @@ d_option_env_layers(
         }
     }
 
-    if ( (count > 0u) &&
-         (capacity > 0u) )
+    // the default, under them all: its declaring frame, and its knob
+    if (count < capacity)
+    {
+        _layers[count].frame = d_option_env_var_frame(_env, _var);
+        _layers[count].scope = D_OPTION_ENV_GLOBAL;
+        _layers[count].shown = 0;
+        _layers[count].knob  = decl->knob;
+        d_internal_option_env_default(decl, &_layers[count].value);
+        d_internal_option_env_name_value(decl, &_layers[count].value);
+    }
+
+    ++count;
+
+    if (capacity > 0u)
     {
         _layers[0].shown = 1;
     }
@@ -2193,59 +2208,91 @@ d_internal_option_env_accepts(
 }
 
 /**
- * @brief Binds a value's bytes from a source: rewrites the frame's own cell
- *        for the source, or adds one, compacting the value block once if it
- *        is full.
+ * @brief Whether a variable admits a value of a kind from a source: the
+ *        variable and the scope exist, the kind is the variable's, the
+ *        source is one, the row does not refuse it, and an integer is one
+ *        the variable accepts. Binding and checking both ask here, so they
+ *        cannot disagree.
+ *
+ * @param[in]  _env      the frame.
+ * @param[in]  _scope    the scope.
+ * @param[in]  _var      the variable.
+ * @param[in]  _source   the source.
+ * @param[in]  _kind     the kind offered; INT carries CHOICE and FLAGS.
+ * @param[in]  _integer  the integer offered, for INT; null otherwise.
+ * @param[out] _decl     the declaration, when there is one.
+ * @return D_OPTION_STATUS_OK, or why not.
+ */
+static int32_t
+d_internal_option_env_admit(
+    const struct dj_option_env*      _env,
+    uint32_t                         _scope,
+    uint32_t                         _var,
+    int32_t                          _source,
+    int32_t                          _kind,
+    const int64_t*                   _integer,
+    const struct dj_option_env_var** _decl
+)
+{
+    const int32_t status = d_internal_option_env_check(_env,
+                                                       _scope,
+                                                       _var,
+                                                       _decl);
+
+    if (status != (int32_t)D_OPTION_STATUS_OK)
+    {
+        return status;
+    }
+
+    // INT carries CHOICE and FLAGS, whose storage it is
+    if ( ((*_decl)->kind != _kind) &&
+         ( (_kind != D_OPTION_ENV_KIND_INT) ||
+           ( ((*_decl)->kind != D_OPTION_ENV_KIND_CHOICE) &&
+             ((*_decl)->kind != D_OPTION_ENV_KIND_FLAGS) ) ) )
+    {
+        return (int32_t)D_OPTION_STATUS_VALUE_TYPE_MISMATCH;
+    }
+
+    if (d_internal_option_env_source_ok(_source) == 0)
+    {
+        return (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT;
+    }
+
+    // a source the row refuses fails by name, as an unbuilt value does
+    if (((*_decl)->refused & D_OPTION_ENV_REFUSES(_source)) != 0u)
+    {
+        return (int32_t)D_OPTION_STATUS_POLICY_REJECTED;
+    }
+
+    return (_integer != NULL)
+               ? d_internal_option_env_accepts(*_decl, *_integer)
+               : (int32_t)D_OPTION_STATUS_OK;
+}
+
+/**
+ * @brief Stores an admitted value's bytes from a source: rewrites the
+ *        frame's own cell for the source, or adds one, compacting the value
+ *        block once if it is full.
  *
  * @param[in,out] _env     the frame.
  * @param[in]     _scope   the scope.
  * @param[in]     _var     the variable.
  * @param[in]     _source  the source.
- * @param[in]     _kind    the kind the caller is binding.
+ * @param[in]     _decl    the declaration d_internal_option_env_admit gave.
  * @param[in]     _bytes   the value.
  * @return the variable's id, or why not.
  */
 static struct dj_option_result
-d_internal_option_env_bind(
-    struct dj_option_env* _env,
-    uint32_t              _scope,
-    uint32_t              _var,
-    int32_t               _source,
-    int32_t               _kind,
-    const void*           _bytes
+d_internal_option_env_store(
+    struct dj_option_env*           _env,
+    uint32_t                        _scope,
+    uint32_t                        _var,
+    int32_t                         _source,
+    const struct dj_option_env_var* _decl,
+    const void*                     _bytes
 )
 {
-    const struct dj_option_env_var* decl = NULL;
-    const int32_t status = d_internal_option_env_check(_env,
-                                                       _scope,
-                                                       _var,
-                                                       &decl);
-
-    if (status != (int32_t)D_OPTION_STATUS_OK)
-    {
-        return d_option_fail(status);
-    }
-
-    // INT carries CHOICE and FLAGS, whose storage it is
-    if ( (decl->kind != _kind) &&
-         ( (_kind != D_OPTION_ENV_KIND_INT) ||
-           ( (decl->kind != D_OPTION_ENV_KIND_CHOICE) &&
-             (decl->kind != D_OPTION_ENV_KIND_FLAGS) ) ) )
-    {
-        return d_option_fail((int32_t)D_OPTION_STATUS_VALUE_TYPE_MISMATCH);
-    }
-
-    if (d_internal_option_env_source_ok(_source) == 0)
-    {
-        return d_option_fail((int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
-    }
-
-    // a source the row refuses fails by name, as an unbuilt value does
-    if ((decl->refused & D_OPTION_ENV_REFUSES(_source)) != 0u)
-    {
-        return d_option_fail((int32_t)D_OPTION_STATUS_POLICY_REJECTED);
-    }
-
+    const struct dj_option_env_var* const decl = _decl;
     const uint64_t key  = D_INTERNAL_OPTION_ENV_KEY(_scope, _source, _var);
     const uint32_t size = d_internal_option_env_size(decl->kind);
 
@@ -2295,6 +2342,44 @@ d_internal_option_env_bind(
 }
 
 /**
+ * @brief Binds a value's bytes from a source, once the variable admits them.
+ *
+ * @param[in,out] _env     the frame.
+ * @param[in]     _scope   the scope.
+ * @param[in]     _var     the variable.
+ * @param[in]     _source  the source.
+ * @param[in]     _kind    the kind the caller is binding.
+ * @param[in]     _bytes   the value: an int64_t for INT.
+ * @return the variable's id, or why not.
+ */
+static struct dj_option_result
+d_internal_option_env_bind(
+    struct dj_option_env* _env,
+    uint32_t              _scope,
+    uint32_t              _var,
+    int32_t               _source,
+    int32_t               _kind,
+    const void*           _bytes
+)
+{
+    const struct dj_option_env_var* decl = NULL;
+    const int32_t status = d_internal_option_env_admit(
+                               _env, _scope, _var, _source, _kind,
+                               (_kind == D_OPTION_ENV_KIND_INT)
+                                   ? (const int64_t*)_bytes
+                                   : NULL,
+                               &decl);
+
+    if (status != (int32_t)D_OPTION_STATUS_OK)
+    {
+        return d_option_fail(status);
+    }
+
+    return d_internal_option_env_store(_env, _scope, _var, _source, decl,
+                                       _bytes);
+}
+
+/**
  * @brief Binds an integer -- INT, CHOICE or FLAGS -- from a source, once the
  *        variable accepts it.
  *
@@ -2314,19 +2399,6 @@ d_internal_option_env_bind_int(
     int64_t               _integer
 )
 {
-    const struct dj_option_env_var* const decl =
-        (_env != NULL) ? d_internal_option_env_decl(_env, _var) : NULL;
-
-    if (decl != NULL)
-    {
-        const int32_t status = d_internal_option_env_accepts(decl, _integer);
-
-        if (status != (int32_t)D_OPTION_STATUS_OK)
-        {
-            return d_option_fail(status);
-        }
-    }
-
     return d_internal_option_env_bind(_env,
                                       _scope,
                                       _var,
@@ -2474,9 +2546,10 @@ d_option_env_set_value(
  * @param[in]     _source  the source.
  * @return as d_option_env_set_text_copy.
  *
- * The kind is checked before the arena is touched, so a refused copy costs no
- * room. The source may be in the arena itself -- another binding's text -- so
- * the compaction an allocation may run follows it.
+ * The copy is admitted before the arena is touched, so a refused copy -- the
+ * kind, the source, a source the row refuses -- costs no room. The source
+ * may be in the arena itself -- another binding's text -- so the compaction
+ * an allocation may run follows it.
  */
 static struct dj_option_result
 d_internal_option_env_text_copy(
@@ -2497,19 +2570,14 @@ d_internal_option_env_text_copy(
         return d_option_fail((int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
     }
 
-    const int32_t status = d_internal_option_env_check(_env,
-                                                       _scope,
-                                                       _var,
-                                                       &decl);
+    const int32_t status = d_internal_option_env_admit(_env, _scope, _var,
+                                                       _source,
+                                                       D_OPTION_ENV_KIND_TEXT,
+                                                       NULL, &decl);
 
     if (status != (int32_t)D_OPTION_STATUS_OK)
     {
         return d_option_fail(status);
-    }
-
-    if (decl->kind != D_OPTION_ENV_KIND_TEXT)
-    {
-        return d_option_fail((int32_t)D_OPTION_STATUS_VALUE_TYPE_MISMATCH);
     }
 
     const char* source = _value;
@@ -2529,12 +2597,8 @@ d_internal_option_env_text_copy(
 
     room[_size] = '\0';
 
-    return d_internal_option_env_bind(_env,
-                                      _scope,
-                                      _var,
-                                      _source,
-                                      D_OPTION_ENV_KIND_TEXT,
-                                      &room);
+    return d_internal_option_env_store(_env, _scope, _var, _source, decl,
+                                       &room);
 }
 
 /*
@@ -3087,8 +3151,78 @@ d_internal_option_env_read_flags(
 }
 
 /**
- * @brief Binds a variable from text, read as its kind reads it, from a
- *        source.
+ * @brief Reads text as a variable's kind reads it, trimmed first, binding
+ *        nothing: what binding from text and checking it both read. Not for
+ *        TEXT, which is taken as it is.
+ *
+ * @param[in]  _env    the frame, for FLAGS' edit of the value in force.
+ * @param[in]  _scope  the scope.
+ * @param[in]  _var    the variable.
+ * @param[in]  _decl   its declaration.
+ * @param[in]  _text   the text.
+ * @param[in]  _size   its length.
+ * @param[out] _value  the value read, its kind the declaration's.
+ * @return D_OPTION_STATUS_OK, or why the text was not read.
+ */
+static int32_t
+d_internal_option_env_parse(
+    const struct dj_option_env*     _env,
+    uint32_t                        _scope,
+    uint32_t                        _var,
+    const struct dj_option_env_var* _decl,
+    const char*                     _text,
+    size_t                          _size,
+    struct dj_option_env_value*     _value
+)
+{
+    const struct dj_option_env_var* const decl   = _decl;
+    const char*                           text   = _text;
+    size_t                                size   = _size;
+    int32_t                               status = 0;
+    bool                                  flag   = false;
+    struct dj_option_env_value            parsed;
+
+    d_internal_option_env_trim(&text, &size);
+    d_internal_option_env_default(decl, &parsed);
+
+    switch (decl->kind)
+    {
+        case D_OPTION_ENV_KIND_BOOL:
+            status = (d_internal_option_env_read_bool(text, size, &flag) != 0)
+                         ? (int32_t)D_OPTION_STATUS_OK
+                         : (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT;
+            parsed.integer = flag ? 1 : 0;
+            break;
+        case D_OPTION_ENV_KIND_INT:
+            // a number, or one of the int's named values by its name
+            status = d_internal_option_env_read_choice(decl, text, size,
+                                                       &parsed.integer);
+            break;
+        case D_OPTION_ENV_KIND_REAL:
+            status = (d_internal_option_env_read_real(text, size,
+                                                      &parsed.real) != 0)
+                         ? (int32_t)D_OPTION_STATUS_OK
+                         : (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT;
+            break;
+        case D_OPTION_ENV_KIND_CHOICE:
+            status = d_internal_option_env_read_choice(decl, text, size,
+                                                       &parsed.integer);
+            break;
+        default:
+            status = d_internal_option_env_read_flags(_env, _scope, _var,
+                                                      decl, text, size,
+                                                      &parsed.integer);
+            break;
+    }
+
+    *_value = parsed;
+
+    return status;
+}
+
+/**
+ * @brief Binds a variable from text, read as its kind reads it: TEXT copied
+ *        as it is, the rest trimmed and read by d_internal_option_env_parse.
  *
  * @param[in,out] _env     the frame.
  * @param[in]     _scope   the scope.
@@ -3097,8 +3231,6 @@ d_internal_option_env_read_flags(
  * @param[in]     _size    its length.
  * @param[in]     _source  the source.
  * @return as d_option_env_assign_from.
- *
- * Text other than TEXT is trimmed first; TEXT is kept as it is.
  */
 static struct dj_option_result
 d_internal_option_env_assign(
@@ -3112,50 +3244,17 @@ d_internal_option_env_assign(
 {
     const struct dj_option_env_var* const decl = d_option_env_var_at(_env,
                                                                      _var);
-    const char*                           text    = _value;
-    size_t                                size    = _size;
     struct dj_option_env_value            value;
-    int32_t                               status  = 0;
-    bool                                  flag    = false;
+    int32_t                               status;
 
     if (decl->kind == D_OPTION_ENV_KIND_TEXT)
     {
-        return d_internal_option_env_text_copy(_env, _scope, _var, text, size,
-                                               _source);
+        return d_internal_option_env_text_copy(_env, _scope, _var, _value,
+                                               _size, _source);
     }
 
-    d_internal_option_env_trim(&text, &size);
-    d_internal_option_env_default(decl, &value);
-
-    switch (decl->kind)
-    {
-        case D_OPTION_ENV_KIND_BOOL:
-            status = (d_internal_option_env_read_bool(text, size, &flag) != 0)
-                         ? (int32_t)D_OPTION_STATUS_OK
-                         : (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT;
-            value.integer = flag ? 1 : 0;
-            break;
-        case D_OPTION_ENV_KIND_INT:
-            // a number, or one of the int's named values by its name
-            status = d_internal_option_env_read_choice(decl, text, size,
-                                                       &value.integer);
-            break;
-        case D_OPTION_ENV_KIND_REAL:
-            status = (d_internal_option_env_read_real(text, size,
-                                                      &value.real) != 0)
-                         ? (int32_t)D_OPTION_STATUS_OK
-                         : (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT;
-            break;
-        case D_OPTION_ENV_KIND_CHOICE:
-            status = d_internal_option_env_read_choice(decl, text, size,
-                                                       &value.integer);
-            break;
-        default:
-            status = d_internal_option_env_read_flags(_env, _scope, _var,
-                                                      decl, text, size,
-                                                      &value.integer);
-            break;
-    }
+    status = d_internal_option_env_parse(_env, _scope, _var, decl, _value,
+                                         _size, &value);
 
     return (status == (int32_t)D_OPTION_STATUS_OK)
                ? d_option_env_set_value(_env, _scope, _var, _source, &value)
@@ -3334,10 +3433,10 @@ d_internal_option_env_unescape(
  * @param[in]     _source  the source.
  * @return as d_option_env_assign_from.
  *
- * A TEXT value is read straight into the arena, where it will live -- it
- * needs at most its quoted length -- and bound there; any other is read into
- * a buffer here and then read as its kind. The quoted text may itself be in
- * the arena, so the allocation follows it through a compaction.
+ * A TEXT value is admitted, then read straight into the arena, where it will
+ * live -- it needs at most its quoted length -- and bound there; any other is
+ * read into a buffer here and then read as its kind. The quoted text may
+ * itself be in the arena, so the allocation follows it through a compaction.
  */
 static struct dj_option_result
 d_internal_option_env_quoted(
@@ -3355,6 +3454,16 @@ d_internal_option_env_quoted(
 
     if (decl->kind == D_OPTION_ENV_KIND_TEXT)
     {
+        const struct dj_option_env_var* admitted = NULL;
+        const int32_t status = d_internal_option_env_admit(
+                                   _env, _scope, _var, _source,
+                                   D_OPTION_ENV_KIND_TEXT, NULL, &admitted);
+
+        if (status != (int32_t)D_OPTION_STATUS_OK)
+        {
+            return d_option_fail(status);
+        }
+
         const char* source = _text;
         char* const room   = d_internal_option_env_alloc(_env, _size, &source);
 
@@ -3378,8 +3487,8 @@ d_internal_option_env_quoted(
 
         room[length] = '\0';
 
-        return d_internal_option_env_bind(_env, _scope, _var, _source,
-                                          D_OPTION_ENV_KIND_TEXT, &room);
+        return d_internal_option_env_store(_env, _scope, _var, _source,
+                                           admitted, &room);
     }
 
     char scratch[D_INTERNAL_OPTION_ENV_SCRATCH];
@@ -3773,15 +3882,18 @@ d_internal_option_env_getenv(
 }
 
 /*
-d_option_env_import
+d_option_env_import_each
   One getenv per visible variable that its name reaches -- a name an inner
 declaration hides is the inner one's -- and one for its alias when the name
-is unset. Every variable is tried; the first refusal is the one reported.
+is unset. Every variable is tried; each refusal goes to the report, under the
+name that was read, and the first is the one returned.
 */
 struct dj_option_result
-d_option_env_import(
+d_option_env_import_each(
     struct dj_option_env* _env,
-    const char*           _prefix
+    const char*           _prefix,
+    fn_option_env_report  _report,
+    void*                 _context
 )
 {
     struct dj_option_result failure = d_option_ok(0u);
@@ -3829,8 +3941,17 @@ d_option_env_import(
             if (result.is_ok)
             {
                 ++count;
+
+                continue;
             }
-            else if (failure.is_ok)
+
+            // key holds the name getenv was last asked: the one that was read
+            if (_report != NULL)
+            {
+                _report(_context, key, value, result);
+            }
+
+            if (failure.is_ok)
             {
                 failure = result;
             }
@@ -3838,6 +3959,19 @@ d_option_env_import(
     }
 
     return failure.is_ok ? d_option_ok(count) : failure;
+}
+
+/*
+d_option_env_import
+  Every failure but the first unreported.
+*/
+struct dj_option_result
+d_option_env_import(
+    struct dj_option_env* _env,
+    const char*           _prefix
+)
+{
+    return d_option_env_import_each(_env, _prefix, NULL, NULL);
 }
 
 
@@ -4093,101 +4227,22 @@ d_internal_option_env_format_real(
     return 1;
 }
 
-/*
-d_option_env_format
-  The kind's own spelling, through one bounded appender, so the length is
-counted whether or not it fits.
-*/
-size_t
-d_option_env_format(
-    const struct dj_option_env* _env,
-    uint32_t                    _scope,
-    uint32_t                    _var,
-    char*                       _buffer,
-    size_t                      _capacity
-)
-{
-    struct dj_option_env_value value;
-    char                       number[24];
-    size_t                     length = 0u;
-
-    if ( ( (_buffer == NULL) &&
-           (_capacity != 0u) ) ||
-         (!d_option_env_get(_env, _scope, _var, &value).is_ok) )
-    {
-        return (size_t)-1;
-    }
-
-    const struct dj_option_env_var* const decl = d_option_env_var_at(_env,
-                                                                     _var);
-
-    switch (value.kind)
-    {
-        case D_OPTION_ENV_KIND_BOOL:
-            d_internal_option_env_append(_buffer, _capacity, &length,
-                                         (value.integer != 0) ? "true"
-                                                              : "false",
-                                         (value.integer != 0) ? 4u : 5u);
-            break;
-        case D_OPTION_ENV_KIND_REAL:
-            if (d_internal_option_env_format_real(value.real, _buffer,
-                                                  _capacity, &length) == 0)
-            {
-                return (size_t)-1;
-            }
-            break;
-        case D_OPTION_ENV_KIND_TEXT:
-            if (value.text != NULL)
-            {
-                d_internal_option_env_append(_buffer, _capacity, &length,
-                                             value.text, strlen(value.text));
-            }
-
-            break;
-        case D_OPTION_ENV_KIND_FLAGS:
-            d_internal_option_env_format_flags(decl, value.integer, _buffer,
-                                               _capacity, &length);
-            break;
-        default:
-            // INT and CHOICE: the value's name where it has one, else its
-            // number
-            if (value.text != NULL)
-            {
-                d_internal_option_env_append(_buffer, _capacity, &length,
-                                             value.text, strlen(value.text));
-            }
-            else
-            {
-                d_internal_option_env_append(
-                    _buffer, _capacity, &length, number,
-                    d_internal_option_env_decimal(number, value.integer));
-            }
-
-            break;
-    }
-
-    if (_capacity != 0u)
-    {
-        _buffer[(length < _capacity) ? length : (_capacity - 1u)] = '\0';
-    }
-
-    return length;
-}
-
 /**
  * @brief Whether a text must be quoted to be read back as it is: empty,
  *        with space at either end, or holding a statement's end (';', '#',
  *        a line break), a quote, a backslash or another control character.
  *
  * @param[in] _text  the text.
+ * @param[in] _size  its length.
  * @return 1 or 0.
  */
 static int
 d_internal_option_env_needs_quotes(
-    const char* _text
+    const char* _text,
+    size_t      _size
 )
 {
-    const size_t size = strlen(_text);
+    const size_t size = _size;
 
     if ( (size == 0u)                                                 ||
          (_text[0] == ' ')         || (_text[0] == '\t')              ||
@@ -4218,20 +4273,22 @@ d_internal_option_env_needs_quotes(
  * @param[in]     _capacity  its size.
  * @param[in,out] _length    the text's length so far.
  * @param[in]     _text      the text.
+ * @param[in]     _size      its length.
  */
 static void
 d_internal_option_env_append_quoted(
     char*       _buffer,
     size_t      _capacity,
     size_t*     _length,
-    const char* _text
+    const char* _text,
+    size_t      _size
 )
 {
     static const char hex[] = "0123456789ABCDEF";
 
     d_internal_option_env_append(_buffer, _capacity, _length, "\"", 1u);
 
-    for (const char* at = _text; *at != '\0'; ++at)
+    for (const char* at = _text; at < _text + _size; ++at)
     {
         const unsigned char c         = (unsigned char)*at;
         char                escape[4] = { '\\', '\0', '\0', '\0' };
@@ -4270,6 +4327,139 @@ d_internal_option_env_append_quoted(
     return;
 }
 
+/**
+ * @brief Writes a value as text d_option_env_assign reads back, through one
+ *        bounded appender, so the length is counted whether or not it fits:
+ *        what d_option_env_format, _format_quoted and _check all write.
+ *
+ * @param[in]  _decl       the variable's declaration.
+ * @param[in]  _value      the value; an INT's or a CHOICE's name, if any, in
+ *                         its text.
+ * @param[in]  _text_size  TEXT's length; (size_t)-1 for a NUL-terminated
+ *                         text.
+ * @param[in]  _quoted     non-zero to quote a TEXT that needs it.
+ * @param[out] _buffer     where; may be null when _capacity is 0.
+ * @param[in]  _capacity   its size.
+ * @return the text's length, as snprintf counts it; (size_t)-1 when a real
+ *         could not be written.
+ */
+static size_t
+d_internal_option_env_format_value(
+    const struct dj_option_env_var*   _decl,
+    const struct dj_option_env_value* _value,
+    size_t                            _text_size,
+    int32_t                           _quoted,
+    char*                             _buffer,
+    size_t                            _capacity
+)
+{
+    const struct dj_option_env_var* const decl  = _decl;
+    const struct dj_option_env_value      value = *_value;
+    char                                  number[24];
+    size_t                                length = 0u;
+    size_t                                size   = 0u;
+
+    if ( (value.kind == D_OPTION_ENV_KIND_TEXT) &&
+         (value.text != NULL) )
+    {
+        size = (_text_size == (size_t)-1) ? strlen(value.text) : _text_size;
+
+        if ( (_quoted != 0) &&
+             (d_internal_option_env_needs_quotes(value.text, size) != 0) )
+        {
+            d_internal_option_env_append_quoted(_buffer, _capacity, &length,
+                                                value.text, size);
+
+            if (_capacity != 0u)
+            {
+                _buffer[(length < _capacity) ? length
+                                             : (_capacity - 1u)] = '\0';
+            }
+
+            return length;
+        }
+    }
+
+    switch (value.kind)
+    {
+        case D_OPTION_ENV_KIND_BOOL:
+            d_internal_option_env_append(_buffer, _capacity, &length,
+                                         (value.integer != 0) ? "true"
+                                                              : "false",
+                                         (value.integer != 0) ? 4u : 5u);
+            break;
+        case D_OPTION_ENV_KIND_REAL:
+            if (d_internal_option_env_format_real(value.real, _buffer,
+                                                  _capacity, &length) == 0)
+            {
+                return (size_t)-1;
+            }
+            break;
+        case D_OPTION_ENV_KIND_TEXT:
+            if (value.text != NULL)
+            {
+                d_internal_option_env_append(_buffer, _capacity, &length,
+                                             value.text, size);
+            }
+
+            break;
+        case D_OPTION_ENV_KIND_FLAGS:
+            d_internal_option_env_format_flags(decl, value.integer, _buffer,
+                                               _capacity, &length);
+            break;
+        default:
+            // INT and CHOICE: the value's name where it has one, else its
+            // number
+            if (value.text != NULL)
+            {
+                d_internal_option_env_append(_buffer, _capacity, &length,
+                                             value.text, strlen(value.text));
+            }
+            else
+            {
+                d_internal_option_env_append(
+                    _buffer, _capacity, &length, number,
+                    d_internal_option_env_decimal(number, value.integer));
+            }
+
+            break;
+    }
+
+    if (_capacity != 0u)
+    {
+        _buffer[(length < _capacity) ? length : (_capacity - 1u)] = '\0';
+    }
+
+    return length;
+}
+
+/*
+d_option_env_format
+  The value in force, as d_internal_option_env_format_value writes it.
+*/
+size_t
+d_option_env_format(
+    const struct dj_option_env* _env,
+    uint32_t                    _scope,
+    uint32_t                    _var,
+    char*                       _buffer,
+    size_t                      _capacity
+)
+{
+    struct dj_option_env_value value;
+
+    if ( ( (_buffer == NULL) &&
+           (_capacity != 0u) ) ||
+         (!d_option_env_get(_env, _scope, _var, &value).is_ok) )
+    {
+        return (size_t)-1;
+    }
+
+    return d_internal_option_env_format_value(d_option_env_var_at(_env, _var),
+                                              &value, (size_t)-1, 0,
+                                              _buffer, _capacity);
+}
+
 /*
 d_option_env_format_quoted
   d_option_env_format's text, but a TEXT value in quotes when it needs them.
@@ -4284,27 +4474,119 @@ d_option_env_format_quoted(
 )
 {
     struct dj_option_env_value value;
-    size_t                     length = 0u;
 
-    if ( (!d_option_env_get(_env, _scope, _var, &value).is_ok) ||
-         (value.kind != D_OPTION_ENV_KIND_TEXT)                ||
-         (value.text == NULL)                                  ||
-         (d_internal_option_env_needs_quotes(value.text) == 0) )
+    if ( ( (_buffer == NULL) &&
+           (_capacity != 0u) ) ||
+         (!d_option_env_get(_env, _scope, _var, &value).is_ok) )
     {
-        return d_option_env_format(_env, _scope, _var, _buffer, _capacity);
+        return (size_t)-1;
     }
 
-    d_internal_option_env_append_quoted(_buffer, _capacity, &length,
-                                        value.text);
+    return d_internal_option_env_format_value(d_option_env_var_at(_env, _var),
+                                              &value, (size_t)-1, 1,
+                                              _buffer, _capacity);
+}
+
+
+/*
+d_option_env_check_from
+  assign_from's resolving and reading, and binding's admission, with the
+value written where assign_from would bind it: nothing is bound and nothing
+is copied, so the frame is as it was.
+*/
+size_t
+d_option_env_check_from(
+    const struct dj_option_env* _env,
+    const char*                 _name,
+    size_t                      _name_size,
+    const char*                 _value,
+    size_t                      _value_size,
+    int32_t                     _source,
+    char*                       _buffer,
+    size_t                      _capacity,
+    struct dj_option_result*    _result
+)
+{
+    const struct dj_option_env_var* decl   = NULL;
+    uint32_t                        scope  = D_OPTION_ENV_GLOBAL;
+    int32_t                         status = (int32_t)D_OPTION_STATUS_OK;
+    struct dj_option_env_value      value;
+    struct dj_option_result         found;
 
     if (_capacity != 0u)
     {
-        _buffer[(length < _capacity) ? length : (_capacity - 1u)] = '\0';
+        if (_buffer == NULL)
+        {
+            status = (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT;
+        }
+        else
+        {
+            _buffer[0] = '\0';
+        }
     }
 
-    return length;
-}
+    if ( (_env == NULL)  ||
+         (_name == NULL) ||
+         ( (_value == NULL) &&
+           (_value_size != 0u) ) ||
+         (d_internal_option_env_source_ok(_source) == 0) )
+    {
+        status = (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT;
+    }
 
+    found = (status == (int32_t)D_OPTION_STATUS_OK)
+                ? d_option_env_resolve(_env, _name, _name_size, &scope)
+                : d_option_fail(status);
+    status = found.is_ok ? status : found.payload.error;
+
+    if (status == (int32_t)D_OPTION_STATUS_OK)
+    {
+        decl = d_option_env_var_at(_env, found.payload.value);
+        d_internal_option_env_default(decl, &value);
+
+        if (decl->kind == D_OPTION_ENV_KIND_TEXT)
+        {
+            value.text = (_value != NULL) ? _value : "";
+        }
+        else
+        {
+            status = d_internal_option_env_parse(_env, scope,
+                                                 found.payload.value, decl,
+                                                 (_value != NULL) ? _value
+                                                                  : "",
+                                                 _value_size, &value);
+        }
+    }
+
+    if (status == (int32_t)D_OPTION_STATUS_OK)
+    {
+        const bool integral = ( (decl->kind == D_OPTION_ENV_KIND_INT)    ||
+                                (decl->kind == D_OPTION_ENV_KIND_CHOICE) ||
+                                (decl->kind == D_OPTION_ENV_KIND_FLAGS) );
+
+        status = d_internal_option_env_admit(
+                     _env, scope, found.payload.value, _source,
+                     integral ? D_OPTION_ENV_KIND_INT : decl->kind,
+                     integral ? &value.integer : NULL, &decl);
+    }
+
+    if (_result != NULL)
+    {
+        *_result = (status == (int32_t)D_OPTION_STATUS_OK)
+                       ? d_option_ok(found.payload.value)
+                       : d_option_fail(status);
+    }
+
+    if (status != (int32_t)D_OPTION_STATUS_OK)
+    {
+        return (size_t)-1;
+    }
+
+    d_internal_option_env_name_value(decl, &value);
+
+    return d_internal_option_env_format_value(decl, &value, _value_size, 1,
+                                              _buffer, _capacity);
+}
 
 //==============================================================================
 // READING ON A HOT PATH

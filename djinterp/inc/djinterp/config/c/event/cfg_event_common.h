@@ -23,14 +23,15 @@
 *             ->  D_INTERNAL_EVENT_ITERATION_DMACRO,
 *             D_INTERNAL_EVENT_ARITY_MAX, D_INTERNAL_EVENT_ASSERT_LAYOUT,
 *             D_INTERNAL_EVENT_ASSERT_SIZES, D_INTERNAL_EVENT_USE_CONCEPTS,
-*             D_INTERNAL_EVENT_KEY_FROM_NAME, D_INTERNAL_EVENT_VALIDATE
+*             D_INTERNAL_EVENT_KEY_FROM_NAME, D_INTERNAL_EVENT_VALIDATE;
+*             c/log/log.h -> D_CFG_EVENT_KEY_CHECK
 *   requires: cfg_common.h (helpers, D_CFG_TESTING)
 *
 *
 * path:      /inc/djinterp/config/c/event/cfg_event_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.31
-*                                                            revised: 2026.11.01
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_EVENT_CFG_EVENT_COMMON_H
@@ -38,7 +39,7 @@
 
 // djinterp
 // (0) root first: helpers, user overrides, testing flag and preset.
-#include "../../cfg_common.h"
+#include "../../cfg_common.h"  // D_CFG_NORM, D_CFG_IS_INT_LITERAL
 
 //   PREREQUISITE. Two knobs below resolve by DETECTION -- the iteration tier
 // probes dmacro's generated tables, the notation tier probes the environment's
@@ -159,6 +160,19 @@
 #if !D_CFG_IS_INT_LITERAL(D_CFG_EVENT_KEY_POLICY)
     #error "D_CFG_EVENT_KEY_POLICY must name one of its values; a misspelled " \
            "name would read as 0"
+#endif
+
+// D_CFG_EVENT_KEY_CHECK
+//   brief: when a name-hash key is checked for a collision as it registers
+// (E21 (c)): 0 never, 1 in debug builds (NDEBUG not defined), 2 always. The
+// log checks its codes' keys so; CI checks the tree's own names whatever
+// this says. 1 by default.
+#ifndef D_CFG_EVENT_KEY_CHECK
+#   define D_CFG_EVENT_KEY_CHECK    1
+#endif
+
+#if ( (D_CFG_EVENT_KEY_CHECK < 0) || (D_CFG_EVENT_KEY_CHECK > 2) )
+    #error "D_CFG_EVENT_KEY_CHECK must be 0 (never), 1 (debug) or 2 (always)"
 #endif
 
 

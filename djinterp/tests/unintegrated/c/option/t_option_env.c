@@ -21,7 +21,7 @@
 * path:      /tests/unintegrated/c/option/t_option_env.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 // std
 #include <locale.h>   // setlocale, LC_NUMERIC
@@ -1355,10 +1355,10 @@ d_tests_option_env_sources(void)
     D_TESTS_OPTION_ENV_CHECK(d_option_env_int(&child, 0u, D_TESTS_KEY_WIDTH)
                              == 10);
 
-    // the layers, the one in force first
+    // the layers, the one in force first, the default last
     D_TESTS_OPTION_ENV_CHECK(d_option_env_layers(&child, 0u,
                                                  D_TESTS_KEY_WIDTH, layers,
-                                                 8u) == 5u);
+                                                 8u) == 6u);
     D_TESTS_OPTION_ENV_CHECK( (layers[0].shown == 1)                      &&
                               (layers[0].value.integer == 10)             &&
                               (layers[1].value.source ==
@@ -1369,10 +1369,20 @@ d_tests_option_env_sources(void)
                               (layers[3].value.integer == 50)             &&
                               (layers[4].frame == &root)                  &&
                               (layers[4].value.integer == 40)             &&
-                              (layers[4].shown == 0) );
+                              (layers[4].shown == 0)                      &&
+                              (layers[4].knob == NULL) );
+    D_TESTS_OPTION_ENV_CHECK( (layers[5].frame == &root)                  &&
+                              (layers[5].value.integer == 24)             &&
+                              (layers[5].value.source ==
+                               D_OPTION_ENV_SOURCE_DEFAULT)               &&
+                              (layers[5].value.bound == 0)                &&
+                              (layers[5].value.depth == D_OPTION_ENV_NONE) &&
+                              (layers[5].scope == D_OPTION_ENV_GLOBAL)    &&
+                              (layers[5].shown == 0)                      &&
+                              (layers[5].knob == NULL) );
     D_TESTS_OPTION_ENV_CHECK(d_option_env_layers(&child, 0u,
                                                  D_TESTS_KEY_WIDTH, layers,
-                                                 2u) == 5u);
+                                                 2u) == 6u);
     D_TESTS_OPTION_ENV_CHECK(layers[1].value.integer == 20);
     D_TESTS_OPTION_ENV_CHECK(d_option_env_layers(&child, 0u, 99u, NULL, 0u)
                              == (size_t)-1);
@@ -2213,6 +2223,399 @@ d_tests_option_env_hot_path(void)
 }
 
 /*
+d_tests_option_env_default_layer
+  Tests the following:
+  - a variable nothing binds has one layer: the default, in force, from its
+    declaring frame, naming its knob
+  - bound, the default is the last layer, still naming its knob, and the
+    binding is the one in force
+  - with no room the default is still counted
+*/
+static void
+d_tests_option_env_default_layer(void)
+{
+#define D_TESTS_LAYER_KNOB 17
+    static const struct dj_option_env_var ROWS[] =
+    {
+        D_OPTION_ENV_INT_KNOB("knob_width", D_TESTS_LAYER_KNOB,
+                              "from a knob"),
+        D_OPTION_ENV_CHOICE("format", FORMATS, 1, "a choice")
+    };
+#undef D_TESTS_LAYER_KNOB
+    struct dj_tests_root_storage  root_storage  = D_OPTION_ENV_STORAGE_INIT;
+    struct dj_tests_child_storage child_storage = D_OPTION_ENV_STORAGE_INIT;
+    struct dj_option_env          root;
+    struct dj_option_env          child;
+    struct dj_option_env_layer    layers[4];
+
+    printf("  the default's layer\n");
+
+    (void)D_OPTION_ENV_VIEW(&root, root_storage);
+    (void)D_OPTION_ENV_VIEW(&child, child_storage);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_declare_all(&root, ROWS, 2u).is_ok);
+    (void)d_option_env_set_parent(&child, &root);
+
+    // nothing binds it: one layer, the default, in force
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_layers(&child, 0u, 0u, layers, 4u)
+                             == 1u);
+    D_TESTS_OPTION_ENV_CHECK( (layers[0].shown == 1)                      &&
+                              (layers[0].frame == &root)                  &&
+                              (layers[0].value.integer == 17)             &&
+                              (layers[0].value.source ==
+                               D_OPTION_ENV_SOURCE_DEFAULT)               &&
+                              (layers[0].value.bound == 0)                &&
+                              (layers[0].knob != NULL)                    &&
+                              (strcmp(layers[0].knob,
+                                      "D_TESTS_LAYER_KNOB") == 0) );
+
+    // a choice's default carries its name
+    D_TESTS_OPTION_ENV_CHECK( (d_option_env_layers(&child, 0u, 1u, layers,
+                                                   4u) == 1u)         &&
+                              (layers[0].value.text != NULL)          &&
+                              (strcmp(layers[0].value.text, "json") == 0) &&
+                              (layers[0].knob == NULL) );
+
+    // bound in the child: the binding first, the default last
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_put(&child, "knob_width=5").is_ok);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_layers(&child, 0u, 0u, layers, 4u)
+                             == 2u);
+    D_TESTS_OPTION_ENV_CHECK( (layers[0].shown == 1)              &&
+                              (layers[0].frame == &child)         &&
+                              (layers[0].value.integer == 5)      &&
+                              (layers[0].knob == NULL)            &&
+                              (layers[1].shown == 0)              &&
+                              (layers[1].frame == &root)          &&
+                              (layers[1].value.source ==
+                               D_OPTION_ENV_SOURCE_DEFAULT)       &&
+                              (layers[1].knob != NULL) );
+
+    // no room: counted all the same
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_layers(&child, 0u, 0u, NULL, 0u)
+                             == 2u);
+    D_TESTS_OPTION_ENV_CHECK( (d_option_env_layers(&child, 0u, 0u, layers,
+                                                   1u) == 2u) &&
+                              (layers[0].value.integer == 5) );
+
+    return;
+}
+
+// dj_tests_reports
+//   struct: what a report heard: how many, and the last one's name, text
+// and status.
+struct dj_tests_reports
+{
+    unsigned count;
+    char     name[64];
+    char     value[64];
+    int32_t  status;
+};
+
+/*
+d_tests_option_env_report
+  A report that keeps the last failure.
+*/
+static void
+d_tests_option_env_report(
+    void*                   _context,
+    const char*             _name,
+    const char*             _value,
+    struct dj_option_result _result
+)
+{
+    struct dj_tests_reports* const heard = (struct dj_tests_reports*)_context;
+
+    ++heard->count;
+    (void)snprintf(heard->name, sizeof(heard->name), "%s", _name);
+    (void)snprintf(heard->value, sizeof(heard->value), "%s", _value);
+    heard->status = _result.is_ok ? 0 : _result.payload.error;
+
+    return;
+}
+
+/*
+d_tests_option_env_import_each
+  Tests the following:
+  - each variable that fails is reported under the name read, with its text
+    and status, and the rest are still bound
+  - a variable read by its alias is reported by the alias's name
+  - the result is import's: the first failure; a null report is import
+*/
+static void
+d_tests_option_env_import_each(void)
+{
+    static const struct dj_option_env_var ROWS[] =
+    {
+        D_OPTION_ENV_INT_RANGE("depth", 5, 1, 9, "between 1 and 9"),
+        D_OPTION_ENV_ROW(D_OPTION_ENV_KIND_INT, "columns", NULL, 0u, NULL,
+                         0u, NULL, 80, 1, 200, 0.0, "width", NULL,
+                         "renamed from width"),
+        D_OPTION_ENV_CHOICE("format", FORMATS, 0, "a choice")
+    };
+    struct dj_tests_root_storage storage = D_OPTION_ENV_STORAGE_INIT;
+    struct dj_option_env         env;
+    struct dj_tests_reports      heard;
+    struct dj_option_result      result;
+
+    printf("  import, reporting each failure\n");
+
+    memset(&heard, 0, sizeof(heard));
+    (void)D_OPTION_ENV_VIEW(&env, storage);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_declare_all(&env, ROWS, 3u).is_ok);
+
+#if defined(_WIN32)
+    (void)_putenv_s("DJEACH_DEPTH", "12");
+    (void)_putenv_s("DJEACH_WIDTH", "900");
+    (void)_putenv_s("DJEACH_FORMAT", "json");
+#else
+    (void)setenv("DJEACH_DEPTH", "12", 1);
+    (void)setenv("DJEACH_WIDTH", "900", 1);
+    (void)setenv("DJEACH_FORMAT", "json", 1);
+#endif
+
+    result = d_option_env_import_each(&env, "DJEACH_",
+                                      d_tests_option_env_report, &heard);
+    D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(result)
+                             == (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
+    D_TESTS_OPTION_ENV_CHECK(heard.count == 2u);
+    D_TESTS_OPTION_ENV_CHECK( (strcmp(heard.name, "DJEACH_WIDTH") == 0) &&
+                              (strcmp(heard.value, "900") == 0)          &&
+                              (heard.status ==
+                               (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT) );
+    D_TESTS_OPTION_ENV_CHECK( (d_option_env_int(&env, 0u, 2u) == 1) &&
+                              (d_option_env_source(&env, 0u, 2u) ==
+                               D_OPTION_ENV_SOURCE_ENVIRONMENT) );
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_source(&env, 0u, 0u) ==
+                             D_OPTION_ENV_SOURCE_DEFAULT);
+
+    // a null report is import
+    D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(
+        d_option_env_import_each(&env, "DJEACH_", NULL, NULL))
+        == D_TESTS_OPTION_ENV_STATUS(d_option_env_import(&env, "DJEACH_")));
+
+#if defined(_WIN32)
+    (void)_putenv_s("DJEACH_DEPTH", "");
+    (void)_putenv_s("DJEACH_WIDTH", "");
+    (void)_putenv_s("DJEACH_FORMAT", "");
+#else
+    (void)unsetenv("DJEACH_DEPTH");
+    (void)unsetenv("DJEACH_WIDTH");
+    (void)unsetenv("DJEACH_FORMAT");
+#endif
+    memset(&heard, 0, sizeof(heard));
+    result = d_option_env_import_each(&env, "DJEACH_",
+                                      d_tests_option_env_report, &heard);
+    D_TESTS_OPTION_ENV_CHECK( (result.is_ok)                 &&
+                              (result.payload.value == 0u)   &&
+                              (heard.count == 0u) );
+
+    return;
+}
+
+/*
+d_tests_option_env_check_case
+  Checks one setting, then binds the same on a second frame, and asks that
+both answer alike: the check binds nothing, and agrees with binding.
+*/
+static int
+d_tests_option_env_check_case(
+    struct dj_option_env* _checked,
+    struct dj_option_env* _bound,
+    const char*           _name,
+    const char*           _value,
+    int32_t               _source,
+    const char*           _written
+)
+{
+    char                    buffer[32];
+    struct dj_option_result checked;
+    const uint64_t          before  = d_option_env_generation(_checked);
+    const size_t            length  = d_option_env_check_from(
+                                          _checked, _name, strlen(_name),
+                                          _value, strlen(_value), _source,
+                                          buffer, sizeof(buffer), &checked);
+    const struct dj_option_result bound = d_option_env_assign_from(
+                                              _bound, _name, strlen(_name),
+                                              _value, strlen(_value),
+                                              _source);
+    int agree = (checked.is_ok == bound.is_ok) &&
+                (d_option_env_generation(_checked) == before);
+
+    if (checked.is_ok)
+    {
+        agree = agree && (checked.payload.value == bound.payload.value) &&
+                (length == strlen(buffer))                           &&
+                ( (_written == NULL) ||
+                  (strcmp(buffer, _written) == 0) );
+    }
+    else
+    {
+        agree = agree && (checked.payload.error == bound.payload.error) &&
+                (length == (size_t)-1) && (buffer[0] == '\0');
+    }
+
+    if (!agree)
+    {
+        printf("    check and bind differ: %s=%s from %d (%s)\n", _name,
+               _value, (int)_source, buffer);
+    }
+
+    return agree;
+}
+
+/*
+d_tests_option_env_checking_more
+  Tests the following, on a frame d_tests_option_env_checking declared:
+  - each refusal's status: a range, an unbuilt name, a refused source, an
+    unknown name
+  - nothing is bound
+  - a buffer too small is counted, cut and terminated; none at all is
+    counted; a null buffer with room is refused
+*/
+static void
+d_tests_option_env_checking_more(
+    struct dj_option_env* _checked
+)
+{
+    struct dj_option_result result;
+    char                    small[4];
+    const int32_t           file = D_OPTION_ENV_SOURCE_FILE;
+    struct dj_option_env*   checked = _checked;
+
+    // the statuses themselves
+    (void)d_option_env_check_from(checked, "depth", 5u, "10", 2u, file,
+                                  NULL, 0u, &result);
+    D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(result)
+                             == (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
+    (void)d_option_env_check_from(checked, "format", 6u, "yaml", 4u, file,
+                                  NULL, 0u, &result);
+    D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(result)
+                             == (int32_t)D_OPTION_STATUS_POLICY_REJECTED);
+    (void)d_option_env_check_from(checked, "plugin_search", 13u, "/x", 2u,
+                                  file, NULL, 0u, &result);
+    D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(result)
+                             == (int32_t)D_OPTION_STATUS_POLICY_REJECTED);
+    (void)d_option_env_check_from(checked, "nothing", 7u, "1", 1u, file,
+                                  NULL, 0u, &result);
+    D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(result)
+                             == (int32_t)D_OPTION_STATUS_KEY_ABSENT);
+
+    // nothing was bound in the checked frame
+    D_TESTS_OPTION_ENV_CHECK( (d_option_env_source(checked, 0u, 0u) ==
+                               D_OPTION_ENV_SOURCE_DEFAULT) &&
+                              (d_option_env_int(checked, 0u, 0u) == 5) );
+
+    // too small: counted, cut, terminated; no buffer at all is counted too
+    D_TESTS_OPTION_ENV_CHECK( (d_option_env_check_from(checked, "title",
+                                   5u, "abcdef", 6u, file, small,
+                                   sizeof(small), &result) == 6u) &&
+                              (result.is_ok)                       &&
+                              (strcmp(small, "abc") == 0) );
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_check_from(checked, "title", 5u,
+                                                     "abcdef", 6u, file,
+                                                     NULL, 0u, NULL) == 6u);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_check_from(checked, "title", 5u,
+                                                     "abcdef", 6u, file,
+                                                     NULL, 4u, &result)
+                             == (size_t)-1);
+
+    return;
+}
+
+/*
+d_tests_option_env_checking
+  Tests the following:
+  - a value is checked as binding it would be -- range, choices, unbuilt
+    names, refused sources, unknown names, text a kind does not read -- and
+    every answer matches what binding the same gives
+  - the value is written as format_quoted writes it, a name for a number
+    that has one, quotes where text needs them
+  - nothing is bound: the generation does not move
+  - a buffer too small is counted, as snprintf counts
+*/
+static void
+d_tests_option_env_checking(void)
+{
+    static const struct dj_option_env_var ROWS[] =
+    {
+        D_OPTION_ENV_INT_RANGE("depth", 5, 1, 9, "between 1 and 9"),
+        D_OPTION_ENV_ROW(D_OPTION_ENV_KIND_CHOICE, "format", FORMATS, 2u,
+                         LATER, 1u, NULL, 0, INT64_MIN, INT64_MAX, 0.0, NULL,
+                         NULL, "yaml is ruled, not built"),
+        D_OPTION_ENV_FLAGS("bits", BITS, 1, "two bits"),
+        D_OPTION_ENV_TEXT("title", "t", "a text"),
+        D_OPTION_ENV_REAL("ratio", 0.5, "a real"),
+        D_OPTION_ENV_BOOL("strict", 1, "a bool"),
+        D_OPTION_ENV_ROW_REFUSING(D_OPTION_ENV_KIND_TEXT, "plugin_search",
+                                  NULL, 0u, NULL, 0u, "/usr/lib", 0,
+                                  INT64_MIN, INT64_MAX, 0.0, NULL, NULL,
+                                  NULL,
+                                  D_OPTION_ENV_REFUSES(
+                                      D_OPTION_ENV_SOURCE_FILE))
+    };
+    struct dj_tests_root_storage checked_storage = D_OPTION_ENV_STORAGE_INIT;
+    struct dj_tests_root_storage bound_storage   = D_OPTION_ENV_STORAGE_INIT;
+    struct dj_option_env         checked;
+    struct dj_option_env         bound;
+    const int32_t                file = D_OPTION_ENV_SOURCE_FILE;
+
+    printf("  checking without binding\n");
+
+    (void)D_OPTION_ENV_VIEW(&checked, checked_storage);
+    (void)D_OPTION_ENV_VIEW(&bound, bound_storage);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_declare_all(&checked, ROWS, 7u)
+                             .is_ok);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_declare_all(&bound, ROWS, 7u)
+                             .is_ok);
+
+    // each answer, and what is written
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "depth", " 7 ", file, "7"));
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "depth", "10", file, NULL));
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "depth", "seven", file, NULL));
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "format", "json", file, "json"));
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "format", "1", file, "json"));
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "format", "yaml", file, NULL));
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "format", "xml", file, NULL));
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "bits", "a|b", file, "a|b"));
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "bits", "+b", file, "a|b"));
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "bits", "toml", file, NULL));
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "title", "a; b ", file, "\"a; b \""));
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "title", "plain", file, "plain"));
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "title", "", file, "\"\""));
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "ratio", "0.25", file, "0.25"));
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "ratio", "half", file, NULL));
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "strict", "no", file, "false"));
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "plugin_search", "/opt", file, NULL));
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "plugin_search", "/opt",
+        D_OPTION_ENV_SOURCE_COMMAND_LINE, "/opt"));
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "nothing", "1", file, NULL));
+    D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_check_case(
+        &checked, &bound, "depth", "3", D_OPTION_ENV_SOURCE_DEFAULT, NULL));
+
+    d_tests_option_env_checking_more(&checked);
+
+    return;
+}
+
+/*
 main
   Every group, then the count.
 */
@@ -2237,6 +2640,9 @@ main(void)
     d_tests_option_env_round_trip();
     d_tests_option_env_round_trip_text();
     d_tests_option_env_refused();
+    d_tests_option_env_default_layer();
+    d_tests_option_env_import_each();
+    d_tests_option_env_checking();
     d_tests_option_env_suggestions();
     d_tests_option_env_hot_path();
     d_tests_option_env_random();

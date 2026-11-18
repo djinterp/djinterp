@@ -16,7 +16,7 @@
 * path:      /tests/unintegrated/cpp/option/t_option_env.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 // std
 #include <cstdio>   // std::printf
@@ -409,6 +409,47 @@ void quoted()
     return;
 }
 
+// checked
+//   test: the check through the face: what binding would admit, written as a
+// file needs it, nothing bound; a long value is given whole.
+void checked()
+{
+    D_OPTION_ENV_DECLARE(storage_type, 16, 8, 256);
+
+    static storage_type    storage;
+    struct dj_option_env   frame;
+    std::string            text;
+    const std::string      long_text(100u, 'x');
+
+    std::printf("  checking without binding\n");
+
+    D_TESTS_OPTION_ENV_CHECK(D_OPTION_ENV_VIEW(&frame, storage).is_ok);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_declare_all(&frame, SCHEMA, 5u)
+                             .is_ok);
+
+    djinterp::DOptionEnvView env(&frame);
+    const uint64_t           before = d_option_env_generation(&frame);
+
+    D_TESTS_OPTION_ENV_CHECK( (env.check("color", "2",
+                                         D_OPTION_ENV_SOURCE_FILE, text)) &&
+                              (text == "always") );
+    D_TESTS_OPTION_ENV_CHECK( (!env.check("width", "0",
+                                          D_OPTION_ENV_SOURCE_FILE, text)) &&
+                              (text.empty()) &&
+                              (env.status() == static_cast<int32_t>(
+                                   D_OPTION_STATUS_INVALID_ARGUMENT)) );
+    D_TESTS_OPTION_ENV_CHECK( (env.check("title", "a;b",
+                                         D_OPTION_ENV_SOURCE_FILE, text)) &&
+                              (text == "\"a;b\"") );
+    D_TESTS_OPTION_ENV_CHECK( (env.check("title", long_text.c_str(),
+                                         D_OPTION_ENV_SOURCE_FILE, text)) &&
+                              (text == long_text) );
+    D_TESTS_OPTION_ENV_CHECK( (d_option_env_generation(&frame) == before) &&
+                              (env.format(env.find("color")) == "auto") );
+
+    return;
+}
+
 }  // namespace
 
 
@@ -423,6 +464,7 @@ int main()
     overrides();
     named();
     quoted();
+    checked();
 
     std::printf("%lu checks, %lu failed\n", g_checks, g_failures);
 

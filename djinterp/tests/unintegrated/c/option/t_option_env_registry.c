@@ -17,7 +17,7 @@
 * path:      /tests/unintegrated/c/option/t_option_env_registry.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 // std
 #include <stdbool.h>  // bool
@@ -36,6 +36,11 @@
 // fails.
 #define D_TESTS_REGISTRY_CHECK(expr)                                           \
     d_tests_registry_check(((expr) ? 1 : 0), #expr, __LINE__)
+
+// D_TESTS_REGISTRY_STATUS
+//   macro: a result's status: 0 when it is ok.
+#define D_TESTS_REGISTRY_STATUS(result)                                        \
+    ((result).is_ok ? 0 : (result).payload.error)
 
 static unsigned long d_tests_registry_checks;
 static unsigned long d_tests_registry_failures;
@@ -679,6 +684,151 @@ d_tests_registry_suggestions(void)
     return;
 }
 
+// dj_tests_heard
+//   struct: what the report heard: how many, and the names, joined.
+struct dj_tests_heard
+{
+    unsigned count;
+    char     names[128];
+};
+
+/*
+d_tests_registry_heard
+  A report that joins every name it is told.
+*/
+static void
+d_tests_registry_heard(
+    void*                   _context,
+    const char*             _name,
+    const char*             _value,
+    struct dj_option_result _result
+)
+{
+    struct dj_tests_heard* const heard = (struct dj_tests_heard*)_context;
+    const size_t                 used  = strlen(heard->names);
+
+    (void)_value;
+    (void)_result;
+    ++heard->count;
+    (void)snprintf(heard->names + used, sizeof(heard->names) - used, "%s;",
+                   _name);
+
+    return;
+}
+
+/*
+d_tests_registry_import_each
+  Tests the following:
+  - every failure in the root and in each djin is reported under its full
+    environment name, and the rest still bind
+*/
+static void
+d_tests_registry_import_each(void)
+{
+    static struct dj_option_env_registry registry;
+    struct dj_tests_djin_storage         printer_storage =
+                                             D_OPTION_ENV_STORAGE_INIT;
+    struct dj_tests_djin_storage         logger_storage =
+                                             D_OPTION_ENV_STORAGE_INIT;
+    struct dj_option_env                 printer;
+    struct dj_option_env                 logger;
+    struct dj_tests_heard                heard;
+
+    printf("  the process environment, each failure reported\n");
+
+    memset(&heard, 0, sizeof(heard));
+    d_tests_registry_make(&registry, &printer, &printer_storage, &logger,
+                          &logger_storage);
+    d_tests_registry_setenv("DJEACHREG_COLOR", "maybe");
+    d_tests_registry_setenv("DJEACHREG_PRINTER_KEY_WIDTH", "999");
+    d_tests_registry_setenv("DJEACHREG_LOGGER_LEVEL", "4");
+
+    const struct dj_option_result imported =
+        d_option_env_registry_import_each(&registry, "DJEACHREG_",
+                                          d_tests_registry_heard, &heard);
+
+    D_TESTS_REGISTRY_CHECK(!imported.is_ok);
+    D_TESTS_REGISTRY_CHECK(heard.count == 2u);
+    D_TESTS_REGISTRY_CHECK(strcmp(heard.names,
+                                  "DJEACHREG_COLOR;"
+                                  "DJEACHREG_PRINTER_KEY_WIDTH;") == 0);
+    D_TESTS_REGISTRY_CHECK(d_option_env_int(&logger, 0u,
+                                            d_option_env_find(&logger,
+                                                              "level", 5u)
+                                                .payload.value) == 4);
+
+    return;
+}
+
+/*
+d_tests_registry_checking
+  Tests the following:
+  - "NAME=VALUE" by full name is checked in the frame the name addresses,
+    as binding it from the source would, and its value written as a file
+    needs it; nothing is bound
+  - no '=', or no name, is INVALID_ARGUMENT; an unknown name KEY_ABSENT
+*/
+static void
+d_tests_registry_checking(void)
+{
+    static struct dj_option_env_registry registry;
+    struct dj_tests_djin_storage         printer_storage =
+                                             D_OPTION_ENV_STORAGE_INIT;
+    struct dj_tests_djin_storage         logger_storage =
+                                             D_OPTION_ENV_STORAGE_INIT;
+    struct dj_option_env                 printer;
+    struct dj_option_env                 logger;
+    struct dj_option_result              result;
+    char                                 buffer[32];
+    const int32_t                        file = D_OPTION_ENV_SOURCE_FILE;
+
+    printf("  checking a setting without binding it\n");
+
+    d_tests_registry_make(&registry, &printer, &printer_storage, &logger,
+                          &logger_storage);
+
+    D_TESTS_REGISTRY_CHECK( (d_option_env_registry_check(&registry,
+                                 "printer.style=json", 18u, file, buffer,
+                                 sizeof(buffer), &result) == 4u) &&
+                            (result.is_ok)                       &&
+                            (strcmp(buffer, "json") == 0) );
+    D_TESTS_REGISTRY_CHECK( (d_option_env_registry_check(&registry,
+                                 "printer.language.title=a b ", 27u, file,
+                                 buffer, sizeof(buffer), &result) == 6u) &&
+                            (strcmp(buffer, "\"a b \"") == 0) );
+    D_TESTS_REGISTRY_CHECK( (d_option_env_registry_check(&registry,
+                                 "color=yes", 9u, file, buffer,
+                                 sizeof(buffer), &result) == 4u) &&
+                            (strcmp(buffer, "true") == 0) );
+    D_TESTS_REGISTRY_CHECK( (d_option_env_registry_check(&registry,
+                                 "logger.level=9", 14u, file, buffer,
+                                 sizeof(buffer), &result) == (size_t)-1) &&
+                            (D_TESTS_REGISTRY_STATUS(result) ==
+                             (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT) &&
+                            (buffer[0] == '\0') );
+    D_TESTS_REGISTRY_CHECK( (d_option_env_registry_check(&registry,
+                                 "printer.nothing=1", 17u, file, buffer,
+                                 sizeof(buffer), &result) == (size_t)-1) &&
+                            (D_TESTS_REGISTRY_STATUS(result) ==
+                             (int32_t)D_OPTION_STATUS_KEY_ABSENT) );
+    D_TESTS_REGISTRY_CHECK( (d_option_env_registry_check(&registry,
+                                 "printer.style", 13u, file, buffer,
+                                 sizeof(buffer), &result) == (size_t)-1) &&
+                            (D_TESTS_REGISTRY_STATUS(result) ==
+                             (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT) );
+    D_TESTS_REGISTRY_CHECK( (d_option_env_registry_check(&registry,
+                                 "=json", 5u, file, buffer, sizeof(buffer),
+                                 &result) == (size_t)-1) &&
+                            (D_TESTS_REGISTRY_STATUS(result) ==
+                             (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT) );
+
+    // nothing was bound
+    D_TESTS_REGISTRY_CHECK(d_option_env_source(&printer, 0u, 0u) ==
+                           D_OPTION_ENV_SOURCE_DEFAULT);
+
+    return;
+}
+
 /*
 main
   Every group, then the count.
@@ -692,6 +842,8 @@ main(void)
     d_tests_registry_djins();
     d_tests_registry_names();
     d_tests_registry_environment();
+    d_tests_registry_import_each();
+    d_tests_registry_checking();
     d_tests_registry_command_line();
     d_tests_registry_suggestions();
 

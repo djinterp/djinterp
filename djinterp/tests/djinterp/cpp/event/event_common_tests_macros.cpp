@@ -16,11 +16,11 @@
 * path:      /tests/djinterp/cpp/event/event_common_tests_macros.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.29
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 // djinterp
-#include "event_common_tests.hpp"
+#include "event_common_tests.hpp"  // the suite's fixtures and checks
 
 
 NS_DJINTERP
@@ -84,8 +84,8 @@ bool tests_d_event_name()
     ok = D_EC_CHECK(
         (std::is_same<decltype(DMacPair::name()), const char*>::value)
     ) && ok;
-    ok = D_EC_CHECK(std::strcmp(DMacPair::name(), "mac_pair") == 0) && ok;
-    ok = D_EC_CHECK(std::strcmp(DMacUnary::name(), "mac_unary") == 0) && ok;
+    ok = D_EC_CHECK(std::strcmp(DMacPair::name(), "DMacPair") == 0) && ok;
+    ok = D_EC_CHECK(std::strcmp(DMacUnary::name(), "DMacUnary") == 0) && ok;
 
     return ok;
 }
@@ -102,7 +102,7 @@ bool tests_d_event_empty()
     ) && ok;
 
     // ...while still emitting the named-tag name() member.
-    ok = D_EC_CHECK(std::strcmp(DMacEmpty::name(), "mac_empty") == 0) && ok;
+    ok = D_EC_CHECK(std::strcmp(DMacEmpty::name(), "DMacEmpty") == 0) && ok;
 
     return ok;
 }

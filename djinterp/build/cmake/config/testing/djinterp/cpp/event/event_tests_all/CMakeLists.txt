@@ -31,6 +31,11 @@ djinterp_add_test_executable(event_tests_all
     SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/event_tests_all_runner.cpp"
         ${_sources}
+        # the archive and compress engines the report runner reaches:
+        # internal::archive_create and internal::compress_buffer, as
+        # test_runner_tests' leaf lists them
+        "${DJINTERP_SRC_ROOT}/djinterp/cpp/util/compress/compress.cpp"
+        "${DJINTERP_SRC_ROOT}/djinterp/cpp/util/archive/archive.cpp"
     INCLUDES
         "${DJINTERP_INC_ROOT}/djinterp/cpp/event"
         "${_tests_dir}")

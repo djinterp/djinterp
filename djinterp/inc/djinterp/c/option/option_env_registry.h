@@ -32,7 +32,7 @@
 * path:      /inc/djinterp/c/option/option_env_registry.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -50,6 +50,7 @@ TABLE OF CONTENTS
     1.  Binding
     2.  The command line
     3.  Did you mean
+    4.  Checking without binding
 */
 
 #ifndef DJINTERP_C_OPTION_ENV_REGISTRY_H
@@ -265,6 +266,23 @@ struct dj_option_result d_option_env_registry_import(
                             struct dj_option_env_registry* _registry,
                             const char*                    _prefix);
 
+/**
+ * @brief d_option_env_registry_import, telling a report of every variable
+ *        it could not bind, under its full environment name, as it reads
+ *        on.
+ *
+ * @param[in,out] _registry  the registry.
+ * @param[in]     _prefix    the prefix; null or empty for none.
+ * @param[in]     _report    told of each failure; may be null.
+ * @param[in]     _context   passed to it.
+ * @return as d_option_env_registry_import.
+ */
+struct dj_option_result d_option_env_registry_import_each(
+                            struct dj_option_env_registry* _registry,
+                            const char*                    _prefix,
+                            fn_option_env_report           _report,
+                            void*                          _context);
+
 // 2.2    The command line
 //------------------------------------------------------------------------------
 /**
@@ -317,6 +335,38 @@ size_t d_option_env_registry_suggest(
            size_t                         _size,
            char*                          _buffer,
            size_t                         _capacity);
+
+// 2.4    Checking without binding
+//------------------------------------------------------------------------------
+/**
+ * @brief Checks a setting, "NAME=VALUE" with NAME a full name, as binding it
+ *        from a source would, and writes its value as a settings file needs
+ *        it; binds nothing. What `djinterp set` checks with before it writes
+ *        the user's settings file.
+ *
+ * @note Split at the first '=', the value taken as it is, as
+ *       d_option_env_registry_assign takes it; then d_option_env_check_from
+ *       in the frame the name addresses. No '=', or nothing before it, is
+ *       INVALID_ARGUMENT.
+ *
+ * @param[in]  _registry  the registry.
+ * @param[in]  _setting   the setting; need not end in a NUL.
+ * @param[in]  _size      its length.
+ * @param[in]  _source    the source it would be bound from: FILE for a
+ *                        settings file.
+ * @param[out] _buffer    the value as text; may be null when _capacity is 0.
+ * @param[in]  _capacity  its size.
+ * @param[out] _result    the variable's id, or why not; may be null.
+ * @return as d_option_env_check_from.
+ */
+size_t d_option_env_registry_check(
+           struct dj_option_env_registry* _registry,
+           const char*                    _setting,
+           size_t                         _size,
+           int32_t                        _source,
+           char*                          _buffer,
+           size_t                         _capacity,
+           struct dj_option_result*       _result);
 
 
 D_EXTERN_C_END

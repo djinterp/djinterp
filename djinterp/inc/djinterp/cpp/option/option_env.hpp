@@ -34,7 +34,7 @@
 * path:      /inc/djinterp/cpp/option/option_env.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -377,6 +377,80 @@ public:
     )
     {
         return keep(d_option_env_import(m_env, _prefix));
+    }
+
+    /**
+     * @brief Binds variables from the process's environment, under a prefix,
+     *        telling a report of each one that could not be bound
+     *        (d_option_env_import_each).
+     *
+     * @param[in] _prefix   the prefix; null or empty for none.
+     * @param[in] _report   told of each failure; may be null.
+     * @param[in] _context  passed to it.
+     * @return true when every one found was bound.
+     */
+    bool import_environment(
+        const char*          _prefix,
+        fn_option_env_report _report,
+        void*                _context
+    )
+    {
+        return keep(d_option_env_import_each(m_env, _prefix, _report,
+                                             _context));
+    }
+
+    /**
+     * @brief Checks a value as binding it from a source would, binding
+     *        nothing, and gives it as a settings file needs it
+     *        (d_option_env_check_from).
+     *
+     * @param[in]  _name    the name, with a scope if any.
+     * @param[in]  _value   the text.
+     * @param[in]  _source  the source it would be bound from.
+     * @param[out] _text    the value as text; empty when refused.
+     * @return true when binding it would be admitted; status() says why not.
+     */
+    bool check(
+        const char*  _name,
+        const char*  _value,
+        int32_t      _source,
+        std::string& _text
+    )
+    {
+        char                    small[64];
+        struct dj_option_result result;
+        std::size_t             length;
+
+        _text.clear();
+
+        if ( (_name == D_NULLPTR) ||
+             (_value == D_NULLPTR) )
+        {
+            return keep(d_option_fail(
+                       static_cast<int32_t>(D_OPTION_STATUS_INVALID_ARGUMENT)));
+        }
+
+        length = d_option_env_check_from(m_env, _name, std::strlen(_name),
+                                         _value, std::strlen(_value),
+                                         _source, small, sizeof(small),
+                                         &result);
+
+        if ( (length != static_cast<std::size_t>(-1)) &&
+             (length < sizeof(small)) )
+        {
+            _text.assign(small, length);
+        }
+        else if (length != static_cast<std::size_t>(-1))
+        {
+            _text.assign(length + 1u, '\0');
+            (void)d_option_env_check_from(m_env, _name, std::strlen(_name),
+                                          _value, std::strlen(_value),
+                                          _source, &_text[0], _text.size(),
+                                          &result);
+            _text.resize(length);
+        }
+
+        return keep(result);
     }
 
     /**

@@ -135,9 +135,17 @@ the environment should not refuse it.
 - `d_option_env_get` gives the value in force with its `source` (`DEFAULT`
   when unbound) and the binding frame's `depth`.
 - `d_option_env_layers` lists every binding that bears on a row in a scope,
-  the one in force first: what the CLI's `get --show-origin` shows.
+  the one in force first, and the default last: what the CLI's
+  `get --show-origin` shows. The default's layer names its knob (`knob`),
+  so a row nothing binds has one layer, the default, in force.
 - `d_option_env_var_at(env, var)->knob` names the knob when the default is
   one.
+- `d_option_env_check_from` (and, by full name, `d_option_env_registry_check`)
+  checks a value as binding it from a source would, by the same rules, and
+  writes it as a settings file needs it, binding nothing.
+- `d_option_env_import_each` (and `d_option_env_registry_import_each`)
+  imports as `d_option_env_import` does, telling a report of each variable
+  it could not bind, by its full environment name.
 
 A proposed rendering for lane G's `get`:
 
@@ -190,8 +198,8 @@ parent.
 
 ## To agree by Friday 11-13
 
-Each point says who has agreed to it so far. Lane G answered on 11-10 and
-lane F on 11-11; lanes A and H answer on 11-12.
+Each point says who has agreed to it so far. Lane G answered on 11-10, and
+lane F on 11-11 and 11-13; lanes A and H answer on 11-12.
 
 1. **Djin names** are module slugs: `net`, `cli`, `env_printer`; full names
    are `djin[.scope].variable`.
@@ -199,6 +207,8 @@ lane F on 11-11; lanes A and H answer on 11-12.
 2. **The environment prefix.** Proposed: the registry root's name, upper-cased,
    then `_`: the program's registry is "djinterp", so `DJINTERP_`; a tool's
    own registry, `d_option_env_registry_init(&registry, "dawk")`, `DAWK_`.
+   - Agreed by lane F: parse's rows answer to `DJINTERP_PARSE_*`, and its
+     suite checks `DJINTERP_PARSE_EXPR_MAX_ERRORS`.
    - Agreed by lane G for `djinterp`. A program of the kit imports
      `DJINTERP_` and then its own prefix, as `BITWISEDOM_`: for a setting
      both name, the program's wins, since the second import's binding
@@ -229,6 +239,8 @@ lane F on 11-11; lanes A and H answer on 11-12.
    then run" as the rule until then.
    - Agreed by lane G: the program configures and then runs; 0.8 has no
      threads of its own.
+   - Agreed by lane F: `settings.h` says to register before a program
+     starts its threads.
 5. **Lane G**: `get`, `set` and `--show-origin`'s text. **Lane H**: the knobs
    in net #10, #12, E1, E3 and E9, each mapped to a row.
    - Agreed by lane G:
@@ -251,4 +263,6 @@ lane F on 11-11; lanes A and H answer on 11-12.
        or `unbounded`;
      - `expr_max_errors`: `D_OPTION_ENV_INT_RANGE_KNOB`, 1 to 65535;
      - `expr_error_order`: `D_OPTION_ENV_CHOICE_KNOB` over `leftmost` (1)
-       and `structure_first` (2), its knob defaulting to `leftmost`.
+       and `structure_first` (2), its knob defaulting to `leftmost`;
+     - none of the three refuses a source (section 2): none chooses code to
+       load.

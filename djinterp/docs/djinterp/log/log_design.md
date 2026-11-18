@@ -1,9 +1,10 @@
 # The event and log contract
 
-Lane E's design, for the agreement of Friday 11-13: what a log record is,
-how it is written, and how it relates to events, message codes and desc. It
-records the owner's rulings of 11-12, E21 to E27; the log's code lands on
-Monday 11-16, built on what Friday settles (E27 (b)). Every feature is
+Lane E's design, agreed Friday 11-13: what a log record is, how it is
+written, and how it relates to events, message codes and desc. It records
+the owner's rulings of 11-12, E21 to E27. The code landed on Monday 11-16
+(E27 (b)): `c/log/log.h`, `src/djinterp/c/log/log.c` and `log_writers.c`,
+its knobs in `config/c/log/cfg_log.h`, and its suite, `c_log_tests`. Every feature is
 customizable: a knob (`D_CFG_*`, fixed when compiling) says what a build
 has, and an option (a row of the `log` djin, set from a file, the
 environment or the command line) says what a run does, with sensible
@@ -43,10 +44,13 @@ collision, and a debug build checks each name as it registers.
 
 | Knob | Default | |
 |---|---|---|
-| `D_CFG_EVENT_KEY_HASH` | FNV-1a, 64 bits | the hash; a program's own allowed |
-| `D_CFG_EVENT_KEY_CHECK` | 1 | 0 never, 1 in debug builds, 2 always |
+| `D_CFG_EVENT_KEY_CHECK` | 1 | 0 never, 1 in debug builds, 2 always (`cfg_event_common.h`) |
 
-The option `event.key_check` turns the check off or on where it is built.
+`d_log_code_key` gives a code's key; `d_log_module_add` refuses a table
+whose key collides with a registered one's, where the check is built, and a
+table with a number twice, always. A program's own hash
+(`D_CFG_EVENT_KEY_HASH`) and the option `event.key_check` come with the
+event system's djin, in week 3.
 CI's check of the tree's own names is not optional: it is the tree's
 guarantee.
 
@@ -84,6 +88,29 @@ D_LOG(net, connect_timeout, D_LOG_FACT_TEXT("host", host),
                             D_LOG_FACT_INT("timeout_ms", ms));
 ```
 
+writes, in text,
+
+```text
+2026-11-13T15:04:05.123Z error net.connect_timeout: connecting to db1 took over 500 ms host=db1 timeout_ms=500
+```
+
+`D_LOG` needs variadic macros (C99, C++11); `d_log_emit(code, level, facts,
+count)` is the same in one call, for C++98 and for a subscriber that finds
+its code at run time (`d_log_code_find(module, size, number)`). A record
+with nested facts is opened, filled through its sink, and closed:
+
+```c
+struct dj_log_record record;
+
+if (d_log_open(&record, &d_log_code_net_connect_timeout, 0u))
+{
+    d_desc_emit(d_log_sink(&record), "host", NULL, d_ostream_value_text(h),
+                D_DESC_LAYER_STATE, 0u, D_DESC_TRUTH_OBSERVED);
+    d_desc_facts(D_DESC_OF(socket), &sock, d_log_sink(&record));
+    d_log_close(&record);
+}
+```
+
 - The level check comes first and costs a cached read
   (`dj_option_env_cache`, the knob-and-option pattern's hot path): a record
   below the threshold builds nothing.
@@ -93,8 +120,19 @@ D_LOG(net, connect_timeout, D_LOG_FACT_TEXT("host", host),
   the logging path. So a type's description can add its facts to a record,
   as it adds them to `--help`.
 - The record goes to the log's writer: a machine with begin, record, end
-  and flush, so a program can replace it. Text, JSON lines and OTLP/JSON are
-  built in; syslog, journald or a network exporter are a program's writers.
+  and flush, so a program can replace it (`d_log_set_writer`). Text, JSON
+  lines and OTLP/JSON are built in; syslog, journald or a network exporter
+  are a program's writers.
+- The writer writes to a stream: standard error, a file appended to, or
+  none (`log.destination`), or a program's own (`d_log_set_stream`). The
+  stream is buffered and flushed at each record's end, so a record that fits
+  is one write. With `D_CFG_LOG_THREADSAFE` (1) a lock around the writer and
+  its stream keeps records whole; call `d_log_init` before the program
+  starts its threads, after its settings are read.
+- The body is the code's template written from the record's facts by the
+  stream's template engine; a field the template names that the record lacks
+  is empty. A body past `D_CFG_LOG_BODY_MAX` is cut where a character
+  starts.
 - Numbers for machines never follow the locale; prose may group digits.
 
 ## The record's members: OpenTelemetry's log data model (E24 (b))
@@ -117,9 +155,22 @@ a program can replace any part.
 | Timestamps | always built | `log.time`: UTC or local, and its precision | the clock: a test fixes it |
 | Formats | `D_CFG_LOG_FORMATS`, all three | `log.format`: text (default), json, otlp | a writer |
 
-The OTLP/JSON details -- how fields are spelt, how ids and 64-bit numbers
-are written -- are checked against the specification when its writer is
-built.
+OTLP/JSON follows the specification's JSON encoding (OTLP's "JSON
+Protobuf Encoding", and protobuf's JSON mapping): one
+ExportLogsServiceRequest a line, field names in lowerCamelCase, a 64-bit
+integer (`timeUnixNano`, `intValue`) as a decimal string, an enum
+(`severityNumber`) as its number, a double's NaN and infinities as
+`"NaN"`, `"Infinity"` and `"-Infinity"`, and a nested fact as a
+`kvlistValue`. JSON lines use the data model's names in the same case:
+`timestamp` (RFC 3339), `observedTimestamp`, `severityText`,
+`severityNumber`, `body`, `attributes`, `droppedAttributesCount`, `scope`,
+`resource`.
+
+Built but not yet a program's to fill: the resource holds `service.name`
+(`log.service`, else `unknown_service`) and `process.pid`;
+`log.resource.<key>` and a resource provider, and the context provider for
+trace and span ids, come with the first program that needs them. The
+observed time equals the record's until records wait in a queue.
 
 ## Nested facts (E25 (b))
 
@@ -142,7 +193,23 @@ keys for tools that want flat attributes.
 
 - **One table per module**, beside the module, owned by the lane that owns
   the module and compiled out with it: each row a number, a name, a class,
-  a grade, a template and the facts it names.
+  a grade, a template and the facts it names. A table is a macro of two
+  parameters, a row each, in `<module>_codes.h`:
+
+  ```c
+  #define D_NET_LOG_CODES(X, m)                                          \
+      X(m, 207, connect_timeout, RESOURCE_BUDGET, FAILED,               \
+        "connecting to {host} took over {timeout_ms} ms",               \
+        (host, timeout_ms))
+  D_LOG_CODES_DECLARE(net, D_NET_LOG_CODES)        // in its header
+  D_LOG_CODES_DEFINE(net, "net", D_NET_LOG_CODES)  // in one source
+  ```
+
+  Class and grade are checked by the compiler; the template's names are
+  checked against the facts when it compiles. A module registers its table
+  with `d_log_module_add` before settings are read, which also makes it a
+  scope of the log's djin: `log.net.level`, with a dotted module's '.' as
+  '_' (`log.parse_expr.level`).
 - A code's full name is `module.name`; its number is unique in its module;
   the pair never changes meaning once released.
 - **A manifest CI generates and checks**: every code's module, number, name,
@@ -172,8 +239,12 @@ every module's codes share:
 
 - **A class** for each code, from one vocabulary across modules:
   `argument.null`, `position.index`, `quantity.count`, `span.inverted`,
-  `resource.memory`, `handle.stale`, `integrity.invariant` and the rest. A
-  reader can then treat every module's out-of-range index alike.
+  `resource.memory`, `handle.stale`, `integrity.invariant` and the rest
+  (`D_LOG_CLASSES` in log.h lists them all). A reader can then treat every
+  module's out-of-range index alike. E57 and E58 propose
+  `constraint.violated`, `quantity.depth`, `resource.budget`,
+  `operation.unsupported`, `io.failed`, `lifecycle.closed` and the
+  `format.*` family, which log.h carries pending the owner's ruling.
 - **A side**, a standard fact for a value or a range against the valid
   interval: any of below (B), at its lower edge (L), within (W), at its upper
   edge (U) and above (A). An index past the end is `position.index {A}`; a
@@ -209,10 +280,12 @@ documentation.
 | Level | debug | info | notice | debug | warning | error | fatal |
 
 A reader can tell a caller's mistake, which changed nothing, from the
-library's failure, and successes stay out of info. `D_CFG_LOG_GRADE_LEVELS`
-replaces the whole map when compiling; one option per grade changes it for
-a run, `log.grade_rejected=error`, and the same with a module's scope,
-`log.net.grade_rejected`.
+library's failure, and successes stay out of info.
+`D_CFG_LOG_GRADE_LEVEL(grade)` replaces the whole map when compiling, a
+macro so that a record's default level is a constant where it is written,
+and `D_CFG_LOG_LEVEL_MIN` can compile it out; one option per grade changes
+it for a run, `log.grade_rejected=error`, and the same with a module's
+scope, `log.net.grade_rejected`.
 
 ## The log's settings, as option_env rows
 
@@ -221,23 +294,29 @@ command-line option and a provenance:
 
 | Row | Kind | Meaning |
 |---|---|---|
-| `level`, `<module>.level` | choice or int | the threshold: a level's name or a severity |
-| `levels` | text | levels added at run time, with `D_CFG_LOG_LEVELS 3` |
-| `format` | choice | text, json, otlp |
-| `destination` | text | stderr, a file, none |
+| `level`, `<module>.level` | int, named | the threshold: a level's name or a severity, 1 to 24 |
+| `levels` | text | levels added at run time, `audit=14,security=19`, with `D_CFG_LOG_LEVELS 3`; named by their severity in `level` |
+| `format` | choice | text, json, otlp; a writer not built refused by name |
+| `destination` | text | stderr (the default), none, or a file's path |
 | `code_style` | choice | name, number, both |
 | `facts_max`, `depth_max` | int ranges | the caps, up to their knobs |
 | `nesting` | choice | nested, dotted |
-| `grade_<grade>`, `<module>.grade_<grade>` | choice | a grade's level |
+| `grade_<grade>`, `<module>.grade_<grade>` | int, named | a grade's level |
 | `severity_number`, `scope`, `resource`, `context`, `observed_time`, `dropped_count` | bool | E24's features, where built |
-| `resource.<key>` | text | a resource attribute added or overridden |
-| `time` | text | UTC or local, and the precision |
+| `time` | choice | utc, utc_ms (the default), utc_us, utc_ns, local, local_ms, local_us, local_ns |
+| `json_integers` | choice | number (the default), string: E48 (d) |
+| `json_nonfinite` | choice | null (the default), string: E49 (c) |
+| `service` | text | the resource's `service.name` |
+
+Every row's default is its knob (`cfg_log.h`), and every row is per module
+as well, through the module's scope.
 
 ## When it lands
 
 - **Friday 11-13**: this contract, agreed.
 - **Monday 11-16** (E27 (b)): the log's header, its writers and its suite,
-  with desc's text and JSON machines; lanes adopt it from Wednesday 11-18.
+  with desc's text, JSON and collecting machines; lanes may adopt it from
+  Wednesday 11-18.
 - **Week 3**: the codes generator and its CI job, with lane A; the modules'
   code tables, each lane its own.
 

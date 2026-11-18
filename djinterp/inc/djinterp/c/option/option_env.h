@@ -56,7 +56,7 @@
 * path:      /inc/djinterp/c/option/option_env.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.13
 *******************************************************************************/
 
 /*
@@ -113,6 +113,7 @@ TABLE OF CONTENTS
     2.  Reading
     3.  Binding by value
     4.  Binding by text
+         1.  fn_option_env_report
     5.  Writing as text
     6.  Reading on a hot path
          1.  dj_option_env_cache
@@ -504,14 +505,20 @@ struct dj_option_env_value
 
 // 2.2.3
 // dj_option_env_layer
-//   struct: one binding that bears on a variable in a scope, as
-// d_option_env_layers lists them: what `get --show-origin` shows.
+//   struct: one binding that bears on a variable in a scope, or the default
+// under them all, as d_option_env_layers lists them: what `get
+// --show-origin` shows. The default's layer is the last: its frame is the
+// one that declares the variable, its value is unbound (source DEFAULT,
+// depth D_OPTION_ENV_NONE), and its `knob` names the D_CFG_* it came from.
 struct dj_option_env_layer
 {
-    const struct dj_option_env* frame;  // the frame that holds it
+    const struct dj_option_env* frame;  // the frame that holds it, or
+                                        // declares the variable
     struct dj_option_env_value  value;  // its value, source and depth
     uint32_t                    scope;  // the scope asked, or the global one
     int32_t                     shown;  // 1 for the one in force
+    const char*                 knob;   // the default's: its D_CFG_* name,
+                                        // or null; null for a binding
 };
 
 // 2.3    Storage
@@ -847,15 +854,20 @@ bool        d_option_env_scope_is_bound(const struct dj_option_env* _env,
 
 /**
  * @brief Every binding of the chain that bears on a variable in a scope, the
- *        one in force first and the rest in the order they would take over.
+ *        one in force first and the rest in the order they would take over,
+ *        then the default.
+ *
+ * @note The default's layer is always last and always counted, so a variable
+ *       nothing binds has one layer, the one in force. The list keeps the
+ *       top 64; past them, the rest are counted.
  *
  * @param[in]  _env       the frame.
  * @param[in]  _scope     the scope.
  * @param[in]  _var       the variable.
  * @param[out] _layers    where; may be null when _capacity is 0.
  * @param[in]  _capacity  its room.
- * @return how many there are, whether or not they fitted; (size_t)-1 for a
- *         variable or scope the frame cannot see.
+ * @return how many there are, the default's included, whether or not they
+ *         fitted; (size_t)-1 for a variable or scope the frame cannot see.
  */
 size_t      d_option_env_layers(const struct dj_option_env* _env,
                                 uint32_t                    _scope,
@@ -960,6 +972,16 @@ struct dj_option_result d_option_env_unset_from(struct dj_option_env* _env,
 //------------------------------------------------------------------------------
 //   The plain forms bind from the program; the _from forms name their source.
 // d_option_env_import binds from the environment.
+
+// 3.4.1
+// fn_option_env_report
+//   type: told of each environment variable an import could not bind: its
+// full name as read ("DJINTERP_DESC_RING"), its text, and why. Both texts
+// are getenv's and the import's, valid only during the call.
+typedef void (*fn_option_env_report)(void*                   _context,
+                                     const char*             _name,
+                                     const char*             _value,
+                                     struct dj_option_result _result);
 
 /**
  * @brief Binds a variable from text, read as its kind reads it.
@@ -1084,6 +1106,22 @@ struct dj_option_result d_option_env_load(struct dj_option_env* _env,
 struct dj_option_result d_option_env_import(struct dj_option_env* _env,
                                             const char*           _prefix);
 
+/**
+ * @brief d_option_env_import, telling a report of every variable it could
+ *        not bind, as it reads on.
+ *
+ * @param[in,out] _env      the frame.
+ * @param[in]     _prefix   the prefix; null or empty for none.
+ * @param[in]     _report   told of each failure; may be null.
+ * @param[in]     _context  passed to it.
+ * @return as d_option_env_import.
+ */
+struct dj_option_result d_option_env_import_each(
+                            struct dj_option_env* _env,
+                            const char*           _prefix,
+                            fn_option_env_report  _report,
+                            void*                 _context);
+
 // 3.5    Writing as text
 //------------------------------------------------------------------------------
 /**
@@ -1132,6 +1170,43 @@ size_t d_option_env_format_quoted(const struct dj_option_env* _env,
                                   uint32_t                    _var,
                                   char*                       _buffer,
                                   size_t                      _capacity);
+
+/**
+ * @brief Checks a value as binding it from text, from a source, would, and
+ *        writes it as d_option_env_format_quoted would once bound; binds
+ *        nothing, so the frame is as it was. What a program that writes a
+ *        setting somewhere else -- a settings file -- checks it with first.
+ *
+ * @note The name is resolved, the text read as the kind reads it, and the
+ *       value admitted by the same rules binding applies: the range, the
+ *       choices, names not built, and the sources the row refuses. Binding
+ *       a value that passes can still fail for room in the frame.
+ *
+ * @param[in]  _env         the frame.
+ * @param[in]  _name        the name, with a scope if any; need not end in a
+ *                          NUL.
+ * @param[in]  _name_size   its length.
+ * @param[in]  _value       the text; need not end in a NUL.
+ * @param[in]  _value_size  its length.
+ * @param[in]  _source      the source it would be bound from.
+ * @param[out] _buffer      the value as text; may be null when _capacity is
+ *                          0. Empty when the check fails.
+ * @param[in]  _capacity    its size.
+ * @param[out] _result      the variable's id, or why not, as
+ *                          d_option_env_assign_from would answer; may be
+ *                          null.
+ * @return the text's length, as snprintf counts it; (size_t)-1 when the
+ *         check failed.
+ */
+size_t d_option_env_check_from(const struct dj_option_env* _env,
+                               const char*                 _name,
+                               size_t                      _name_size,
+                               const char*                 _value,
+                               size_t                      _value_size,
+                               int32_t                     _source,
+                               char*                       _buffer,
+                               size_t                      _capacity,
+                               struct dj_option_result*    _result);
 
 // 3.6    Reading on a hot path
 //------------------------------------------------------------------------------
