@@ -50,7 +50,7 @@
 # path:      /build/cmake/config/testing/djinterp/tools/dawk/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-#                                                            revised: 2026.11.16
+#                                                            revised: 2026.11.17
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -92,6 +92,7 @@ option(DJINTERP_DAWK_WARNINGS
 set(_tool  "${DJINTERP_DAWK_ROOT}/src/djinterp/tools/dawk")
 set(_ext   "${_tool}/ext")
 set(_parse "${DJINTERP_DAWK_ROOT}/src/djinterp/c/modules/parse")
+set(_text  "${DJINTERP_DAWK_ROOT}/src/djinterp/c/text")
 set(_mine  "${DJINTERP_DAWK_ROOT}/tests/dawk")
 set(_unit  "${DJINTERP_DAWK_ROOT}/tests/djinterp/tools/dawk")
 
@@ -219,8 +220,9 @@ add_library(djinterp_dawk_checker STATIC
     "${_tool}/dlayout.c"
     "${_tool}/dline.c"
     "${_tool}/dmatch.c"
-    # the Visual Studio reader and the documents over it, with dsplice and
-    # dxml below: no checker's yet, and tested here as dcmake is
+    # the Visual Studio reader and the documents over it, with c/text's edit
+    # and source and dxml below: no checker's yet, and tested here as dcmake
+    # is
     "${_ext}/msvs/dmsvs.c"
     "${_ext}/msvs/dmsvs_doc.c"
     "${_tool}/dnode.c"
@@ -229,11 +231,13 @@ add_library(djinterp_dawk_checker STATIC
     "${_tool}/dschema.c"
     "${_tool}/dsection.c"
     "${_tool}/dsettings.c"
-    "${_tool}/dsplice.c"
     "${_tool}/dss.c"
-    "${_tool}/dsymbol.c"
     "${_tool}/dtree.c"
     "${_tool}/dxml.c"
+    # the library's text: interning, edits, and the text as read
+    "${_text}/text_edit.c"
+    "${_text}/text_intern.c"
+    "${_text}/text_source.c"
     ${_extensions}
     ${_lexer}
     "${_parse}/diagnostic.c"
@@ -262,13 +266,15 @@ djinterp_dawk_flags(djinterp_dawk_wiki)
 #------------------------------------------------------------------------------
 
 # the reader, the loader that makes a build of a manifest as ninja does, and
-# the documents over the reader, with the splice and the walk they save
-# with; no unit of the checker's or of another extension's is among them
+# the documents over the reader, with c/text's edit and source and the walk
+# they save with; no unit of the checker's or of another extension's is
+# among them
 add_library(djinterp_dawk_ninja STATIC
     "${_ext}/ninja/dninja.c"
     "${_ext}/ninja/dninja_eval.c"
     "${_ext}/ninja/dninja_doc.c"
-    "${_tool}/dsplice.c"
+    "${_text}/text_edit.c"
+    "${_text}/text_source.c"
     "${_tool}/dfs.c")
 
 djinterp_dawk_flags(djinterp_dawk_ninja)

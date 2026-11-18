@@ -269,7 +269,6 @@ inc/djinterp/tools/dawk/dgit.h	B	2
 inc/djinterp/tools/dawk/dhost.h	B	1
 inc/djinterp/tools/dawk/dregistry.h	B	1
 inc/djinterp/tools/dawk/drepair.h	B	1
-inc/djinterp/tools/dawk/dsplice.h	B	1
 inc/djinterp/tools/dawk/dxml.h	B	1
 inc/djinterp/tools/dawk/dzip.h	B	1
 inc/djinterp/tools/dawk/ext/check/dext_cmake.h	B	1
@@ -441,7 +440,6 @@ src/djinterp/tools/dawk/dgit.c	B	1
 src/djinterp/tools/dawk/dregistry.c	B	1
 src/djinterp/tools/dawk/drepair.c	B	1
 src/djinterp/tools/dawk/dsection.c	B	1
-src/djinterp/tools/dawk/dsplice.c	B	1
 src/djinterp/tools/dawk/dxml.c	B	1
 src/djinterp/tools/dawk/dzip.c	B	1
 src/djinterp/tools/dawk/ext/check/dext_cmake.c	B	1

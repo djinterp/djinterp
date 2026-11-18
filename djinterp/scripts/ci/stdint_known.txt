@@ -25,7 +25,6 @@ inc/djinterp/tools/dawk/dregistry.h	stdint.h
 inc/djinterp/tools/dawk/dschema.h	stdint.h
 inc/djinterp/tools/dawk/dsection.h	stdint.h
 inc/djinterp/tools/dawk/dss.h	stdint.h
-inc/djinterp/tools/dawk/dsymbol.h	stdint.h
 inc/djinterp/tools/dawk/ext/check/dext_c.h	stdint.h
 inc/djinterp/tools/dawk/ext/check/dext_cmake.h	stdint.h
 inc/djinterp/tools/dawk/ext/check/dext_cpp.h	stdint.h
