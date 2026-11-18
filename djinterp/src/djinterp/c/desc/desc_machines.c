@@ -11,7 +11,7 @@
 * path:      /src/djinterp/c/desc/desc_machines.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #include "../../../../inc/djinterp/c/desc/desc_machines.h"  // corresponding
@@ -659,6 +659,16 @@ d_internal_desc_json_begin(
     if ((state->flags & D_DESC_JSON_BARE) == 0u)
     {
         (void)d_ostream_write_char(state->os, '{');
+
+        // the shape first, so a reader knows what follows
+        if (state->shape != NULL)
+        {
+            const struct dj_ostream_value shape =
+                d_ostream_value_text(state->shape);
+
+            d_internal_desc_json_member(state, "format");
+            d_internal_desc_json_value(state, &shape);
+        }
     }
 
     return 0;
@@ -826,11 +836,26 @@ d_desc_json_init(
     }
 
     _state->os       = _os;
+    _state->shape    = NULL;
     _state->flags    = _flags;
     _state->depth    = 0u;
     _state->empty    = 1u;
     _state->text     = 0u;
     _state->reserved = 0u;
+
+    return;
+}
+
+void
+d_desc_json_shape(
+    struct dj_desc_json_state* _state,
+    const char*                _shape
+)
+{
+    if (_state != NULL)
+    {
+        _state->shape = _shape;
+    }
 
     return;
 }
@@ -1065,8 +1090,14 @@ d_desc_output_init(
     }
     else if (format == D_DESC_FORMAT_JSON)
     {
+        // desc.json_integers and desc.json_nonfinite add their switches
         machine = d_desc_json_machine();
-        d_desc_json_init(&_output->as.json, _os, _flags);
+        d_desc_json_init(&_output->as.json, _os,
+                         _flags |
+                         ((d_desc_option_json_integers(_type) != 0u)
+                              ? D_DESC_JSON_INTEGER_STRINGS : 0u) |
+                         ((d_desc_option_json_nonfinite(_type) != 0u)
+                              ? D_DESC_JSON_NONFINITE_STRINGS : 0u));
         context = &_output->as.json;
     }
 
@@ -1083,6 +1114,21 @@ d_desc_output_init(
     _output->reserved    = 0u;
 
     return 0;
+}
+
+void
+d_desc_output_shape(
+    struct dj_desc_output* _output,
+    const char*            _shape
+)
+{
+    if ( (_output != NULL) &&
+         (_output->format == D_DESC_FORMAT_JSON) )
+    {
+        d_desc_json_shape(&_output->as.json, _shape);
+    }
+
+    return;
 }
 
 /*
@@ -1168,6 +1214,19 @@ d_desc_write_with(
     const void*                _object
 )
 {
+    return d_desc_write_shaped(_os, _scope, _facts, _text, _object, NULL);
+}
+
+int
+d_desc_write_shaped(
+    struct dj_ostream*         _os,
+    const struct dj_desc_type* _scope,
+    fn_desc_describer          _facts,
+    fn_desc_text_describer     _text,
+    const void*                _object,
+    const char*                _shape
+)
+{
     struct dj_desc_output out;
     uint32_t              form = d_desc_option_form(_scope);
 
@@ -1191,6 +1250,7 @@ d_desc_write_with(
         return -1;
     }
 
+    d_desc_output_shape(&out, _shape);
     (void)((form == D_DESC_FORM_TEXT)
                ? d_desc_run_text(&out.sink, _text, _object)
                : d_desc_run(&out.sink, _facts, _object));

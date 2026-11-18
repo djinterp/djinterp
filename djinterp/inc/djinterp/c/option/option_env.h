@@ -56,7 +56,7 @@
 * path:      /inc/djinterp/c/option/option_env.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -80,6 +80,7 @@ TABLE OF CONTENTS
          9.  D_OPTION_ENV_INT_RANGE_NAMED
         10.  D_OPTION_ENV_ROW_REFUSING
         11.  D_OPTION_ENV_REFUSES
+        12.  D_OPTION_ENV_REFUSES_CALLER
     3.  Declaring a variable from a knob
          1.  D_OPTION_ENV_BOOL_KNOB
          2.  D_OPTION_ENV_INT_KNOB
@@ -113,8 +114,11 @@ TABLE OF CONTENTS
     2.  Reading
     3.  Binding by value
     4.  Binding by text
-         1.  fn_option_env_report
+         1.  dj_option_env_reason
+         2.  dj_option_env_report
+         3.  fn_option_env_report
     5.  Writing as text
+         1.  dj_option_env_checked
     6.  Reading on a hot path
          1.  dj_option_env_cache
          2.  D_OPTION_ENV_CACHE_INIT
@@ -129,6 +133,7 @@ TABLE OF CONTENTS
 #include "../djinterp.h"           // framework root
 #include "./option_common.h"       // struct dj_option, dj_option_result
 #include "./option_set_common.h"   // struct dj_option_set
+#include "../../config/c/option/cfg_option_env.h"  // the import's report
 // re_std
 #include "../../../re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64: the floor;
                                                 // int64_t, uint32_t, int32_t,
@@ -328,6 +333,21 @@ struct dj_option_env_var
 //   macro: the bit of a row's refused sources that stands for one source.
 #define D_OPTION_ENV_REFUSES(source)                                           \
     ((uint32_t)1u << (uint32_t)(source))
+
+// 1.2.12
+// D_OPTION_ENV_REFUSES_CALLER
+//   macro: the sources a program's caller controls, refused together: its
+// environment, the settings file the program finds through that environment,
+// and its command line. Only the program's own code, and a test's override,
+// then set the row: what a row whose value chooses the code a privileged
+// program loads refuses (option_env's decision 69). A program whose builder
+// trusts one of them defines its own set first.
+#ifndef D_OPTION_ENV_REFUSES_CALLER
+    #define D_OPTION_ENV_REFUSES_CALLER                                        \
+        ( D_OPTION_ENV_REFUSES(D_OPTION_ENV_SOURCE_FILE)        |              \
+          D_OPTION_ENV_REFUSES(D_OPTION_ENV_SOURCE_ENVIRONMENT) |              \
+          D_OPTION_ENV_REFUSES(D_OPTION_ENV_SOURCE_COMMAND_LINE) )
+#endif
 
 // 1.3    Declaring a variable from a knob
 //------------------------------------------------------------------------------
@@ -974,14 +994,110 @@ struct dj_option_result d_option_env_unset_from(struct dj_option_env* _env,
 // d_option_env_import binds from the environment.
 
 // 3.4.1
+// dj_option_env_reason
+//   enum: which rule refused a value, finer than its status: an unbuilt
+// value and a refused source share POLICY_REJECTED, and a range, a choice
+// and unreadable text share INVALID_ARGUMENT. Reports and checks carry one,
+// so every caller words a refusal right (option_env's decision 70).
+enum dj_option_env_reason
+{
+    D_OPTION_ENV_REASON_NONE     = 0,  // nothing was refused
+    D_OPTION_ENV_REASON_NAME     = 1,  // no variable or scope by that name
+    D_OPTION_ENV_REASON_KIND     = 2,  // a value of another kind
+    D_OPTION_ENV_REASON_SOURCE   = 3,  // a source the row refuses
+    D_OPTION_ENV_REASON_UNBUILT  = 4,  // a value ruled, but not built
+    D_OPTION_ENV_REASON_RANGE    = 5,  // an int outside its range
+    D_OPTION_ENV_REASON_CHOICE   = 6,  // none of a choice's or flags' names
+    D_OPTION_ENV_REASON_TEXT     = 7,  // text the kind does not read
+    D_OPTION_ENV_REASON_ROOM     = 8,  // no room in the frame
+    D_OPTION_ENV_REASON_ARGUMENT = 9   // a null pointer, or no such source
+};
+
+/**
+ * @brief Which rule refused a value that binding from text answered with a
+ *        status: what d_option_env_assign_from's caller asks to word it.
+ *
+ * @param[in] _env     the frame.
+ * @param[in] _scope   the scope; anything when the name was not found.
+ * @param[in] _var     the variable; anything when the name was not found.
+ * @param[in] _source  the source it was bound from.
+ * @param[in] _value   the text; need not end in a NUL; may be null.
+ * @param[in] _size    its length.
+ * @param[in] _status  the status binding answered.
+ * @return D_OPTION_ENV_REASON_*; NONE for D_OPTION_STATUS_OK.
+ */
+int32_t d_option_env_reason_of(const struct dj_option_env* _env,
+                               uint32_t                    _scope,
+                               uint32_t                    _var,
+                               int32_t                     _source,
+                               const char*                 _value,
+                               size_t                      _size,
+                               int32_t                     _status);
+
+/**
+ * @brief A reason's stock words: "out of range", "not taken from this
+ *        source". A caller with more to say -- the range itself, the
+ *        source's name -- words its own.
+ * @param[in] _reason  D_OPTION_ENV_REASON_*.
+ * @return the words; "?" for no such reason; never null.
+ */
+const char* d_option_env_reason_name(int32_t _reason);
+
+/**
+ * @brief Whether a variable refuses a source: its row's refused bits, read
+ *        as binding reads them, so help can say a source is not taken
+ *        before anything is bound.
+ * @param[in] _env     the frame.
+ * @param[in] _scope   the scope.
+ * @param[in] _var     the variable.
+ * @param[in] _source  the source.
+ * @return 1 refused, 0 taken, -1 for no such variable, scope or source.
+ */
+int d_option_env_refuses(const struct dj_option_env* _env,
+                         uint32_t                    _scope,
+                         uint32_t                    _var,
+                         int32_t                     _source);
+
+// 3.4.2
+// dj_option_env_report
+//   struct: one value an import could not bind, and where it was to go: what
+// a report is told (option_env's decision 71). `size` is the struct's size
+// as the import was built, so members added later are read only when it
+// covers them. Every pointer is valid only during the call.
+struct dj_option_env_report
+{
+    uint32_t                    size;      // sizeof, as built
+    int32_t                     source;    // D_OPTION_ENV_SOURCE_*
+    const char*                 variable;  // as read: the name or its alias
+    const char*                 value;     // as read
+    const char*                 setting;   // its full name, "cli.depth"
+    const struct dj_option_env* frame;     // where it was to be bound
+    uint32_t                    scope;     // D_OPTION_ENV_GLOBAL for import
+    uint32_t                    var;       // its id, seen from frame
+    struct dj_option_result     result;    // the status binding answered
+    int32_t                     reason;    // D_OPTION_ENV_REASON_*
+};
+
+// 3.4.3
 // fn_option_env_report
-//   type: told of each environment variable an import could not bind: its
-// full name as read ("DJINTERP_DESC_RING"), its text, and why. Both texts
-// are getenv's and the import's, valid only during the call.
-typedef void (*fn_option_env_report)(void*                   _context,
-                                     const char*             _name,
-                                     const char*             _value,
-                                     struct dj_option_result _result);
+//   type: told of each value an import could not bind; it reads on after.
+typedef void (*fn_option_env_report)(
+                 void*                              _context,
+                 const struct dj_option_env_report* _report);
+
+/**
+ * @brief The stock report: one line to a C stream for each value refused,
+ *        the variable as read, its text and why, worded from the row:
+ *        "DJINTERP_X=maybe: not a bool". Control bytes in the text are
+ *        written as \xNN, so a value cannot steer a terminal.
+ *
+ * @note What d_option_env_import uses with D_CFG_OPTION_ENV_IMPORT_REPORT 1.
+ *
+ * @param[in] _context  a FILE*; null for stderr.
+ * @param[in] _report   the refusal.
+ */
+void d_option_env_report_print(void*                              _context,
+                               const struct dj_option_env_report* _report);
 
 /**
  * @brief Binds a variable from text, read as its kind reads it.
@@ -1096,8 +1212,9 @@ struct dj_option_result d_option_env_load(struct dj_option_env* _env,
  *        name is not set.
  *
  * @note Reads getenv, which is not safe against a thread calling setenv. A
- *       value a variable does not accept is skipped and reported; the rest
- *       are still read.
+ *       value a variable does not accept is skipped; the rest are still
+ *       read. Each refusal goes nowhere, or to d_option_env_report_print
+ *       with D_CFG_OPTION_ENV_IMPORT_REPORT 1; import_each takes a report.
  *
  * @param[in,out] _env     the frame.
  * @param[in]     _prefix  the prefix; null or empty for none.
@@ -1171,6 +1288,21 @@ size_t d_option_env_format_quoted(const struct dj_option_env* _env,
                                   char*                       _buffer,
                                   size_t                      _capacity);
 
+// 3.5.1
+// dj_option_env_checked
+//   struct: what a check resolved, besides its result: where the value would
+// be bound, so a writer of settings can name the setting canonically and
+// replace a line however it was spelled, and why it was refused. `size` is
+// the struct's size as the caller was built.
+struct dj_option_env_checked
+{
+    uint32_t                    size;    // sizeof, as the caller built it
+    int32_t                     reason;  // D_OPTION_ENV_REASON_*
+    const struct dj_option_env* frame;   // the frame; null when not found
+    uint32_t                    scope;   // the scope it resolved
+    uint32_t                    var;     // the variable, seen from frame
+};
+
 /**
  * @brief Checks a value as binding it from text, from a source, would, and
  *        writes it as d_option_env_format_quoted would once bound; binds
@@ -1195,18 +1327,21 @@ size_t d_option_env_format_quoted(const struct dj_option_env* _env,
  * @param[out] _result      the variable's id, or why not, as
  *                          d_option_env_assign_from would answer; may be
  *                          null.
+ * @param[out] _checked     where it resolved, and why refused; may be null;
+ *                          its size set by the caller.
  * @return the text's length, as snprintf counts it; (size_t)-1 when the
  *         check failed.
  */
-size_t d_option_env_check_from(const struct dj_option_env* _env,
-                               const char*                 _name,
-                               size_t                      _name_size,
-                               const char*                 _value,
-                               size_t                      _value_size,
-                               int32_t                     _source,
-                               char*                       _buffer,
-                               size_t                      _capacity,
-                               struct dj_option_result*    _result);
+size_t d_option_env_check_from(const struct dj_option_env*   _env,
+                               const char*                   _name,
+                               size_t                        _name_size,
+                               const char*                   _value,
+                               size_t                        _value_size,
+                               int32_t                       _source,
+                               char*                         _buffer,
+                               size_t                        _capacity,
+                               struct dj_option_result*      _result,
+                               struct dj_option_env_checked* _checked);
 
 // 3.6    Reading on a hot path
 //------------------------------------------------------------------------------

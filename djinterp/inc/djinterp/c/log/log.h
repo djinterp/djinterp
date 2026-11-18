@@ -42,7 +42,7 @@
 * path:      /inc/djinterp/c/log/log.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -168,10 +168,14 @@ int d_log_level_add(const char* _name,
 
 // 2.1
 // dj_log_class
-//   enum: what kind of fault a code is, from one vocabulary across modules:
-// lane C's table of 11-04, the syntax family, and the classes E57 and E58
-// propose for codes lanes D and F have (pending the owner's ruling). Each
-// is written by its dotted name (d_log_class_name).
+//   enum: what kind of fault a code is, from one vocabulary across modules,
+// so a reader treats every module's out-of-range index alike: the
+// containers' table of 11-04, the syntax family, and the classes the log's
+// decisions 57, 58, 66 and 78 add. Each is written by its dotted name
+// (d_log_class_name). A class is part of a code's meaning, fixed when it
+// compiles and kept by the manifest; the tree's tables use only this
+// vocabulary. A program's own tables may add classes of their own, by
+// D_CFG_LOG_CLASSES_EXTRA (cfg_log.h), after these.
 #define D_LOG_CLASSES(X)                                                       \
     X(NONE,                 "none")                                            \
     X(ARGUMENT_NULL,        "argument.null")                                   \
@@ -183,6 +187,7 @@ int d_log_level_add(const char* _name,
     X(INTEGRITY_INVARIANT,  "integrity.invariant")                             \
     X(LIFECYCLE_UNINITIALIZED, "lifecycle.uninitialized")                      \
     X(LIFECYCLE_CLOSED,     "lifecycle.closed")                                \
+    X(LIFECYCLE_FROZEN,     "lifecycle.frozen")                                \
     X(LOOKUP_NOT_FOUND,     "lookup.not_found")                                \
     X(POSITION_FROM_END,    "position.from_end")                               \
     X(POSITION_INDEX,       "position.index")                                  \
@@ -213,6 +218,11 @@ int d_log_level_add(const char* _name,
     X(CONSTRAINT_VIOLATED,  "constraint.violated")                             \
     X(OPERATION_UNSUPPORTED, "operation.unsupported")                          \
     X(IO_FAILED,            "io.failed")                                       \
+    X(IO_TIMED_OUT,         "io.timed_out")                                    \
+    X(IO_REFUSED,           "io.refused")                                      \
+    X(IO_UNREACHABLE,       "io.unreachable")                                  \
+    X(IO_RESET,             "io.reset")                                        \
+    X(IO_WOULD_BLOCK,       "io.would_block")                                  \
     X(FORMAT_MALFORMED,     "format.malformed")                                \
     X(FORMAT_UNSUPPORTED,   "format.unsupported")                              \
     X(FORMAT_TRUNCATED,     "format.truncated")                                \
@@ -223,6 +233,7 @@ int d_log_level_add(const char* _name,
 enum dj_log_class
 {
     D_LOG_CLASSES(D_INTERNAL_LOG_CLASS_ENUM)
+    D_CFG_LOG_CLASSES_EXTRA(D_INTERNAL_LOG_CLASS_ENUM)
     D_LOG_CLASS_COUNT
 };
 
@@ -245,7 +256,9 @@ enum dj_log_grade
 // dj_log_code, dj_log_module
 //   structs: one code, and the table a module's codes are in. A code's full
 // name is "module.name"; with D_CFG_LOG_CODES 0 its name, template and facts
-// are null, and it is written "module:number".
+// are null, and it is written "module:number". A number is the value the
+// module's own enum gives the code, sign and all (the log's decision 76):
+// "db:-6".
 struct dj_log_module;
 
 struct dj_log_code
@@ -255,7 +268,8 @@ struct dj_log_code
     const char*                 text;      // its template; may be null
     const char*                 facts;     // "(host, timeout_ms)"; may be
                                            // null
-    uint32_t                    number;    // unique in its module
+    int32_t                     number;    // unique in its module; may be
+                                           // negative
     uint16_t                    class_id;  // enum dj_log_class
     uint16_t                    grade;     // enum dj_log_grade
 };
@@ -304,7 +318,7 @@ struct dj_log_module
     const struct dj_log_code d_log_code_##m##_##name =                        \
     {                                                                         \
         &d_log_module_##m, D_LOG_TEXT(#name), D_LOG_TEXT(text),               \
-        D_LOG_TEXT(#facts), (uint32_t)(number),                               \
+        D_LOG_TEXT(#facts), (int32_t)(number),                                \
         (uint16_t)D_LOG_CLASS_##class_, (uint16_t)D_LOG_GRADE_##grade         \
     };
 
@@ -337,10 +351,10 @@ struct dj_log_module
 //------------------------------------------------------------------------------
 /**
  * @brief Registers a module's codes: d_log_code_find finds them, a debug
- *        build checks their event keys for a collision (E21), and the
- *        module becomes a scope of the log's djin, so log.<module>.level
- *        may be set for it. Register before reading settings, and before
- *        the program starts its threads.
+ *        build checks their event keys for a collision (the log's
+ *        decision 21), and the module becomes a scope of the log's djin,
+ *        so log.<module>.level may be set for it. Register before reading
+ *        settings, and before the program starts its threads.
  *
  * @param[in] _module  the module's table; borrowed.
  * @return 0 when registered, or already; -1 for a null or bad table, a
@@ -359,16 +373,33 @@ int d_log_module_add(const struct dj_log_module* _module);
  */
 const struct dj_log_code* d_log_code_find(const char* _module,
                                           size_t      _size,
-                                          uint32_t    _number);
+                                          int32_t     _number);
 
 /**
  * @brief A code's event key: FNV-1a 64 over its full name, "net.connect_
- *        timeout", or "net:207" where names are not built (E21 (c)).
+ *        timeout", or "net:207" where names are not built (the log's decision
+ *        21 (c)).
  *
  * @param[in] _code  the code.
  * @return the key; 0 for a null code.
  */
 uint64_t d_log_code_key(const struct dj_log_code* _code);
+
+/**
+ * @brief Checks a module's templates: each code's compiles against its list
+ *        of facts. A template that does not compile is written as it is, so
+ *        a module's own tests call this to catch one.
+ *
+ * @param[in]  _module  the module's table.
+ * @param[out] _bad     the first code whose template fails; may be null.
+ * @param[out] _error   where and why it fails; may be null.
+ * @return D_OSTREAM_TEMPLATE_OK when every template compiles, or none is
+ *         built (D_CFG_LOG_CODES 0); the first failure's status otherwise;
+ *         D_OSTREAM_TEMPLATE_INVALID for a null or bad table.
+ */
+int32_t d_log_module_check(const struct dj_log_module*       _module,
+                           const struct dj_log_code**        _bad,
+                           struct dj_ostream_template_error* _error);
 
 // a class's and a grade's names: "position.index", "rejected"; "?" for none
 const char* d_log_class_name(uint32_t _class);
@@ -410,6 +441,7 @@ struct dj_log_record
     const struct dj_log_code*    code;
     uint32_t                     severity;
     uint32_t                     open;       // 1 between open and close
+    uint64_t                     time;       // when it opened: the event's
     struct dj_desc_collect_state collected;
     struct dj_desc_sink          sink;
     struct dj_desc_item          items[D_CFG_LOG_FACTS_MAX];
@@ -430,11 +462,13 @@ int d_log_wants(const struct dj_log_code* _code,
                 uint32_t                  _severity);
 
 /**
- * @brief Opens a record, if the log wants it: its facts then go to
- *        d_log_sink's sink -- d_desc_emit, or any describer -- up to
- *        log.facts_max and log.depth_max.
+ * @brief Opens a record, if the log wants it, and takes its time, when
+ *        the event happened: its facts then go to d_log_sink's sink --
+ *        d_desc_emit, or any describer -- up to log.facts_max and
+ *        log.depth_max. A record may stay open across calls, as for an
+ *        error whose note comes after it: no lock is held while it is.
  *
- * @param[out] _record    the record, usually on the stack.
+ * @param[out] _record    the record, on the stack or in its owner's state.
  * @param[in]  _code      the code.
  * @param[in]  _severity  its level; 0 for its grade's.
  * @return 1 when opened, and d_log_close must be called; 0 when the log
@@ -449,7 +483,8 @@ struct dj_desc_sink* d_log_sink(struct dj_log_record* _record);
 
 /**
  * @brief Writes an open record: its body from its code's template and its
- *        facts, then the writer's record, then a flush; and closes it.
+ *        facts, then the writer's record, then a flush; and closes it. Its
+ *        observed time, when the log saw it, is taken here.
  *
  * @param[in,out] _record  the record.
  * @return 0 when written; 1 when the destination failed, counted in
@@ -540,6 +575,8 @@ struct dj_log_settings
     uint32_t    context;          // 1 to write trace and span ids
     uint32_t    observed_time;    // 1 to write the observed time
     uint32_t    dropped_count;    // 1 to write facts not kept
+    uint32_t    real_digits;      // 0 all; else a real's significant
+                                  // digits kept
     const char* service;          // the resource's service.name
 };
 
@@ -646,7 +683,8 @@ void d_log_shutdown(void);
 #define D_LOG_VAR_JSON_INTEGERS   22u
 #define D_LOG_VAR_JSON_NONFINITE  23u
 #define D_LOG_VAR_SERVICE         24u
-#define D_LOG_VARS                25u
+#define D_LOG_VAR_REAL_DIGITS     25u
+#define D_LOG_VARS                26u
 
 /**
  * @brief The log's djin: its frame, static, ready before the program runs;

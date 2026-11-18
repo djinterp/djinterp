@@ -15,7 +15,7 @@
 * path:      /src/djinterp/c/log/log_writers.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #include "../../../../inc/djinterp/c/log/log.h"  // the writers' header
@@ -140,8 +140,8 @@ d_internal_log_code(
     uint32_t                  _style
 )
 {
-    const struct dj_ostream_value number = d_ostream_value_ulong(
-                                               (unsigned long)_code->number);
+    const struct dj_ostream_value number = d_ostream_value_long(
+                                               (long)_code->number);
 
     (void)d_ostream_write_cstr(_os, _code->module->name);
 

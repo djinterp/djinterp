@@ -18,7 +18,7 @@
 * path:      /src/djinterp/c/option/option_env_registry.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/option/option_env_registry.h"  // corresponding header
 // std
@@ -375,9 +375,38 @@ d_option_env_registry_assign(
 }
 
 /*
+d_option_env_registry_check_from
+  The frame the name addresses, and option_env's check there.
+*/
+size_t
+d_option_env_registry_check_from(
+    struct dj_option_env_registry* _registry,
+    const char*                    _name,
+    size_t                         _name_size,
+    const char*                    _value,
+    size_t                         _value_size,
+    int32_t                        _source,
+    char*                          _buffer,
+    size_t                         _capacity,
+    struct dj_option_result*       _result,
+    struct dj_option_env_checked*  _checked
+)
+{
+    struct dj_option_env* const target =
+        (_name_size != 0u)
+            ? d_option_env_registry_target(_registry, _name, _name_size)
+            : NULL;
+
+    // the frame's check answers a null frame, and fills the record, alike
+    return d_option_env_check_from(target, _name, _name_size, _value,
+                                   _value_size, _source, _buffer, _capacity,
+                                   _result, _checked);
+}
+
+/*
 d_option_env_registry_check
   The setting split at its first '=', as `djinterp set` splits it; then the
-frame the name addresses, and option_env's check there.
+check of the name and the value apart.
 */
 size_t
 d_option_env_registry_check(
@@ -396,30 +425,14 @@ d_option_env_registry_check(
     const size_t      name   = (equals != NULL)
                                    ? (size_t)(equals - _setting)
                                    : 0u;
-    struct dj_option_env* const target =
-        (name != 0u) ? d_option_env_registry_target(_registry, _setting, name)
-                     : NULL;
 
-    if (target == NULL)
-    {
-        if ( (_buffer != NULL) &&
-             (_capacity != 0u) )
-        {
-            _buffer[0] = '\0';
-        }
-
-        if (_result != NULL)
-        {
-            *_result = d_option_fail(
-                           (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
-        }
-
-        return (size_t)-1;
-    }
-
-    return d_option_env_check_from(target, _setting, name, equals + 1,
-                                   _size - name - 1u, _source, _buffer,
-                                   _capacity, _result);
+    return d_option_env_registry_check_from(_registry, _setting, name,
+                                            (equals != NULL) ? equals + 1
+                                                             : NULL,
+                                            (equals != NULL)
+                                                ? _size - name - 1u : 0u,
+                                            _source, _buffer, _capacity,
+                                            _result, NULL);
 }
 
 /*
@@ -600,7 +613,8 @@ d_option_env_registry_import_each(
 
 /*
 d_option_env_registry_import
-  Every failure but the first unreported.
+  Every failure but the first unreported, or each to the stock report, as
+D_CFG_OPTION_ENV_IMPORT_REPORT says.
 */
 struct dj_option_result
 d_option_env_registry_import(
@@ -608,7 +622,11 @@ d_option_env_registry_import(
     const char*                    _prefix
 )
 {
-    return d_option_env_registry_import_each(_registry, _prefix, NULL, NULL);
+    return d_option_env_registry_import_each(
+               _registry, _prefix,
+               (D_CFG_OPTION_ENV_IMPORT_REPORT != 0) ? d_option_env_report_print
+                                                     : NULL,
+               NULL);
 }
 
 /**

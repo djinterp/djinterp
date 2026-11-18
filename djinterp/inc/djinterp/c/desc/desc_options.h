@@ -24,7 +24,7 @@
 * path:      /inc/djinterp/c/desc/desc_options.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -74,7 +74,9 @@ D_EXTERN_C_BEGIN
 #define D_DESC_VAR_FORM    3u
 #define D_DESC_VAR_FORMAT  4u
 #define D_DESC_VAR_TEXT    5u
-#define D_DESC_VARS        6u
+#define D_DESC_VAR_JSON_INTEGERS   6u
+#define D_DESC_VAR_JSON_NONFINITE  7u
+#define D_DESC_VARS        8u
 
 /**
  * @brief desc's djin: its frame, static, ready before the program runs.

@@ -10,7 +10,7 @@
 * path:      /tests/djinterp/c/log/log_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #include "./log_tests.h"  // corresponding header
@@ -57,6 +57,28 @@ D_LOG_CODES_DEFINE(tdup, "t.dup", D_TESTS_DUP_LOG_CODES)
 D_LOG_CODES_DECLARE(ttwin, D_TESTS_TWIN_LOG_CODES)
 D_LOG_CODES_DEFINE(ttwin, "t.net", D_TESTS_TWIN_LOG_CODES)
 
+// D_TESTS_BAD_LOG_CODES, D_TESTS_OPEN_LOG_CODES
+//   tables: one naming a fact it does not list; one with a block unclosed.
+#define D_TESTS_BAD_LOG_CODES(X, m)                                           \
+    X(m, 1, fine, NONE, OK, "{host} is fine", (host))                        \
+    X(m, 2, unknown, NONE, OK, "{nope} is not a fact", (host))
+#define D_TESTS_OPEN_LOG_CODES(X, m)                                          \
+    X(m, 1, unclosed, NONE, OK, "{?host}{host} is never closed", (host))
+
+D_LOG_CODES_DECLARE(tbad, D_TESTS_BAD_LOG_CODES)
+D_LOG_CODES_DEFINE(tbad, "t.bad", D_TESTS_BAD_LOG_CODES)
+D_LOG_CODES_DECLARE(topen, D_TESTS_OPEN_LOG_CODES)
+D_LOG_CODES_DEFINE(topen, "t.open", D_TESTS_OPEN_LOG_CODES)
+
+// D_TESTS_DB_LOG_CODES
+//   macro: codes numbered below zero, as a module's enum gives them.
+#define D_TESTS_DB_LOG_CODES(X, m)                                            \
+    X(m, -6, wait, SYNC_BUSY, FAILED, "waited on {table}", (table))           \
+    X(m, -1, closed, LIFECYCLE_FROZEN, REJECTED, "the pool is frozen", ())
+
+D_LOG_CODES_DECLARE(tdb, D_TESTS_DB_LOG_CODES)
+D_LOG_CODES_DEFINE(tdb, "t.db", D_TESTS_DB_LOG_CODES)
+
 // D_TESTS_TIME
 //   constant: the fixed clock's time: 2025-11-13T15:04:05.123456789Z.
 #define D_TESTS_TIME  ((uint64_t)1763046245u * 1000000000u + 123456789u)
@@ -73,6 +95,22 @@ d_tests_log_clock(
     (void)_context;
 
     return D_TESTS_TIME;
+}
+
+/*
+d_tests_log_step
+  A clock a second later at each reading; its context counts the readings.
+*/
+static uint64_t
+d_tests_log_step(
+    void* _context
+)
+{
+    unsigned* const readings = (unsigned*)_context;
+
+    ++*readings;
+
+    return D_TESTS_TIME + (uint64_t)*readings * 1000000000u;
 }
 
 // dj_tests_log_out
@@ -323,10 +361,10 @@ d_tests_log_codes(
 #else
     (void)d_log_module_ttwin;
 #endif
-    D_TEST_CHECK(_suite, (d_log_code_find("t.net", 5u, 207u) ==
+    D_TEST_CHECK(_suite, (d_log_code_find("t.net", 5u, 207) ==
                           &d_log_code_tnet_connect_timeout) &&
-                         (d_log_code_find("t.net", 5u, 99u) == NULL) &&
-                         (d_log_code_find("t.ne", 4u, 207u) == NULL));
+                         (d_log_code_find("t.net", 5u, 99) == NULL) &&
+                         (d_log_code_find("t.ne", 4u, 207) == NULL));
 #if D_CFG_LOG_CODES
     D_TEST_CHECK(_suite, d_log_code_key(&d_log_code_tnet_connect_timeout) ==
                          d_event_key_of_name("t.net.connect_timeout"));
@@ -438,6 +476,71 @@ d_tests_log_text(
         "connecting to  took over  ms\n"
         "2025-11-13T15:04:05.123Z error t.net:207: connecting to  took over "
         " ms\n"));
+#endif
+
+    return;
+}
+
+/*
+d_tests_log_signed
+  Checks the following:
+  - a code's number is its enum's, below zero too: found by it, and written
+    with its sign by number ("t.db:-6")
+  - the classes ruled on 11-17 by their names
+  - log.real_digits rounds a real fact before every writer, and leaves NaN
+*/
+static void
+d_tests_log_signed(
+    struct dj_test_suite* _suite
+)
+{
+    (void)d_test_suite_test(_suite, "signed numbers, new classes, real digits");
+    d_tests_log_reset();
+
+    D_TEST_CHECK(_suite, d_log_module_add(&d_log_module_tdb) == 0);
+    D_TEST_CHECK(_suite, (d_log_code_find("t.db", 4u, -6) ==
+                          &d_log_code_tdb_wait) &&
+                         (d_log_code_find("t.db", 4u, -1) ==
+                          &d_log_code_tdb_closed) &&
+                         (d_log_code_find("t.db", 4u, 6) == NULL) &&
+                         (d_log_code_tdb_wait.number == -6));
+    D_TEST_CHECK(_suite,
+        (strcmp(d_log_class_name(D_LOG_CLASS_LIFECYCLE_FROZEN),
+                "lifecycle.frozen") == 0) &&
+        (strcmp(d_log_class_name(D_LOG_CLASS_CONSTRAINT_VIOLATED),
+                "constraint.violated") == 0) &&
+        (strcmp(d_log_class_name(D_LOG_CLASS_IO_TIMED_OUT),
+                "io.timed_out") == 0) &&
+        (strcmp(d_log_class_name(D_LOG_CLASS_IO_WOULD_BLOCK),
+                "io.would_block") == 0) &&
+        (strcmp(d_log_class_name(D_LOG_CLASS_SYNC_WOULD_BLOCK),
+                "sync.would_block") == 0));
+
+#if !D_TESTS_LOG_DEFAULTS
+    (void)d_test_suite_skip(_suite, "its output is the default knobs'");
+#else
+    (void)d_tests_log_put("code_style=number");
+    D_LOG(tdb, wait, D_LOG_FACT_TEXT("table", "jobs"));
+    (void)d_ostream_flush(&d_tests_log_out.os);
+    D_TEST_CHECK(_suite, strstr(d_tests_log_out.text, "t.db:-6") != NULL);
+
+    d_tests_log_reset();
+    (void)d_tests_log_put("format=json");
+    D_TEST_CHECK(_suite, d_tests_log_put("real_digits=3"));
+    D_TEST_CHECK(_suite, !d_tests_log_put("real_digits=18"));
+    {
+        const double zero = 0.0;
+
+        D_LOG(tnet, bad_port, D_LOG_FACT_INT("port", 1),
+                              D_LOG_FACT_REAL("load", 12.4996),
+                              D_LOG_FACT_REAL("spare", zero / zero));
+    }
+    D_TEST_CHECK(_suite, d_tests_log_is(
+        "{\"timestamp\":\"2025-11-13T15:04:05.123Z\",\"severityText\":"
+        "\"warning\",\"severityNumber\":13,\"body\":\"port 1 is not one\","
+        "\"attributes\":{\"code\":\"t.net.bad_port\",\"module\":"
+        "\"t.net\",\"port\":1,\"load\":12.5,\"spare\":null},"
+        "\"scope\":{\"name\":\"t.net\"}}\n"));
 #endif
 
     return;
@@ -634,6 +737,8 @@ struct dj_tests_log_seen
     uint32_t  severity;
     char      body[64];
     size_t    facts;
+    uint64_t  time;
+    uint64_t  observed;
 };
 
 /*
@@ -653,6 +758,8 @@ d_tests_log_writer_record(
     ++seen->records;
     seen->severity = _entry->severity;
     seen->facts    = _entry->facts->count;
+    seen->time     = _entry->time;
+    seen->observed = _entry->observed;
     (void)snprintf(seen->body, sizeof(seen->body), "%.*s",
                    (int)_entry->body_size, _entry->body);
 
@@ -824,6 +931,101 @@ d_tests_log_times(
 }
 
 
+/*
+d_tests_log_held
+  Checks the following:
+  - a record held open while another is written: both written, no lock held
+  - a held record's time is when it opened; its observed time, when it was
+    written, where log.observed_time is on
+*/
+static void
+d_tests_log_held(
+    struct dj_test_suite* _suite
+)
+{
+    static const struct dj_log_writer WRITER =
+        { NULL, d_tests_log_writer_record, NULL, NULL };
+    struct dj_tests_log_seen seen;
+    struct dj_log_record     held;
+    struct dj_log_settings   settings;
+    unsigned                 readings = 0u;
+    int                      opened;
+
+    (void)d_test_suite_test(_suite, "a record held open: its times");
+    d_tests_log_reset();
+    (void)d_tests_log_put("observed_time=1");
+    memset(&seen, 0, sizeof(seen));
+    (void)d_log_module_add(&d_log_module_tnet);
+    d_log_set_writer(&WRITER, &seen);
+    d_log_set_clock(d_tests_log_step, &readings);
+    d_log_settings(&settings, &d_log_module_tnet);
+
+    // opened at the first reading; another record, readings 2 and 3
+    opened = d_log_open(&held, &d_log_code_tnet_connect_timeout, D_LOG_FATAL);
+    (void)d_log_emit(&d_log_code_tnet_bad_port, D_LOG_FATAL, NULL, 0u);
+    D_TEST_CHECK(_suite, seen.records == ( (opened != 0) ? 1u : 0u ));
+
+    if (opened != 0)
+    {
+        (void)d_log_close(&held);
+        D_TEST_CHECK(_suite, seen.records == 2u);
+        D_TEST_CHECK(_suite, seen.time == D_TESTS_TIME + 1000000000u);
+        D_TEST_CHECK(_suite, seen.observed ==
+                             ( (settings.observed_time != 0u)
+                                   ? D_TESTS_TIME + 4000000000u
+                                   : seen.time ));
+    }
+
+    d_log_set_writer(NULL, NULL);
+    d_log_set_clock(d_tests_log_clock, NULL);
+
+    return;
+}
+
+/*
+d_tests_log_checked
+  Checks the following:
+  - a module whose templates compile passes d_log_module_check
+  - a template naming a fact its code does not list fails, named
+  - a template with a block unclosed fails, named
+  - with templates not built, every module passes
+*/
+static void
+d_tests_log_checked(
+    struct dj_test_suite* _suite
+)
+{
+    const struct dj_log_code*        bad = NULL;
+    struct dj_ostream_template_error error;
+
+    (void)d_test_suite_test(_suite, "templates checked: d_log_module_check");
+    D_TEST_CHECK(_suite, d_log_module_check(&d_log_module_tnet, &bad, NULL) ==
+                         (int32_t)D_OSTREAM_TEMPLATE_OK);
+    D_TEST_CHECK(_suite, bad == NULL);
+    D_TEST_CHECK(_suite, d_log_module_check(NULL, &bad, NULL) ==
+                         (int32_t)D_OSTREAM_TEMPLATE_INVALID);
+#if D_CFG_LOG_CODES
+    D_TEST_CHECK(_suite, d_log_module_check(&d_log_module_tbad, &bad,
+                                            &error) ==
+                         (int32_t)D_OSTREAM_TEMPLATE_UNKNOWN_FIELD);
+    D_TEST_CHECK(_suite, bad == &d_log_code_tbad_unknown);
+    D_TEST_CHECK(_suite, d_log_module_check(&d_log_module_topen, &bad,
+                                            NULL) ==
+                         (int32_t)D_OSTREAM_TEMPLATE_NESTING);
+    D_TEST_CHECK(_suite, bad == &d_log_code_topen_unclosed);
+#else
+    D_TEST_CHECK(_suite, d_log_module_check(&d_log_module_tbad, &bad,
+                                            &error) ==
+                         (int32_t)D_OSTREAM_TEMPLATE_OK);
+    D_TEST_CHECK(_suite, d_log_module_check(&d_log_module_topen, &bad,
+                                            NULL) ==
+                         (int32_t)D_OSTREAM_TEMPLATE_OK);
+#endif
+
+    return;
+}
+
+
 //==============================================================================
 // THE SECTION
 //==============================================================================
@@ -839,6 +1041,7 @@ d_tests_log(
     d_tests_log_any_build(_suite);
     d_tests_log_levels(_suite);
     d_tests_log_codes(_suite);
+    d_tests_log_signed(_suite);
     d_tests_log_threshold(_suite);
     d_tests_log_text(_suite);
     d_tests_log_json(_suite);
@@ -846,6 +1049,8 @@ d_tests_log(
     d_tests_log_caps(_suite);
     d_tests_log_programs(_suite);
     d_tests_log_times(_suite);
+    d_tests_log_held(_suite);
+    d_tests_log_checked(_suite);
 
     d_log_set_stream(NULL);
     d_log_set_clock(NULL, NULL);

@@ -21,7 +21,7 @@
 * path:      /tests/unintegrated/c/option/t_option_env.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 // std
 #include <locale.h>   // setlocale, LC_NUMERIC
@@ -620,7 +620,7 @@ d_tests_option_env_text(void)
                                                         D_TESTS_RATIO, "150"));
     D_TESTS_OPTION_ENV_CHECK(d_option_env_put(&env, "ratio=0.1").is_ok);
     D_TESTS_OPTION_ENV_CHECK(d_tests_option_env_text_is(&env, 0u,
-                                 D_TESTS_RATIO, "0.10000000000000001"));
+                                 D_TESTS_RATIO, "0.1"));
     D_TESTS_OPTION_ENV_CHECK(d_option_env_put(&env, "ratio=-inf").is_ok);
     D_TESTS_OPTION_ENV_CHECK(!d_option_env_put(&env, "ratio=1,5").is_ok);
     D_TESTS_OPTION_ENV_CHECK(!d_option_env_put(&env, "ratio=1e999").is_ok);
@@ -1662,7 +1662,7 @@ d_tests_option_env_rows(void)
 }
 
 // DEPTHS, NEVER
-//   constants: an int's named value, outside its range, as lane F's depth
+//   constants: an int's named value, outside its range, as parse's depth
 // guard has it; and an int's value ruled but not built.
 static const struct dj_option_env_name DEPTHS[] =
 {
@@ -1675,7 +1675,7 @@ static const struct dj_option_env_name NEVER[] =
 };
 
 // D_TESTS_NAMED_ROWS, D_TESTS_NAMED_BAD
-//   constants: the rows the named-value tests declare -- lane F's depth
+//   constants: the rows the named-value tests declare -- parse's depth
 // guard, one whose knob is the name, one with an unbuilt name -- and two rows
 // that cannot be declared.
 #define D_TESTS_KNOB_DEPTH     1000
@@ -2019,7 +2019,7 @@ d_tests_option_env_round_trip_text(void)
 }
 
 // D_TESTS_REFUSING_ROWS, D_TESTS_REFUSING_BAD
-//   constants: a row that refuses the environment, as lane G's plugin search
+//   constants: a row that refuses the environment, as the kit's plugin search
 // does when D_CFG_CLI_PLUGIN_VARIABLE is 0; one that refuses a file and the
 // command line; and two rows that refuse what no row may.
 static const struct dj_option_env_var D_TESTS_REFUSING_ROWS[] =
@@ -2300,34 +2300,45 @@ d_tests_option_env_default_layer(void)
 }
 
 // dj_tests_reports
-//   struct: what a report heard: how many, and the last one's name, text
-// and status.
+//   struct: what a report heard: how many, and the last one's record.
 struct dj_tests_reports
 {
-    unsigned count;
-    char     name[64];
-    char     value[64];
-    int32_t  status;
+    unsigned                    count;
+    char                        name[64];
+    char                        value[64];
+    char                        setting[64];
+    int32_t                     status;
+    int32_t                     reason;
+    int32_t                     source;
+    uint32_t                    size;
+    uint32_t                    var;
+    const struct dj_option_env* frame;
 };
 
 /*
 d_tests_option_env_report
-  A report that keeps the last failure.
+  A report that keeps the last failure's record.
 */
 static void
 d_tests_option_env_report(
-    void*                   _context,
-    const char*             _name,
-    const char*             _value,
-    struct dj_option_result _result
+    void*                              _context,
+    const struct dj_option_env_report* _report
 )
 {
     struct dj_tests_reports* const heard = (struct dj_tests_reports*)_context;
 
     ++heard->count;
-    (void)snprintf(heard->name, sizeof(heard->name), "%s", _name);
-    (void)snprintf(heard->value, sizeof(heard->value), "%s", _value);
-    heard->status = _result.is_ok ? 0 : _result.payload.error;
+    (void)snprintf(heard->name, sizeof(heard->name), "%s",
+                   _report->variable);
+    (void)snprintf(heard->value, sizeof(heard->value), "%s", _report->value);
+    (void)snprintf(heard->setting, sizeof(heard->setting), "%s",
+                   _report->setting);
+    heard->status = _report->result.is_ok ? 0 : _report->result.payload.error;
+    heard->reason = _report->reason;
+    heard->source = _report->source;
+    heard->size   = _report->size;
+    heard->var    = _report->var;
+    heard->frame  = _report->frame;
 
     return;
 }
@@ -2381,6 +2392,17 @@ d_tests_option_env_import_each(void)
                               (strcmp(heard.value, "900") == 0)          &&
                               (heard.status ==
                                (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT) );
+    // the record: the setting by its name, where, from where, and why
+    D_TESTS_OPTION_ENV_CHECK( (strcmp(heard.setting, "columns") == 0) &&
+                              (heard.frame == &env)                  &&
+                              (heard.var == 1u)                      &&
+                              (heard.size ==
+                               (uint32_t)sizeof(struct dj_option_env_report))
+                              &&
+                              (heard.source ==
+                               D_OPTION_ENV_SOURCE_ENVIRONMENT)      &&
+                              (heard.reason ==
+                               (int32_t)D_OPTION_ENV_REASON_RANGE) );
     D_TESTS_OPTION_ENV_CHECK( (d_option_env_int(&env, 0u, 2u) == 1) &&
                               (d_option_env_source(&env, 0u, 2u) ==
                                D_OPTION_ENV_SOURCE_ENVIRONMENT) );
@@ -2432,7 +2454,8 @@ d_tests_option_env_check_case(
     const size_t            length  = d_option_env_check_from(
                                           _checked, _name, strlen(_name),
                                           _value, strlen(_value), _source,
-                                          buffer, sizeof(buffer), &checked);
+                                          buffer, sizeof(buffer), &checked,
+                                          NULL);
     const struct dj_option_result bound = d_option_env_assign_from(
                                               _bound, _name, strlen(_name),
                                               _value, strlen(_value),
@@ -2483,19 +2506,19 @@ d_tests_option_env_checking_more(
 
     // the statuses themselves
     (void)d_option_env_check_from(checked, "depth", 5u, "10", 2u, file,
-                                  NULL, 0u, &result);
+                                  NULL, 0u, &result, NULL);
     D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(result)
                              == (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT);
     (void)d_option_env_check_from(checked, "format", 6u, "yaml", 4u, file,
-                                  NULL, 0u, &result);
+                                  NULL, 0u, &result, NULL);
     D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(result)
                              == (int32_t)D_OPTION_STATUS_POLICY_REJECTED);
     (void)d_option_env_check_from(checked, "plugin_search", 13u, "/x", 2u,
-                                  file, NULL, 0u, &result);
+                                  file, NULL, 0u, &result, NULL);
     D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(result)
                              == (int32_t)D_OPTION_STATUS_POLICY_REJECTED);
     (void)d_option_env_check_from(checked, "nothing", 7u, "1", 1u, file,
-                                  NULL, 0u, &result);
+                                  NULL, 0u, &result, NULL);
     D_TESTS_OPTION_ENV_CHECK(D_TESTS_OPTION_ENV_STATUS(result)
                              == (int32_t)D_OPTION_STATUS_KEY_ABSENT);
 
@@ -2507,15 +2530,16 @@ d_tests_option_env_checking_more(
     // too small: counted, cut, terminated; no buffer at all is counted too
     D_TESTS_OPTION_ENV_CHECK( (d_option_env_check_from(checked, "title",
                                    5u, "abcdef", 6u, file, small,
-                                   sizeof(small), &result) == 6u) &&
+                                   sizeof(small), &result, NULL) == 6u) &&
                               (result.is_ok)                       &&
                               (strcmp(small, "abc") == 0) );
     D_TESTS_OPTION_ENV_CHECK(d_option_env_check_from(checked, "title", 5u,
                                                      "abcdef", 6u, file,
-                                                     NULL, 0u, NULL) == 6u);
+                                                     NULL, 0u, NULL, NULL)
+                             == 6u);
     D_TESTS_OPTION_ENV_CHECK(d_option_env_check_from(checked, "title", 5u,
                                                      "abcdef", 6u, file,
-                                                     NULL, 4u, &result)
+                                                     NULL, 4u, &result, NULL)
                              == (size_t)-1);
 
     return;
@@ -2616,6 +2640,186 @@ d_tests_option_env_checking(void)
 }
 
 /*
+d_tests_option_env_reasons
+  Tests the following:
+  - a check's record says which rule refused, finer than the status: a
+    range, an unbuilt name, a refused source, an unknown name, text a kind
+    does not read, a choice's names, a kind; and where it resolved
+  - d_option_env_reason_of gives the same for binding's own status
+  - d_option_env_refuses reads a row's refused sources; -1 for no such
+    variable or source
+  - D_OPTION_ENV_REFUSES_CALLER refuses the file, the environment and the
+    command line, and takes the program and an override
+  - the stock report words each refusal from its row, and writes control
+    bytes as \xNN
+*/
+static void
+d_tests_option_env_reasons(void)
+{
+    static const struct dj_option_env_var ROWS[] =
+    {
+        D_OPTION_ENV_INT_RANGE("depth", 5, 1, 9, "between 1 and 9"),
+        D_OPTION_ENV_ROW(D_OPTION_ENV_KIND_CHOICE, "format", FORMATS, 2u,
+                         LATER, 1u, NULL, 0, INT64_MIN, INT64_MAX, 0.0, NULL,
+                         NULL, "yaml is ruled, not built"),
+        D_OPTION_ENV_REAL("ratio", 0.5, "a real"),
+        D_OPTION_ENV_ROW_REFUSING(D_OPTION_ENV_KIND_TEXT, "plugin_search",
+                                  NULL, 0u, NULL, 0u, "/usr/lib", 0,
+                                  INT64_MIN, INT64_MAX, 0.0, NULL, NULL,
+                                  NULL, D_OPTION_ENV_REFUSES_CALLER),
+        D_OPTION_ENV_BOOL("strict", 1, "a bool")
+    };
+    static const struct
+    {
+        const char* name;
+        const char* value;
+        int32_t     reason;
+        const char* line;
+    } CASES[] =
+    {
+        { "depth",  "10",   D_OPTION_ENV_REASON_RANGE,
+          "X=10: not from 1 to 9\n" },
+        { "format", "yaml", D_OPTION_ENV_REASON_UNBUILT,
+          "X=yaml: not built into this program\n" },
+        { "format", "xml",  D_OPTION_ENV_REASON_CHOICE,
+          "X=xml: not one of text, json\n" },
+        { "ratio",  "half", D_OPTION_ENV_REASON_TEXT,
+          "X=half: not a real\n" },
+        { "strict", "maybe", D_OPTION_ENV_REASON_TEXT,
+          "X=maybe: not a bool\n" },
+        { "plugin_search", "/x", D_OPTION_ENV_REASON_SOURCE,
+          "X=/x: not taken from a settings file in this program\n" },
+        { "nothing", "1",   D_OPTION_ENV_REASON_NAME,
+          "X=1: no such setting\n" }
+    };
+    struct dj_tests_root_storage storage = D_OPTION_ENV_STORAGE_INIT;
+    struct dj_option_env         env;
+    struct dj_option_env_checked record;
+    struct dj_option_env_report  report;
+    struct dj_option_result      result;
+    char                         line[128];
+    size_t                       i;
+    FILE*                        out = tmpfile();
+
+    printf("  reasons, the caller's sources, and the stock report\n");
+
+    (void)D_OPTION_ENV_VIEW(&env, storage);
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_declare_all(&env, ROWS, 5u).is_ok);
+
+    for (i = 0u; i < sizeof(CASES) / sizeof(CASES[0]); ++i)
+    {
+        record.size = (uint32_t)sizeof(record);
+        (void)d_option_env_check_from(&env, CASES[i].name,
+                                      strlen(CASES[i].name), CASES[i].value,
+                                      strlen(CASES[i].value),
+                                      D_OPTION_ENV_SOURCE_FILE, NULL, 0u,
+                                      &result, &record);
+        D_TESTS_OPTION_ENV_CHECK(record.reason == CASES[i].reason);
+
+        // binding's own status reads the same reason
+        if (CASES[i].reason != (int32_t)D_OPTION_ENV_REASON_NAME)
+        {
+            D_TESTS_OPTION_ENV_CHECK(
+                (record.frame == &env) &&
+                (d_option_env_reason_of(&env, record.scope, record.var,
+                                        D_OPTION_ENV_SOURCE_FILE,
+                                        CASES[i].value,
+                                        strlen(CASES[i].value),
+                                        result.payload.error) ==
+                 CASES[i].reason));
+        }
+        else
+        {
+            D_TESTS_OPTION_ENV_CHECK( (record.frame == NULL) &&
+                                      (record.var == D_OPTION_ENV_NONE) );
+        }
+
+        // the stock report, worded from the row
+        if (out != NULL)
+        {
+            report.size     = (uint32_t)sizeof(report);
+            report.source   = D_OPTION_ENV_SOURCE_FILE;
+            report.variable = "X";
+            report.value    = CASES[i].value;
+            report.setting  = CASES[i].name;
+            report.frame    = record.frame;
+            report.scope    = record.scope;
+            report.var      = record.var;
+            report.result   = result;
+            report.reason   = record.reason;
+            rewind(out);
+            d_option_env_report_print(out, &report);
+            (void)fputc('\0', out);
+            rewind(out);
+            line[0] = '\0';
+            D_TESTS_OPTION_ENV_CHECK( (fgets(line, (int)sizeof(line), out)
+                                       != NULL) &&
+                                      (strcmp(line, CASES[i].line) == 0) );
+
+            if (strcmp(line, CASES[i].line) != 0)
+            {
+                printf("    wrote:    %s    expected: %s", line,
+                       CASES[i].line);
+            }
+        }
+    }
+
+    // a value that would steer a terminal is written harmless
+    if (out != NULL)
+    {
+        report.value  = "a\x1B]0;owned\x07";
+        report.reason = (int32_t)D_OPTION_ENV_REASON_ROOM;
+        rewind(out);
+        d_option_env_report_print(out, &report);
+        (void)fputc('\0', out);
+        rewind(out);
+        D_TESTS_OPTION_ENV_CHECK( (fgets(line, (int)sizeof(line), out)
+                                   != NULL) &&
+                                  (strcmp(line, "X=a\\x1B]0;owned\\x07: no "
+                                                "room to bind it\n") == 0) );
+        (void)fclose(out);
+    }
+
+    // a reason read for a good status, and every reason's words
+    D_TESTS_OPTION_ENV_CHECK(d_option_env_reason_of(&env, 0u, 0u,
+                                 D_OPTION_ENV_SOURCE_FILE, "5", 1u,
+                                 (int32_t)D_OPTION_STATUS_OK) ==
+                             (int32_t)D_OPTION_ENV_REASON_NONE);
+    D_TESTS_OPTION_ENV_CHECK(
+        (strcmp(d_option_env_reason_name(D_OPTION_ENV_REASON_SOURCE),
+                "not taken from this source") == 0) &&
+        (strcmp(d_option_env_reason_name(42), "?") == 0));
+
+    // the caller's sources refused; the program's and a test's taken
+    D_TESTS_OPTION_ENV_CHECK(
+        (d_option_env_refuses(&env, 0u, 3u, D_OPTION_ENV_SOURCE_FILE) == 1) &&
+        (d_option_env_refuses(&env, 0u, 3u,
+                              D_OPTION_ENV_SOURCE_ENVIRONMENT) == 1)        &&
+        (d_option_env_refuses(&env, 0u, 3u,
+                              D_OPTION_ENV_SOURCE_COMMAND_LINE) == 1)       &&
+        (d_option_env_refuses(&env, 0u, 3u,
+                              D_OPTION_ENV_SOURCE_PROGRAM) == 0)            &&
+        (d_option_env_refuses(&env, 0u, 3u,
+                              D_OPTION_ENV_SOURCE_OVERRIDE) == 0)           &&
+        (d_option_env_refuses(&env, 0u, 0u, D_OPTION_ENV_SOURCE_FILE) == 0) &&
+        (d_option_env_refuses(&env, 0u, 99u, D_OPTION_ENV_SOURCE_FILE) ==
+         -1)                                                                &&
+        (d_option_env_refuses(&env, 0u, 3u, 77) == -1) );
+    D_TESTS_OPTION_ENV_CHECK(
+        d_option_env_set_text(&env, 0u, 3u, "/opt/plugins").is_ok);
+
+    // a record too small for its members is left as it was
+    record.size   = 4u;
+    record.reason = -7;
+    (void)d_option_env_check_from(&env, "depth", 5u, "10", 2u,
+                                  D_OPTION_ENV_SOURCE_FILE, NULL, 0u, NULL,
+                                  &record);
+    D_TESTS_OPTION_ENV_CHECK(record.reason == -7);
+
+    return;
+}
+
+/*
 main
   Every group, then the count.
 */
@@ -2643,6 +2847,7 @@ main(void)
     d_tests_option_env_default_layer();
     d_tests_option_env_import_each();
     d_tests_option_env_checking();
+    d_tests_option_env_reasons();
     d_tests_option_env_suggestions();
     d_tests_option_env_hot_path();
     d_tests_option_env_random();

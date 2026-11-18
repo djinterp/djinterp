@@ -8,7 +8,7 @@
 * path:      /src/djinterp/c/desc/desc_options.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #include "../../../../inc/djinterp/c/desc/desc_options.h"  // corresponding
@@ -81,6 +81,18 @@ static const struct dj_option_env_name TEXTS[] =
     { "line",   (int64_t)D_DESC_TEXT_LINE   }
 };
 
+// INTEGERS, NONFINITES
+//   constants: how describe's JSON writes integers and NaN.
+static const struct dj_option_env_name INTEGERS[] =
+{
+    { "number", 0 }, { "string", 1 }
+};
+
+static const struct dj_option_env_name NONFINITES[] =
+{
+    { "null", 0 }, { "string", 1 }
+};
+
 // D_INTERNAL_DESC_*_BUILT
 //   macros: each variable's built names and its unbuilt ones, as a row's
 // names, name_count, unbuilt, unbuilt_count.
@@ -140,7 +152,14 @@ static const struct dj_option_env_var SCHEMA[D_DESC_VARS] =
                                "the machine facts are written by: text or "
                                "json"),
     D_OPTION_ENV_CHOICE_KNOB("text", TEXTS, D_CFG_DESC_TEXT_PRESET,
-                             "the text machine's preset: report or line")
+                             "the text machine's preset: report or line"),
+    D_OPTION_ENV_CHOICE_KNOB("json_integers", INTEGERS,
+                             D_CFG_DESC_JSON_INTEGERS,
+                             "integers in describe's JSON: number or string"),
+    D_OPTION_ENV_CHOICE_KNOB("json_nonfinite", NONFINITES,
+                             D_CFG_DESC_JSON_NONFINITE,
+                             "NaN and infinities in describe's JSON: null or "
+                             "string")
 };
 
 
@@ -202,7 +221,9 @@ static struct dj_internal_desc_djin d_internal_desc_djin =
             &SCHEMA[D_DESC_VAR_STYLE],
             &SCHEMA[D_DESC_VAR_FORM],
             &SCHEMA[D_DESC_VAR_FORMAT],
-            &SCHEMA[D_DESC_VAR_TEXT]
+            &SCHEMA[D_DESC_VAR_TEXT],
+            &SCHEMA[D_DESC_VAR_JSON_INTEGERS],
+            &SCHEMA[D_DESC_VAR_JSON_NONFINITE]
         }
     }
 };
@@ -372,6 +393,24 @@ d_desc_option_text(
 }
 
 uint32_t
+d_desc_option_json_integers(
+    const struct dj_desc_type* _type
+)
+{
+    return d_internal_desc_option(_type, D_DESC_VAR_JSON_INTEGERS, 2u,
+                                  (uint32_t)D_CFG_DESC_JSON_INTEGERS);
+}
+
+uint32_t
+d_desc_option_json_nonfinite(
+    const struct dj_desc_type* _type
+)
+{
+    return d_internal_desc_option(_type, D_DESC_VAR_JSON_NONFINITE, 2u,
+                                  (uint32_t)D_CFG_DESC_JSON_NONFINITE);
+}
+
+uint32_t
 d_desc_option_layers(void)
 {
     const struct dj_option_env* frame = &d_internal_desc_djin.frame;
@@ -446,6 +485,26 @@ d_desc_option_text(
     (void)_type;
 
     return (uint32_t)D_CFG_DESC_TEXT_PRESET;
+}
+
+uint32_t
+d_desc_option_json_integers(
+    const struct dj_desc_type* _type
+)
+{
+    (void)_type;
+
+    return (uint32_t)D_CFG_DESC_JSON_INTEGERS;
+}
+
+uint32_t
+d_desc_option_json_nonfinite(
+    const struct dj_desc_type* _type
+)
+{
+    (void)_type;
+
+    return (uint32_t)D_CFG_DESC_JSON_NONFINITE;
 }
 
 #endif  // D_DESC_OPTIONS_BUILT

@@ -18,14 +18,15 @@
 *                 D_CFG_DESC_MACRO, D_CFG_DESC_AT_BUILD,
 *                 D_CFG_DESC_TEXT, D_CFG_DESC_MACHINES,
 *                 D_CFG_DESC_STYLE, D_CFG_DESC_FORM,
-*                 D_CFG_DESC_FORMAT, D_CFG_DESC_TEXT_PRESET
+*                 D_CFG_DESC_FORMAT, D_CFG_DESC_TEXT_PRESET,
+*                 D_CFG_DESC_JSON_INTEGERS, D_CFG_DESC_JSON_NONFINITE
 *   requires: cfg_common.h
 *
 *
 * path:      /inc/djinterp/config/c/desc/cfg_desc.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -58,6 +59,8 @@ TABLE OF CONTENTS
          4.  D_CFG_DESC_FORM
          5.  D_CFG_DESC_FORMAT
          6.  D_CFG_DESC_TEXT_PRESET
+         7.  D_CFG_DESC_JSON_INTEGERS
+         8.  D_CFG_DESC_JSON_NONFINITE
 2.  VALIDATION
     ----------
     1.  Ranges
@@ -266,6 +269,25 @@ TABLE OF CONTENTS
     #define D_CFG_DESC_TEXT_PRESET 0
 #endif
 
+// 1.6.7
+// D_CFG_DESC_JSON_INTEGERS
+//   configuration: how describe's JSON writes an integer, and
+// desc.json_integers' default: 0 a number, every digit kept; 1 a string,
+// exact for readers that read numbers as doubles, as JavaScript does. The
+// log's own JSON has log.json_integers. 0 by default.
+#ifndef D_CFG_DESC_JSON_INTEGERS
+    #define D_CFG_DESC_JSON_INTEGERS 0
+#endif
+
+// 1.6.8
+// D_CFG_DESC_JSON_NONFINITE
+//   configuration: how describe's JSON writes NaN and the infinities, and
+// desc.json_nonfinite's default: 0 null; 1 "NaN", "Infinity", "-Infinity".
+// 0 by default.
+#ifndef D_CFG_DESC_JSON_NONFINITE
+    #define D_CFG_DESC_JSON_NONFINITE 0
+#endif
+
 
 //==============================================================================
 // 2.  VALIDATION
@@ -301,6 +323,11 @@ TABLE OF CONTENTS
       (D_CFG_DESC_FORMAT < 0) || (D_CFG_DESC_FORMAT > 1)           ||        \
       (D_CFG_DESC_TEXT_PRESET < 0) || (D_CFG_DESC_TEXT_PRESET > 1) )
     #error "D_CFG_DESC_STYLE, _FORM, _FORMAT and _TEXT_PRESET are 0 or 1"
+#endif
+
+#if ( (D_CFG_DESC_JSON_INTEGERS < 0) || (D_CFG_DESC_JSON_INTEGERS > 1) ||   \
+      (D_CFG_DESC_JSON_NONFINITE < 0) || (D_CFG_DESC_JSON_NONFINITE > 1) )
+    #error "D_CFG_DESC_JSON_INTEGERS and _JSON_NONFINITE are 0 or 1"
 #endif
 
 #if ( (D_CFG_DESC_STYLE == 0) && (D_CFG_DESC_UNITS == 0) )

@@ -32,7 +32,7 @@
 * path:      /inc/djinterp/c/option/option_env_registry.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -339,14 +339,55 @@ size_t d_option_env_registry_suggest(
 // 2.4    Checking without binding
 //------------------------------------------------------------------------------
 /**
+ * @brief Checks a value for a setting by its full name, as binding it from a
+ *        source would, and writes the value as a settings file needs it;
+ *        binds nothing. What `djinterp set` checks with before it writes the
+ *        user's settings file: the name and the value come apart, as a
+ *        shell gives them, so a value is never split again ("a;b" stays
+ *        whole), and the record says which frame, scope and variable the
+ *        name resolved, so the setting is written under its canonical name
+ *        (option_env's decision 72).
+ *
+ * @note d_option_env_check_from in the frame the name addresses: the same
+ *       rules as binding, so the two cannot disagree.
+ *
+ * @param[in]  _registry    the registry.
+ * @param[in]  _name        the full name; need not end in a NUL.
+ * @param[in]  _name_size   its length.
+ * @param[in]  _value       the text; need not end in a NUL.
+ * @param[in]  _value_size  its length.
+ * @param[in]  _source      the source it would be bound from: FILE for a
+ *                          settings file.
+ * @param[out] _buffer      the value as text; may be null when _capacity is
+ *                          0.
+ * @param[in]  _capacity    its size.
+ * @param[out] _result      the variable's id, or why not; may be null.
+ * @param[out] _checked     where it resolved, and why refused; may be null;
+ *                          its size set by the caller.
+ * @return as d_option_env_check_from: the text's length as snprintf counts
+ *         it, whatever the capacity; (size_t)-1 when the check failed.
+ */
+size_t d_option_env_registry_check_from(
+           struct dj_option_env_registry* _registry,
+           const char*                    _name,
+           size_t                         _name_size,
+           const char*                    _value,
+           size_t                         _value_size,
+           int32_t                        _source,
+           char*                          _buffer,
+           size_t                         _capacity,
+           struct dj_option_result*       _result,
+           struct dj_option_env_checked*  _checked);
+
+/**
  * @brief Checks a setting, "NAME=VALUE" with NAME a full name, as binding it
  *        from a source would, and writes its value as a settings file needs
  *        it; binds nothing. What `djinterp set` checks with before it writes
  *        the user's settings file.
  *
  * @note Split at the first '=', the value taken as it is, as
- *       d_option_env_registry_assign takes it; then d_option_env_check_from
- *       in the frame the name addresses. No '=', or nothing before it, is
+ *       d_option_env_registry_assign takes it; then
+ *       d_option_env_registry_check_from. No '=', or nothing before it, is
  *       INVALID_ARGUMENT.
  *
  * @param[in]  _registry  the registry.

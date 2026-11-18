@@ -11,17 +11,20 @@
 * path:      /tests/djinterp/c/desc/desc_machines_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #include "./desc_tests.h"  // corresponding header
 
 // std
 #include <locale.h>  // setlocale, LC_NUMERIC
-#include <string.h>  // strcmp
+#include <stdio.h>   // printf
+#include <string.h>  // strcmp, strstr
 // djinterp
 #include "../../../../inc/djinterp/c/desc/desc_machines.h"  // the machines
 #include "../../../../inc/djinterp/c/desc/desc_options.h"   // the djin
+#include "../../../../inc/djinterp/c/option/option_env_desc.h"  // a frame's
+                                                                 // facts
 #include "../../../../inc/djinterp/c/util/ostream/ostream.h"  // fixed streams
 
 
@@ -182,7 +185,8 @@ static const struct dj_desc_type d_desc_type_dj_tests_box =
       (D_CFG_DESC_LAYERS == 0x1FF) && D_CFG_DESC_ARTICLES &&                   \
       (D_CFG_DESC_RING == 1) && (D_CFG_DESC_STYLE == 0) &&                     \
       (D_CFG_DESC_FORM == 0) && (D_CFG_DESC_FORMAT == 0) &&                    \
-      (D_CFG_DESC_TEXT_PRESET == 0) && (D_CFG_DESC_MACHINES == 0x7) )
+      (D_CFG_DESC_TEXT_PRESET == 0) && (D_CFG_DESC_MACHINES == 0x7) &&       \
+      (D_CFG_DESC_JSON_INTEGERS == 0) && (D_CFG_DESC_JSON_NONFINITE == 0) )
 
 // D_TESTS_BOX_FACTS
 //   constant: 1 when this build derives the box's facts as the expected
@@ -261,7 +265,15 @@ d_tests_out_is(
 {
     (void)d_ostream_flush(&_out->os);
 
-    return (strcmp(_out->text, _expected) == 0) ? 1 : 0;
+    if (strcmp(_out->text, _expected) == 0)
+    {
+        return 1;
+    }
+
+    printf("      wrote:    [%s]\n      expected: [%s]\n", _out->text,
+           _expected);
+
+    return 0;
 }
 
 
@@ -427,6 +439,10 @@ d_tests_desc_machines_json(
     return;
 }
 
+// the counting machine, for the collecting machine's test alone
+#if D_DESC_MACHINE_BUILT(D_DESC_FORMAT_COLLECT) &&                            \
+    D_DESC_MACHINE_BUILT(D_DESC_FORMAT_JSON) && D_TESTS_BOX_FACTS
+
 /*
 d_tests_count_enter, d_tests_count_leave
   A machine that counts levels open: +1 at each enter, -1 at each leave.
@@ -458,6 +474,8 @@ d_tests_count_leave(
 
     return 0;
 }
+
+#endif
 
 /*
 d_tests_desc_machines_collect
@@ -639,6 +657,205 @@ d_tests_desc_machines_options(
 }
 
 
+/*
+d_tests_desc_machines_shape
+  Checks the following:
+  - a JSON machine given a shape writes it first, as "format"; bare members,
+    and text, have no shape member
+  - d_desc_write_shaped names the shape where desc.format is JSON
+  - desc.json_integers and desc.json_nonfinite add their switches to an
+    output, as log.json_integers and log.json_nonfinite do to the log's
+*/
+static void
+d_tests_desc_machines_shape(
+    struct dj_test_suite* _suite
+)
+{
+#if D_DESC_MACHINE_BUILT(D_DESC_FORMAT_JSON) && D_TESTS_BOX_FACTS
+    struct dj_tests_box       box;
+    struct dj_tests_out       out;
+    struct dj_desc_json_state state;
+    struct dj_desc_sink       sink;
+    struct dj_desc_output     output;
+
+    (void)d_test_suite_test(_suite, "a JSON shape, and JSON's options");
+    d_tests_box_fill(&box);
+
+    d_desc_json_init(&state, d_tests_out_init(&out), 0u);
+    d_desc_json_shape(&state, "t.box/1");
+    d_desc_sink_init(&sink, d_desc_json_machine(), &state);
+    (void)d_desc_run_facts(&sink, &d_desc_type_dj_tests_box, &box);
+    D_TEST_CHECK(_suite, d_tests_out_is(&out,
+        "{\"format\":\"t.box/1\",\"type\":\"box\",\"count\":2,"
+        "\"name\":\"crate a\",\"ratio\":0.5,\"items\":{\"0\":\"nail\","
+        "\"1\":\"screw \\\"x\\\"\"}}"));
+
+    // bare: the caller writes the object, and any shape with it
+    d_desc_json_init(&state, d_tests_out_init(&out), D_DESC_JSON_BARE);
+    d_desc_json_shape(&state, "t.box/1");
+    d_desc_sink_init(&sink, d_desc_json_machine(), &state);
+    (void)d_desc_json_machine()->begin(&state);
+    (void)d_desc_emit(&sink, "a", NULL, d_ostream_value_int64(1), 0u, 0u,
+                      0u);
+    D_TEST_CHECK(_suite, d_tests_out_is(&out, "\"a\":1"));
+
+#if D_TESTS_DESC_DEFAULTS && D_DESC_OPTIONS_BUILT
+    // text has no shape member
+    D_TEST_CHECK(_suite, d_desc_output_init(&output, d_tests_out_init(&out),
+                                            NULL, D_DESC_FORMAT_TEXT, 0u)
+                         == 0);
+    d_desc_output_shape(&output, "t.box/1");
+    D_TEST_CHECK(_suite, output.format == D_DESC_FORMAT_TEXT);
+
+    // the options' switches, and the shape through d_desc_write_shaped
+    D_TEST_CHECK(_suite, d_option_env_put(d_desc_djin(), "format=json").is_ok &&
+                         d_option_env_put(d_desc_djin(),
+                                          "json_integers=string").is_ok);
+    D_TEST_CHECK(_suite, (d_desc_option_json_integers(NULL) == 1u) &&
+                         (d_desc_option_json_nonfinite(NULL) == 0u));
+    D_TEST_CHECK(_suite, d_desc_write_shaped(d_tests_out_init(&out), NULL,
+                                             d_tests_box_contents, NULL, &box,
+                                             "t.box/1") == 0);
+    D_TEST_CHECK(_suite, d_tests_out_is(&out,
+        "{\"format\":\"t.box/1\",\"items\":{\"0\":\"nail\","
+        "\"1\":\"screw \\\"x\\\"\"}}\n"));
+    D_TEST_CHECK(_suite, d_option_env_put(d_desc_djin(),
+                                          "json_nonfinite=string").is_ok &&
+                         !d_option_env_put(d_desc_djin(),
+                                           "json_nonfinite=zero").is_ok);
+    D_TEST_CHECK(_suite, d_desc_output_init(&output, d_tests_out_init(&out),
+                                            NULL, D_DESC_CHOICE_OPTION, 0u)
+                         == 0);
+    D_TEST_CHECK(_suite, output.as.json.flags ==
+                         (D_DESC_JSON_INTEGER_STRINGS |
+                          D_DESC_JSON_NONFINITE_STRINGS));
+    d_option_env_clear(d_desc_djin());
+#else
+    (void)output;
+#endif
+#else
+    (void)d_test_suite_skip(_suite, "the JSON machine is not built");
+#endif
+
+    return;
+}
+
+
+/*
+d_tests_desc_machines_frame
+  Checks the following:
+  - a frame's settings as facts, a level each: the value in force, its
+    source, its default, its kind, its help, the sources it refuses; flags
+    as a level of their names; a named int by its name
+  - D_OPTION_ENV_DESC_ACCEPTS adds the range and names; _LAYERS each layer,
+    the one in force marked; _SCOPES each scope's settings under its name,
+    where a binding of higher standing outside the scope stays in force
+  - a sink's layers choose the facts: the state layer alone is the values
+  - the describer form runs through d_desc_write_with; a null argument is -1
+*/
+static void
+d_tests_desc_machines_frame(
+    struct dj_test_suite* _suite
+)
+{
+#if D_DESC_MACHINE_BUILT(D_DESC_FORMAT_JSON) && D_TESTS_BOX_FACTS &&      \
+    RE_STD_HAS_INT64
+    static const struct dj_option_env_name MODES[] =
+    {
+        { "fast", 1 }, { "safe", 2 }
+    };
+    static const struct dj_option_env_name UNBOUNDED[] =
+    {
+        { "unbounded", -1 }
+    };
+    static const struct dj_option_env_var ROWS[] =
+    {
+        D_OPTION_ENV_INT_RANGE_NAMED("depth", 5, 1, 9, UNBOUNDED,
+                                     "how deep"),
+        D_OPTION_ENV_FLAGS("mode", MODES, 2, NULL),
+        D_OPTION_ENV_ROW_REFUSING(D_OPTION_ENV_KIND_TEXT, "plugin_search",
+                                  NULL, 0u, NULL, 0u, "/usr/lib", 0,
+                                  INT64_MIN, INT64_MAX, 0.0, NULL, NULL,
+                                  NULL, D_OPTION_ENV_REFUSES_CALLER)
+    };
+    static const char* const SCOPES[] = { "inner" };
+    D_OPTION_ENV_DECLARE(dj_tests_frame_storage, 16u, 3u, 128u);
+    struct dj_tests_frame_storage storage = D_OPTION_ENV_STORAGE_INIT;
+    struct dj_option_env          env;
+    struct dj_tests_out           out;
+    struct dj_desc_json_state     state;
+    struct dj_desc_sink           sink;
+
+    (void)d_test_suite_test(_suite, "a frame's settings as facts");
+    (void)D_OPTION_ENV_VIEW(&env, storage);
+    D_TEST_CHECK(_suite, d_option_env_declare_all(&env, ROWS, 3u).is_ok &&
+                         d_option_env_set_scopes(&env, SCOPES, 1u).is_ok);
+    D_TEST_CHECK(_suite, d_option_env_assign_from(&env, "depth", 5u, "7", 1u,
+                                                  D_OPTION_ENV_SOURCE_FILE)
+                             .is_ok &&
+                         d_option_env_put(&env, "mode=fast|safe").is_ok &&
+                         d_option_env_put(&env,
+                                          "inner.depth=unbounded").is_ok);
+
+    d_desc_json_init(&state, d_tests_out_init(&out), 0u);
+    d_desc_sink_init(&sink, d_desc_json_machine(), &state);
+    (void)d_desc_json_machine()->begin(&state);
+    D_TEST_CHECK(_suite, d_option_env_describe(&env, &sink, 0u) == 0);
+    d_desc_json_machine()->end(&state);
+    D_TEST_CHECK(_suite, d_tests_out_is(&out,
+        "{\"depth\":{\"value\":7,\"source\":\"file\",\"default\":5,"
+        "\"kind\":\"int\",\"help\":\"how deep\"},"
+        "\"mode\":{\"value\":{\"fast\":true,\"safe\":true},\"source\":"
+        "\"program\",\"default\":{\"safe\":true},\"kind\":\"flags\"},"
+        "\"plugin_search\":{\"value\":\"/usr/lib\",\"source\":\"default\","
+        "\"default\":\"/usr/lib\",\"kind\":\"text\",\"refuses\":{\"file\":"
+        "true,\"environment\":true,\"command_line\":true}}}"));
+
+    // what it accepts, its layers, and the scope's own
+    d_desc_json_init(&state, d_tests_out_init(&out), 0u);
+    d_desc_sink_init(&sink, d_desc_json_machine(), &state);
+    (void)d_desc_json_machine()->begin(&state);
+    D_TEST_CHECK(_suite, d_option_env_describe(&env, &sink,
+                                               D_OPTION_ENV_DESC_ALL) == 0);
+    d_desc_json_machine()->end(&state);
+    D_TEST_CHECK(_suite,
+        (strstr(out.text, "\"minimum\":1,\"maximum\":9,\"names\":"
+                          "{\"unbounded\":-1}") != NULL) &&
+        (strstr(out.text, "\"layers\":{\"0\":{\"source\":\"file\","
+                          "\"value\":7,\"in_force\":true},\"1\":{\"source\":"
+                          "\"default\",\"value\":5,\"in_force\":false}}")
+         != NULL) &&
+        (strstr(out.text, "\"inner\":{\"depth\":{\"value\":7,\"source\":"
+                          "\"file\"") != NULL) &&
+        (strstr(out.text, "\"1\":{\"source\":\"program\",\"value\":"
+                          "\"unbounded\",\"in_force\":false}") != NULL));
+
+    // the state layer alone: the values
+    d_desc_json_init(&state, d_tests_out_init(&out), 0u);
+    d_desc_sink_init(&sink, d_desc_json_machine(), &state);
+    sink.layers = (1u << D_DESC_LAYER_STATE) | (1u << D_DESC_LAYER_CONTENTS);
+    (void)d_desc_json_machine()->begin(&state);
+    (void)d_option_env_describe(&env, &sink, 0u);
+    d_desc_json_machine()->end(&state);
+    D_TEST_CHECK(_suite, d_tests_out_is(&out,
+        "{\"depth\":{\"value\":7},\"mode\":{\"value\":{\"fast\":true,"
+        "\"safe\":true}},\"plugin_search\":{\"value\":\"/usr/lib\"}}"));
+
+    // the describer form, and null arguments
+    D_TEST_CHECK(_suite, d_desc_write_with(d_tests_out_init(&out), NULL,
+                                           d_option_env_describer, NULL,
+                                           &env) == 0);
+    D_TEST_CHECK(_suite, strstr(out.text, "depth") != NULL);
+    D_TEST_CHECK(_suite, (d_option_env_describe(NULL, &sink, 0u) == -1) &&
+                         (d_option_env_describe(&env, NULL, 0u) == -1));
+#else
+    (void)d_test_suite_skip(_suite, "the JSON machine is not built");
+#endif
+
+    return;
+}
+
+
 //==============================================================================
 // THE SECTION
 //==============================================================================
@@ -655,6 +872,8 @@ d_tests_desc_machines(
     d_tests_desc_machines_json(_suite);
     d_tests_desc_machines_collect(_suite);
     d_tests_desc_machines_options(_suite);
+    d_tests_desc_machines_shape(_suite);
+    d_tests_desc_machines_frame(_suite);
 
     return;
 }

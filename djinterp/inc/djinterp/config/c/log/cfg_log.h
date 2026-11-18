@@ -12,10 +12,11 @@
 *                 D_CFG_LOG_FACTS_MAX, D_CFG_LOG_DEPTH_MAX,
 *                 D_CFG_LOG_BODY_MAX, D_CFG_LOG_TEMPLATE_OPS,
 *                 D_CFG_LOG_CODES, D_CFG_LOG_MODULES_MAX,
-*                 D_CFG_LOG_GRADE_LEVEL,
+*                 D_CFG_LOG_GRADE_LEVEL, D_CFG_LOG_CLASSES_EXTRA,
 *                 D_CFG_LOG_FORMATS, D_CFG_LOG_FORMAT,
 *                 D_CFG_LOG_CODE_STYLE, D_CFG_LOG_NESTING,
 *                 D_CFG_LOG_JSON_INTEGERS, D_CFG_LOG_JSON_NONFINITE,
+*                 D_CFG_LOG_REAL_DIGITS,
 *                 D_CFG_LOG_SCOPE, D_CFG_LOG_RESOURCE, D_CFG_LOG_CONTEXT,
 *                 D_CFG_LOG_OBSERVED_TIME, D_CFG_LOG_TIME,
 *                 D_CFG_LOG_OPTIONS, D_CFG_LOG_SCOPES, D_CFG_LOG_BINDINGS,
@@ -27,7 +28,7 @@
 * path:      /inc/djinterp/config/c/log/cfg_log.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -52,6 +53,7 @@ TABLE OF CONTENTS
          1.  D_CFG_LOG_CODES
          2.  D_CFG_LOG_MODULES_MAX
          3.  D_CFG_LOG_GRADE_LEVEL
+         4.  D_CFG_LOG_CLASSES_EXTRA
     5.  Writers
          1.  D_CFG_LOG_FORMATS
          2.  D_CFG_LOG_FORMAT
@@ -59,6 +61,7 @@ TABLE OF CONTENTS
          4.  D_CFG_LOG_NESTING
          5.  D_CFG_LOG_JSON_INTEGERS
          6.  D_CFG_LOG_JSON_NONFINITE
+         7.  D_CFG_LOG_REAL_DIGITS
     6.  OpenTelemetry's features
          1.  D_CFG_LOG_SCOPE
          2.  D_CFG_LOG_RESOURCE
@@ -213,13 +216,25 @@ TABLE OF CONTENTS
 // number (D_LOG_GRADE_*: ok, note, caveat, soft, rejected, failed, broken),
 // so a record's default level is a constant where it is written and
 // D_CFG_LOG_LEVEL_MIN can compile it out. log.grade_<grade> changes one for
-// a run. By default (E26 (b)) debug, info, notice, debug, warning, error and
-// fatal.
+// a run. By default (the log's decision 26 (b)) debug, info, notice, debug,
+// warning, error and fatal.
 #ifndef D_CFG_LOG_GRADE_LEVEL
     #define D_CFG_LOG_GRADE_LEVEL(grade)                                      \
         ( ((grade) == 0) ?  5 : ((grade) == 1) ?  9 : ((grade) == 2) ? 10 :   \
           ((grade) == 3) ?  5 : ((grade) == 4) ? 13 : ((grade) == 5) ? 17 :   \
                              21 )
+#endif
+
+// 1.4.4
+// D_CFG_LOG_CLASSES_EXTRA
+//   configuration: a program's own classes, for its own code tables, after
+// the vocabulary (log.h, D_LOG_CLASSES): a macro of one parameter listing
+// them, each X(ID, "family.name"), the ID a row's class token:
+//     #define D_CFG_LOG_CLASSES_EXTRA(X) X(BILL_DECLINED, "bill.declined")
+// A name must not repeat the vocabulary's; the codes manifest refuses it,
+// and the tree's own tables use only the vocabulary. None by default.
+#ifndef D_CFG_LOG_CLASSES_EXTRA
+    #define D_CFG_LOG_CLASSES_EXTRA(X)
 #endif
 
 
@@ -264,8 +279,9 @@ TABLE OF CONTENTS
 // D_CFG_LOG_JSON_INTEGERS
 //   configuration: how JSON lines write an integer, and log.json_integers'
 // default: 0 a number, every digit kept; 1 a string, exact for readers that
-// read numbers as doubles (E48 (d)). OTLP/JSON writes 64-bit integers as
-// strings always, as its specification says. 0 by default.
+// read numbers as doubles (the log's decision 48 (d)). OTLP/JSON writes
+// 64-bit integers as strings always, as its specification says. 0 by
+// default.
 #ifndef D_CFG_LOG_JSON_INTEGERS
     #define D_CFG_LOG_JSON_INTEGERS 0
 #endif
@@ -274,9 +290,19 @@ TABLE OF CONTENTS
 // D_CFG_LOG_JSON_NONFINITE
 //   configuration: how JSON lines write NaN and the infinities, and
 // log.json_nonfinite's default: 0 null, 1 "NaN", "Infinity", "-Infinity"
-// (E49 (c)). 0 by default.
+// (the log's decision 49 (c)). 0 by default.
 #ifndef D_CFG_LOG_JSON_NONFINITE
     #define D_CFG_LOG_JSON_NONFINITE 0
+#endif
+
+// 1.5.7
+// D_CFG_LOG_REAL_DIGITS
+//   configuration: the significant digits a record keeps of a real fact, and
+// log.real_digits' default: 0 all of them, written as the shortest text that
+// reads back as the same double; 1 to 17 rounds each real to that many
+// first, which is shorter but loses what it rounds away. 0 by default.
+#ifndef D_CFG_LOG_REAL_DIGITS
+    #define D_CFG_LOG_REAL_DIGITS 0
 #endif
 
 
@@ -421,6 +447,10 @@ TABLE OF CONTENTS
 #if ( (D_CFG_LOG_CODE_STYLE < 0) || (D_CFG_LOG_CODE_STYLE > 2) ||             \
       (D_CFG_LOG_TIME < 0) || (D_CFG_LOG_TIME > 7) )
     #error "D_CFG_LOG_CODE_STYLE must be 0 to 2, D_CFG_LOG_TIME 0 to 7"
+#endif
+
+#if ( (D_CFG_LOG_REAL_DIGITS < 0) || (D_CFG_LOG_REAL_DIGITS > 17) )
+    #error "D_CFG_LOG_REAL_DIGITS must be 0 (all) to 17"
 #endif
 
 #if ( (D_CFG_LOG_SCOPES < 1) || (D_CFG_LOG_BINDINGS < 16) ||                  \

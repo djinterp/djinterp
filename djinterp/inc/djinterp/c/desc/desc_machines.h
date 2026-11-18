@@ -28,7 +28,7 @@
 * path:      /inc/djinterp/c/desc/desc_machines.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -207,6 +207,7 @@ const struct dj_desc_machine* d_desc_text_machine(void);
 struct dj_desc_json_state
 {
     struct dj_ostream* os;      // where
+    const char*        shape;   // written first as "format", or null
     uint32_t           flags;   // D_DESC_JSON_*
     uint32_t           depth;   // objects open, the outermost's excluded
     uint64_t           empty;   // bit per level: 1 while nothing is in it
@@ -226,6 +227,22 @@ struct dj_desc_json_state
 void d_desc_json_init(struct dj_desc_json_state* _state,
                       struct dj_ostream*         _os,
                       uint32_t                   _flags);
+
+/**
+ * @brief Names the shape of the JSON a machine writes: its object's first
+ *        member is then "format": the shape, as "djinterp.describe/1.0",
+ *        so a reader knows what it reads. A shape's version is
+ *        MAJOR.MINOR: MAJOR moves at any change that is not an addition,
+ *        MINOR at an addition (desc's decision 74).
+ *
+ * @note Not written under D_DESC_JSON_BARE, whose caller writes the object.
+ *
+ * @param[in,out] _state  the state, set up by d_desc_json_init.
+ * @param[in]     _shape  the shape; borrowed, and alive until the end; null
+ *                        for none.
+ */
+void d_desc_json_shape(struct dj_desc_json_state* _state,
+                       const char*                _shape);
 
 // the JSON machine's operations; null when D_CFG_DESC_MACHINES leaves it out
 const struct dj_desc_machine* d_desc_json_machine(void);
@@ -347,6 +364,15 @@ int d_desc_output_init(struct dj_desc_output*     _output,
                        uint32_t                   _format,
                        uint32_t                   _flags);
 
+/**
+ * @brief Names the shape an output's JSON is, as d_desc_json_shape; text
+ *        has no shape member, so for text this does nothing.
+ * @param[in,out] _output  the output, set up by d_desc_output_init.
+ * @param[in]     _shape   the shape; borrowed; null for none.
+ */
+void d_desc_output_shape(struct dj_desc_output* _output,
+                         const char*            _shape);
+
 // 5.3    The options
 //------------------------------------------------------------------------------
 //   Each is desc.<type>.<name> when the type was declared and it is set, else
@@ -360,6 +386,10 @@ uint32_t d_desc_option_form(const struct dj_desc_type* _type);
 uint32_t d_desc_option_format(const struct dj_desc_type* _type);
 // desc.text: D_DESC_TEXT_*
 uint32_t d_desc_option_text(const struct dj_desc_type* _type);
+// desc.json_integers: 0 numbers, 1 strings
+uint32_t d_desc_option_json_integers(const struct dj_desc_type* _type);
+// desc.json_nonfinite: 0 null, 1 strings
+uint32_t d_desc_option_json_nonfinite(const struct dj_desc_type* _type);
 
 // 5.4    Describing
 //------------------------------------------------------------------------------
@@ -402,6 +432,24 @@ int d_desc_write_with(struct dj_ostream*         _os,
                       fn_desc_describer          _facts,
                       fn_desc_text_describer     _text,
                       const void*                _object);
+
+/**
+ * @brief d_desc_write_with, its JSON naming its shape first, as
+ *        d_desc_json_shape: what describe --format=json is written with.
+ * @param[in,out] _os      the stream.
+ * @param[in]     _scope   the type whose options apply; may be null.
+ * @param[in]     _facts   the fact describer; may be null.
+ * @param[in]     _text    the text describer; may be null.
+ * @param[in]     _object  the object.
+ * @param[in]     _shape   the shape, "djinterp.describe/1.0"; null for none.
+ * @return as d_desc_write.
+ */
+int d_desc_write_shaped(struct dj_ostream*         _os,
+                        const struct dj_desc_type* _scope,
+                        fn_desc_describer          _facts,
+                        fn_desc_text_describer     _text,
+                        const void*                _object,
+                        const char*                _shape);
 
 
 D_EXTERN_C_END

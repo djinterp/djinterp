@@ -1,15 +1,16 @@
 # desc: describing anything, in prose and in facts
 
-Lane E's design, for the agreement of Friday 11-13 (E29): the APIs of all
-three of desc's layers -- the units, the facts and the macro layer -- as
+desc's design, for the agreement of Friday 11-13 (decision 29): the APIs of
+all three of desc's layers -- the units, the facts and the macro layer -- as
 they are in the tree, and the C++ face over them. It records the owner's
-rulings of 11-12: E20 (describer forms and machines), E28 (d) (one authored
-form), E30 (a) (op arrays), E31 (c) (a declaring macro per family), E32 (b)
-(dmacro's tools), E33 (c) (where a describer is found) and E34 (a) (the
-order of adoption). It builds on desc.txt (the owner's idea and the first
-C++ sketch) and on what the tree already has: the stream's value and
-templates (`c/text/ostream_template.h`), the environment printer and
-option_env with its registry.
+rulings of 11-12 and 11-17, by desc's decision numbers: 20 (describer forms
+and machines), 28 (d) (one authored form), 30 (a) (op arrays), 31 (c) (a
+declaring macro per family), 32 (b) (dmacro's tools), 33 (c) (where a
+describer is found), 34 (a) (the order of adoption) and 74 (JSON that names
+its shape). It builds on desc.txt (the owner's idea and the first C++
+sketch) and on what the tree already has: the stream's value and templates
+(`c/text/ostream_template.h`), the environment printer and option_env with
+its registry.
 
 ## What desc is
 
@@ -29,9 +30,9 @@ desc has two engines, both built by default (`D_CFG_DESC_UNITS`,
   for a description a person reads.
 - **Facts** are typed values for machines: key, label, value, layer,
   importance and truth, into a sink, and from the sink to a machine that
-  makes text, JSON, a log record's attributes, or lane G's help.
+  makes text, JSON, a log record's attributes, or the kit's help.
 
-A type is authored once (E28 (d)). It gives desc:
+A type is authored once (decision 28 (d)). It gives desc:
 
 - a **field list**: each value's key, label, layer, importance and truth;
 - one **reader**, which reads a field by its index in that list;
@@ -85,7 +86,7 @@ typedef struct dj_ostream_value (*fn_desc_read)(const void* _object,
                                                 uint32_t    _field);
 ```
 
-The value is lane D's `struct dj_ostream_value` (text, integers, reals,
+The value is the stream's `struct dj_ostream_value` (text, integers, reals,
 booleans, none), which units and facts share, so a value needs no
 conversion to be written by a template.
 
@@ -136,7 +137,7 @@ Complements take commas; the units of WITH join with ", " and a last
 " and ", after ", with" when there are complements; each remark is a
 sentence.
 
-### Op arrays and units (E30 (a))
+### Op arrays and units (decision 30 (a))
 
 A unit's text is an array of ops the compiler lays out, so nothing is
 parsed or compiled at run time, and a field named by a misspelt constant
@@ -234,7 +235,7 @@ struct dj_desc_fact
   *build* (fixed by a knob), *run time* (an option, with its source),
   *observed* (the state now).
 
-### The machine (E20)
+### The machine (decision 20)
 
 The work is a machine's: `struct dj_desc_machine` is a table of six
 operations, each of which may be null and is then skipped:
@@ -313,12 +314,12 @@ field the sink wants, in the list's order, read only then; then the type's
 nested contents, through its hand-written `contents` describer, which opens
 its own level. `d_desc_run_facts` adds the machine's begin and end.
 
-### Describer forms (E20)
+### Describer forms (decision 20)
 
 A type may give any of these, and every reader works with every one:
 
-- **A field list and units** (the default, E28 (d)): facts and prose from
-  one authored form.
+- **A field list and units** (the default, decision 28 (d)): facts and
+  prose from one authored form.
 - **A fact describer**, `fn_desc_describer`: the only form that can
   describe nested contents, with `d_desc_enter` and `d_desc_leave`.
 - **A text describer**, `fn_desc_text_describer`, which writes words
@@ -336,9 +337,9 @@ run-time units and the macro layer share words.
   build in sentences: "Units are built to the detailed ring, in every layer;
   facts are derived. Articles are on, and options are read at run time."
   (`D_CFG_DESC_AT_BUILD 1` prints it while `desc_units.c` compiles.) A word
-  that a knob alone decides belongs here (E32).
+  that a knob alone decides belongs here (decision 32).
 - **The kit**, built where the language has variadic macros (C99, C++11),
-  on dmacro.h's tools (E32 (b)): `D_CONCAT`, `D_IIF`, `D_CHECK` and
+  on dmacro.h's tools (decision 32 (b)): `D_CONCAT`, `D_IIF`, `D_CHECK` and
   `D_PROBE`. The sequence joins are desc's own.
 
 ```c
@@ -358,13 +359,15 @@ An adjective part holds one or more words, `(a, "dusty")(an, "old")`; the
 determiner, "a" or "an", is the first word's own, and is left out with
 `D_CFG_DESC_ARTICLES 0`.
 
-**A declaring macro per container family (E31 (c)).** A container family
-declares its type and its description from one argument list, so nothing
-is written twice:
+**A declaring macro per container family (decision 31 (c)).** A container
+family declares its type and its description from one argument list, so
+nothing is written twice:
 `D_BRT_DECLARE(route_table, uint64_t, route, 0, (immutable)(ordered))`.
-The families' lanes (C, H) write these on the kit in week 3, with the
-two-macro form -- the type's own macro and its `D_DESC_MACRO_` twin --
-underneath, for a user who wants no typedef.
+The containers' module writes these on the kit in week 3, for families
+declared per element type, with the two-macro form -- the type's own macro
+and its `D_DESC_MACRO_` twin -- underneath, for a user who wants no
+typedef. A concrete type, as db's rows or net's ring, gets a describer
+alone.
 
 ## The C++ face (`desc_units.hpp`)
 
@@ -407,7 +410,7 @@ type that gives neither fails to compile.
 
 A choice a knob leaves out is refused by name in its option
 (`POLICY_REJECTED`), as option_env refuses a value ruled but not built.
-With the name registry in week 3 comes `D_CFG_DESC_REGISTRY` (E33).
+With the name registry in week 3 comes `D_CFG_DESC_REGISTRY` (decision 33).
 
 ## Options: desc's djin (`desc_options.h`)
 
@@ -444,11 +447,11 @@ desc's prose writes its numbers through the stream's writer of values, as
 the machines do, so a number is in the C form under every locale ("0.5",
 never "0,5"), and prose and JSON never differ in their digits.
 
-## Where a describer is found (E33 (c))
+## Where a describer is found (decision 33 (c))
 
 At compile time by default: `D_DESC_OF(name)` in C, `units<T>` in C++. No
 start-up cost, and a missing description fails to compile. A program that
-wants describing by name -- a debugger, lane G's interpreter -- opts into a
+wants describing by name -- a debugger, the kit's interpreter -- opts into a
 name registry in week 3: `D_CFG_DESC_REGISTRY` 0 none, 1 the types a
 program registers (the default), 2 every described type.
 
@@ -471,7 +474,7 @@ program registers (the default), 2 every described type.
 - **Debugging**: desc can be called from a debugger now; later the same
   descriptions can generate natvis files and gdb pretty-printers.
 
-## Order of adoption (E34 (a))
+## Order of adoption (decision 34 (a))
 
 Week 3's describers follow the roadmap's order: memory, filesys, option,
 test, db, net.
@@ -482,18 +485,27 @@ test, db, net.
   its derived facts; desc's djin; the macro layer; the C++ face; their
   suites (`c_desc_tests`: 17 tests, 121 checks; the C++ face's harness,
   `tests/unintegrated/cpp/desc/t_desc_units.cpp`, from C++98).
-- **Monday 11-16**: desc's text, JSON and collecting machines, with the
-  log's code; the `style`, `form`, `format` and `text` options and their
-  knobs; `d_desc_write` and `d_desc_write_with`.
-- **Week 3**: the name registry (E33); describers in E34's order; the
-  declaring macros per family, with lanes C and H (E31).
+- **Wednesday 11-18**: desc's text, JSON and collecting machines, with the
+  log's code; the `style`, `form`, `format`, `text`, `json_integers` and
+  `json_nonfinite` options and their knobs; `d_desc_write`,
+  `d_desc_write_with` and `d_desc_write_shaped`; a JSON shape member; a
+  frame's settings as facts (`option_env_desc.h`).
+- **Week 3**: the name registry (decision 33); describers in decision 34's
+  order; the declaring macros per family, with the containers' module
+  (decision 31).
 
 ## Settled
 
 1. The fact record's members: as `desc.h` has them, a byte each for
    importance and truth, since sharing one would not make the record
-   smaller (64 bytes either way on x86-64). Lane G takes the sink and the
-   machine table for its djins' `describe` (its E-8).
+   smaller (64 bytes either way on x86-64). A djin's `describe` slot takes
+   the sink, and the djin ABI is 2 (option_env's decision 55).
 2. The layers: desc.h's nine, and no others; a module adds keys.
-3. Where a describer is found: E33 (c), above.
-4. Which modules get describers first: E34 (a), above.
+3. Where a describer is found: decision 33 (c), above.
+4. Which modules get describers first: decision 34 (a), above.
+5. JSON that names its shape: the JSON machine writes `"format": "<shape>"`
+   first, a shape a caller names, as `djinterp.describe/1.0` and
+   `djinterp.help/1.0` (decision 74). A shape's version is MAJOR.MINOR:
+   MAJOR moves at any change that is not an addition, MINOR at an
+   addition. `desc.json_integers` and `desc.json_nonfinite` work as the
+   log's do (the log's decisions 48 and 49).

@@ -13,7 +13,7 @@
 #
 # path:      /build/cmake/config/testing/djinterp/c/desc/CMakeLists.txt
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-#                                                            revised: 2026.11.13
+#                                                            revised: 2026.11.17
 # =============================================================================
 
 set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/c/desc")
@@ -31,6 +31,7 @@ djinterp_add_test_executable(c_desc_tests
         "${_desc}/desc_options.c"
         "${_desc}/desc_machines.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/text/ostream_template.c"
+        "${_option}/option_env_desc.c"
         "${_option}/option_env.c"
         "${_option}/option_env_registry.c"
         "${_option}/option_set_common.c"

@@ -1,9 +1,10 @@
 # The event and log contract
 
-Lane E's design, agreed Friday 11-13: what a log record is, how it is
+The log's design, agreed Friday 11-13: what a log record is, how it is
 written, and how it relates to events, message codes and desc. It records
-the owner's rulings of 11-12, E21 to E27. The code landed on Monday 11-16
-(E27 (b)): `c/log/log.h`, `src/djinterp/c/log/log.c` and `log_writers.c`,
+the owner's rulings of 11-12 and 11-17, cited by the log's decision numbers.
+The code lands on Wednesday 11-18 (decisions 27 and 80): `c/log/log.h`,
+`src/djinterp/c/log/log.c` and `log_writers.c`,
 its knobs in `config/c/log/cfg_log.h`, and its suite, `c_log_tests`. Every feature is
 customizable: a knob (`D_CFG_*`, fixed when compiling) says what a build
 has, and an option (a row of the `log` djin, set from a file, the
@@ -34,7 +35,7 @@ record = event occurrence      (c/event: a dj_event_key and its payload)
   facts, so the text is written last, from facts, like every other desc
   output.
 
-## The event key (E21 (c))
+## The event key (decision 21 (c))
 
 A record's key is the hash of its code's full name ("net.connect_timeout"),
 FNV-1a 64 (`d_event_key_of_name`), so C and C++, two runs and two
@@ -48,13 +49,24 @@ collision, and a debug build checks each name as it registers.
 
 `d_log_code_key` gives a code's key; `d_log_module_add` refuses a table
 whose key collides with a registered one's, where the check is built, and a
-table with a number twice, always. A program's own hash
+table with a number twice, always.
+
+Events and codes share one key space. An event's name is declared beside
+its type, the same string in C and C++ (the event core's decision 15:
+`D_EVENT(DOnResize,
+"ui.resize", int, int)`, `D_EVENT_DECLARE(on_resize, "ui.resize", int,
+int)`), and hashed the same way. A record is an occurrence of its code's
+event, so a name means one thing, with one payload, whichever declared it:
+the manifest lists events' names as well as codes', and CI's collision
+check covers both (decision 64). The debug check sees only registered codes,
+since
+events are not registered. A program's own hash
 (`D_CFG_EVENT_KEY_HASH`) and the option `event.key_check` come with the
 event system's djin, in week 3.
 CI's check of the tree's own names is not optional: it is the tree's
 guarantee.
 
-## Levels (E22)
+## Levels (decision 22)
 
 Every level is a name and a severity on OpenTelemetry's scale of 1 to 24,
 so a threshold is one comparison, and any level maps onto OpenTelemetry and
@@ -127,15 +139,22 @@ if (d_log_open(&record, &d_log_code_net_connect_timeout, 0u))
   none (`log.destination`), or a program's own (`d_log_set_stream`). The
   stream is buffered and flushed at each record's end, so a record that fits
   is one write. With `D_CFG_LOG_THREADSAFE` (1) a lock around the writer and
-  its stream keeps records whole; call `d_log_init` before the program
-  starts its threads, after its settings are read.
+  its stream keeps records whole. The lock and the first cache of settings
+  are each made once (`d_call_once`), so threads that log first at the same
+  moment are safe; call `d_log_init` before the program starts its threads,
+  after its settings are read, and change no setting while they log (decision
+  63).
+- A record takes its time when it opens, when the event happened, and its
+  observed time when it is written. No lock is held while a record is open,
+  so a record may stay open across calls: an error whose note comes after
+  it is one record, with the note a nested fact.
 - The body is the code's template written from the record's facts by the
   stream's template engine; a field the template names that the record lacks
   is empty. A body past `D_CFG_LOG_BODY_MAX` is cut where a character
   starts.
 - Numbers for machines never follow the locale; prose may group digits.
 
-## The record's members: OpenTelemetry's log data model (E24 (b))
+## The record's members: OpenTelemetry's log data model (decision 24 (b))
 
 A record uses the data model's names: Timestamp, SeverityText,
 SeverityNumber, Body and Attributes, the facts going in Attributes, the
@@ -146,12 +165,12 @@ a program can replace any part.
 
 | Feature | Knob, default | Option, default | Machine |
 |---|---|---|---|
-| Severity number | always built | `log.severity_number`, on | E22's levels |
+| Severity number | always built | `log.severity_number`, on | decision 22's levels |
 | Instrumentation scope: the module | `D_CFG_LOG_SCOPE`, 1 | `log.scope`, on | none: the module is known where the record is made |
 | Resource: program, host, process, platform | `D_CFG_LOG_RESOURCE`, 1 | `log.resource`: off in JSON lines, where it would repeat on every line; on in OTLP, once per batch. `log.resource.<key>` adds or overrides one. | a resource provider; the default reads the environment report and the program's name |
 | Trace and span ids, trace flags | `D_CFG_LOG_CONTEXT`, 0, since djinterp makes no traces | `log.context`, on when built | a context provider, which a tracing library supplies |
-| Observed timestamp | `D_CFG_LOG_OBSERVED_TIME`, 1 | `log.observed_time`, off: it equals the timestamp unless a record waits | the clock |
-| Dropped attributes count | with E25's cap | `log.dropped_count`, on | none |
+| Observed timestamp | `D_CFG_LOG_OBSERVED_TIME`, 1 | `log.observed_time`, off: the record's time is when it opened, the observed time when it was written | the clock |
+| Dropped attributes count | with decision 25's cap | `log.dropped_count`, on | none |
 | Timestamps | always built | `log.time`: UTC or local, and its precision | the clock: a test fixes it |
 | Formats | `D_CFG_LOG_FORMATS`, all three | `log.format`: text (default), json, otlp | a writer |
 
@@ -170,9 +189,10 @@ Built but not yet a program's to fill: the resource holds `service.name`
 (`log.service`, else `unknown_service`) and `process.pid`;
 `log.resource.<key>` and a resource provider, and the context provider for
 trace and span ids, come with the first program that needs them. The
-observed time equals the record's until records wait in a queue.
+observed time differs from the record's when a record is held open, or
+waits in a queue.
 
-## Nested facts (E25 (b))
+## Nested facts (decision 25 (b))
 
 A record carries nested facts from 0.8: a fact's depth
 (`dj_desc_fact.depth`) opens an object in JSON and a dotted key in text, so
@@ -189,40 +209,73 @@ knob. Facts past a cap are counted in a final `truncated` fact (the
 dropped attributes count). `log.nesting` chooses nested objects, or dotted
 keys for tools that want flat attributes.
 
-## Message codes: tables and a manifest (E23 (c))
+## Message codes: tables and a manifest (decision 23 (c))
 
-- **One table per module**, beside the module, owned by the lane that owns
-  the module and compiled out with it: each row a number, a name, a class,
-  a grade, a template and the facts it names. A table is a macro of two
-  parameters, a row each, in `<module>_codes.h`:
+- **One table per enum of codes**, beside the enum, owned with the module
+  and compiled out with it (decision 77): `net` and `db` each have one, and
+  a submodule gets its own only when it has an enum of its own, as
+  `db.vendor` does (decision 75). Each row is a number, a name, a class, a
+  grade, a template and the facts it names. A table is a macro of two
+  parameters, a row each, in the enum's header or in `<module>_codes.h`:
 
   ```c
   #define D_NET_LOG_CODES(X, m)                                          \
       X(m, 207, connect_timeout, RESOURCE_BUDGET, FAILED,               \
         "connecting to {host} took over {timeout_ms} ms",               \
         (host, timeout_ms))
-  D_LOG_CODES_DECLARE(net, D_NET_LOG_CODES)        // in its header
+  D_LOG_CODES_DECLARE(net, D_NET_LOG_CODES)        // in the log's unit
   D_LOG_CODES_DEFINE(net, "net", D_NET_LOG_CODES)  // in one source
   ```
 
-  Class and grade are checked by the compiler; the template's names are
-  checked against the facts when it compiles. A module registers its table
+  The table's `#define` is inert text and needs no include, so a module's
+  header can hold it without depending on the log. `D_LOG_CODES_DECLARE`
+  and `_DEFINE` need `log.h`, so they go in the unit that logs for the
+  module (parse's subscriber, for instance), built only when the log is.
+  The generator checks each row against the enum beside it: a constant
+  whose name ends in the row's name, upper-cased, with the row's number.
+
+  Class and grade are checked by the compiler. A template that does not
+  compile is written as it is; `d_log_module_check` compiles each code's
+  template against its facts and names the first that fails, for a module's
+  tests to call. A module registers its table
   with `d_log_module_add` before settings are read, which also makes it a
   scope of the log's djin: `log.net.level`, with a dotted module's '.' as
   '_' (`log.parse_expr.level`).
 - A code's full name is `module.name`; its number is unique in its module;
-  the pair never changes meaning once released.
+  the pair never changes meaning once released. A number is the value the
+  module's enum gives the code, sign and all, so a record's number is the
+  number the caller holds: db's codes are negative, so that they never meet
+  a vendor's, and are written `db:-6` (decision 76).
 - **A manifest CI generates and checks**: every code's module, number, name,
-  class and grade. CI fails on a duplicate number, a hash collision (E21),
-  or a released code whose meaning changed against the committed manifest,
-  and the docs' list is made from it. Lane E writes the generator and the
-  job; it runs in lane A's CI. The generator also runs on a program's own
+  class and grade, and every event's name, since events and codes share one
+  key space (decision 64). CI fails on a duplicate number, a hash collision
+  (decision 21), a name that is both an event and a code, or a released
+  code whose meaning changed against the committed manifest, and the docs'
+  list is made from it. The generator and its job come with the log; the
+  job runs in the tree's CI. The generator also runs on a program's own
   tables, so a program gets the same guarantee.
+- **A module the log is built on never logs** (decision 67): the containers,
+  the stream, filesys, sync and the option core return their codes, and
+  their callers log them, finding each by its number with
+  `d_log_code_find`, and adding the facts only the caller knows. The
+  module's table still sits beside its enum, as inert text. A module may
+  log from inside -- a broken invariant where it happens -- only under a
+  knob of its own, `D_CFG_<MODULE>_LOG`, 0 by default, and a run then
+  chooses its records with `log.<module>.level`. Parse, above the log,
+  logs through a subscriber unit of its own.
+- **A vendor's own codes** are mapped to a small table of kinds beside an
+  enum of them, `db.vendor.<kind>` (connection, auth, constraint, syntax,
+  not found, busy, data, unsupported, internal), so a reader filters by
+  class across vendors; the vendor's product, code and message stay as
+  facts under OpenTelemetry's names (`db.system.name`,
+  `db.response.status_code`). The mapping is a classifier per vendor that
+  a program may replace, and the message, which can carry a user's data,
+  may be left out by a knob and an option of the module's (decision 75).
 - The status codes the modules return today (`D_OPTION_STATUS_*`,
   `D_OSTREAM_*`, `errno`) map onto codes, so an error reported to a caller
   and an error logged are the same thing in two places.
 - A module's own code names (`parse.expr.unclosed`) are its own; the first
-  are lane F's: domain 4 of parse's diagnostics, its ten codes.
+  are parse's: domain 4 of its diagnostics, its ten codes.
 
 | Knob | Default | |
 |---|---|---|
@@ -233,7 +286,7 @@ The option `log.code_style` writes a code by name, number or both, in text.
 
 ### Classes, sides and grades
 
-Lane C's table of container error conditions (from the retired
+The containers' table of error conditions (from the retired
 `c/container/derror.h`, 11-04) gives the registry three things more, which
 every module's codes share:
 
@@ -241,10 +294,17 @@ every module's codes share:
   `argument.null`, `position.index`, `quantity.count`, `span.inverted`,
   `resource.memory`, `handle.stale`, `integrity.invariant` and the rest
   (`D_LOG_CLASSES` in log.h lists them all). A reader can then treat every
-  module's out-of-range index alike. E57 and E58 propose
-  `constraint.violated`, `quantity.depth`, `resource.budget`,
+  module's out-of-range index alike. Ruled on 11-17: `constraint.violated`,
+  for a construct that parsed and that a language's check refuses
+  (decision 57); `quantity.depth`, `resource.budget`,
   `operation.unsupported`, `io.failed`, `lifecycle.closed` and the
-  `format.*` family, which log.h carries pending the owner's ruling.
+  `format.*` family, as one set (decision 58); `lifecycle.frozen`, for a
+  change refused by an object that is still in use (decision 66); and
+  `io.timed_out`, `io.refused`, `io.unreachable`, `io.reset` and
+  `io.would_block`, for a peer's conditions (decision 78). A class is part
+  of a code's meaning, fixed when it compiles; a missing one is proposed and
+  ruled before the table that needs it. A program's own tables may add
+  classes of their own, `D_CFG_LOG_CLASSES_EXTRA`, after the vocabulary.
 - **A side**, a standard fact for a value or a range against the valid
   interval: any of below (B), at its lower edge (L), within (W), at its upper
   edge (U) and above (A). An index past the end is `position.index {A}`; a
@@ -255,8 +315,8 @@ every module's codes share:
   hold). The table's effect marks become facts: `effect` (no-op, partial)
   and `retryable`.
 
-**The syntax family**, for bad input text, which lane C's table has no
-class for: five classes, each graded rejected, for every parser in the tree
+**The syntax family**, for bad input text, which the containers' table has
+no class for: five classes, each graded rejected, for every parser in the tree
 to share. A module's own code says which fault it is; the class says what
 kind:
 
@@ -266,14 +326,13 @@ kind:
 - `syntax.ambiguous`: an order the grammar will not choose;
 - `syntax.arity`: the wrong number of operands.
 
-Lane F maps parse's seven syntax codes onto them once they join the
-vocabulary.
+Parse maps its seven syntax codes onto them.
 
 Conditions the table marks undetectable (a comparator that is not a strict
 weak order, a variadic count) get no code: they belong in a module's
 documentation.
 
-### Each grade's default level (E26 (b))
+### Each grade's default level (decision 26 (b))
 
 | Grade | ok | note | caveat | soft | rejected | failed | broken |
 |---|---|---|---|---|---|---|---|
@@ -302,10 +361,11 @@ command-line option and a provenance:
 | `facts_max`, `depth_max` | int ranges | the caps, up to their knobs |
 | `nesting` | choice | nested, dotted |
 | `grade_<grade>`, `<module>.grade_<grade>` | int, named | a grade's level |
-| `severity_number`, `scope`, `resource`, `context`, `observed_time`, `dropped_count` | bool | E24's features, where built |
+| `severity_number`, `scope`, `resource`, `context`, `observed_time`, `dropped_count` | bool | decision 24's features, where built |
 | `time` | choice | utc, utc_ms (the default), utc_us, utc_ns, local, local_ms, local_us, local_ns |
-| `json_integers` | choice | number (the default), string: E48 (d) |
-| `json_nonfinite` | choice | null (the default), string: E49 (c) |
+| `json_integers` | choice | number (the default), string: decision 48 (d) |
+| `json_nonfinite` | choice | null (the default), string: decision 49 (c) |
+| `real_digits` | int, 0 to 17 | 0, the default: a real whole, the shortest text that reads back; 1 to 17 rounds each real to that many significant digits first, shorter but lossy (decision 51) |
 | `service` | text | the resource's `service.name` |
 
 Every row's default is its knob (`cfg_log.h`), and every row is per module
@@ -314,22 +374,31 @@ as well, through the module's scope.
 ## When it lands
 
 - **Friday 11-13**: this contract, agreed.
-- **Monday 11-16** (E27 (b)): the log's header, its writers and its suite,
-  with desc's text, JSON and collecting machines; lanes may adopt it from
-  Wednesday 11-18.
-- **Week 3**: the codes generator and its CI job, with lane A; the modules'
-  code tables, each lane its own.
+- **Wednesday 11-18** (decisions 27 and 80): the log's header, its writers
+  and its suite, with desc's text, JSON and collecting machines; then the
+  lock and the first cache made once, a record's time when it opens,
+  `d_log_module_check`, signed numbers, the classes of 11-17 and
+  `log.real_digits`. Modules may adopt it from then.
+- **Wednesday 11-18 or Friday 11-20**: events named beside their types
+  (the event core's decision 15), with DTest's names, in the window DTest's
+  half lands.
+- **Week 3**: the codes generator and its CI job; the modules' code tables,
+  each module its own.
 
 ## Settled
 
-1. A record's event key: the name's hash, checked (E21 (c)), above.
+1. A record's event key: the name's hash, checked (decision 21 (c)), above.
 2. The levels: a spectrum from none to added at run time, the seven built in
-   (E22), above.
+   (decision 22), above.
 3. The record's members: OpenTelemetry's names, each missing concept an
-   opt-in feature (E24 (b)), above.
-4. Nested facts: from 0.8, with a cap (E25 (b)), above.
+   opt-in feature (decision 24 (b)), above.
+4. Nested facts: from 0.8, with a cap (decision 25 (b)), above.
 5. The codes registry: tables per module, and a manifest CI checks
-   (E23 (c)), above.
-6. The class vocabulary, from lane C's table with the syntax family, which
-   lane F agreed (11-11); each grade's default level, revised (E26 (b)),
-   above. Lane C reports container errors with the codes this settles.
+   (decision 23 (c)), above.
+6. The class vocabulary, from the containers' table with the syntax family,
+   which parse agreed (11-11), and the classes of 11-17; each grade's default
+   level, revised (decision 26 (b)), above. The containers report their
+   errors with the codes this settles.
+7. Code tables: one per enum of codes; numbers signed; modules below the
+   log return codes and their callers log them; vendors' codes as kinds
+   (decisions 64 and 67, 75 to 77), above.

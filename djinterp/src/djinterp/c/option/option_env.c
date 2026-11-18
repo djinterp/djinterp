@@ -29,7 +29,7 @@
 * path:      /src/djinterp/c/option/option_env.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/option/option_env.h"  // corresponding header
 // std
@@ -3882,6 +3882,295 @@ d_internal_option_env_getenv(
 }
 
 /*
+d_option_env_reason_of
+  The status narrows the rule: a name, a kind and room have one each. A
+refused source and an unbuilt value share POLICY_REJECTED, told apart by the
+row's refused bits; INVALID_ARGUMENT is the kind's reader or the values it
+accepts, told apart by reading the text again.
+*/
+int32_t
+d_option_env_reason_of(
+    const struct dj_option_env* _env,
+    uint32_t                    _scope,
+    uint32_t                    _var,
+    int32_t                     _source,
+    const char*                 _value,
+    size_t                      _size,
+    int32_t                     _status
+)
+{
+    const struct dj_option_env_var* decl = NULL;
+    struct dj_option_env_value      value;
+
+    switch (_status)
+    {
+        case D_OPTION_STATUS_OK:
+            return (int32_t)D_OPTION_ENV_REASON_NONE;
+        case D_OPTION_STATUS_KEY_ABSENT:
+        case D_OPTION_STATUS_KEY_TYPE_MISMATCH:
+            return (int32_t)D_OPTION_ENV_REASON_NAME;
+        case D_OPTION_STATUS_VALUE_TYPE_MISMATCH:
+            return (int32_t)D_OPTION_ENV_REASON_KIND;
+        case D_OPTION_STATUS_BUFFER_TOO_SMALL:
+        case D_OPTION_STATUS_CAPACITY:
+        case D_OPTION_STATUS_VALUE_CAPACITY:
+        case D_OPTION_STATUS_NO_MEMORY:
+            return (int32_t)D_OPTION_ENV_REASON_ROOM;
+        case D_OPTION_STATUS_POLICY_REJECTED:
+        case D_OPTION_STATUS_INVALID_ARGUMENT:
+            break;
+        default:
+            return (int32_t)D_OPTION_ENV_REASON_ARGUMENT;
+    }
+
+    if ( (d_internal_option_env_source_ok(_source) == 0) ||
+         (d_internal_option_env_check(_env, _scope, _var, &decl) !=
+          (int32_t)D_OPTION_STATUS_OK) ||
+         ( (_value == NULL) &&
+           (_size != 0u) ) )
+    {
+        return (int32_t)D_OPTION_ENV_REASON_ARGUMENT;
+    }
+
+    if (_status == (int32_t)D_OPTION_STATUS_POLICY_REJECTED)
+    {
+        return ((decl->refused & D_OPTION_ENV_REFUSES(_source)) != 0u)
+                   ? (int32_t)D_OPTION_ENV_REASON_SOURCE
+                   : (int32_t)D_OPTION_ENV_REASON_UNBUILT;
+    }
+
+    // a name a choice or flags lacks is not one of them, however it reads
+    if ( (decl->kind == D_OPTION_ENV_KIND_CHOICE) ||
+         (decl->kind == D_OPTION_ENV_KIND_FLAGS) )
+    {
+        return (int32_t)D_OPTION_ENV_REASON_CHOICE;
+    }
+
+    if (decl->kind == D_OPTION_ENV_KIND_TEXT)
+    {
+        return (int32_t)D_OPTION_ENV_REASON_ARGUMENT;
+    }
+
+    // an int read whole was refused by its range; otherwise by its reader
+    return ( (decl->kind == D_OPTION_ENV_KIND_INT) &&
+             (d_internal_option_env_parse(_env, _scope, _var, decl,
+                                          (_value != NULL) ? _value : "",
+                                          _size, &value) ==
+              (int32_t)D_OPTION_STATUS_OK) )
+               ? (int32_t)D_OPTION_ENV_REASON_RANGE
+               : (int32_t)D_OPTION_ENV_REASON_TEXT;
+}
+
+// REASON_NAMES
+//   constant: each reason's stock words, by number.
+static const char* const REASON_NAMES[] =
+{
+    "",
+    "no such setting",
+    "a value of another kind",
+    "not taken from this source",
+    "not built into this program",
+    "out of range",
+    "not one of its names",
+    "not readable as its kind",
+    "no room to bind it",
+    "a bad argument"
+};
+
+const char*
+d_option_env_reason_name(
+    int32_t _reason
+)
+{
+    return ( (_reason >= 0) &&
+             ((size_t)_reason < (sizeof(REASON_NAMES) /
+                                 sizeof(REASON_NAMES[0]))) )
+               ? REASON_NAMES[_reason]
+               : "?";
+}
+
+/*
+d_option_env_refuses
+  The row as binding finds it, then its bit for the source.
+*/
+int
+d_option_env_refuses(
+    const struct dj_option_env* _env,
+    uint32_t                    _scope,
+    uint32_t                    _var,
+    int32_t                     _source
+)
+{
+    const struct dj_option_env_var* decl = NULL;
+
+    if ( (d_internal_option_env_source_ok(_source) == 0) ||
+         (d_internal_option_env_check(_env, _scope, _var, &decl) !=
+          (int32_t)D_OPTION_STATUS_OK) )
+    {
+        return -1;
+    }
+
+    return ((decl->refused & D_OPTION_ENV_REFUSES(_source)) != 0u) ? 1 : 0;
+}
+
+/*
+d_internal_option_env_print_text
+  Text to a C stream, each control byte as \xNN, so a value read from the
+environment cannot move a terminal's cursor or retitle its window.
+*/
+static void
+d_internal_option_env_print_text(
+    FILE*       _out,
+    const char* _text
+)
+{
+    for (; (_text != NULL) && (*_text != '\0'); ++_text)
+    {
+        const unsigned char c = (unsigned char)*_text;
+
+        if ( (c < 0x20u) || (c == 0x7Fu) )
+        {
+            (void)fprintf(_out, "\\x%02X", (unsigned int)c);
+        }
+        else
+        {
+            (void)fputc((int)c, _out);
+        }
+    }
+
+    return;
+}
+
+/*
+d_internal_option_env_print_why
+  A reason in the row's own terms: the kind a text is not, the range and the
+names an int takes, a choice's names, the source refused.
+*/
+static void
+d_internal_option_env_print_why(
+    FILE*                              _out,
+    const struct dj_option_env_report* _report,
+    const struct dj_option_env_var*    _decl
+)
+{
+    // by D_OPTION_ENV_KIND_*, from BOOL, 1, to FLAGS, 6
+    static const char* const KINDS[] =
+    {
+        "readable", "a bool", "an int", "a real", "text",
+        "one of its names", "a set of its flags"
+    };
+    static const char* const SOURCES[] =
+    {
+        "the default", "the program", "a settings file", "the environment",
+        "the command line", "an override"
+    };
+    uint32_t i;
+
+    // without the row, every reason is said in its stock words
+    switch ( ( (_decl != NULL) ||
+               (_report->reason == (int32_t)D_OPTION_ENV_REASON_SOURCE) )
+                 ? _report->reason : -1 )
+    {
+        case D_OPTION_ENV_REASON_TEXT:
+            (void)fprintf(_out, "not %s",
+                          ( (_decl->kind >= (int32_t)D_OPTION_ENV_KIND_BOOL) &&
+                            (_decl->kind <= (int32_t)D_OPTION_ENV_KIND_FLAGS) )
+                              ? KINDS[_decl->kind] : KINDS[0]);
+            break;
+        case D_OPTION_ENV_REASON_RANGE:
+            (void)fprintf(_out, "not from %lld to %lld",
+                          (long long)_decl->minimum,
+                          (long long)_decl->maximum);
+
+            for (i = 0u; i < _decl->name_count; ++i)
+            {
+                (void)fprintf(_out, (i == 0u) ? ", nor %s" : " or %s",
+                              _decl->names[i].name);
+            }
+
+            break;
+        case D_OPTION_ENV_REASON_CHOICE:
+            (void)fputs("not one of ", _out);
+
+            for (i = 0u; i < _decl->name_count; ++i)
+            {
+                (void)fprintf(_out, (i == 0u) ? "%s" : ", %s",
+                              _decl->names[i].name);
+            }
+
+            break;
+        case D_OPTION_ENV_REASON_SOURCE:
+            (void)fprintf(_out, "not taken from %s in this program",
+                          ( (_report->source >= 0) &&
+                            (_report->source <= 5) )
+                              ? SOURCES[_report->source] : "this source");
+            break;
+        default:
+            (void)fputs(d_option_env_reason_name(_report->reason), _out);
+            break;
+    }
+
+    return;
+}
+
+/*
+d_option_env_report_print
+  "VARIABLE=value: why", a line each; a record too old to carry its reason
+is said in the status's terms.
+*/
+void
+d_option_env_report_print(
+    void*                              _context,
+    const struct dj_option_env_report* _report
+)
+{
+    FILE* const out = (_context != NULL) ? (FILE*)_context : stderr;
+
+    if ( (_report == NULL) ||
+         (_report->size < (uint32_t)sizeof(struct dj_option_env_report)) )
+    {
+        return;
+    }
+
+    d_internal_option_env_print_text(out, _report->variable);
+    (void)fputc('=', out);
+    d_internal_option_env_print_text(out, _report->value);
+    (void)fputs(": ", out);
+    d_internal_option_env_print_why(out, _report,
+                                    (_report->frame != NULL)
+                                        ? d_internal_option_env_decl(
+                                              _report->frame, _report->var)
+                                        : NULL);
+    (void)fputc('\n', out);
+
+    return;
+}
+
+/*
+d_internal_option_env_setting
+  A variable's full name as the registry resolves it: a djin's frame -- one
+with a name and a parent -- before it and a dot; a root's, or a lone
+frame's, alone. Cut to fit, always NUL-terminated.
+*/
+static void
+d_internal_option_env_setting(
+    const struct dj_option_env* _env,
+    const char*                 _name,
+    char*                       _buffer,
+    size_t                      _capacity
+)
+{
+    const int qualified = ( (_env->parent != NULL) &&
+                            (_env->name != NULL) &&
+                            (_env->name[0] != '\0') );
+
+    (void)snprintf(_buffer, _capacity, qualified ? "%s.%s" : "%s%s",
+                   qualified ? _env->name : "", _name);
+
+    return;
+}
+
+/*
 d_option_env_import_each
   One getenv per visible variable that its name reaches -- a name an inner
 declaration hides is the inner one's -- and one for its alias when the name
@@ -3896,10 +4185,12 @@ d_option_env_import_each(
     void*                 _context
 )
 {
-    struct dj_option_result failure = d_option_ok(0u);
-    uint32_t                count   = 0u;
-    const char* const       prefix  = (_prefix != NULL) ? _prefix : "";
-    char                    key[D_INTERNAL_OPTION_ENV_SCRATCH];
+    struct dj_option_result     failure = d_option_ok(0u);
+    uint32_t                    count   = 0u;
+    const char* const           prefix  = (_prefix != NULL) ? _prefix : "";
+    char                        key[D_INTERNAL_OPTION_ENV_SCRATCH];
+    char                        setting[D_INTERNAL_OPTION_ENV_SCRATCH];
+    struct dj_option_env_report report;
 
     if (_env == NULL)
     {
@@ -3948,7 +4239,22 @@ d_option_env_import_each(
             // key holds the name getenv was last asked: the one that was read
             if (_report != NULL)
             {
-                _report(_context, key, value, result);
+                d_internal_option_env_setting(_env, decl->name, setting,
+                                              sizeof(setting));
+                report.size     = (uint32_t)sizeof(report);
+                report.source   = D_OPTION_ENV_SOURCE_ENVIRONMENT;
+                report.variable = key;
+                report.value    = value;
+                report.setting  = setting;
+                report.frame    = _env;
+                report.scope    = D_OPTION_ENV_GLOBAL;
+                report.var      = var;
+                report.result   = result;
+                report.reason   = d_option_env_reason_of(
+                                      _env, D_OPTION_ENV_GLOBAL, var,
+                                      D_OPTION_ENV_SOURCE_ENVIRONMENT, value,
+                                      strlen(value), result.payload.error);
+                _report(_context, &report);
             }
 
             if (failure.is_ok)
@@ -3963,7 +4269,8 @@ d_option_env_import_each(
 
 /*
 d_option_env_import
-  Every failure but the first unreported.
+  Every failure but the first unreported, or each to the stock report, as
+D_CFG_OPTION_ENV_IMPORT_REPORT says.
 */
 struct dj_option_result
 d_option_env_import(
@@ -3971,7 +4278,10 @@ d_option_env_import(
     const char*           _prefix
 )
 {
-    return d_option_env_import_each(_env, _prefix, NULL, NULL);
+    return d_option_env_import_each(_env, _prefix,
+                                    (D_CFG_OPTION_ENV_IMPORT_REPORT != 0)
+                                        ? d_option_env_report_print : NULL,
+                                    NULL);
 }
 
 
@@ -4171,7 +4481,9 @@ d_internal_option_env_format_flags(
 }
 
 /**
- * @brief Writes a double so strtod reads it back exactly, with '.' for the
+ * @brief Writes a double so strtod reads it back exactly, in the fewest
+ *        digits that do -- "0.1", not "0.10000000000000001", as JSON's
+ *        reals are written (the log's decision 51) -- with '.' for the
  *        locale's decimal point.
  *
  * @param[in]     _real      the value.
@@ -4196,11 +4508,22 @@ d_internal_option_env_format_real(
                                      ? locale->decimal_point
                                      : ".";
     const size_t        point_size = strlen(point);
-    const int           written    = snprintf(number,
-                                              sizeof(number),
-                                              "%.17g",
-                                              _real);
+    int                 written    = -1;
+    int                 digits;
     size_t              i          = 0u;
+
+    // 15 digits read back most doubles; 17 reads back every one
+    for (digits = 15; digits <= 17; ++digits)
+    {
+        written = snprintf(number, sizeof(number), "%.*g", digits, _real);
+
+        if ( (written < 0) ||
+             ((size_t)written >= sizeof(number)) ||
+             (strtod(number, NULL) == _real) )
+        {
+            break;
+        }
+    }
 
     if ( (written < 0) ||
          ((size_t)written >= sizeof(number)) )
@@ -4489,6 +4812,34 @@ d_option_env_format_quoted(
 
 
 /*
+d_internal_option_env_checked
+  A check's record, filled as far as the caller's size reaches; nothing for
+a null record or one too small for its first members.
+*/
+static void
+d_internal_option_env_checked(
+    struct dj_option_env_checked* _checked,
+    const struct dj_option_env*   _env,
+    uint32_t                      _scope,
+    uint32_t                      _var,
+    int32_t                       _reason
+)
+{
+    if ( (_checked == NULL) ||
+         (_checked->size < (uint32_t)sizeof(struct dj_option_env_checked)) )
+    {
+        return;
+    }
+
+    _checked->reason = _reason;
+    _checked->frame  = _env;
+    _checked->scope  = (_env != NULL) ? _scope : D_OPTION_ENV_GLOBAL;
+    _checked->var    = _var;
+
+    return;
+}
+
+/*
 d_option_env_check_from
   assign_from's resolving and reading, and binding's admission, with the
 value written where assign_from would bind it: nothing is bound and nothing
@@ -4496,15 +4847,16 @@ is copied, so the frame is as it was.
 */
 size_t
 d_option_env_check_from(
-    const struct dj_option_env* _env,
-    const char*                 _name,
-    size_t                      _name_size,
-    const char*                 _value,
-    size_t                      _value_size,
-    int32_t                     _source,
-    char*                       _buffer,
-    size_t                      _capacity,
-    struct dj_option_result*    _result
+    const struct dj_option_env*   _env,
+    const char*                   _name,
+    size_t                        _name_size,
+    const char*                   _value,
+    size_t                        _value_size,
+    int32_t                       _source,
+    char*                         _buffer,
+    size_t                        _capacity,
+    struct dj_option_result*      _result,
+    struct dj_option_env_checked* _checked
 )
 {
     const struct dj_option_env_var* decl   = NULL;
@@ -4576,6 +4928,15 @@ d_option_env_check_from(
                        ? d_option_ok(found.payload.value)
                        : d_option_fail(status);
     }
+
+    d_internal_option_env_checked(_checked, found.is_ok ? _env : NULL, scope,
+                                  found.is_ok ? found.payload.value
+                                              : D_OPTION_ENV_NONE,
+                                  d_option_env_reason_of(
+                                      _env, scope,
+                                      found.is_ok ? found.payload.value
+                                                  : D_OPTION_ENV_NONE,
+                                      _source, _value, _value_size, status));
 
     if (status != (int32_t)D_OPTION_STATUS_OK)
     {

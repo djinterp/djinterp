@@ -11,7 +11,7 @@
 * path:      /src/djinterp/c/log/log.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #include "../../../../inc/djinterp/c/log/log.h"  // corresponding header
@@ -19,7 +19,8 @@
 #if RE_STD_HAS_INT64
 
 // std
-#include <stdio.h>   // stderr
+#include <stdio.h>   // stderr, snprintf
+#include <stdlib.h>  // strtod
 #include <string.h>  // memcmp, strlen
 #include <time.h>    // clock_gettime, timespec_get, time
 // djinterp
@@ -88,6 +89,13 @@ struct dj_internal_log
 };
 
 static struct dj_internal_log d_internal_log;
+
+#if D_CFG_LOG_THREADSAFE
+// the lock, and the first cache, are each made once, by whichever thread
+// logs first
+static dj_once_flag_t d_internal_log_once       = D_ONCE_FLAG_INIT;
+static dj_once_flag_t d_internal_log_cache_once = D_ONCE_FLAG_INIT;
+#endif
 
 
 //==============================================================================
@@ -289,6 +297,7 @@ d_log_level_add(
 static const char* const CLASS_NAMES[] =
 {
     D_LOG_CLASSES(D_INTERNAL_LOG_CLASS_NAME)
+    D_CFG_LOG_CLASSES_EXTRA(D_INTERNAL_LOG_CLASS_NAME)
 };
 
 static const char* const GRADE_NAMES[] =
@@ -322,7 +331,7 @@ d_log_code_key(
     const struct dj_log_code* _code
 )
 {
-    char        digits[12];
+    char        digits[13];
     const char* parts[3];
     size_t      part;
     size_t      at;
@@ -340,8 +349,10 @@ d_log_code_key(
 
     if (_code->name == NULL)
     {
+        // the magnitude, unsigned, so INT32_MIN's has a value too
         at     = sizeof(digits) - 1u;
-        number = _code->number;
+        number = (_code->number < 0) ? (0u - (uint32_t)_code->number)
+                                     : (uint32_t)_code->number;
         digits[at] = '\0';
 
         do
@@ -350,6 +361,11 @@ d_log_code_key(
             number      /= 10u;
         }
         while (number != 0u);
+
+        if (_code->number < 0)
+        {
+            digits[--at] = '-';
+        }
 
         parts[2] = digits + at;
     }
@@ -603,7 +619,10 @@ static const struct dj_option_env_var SCHEMA[D_LOG_VARS] =
                              "NaN and infinities in JSON lines: null or "
                              "string"),
     D_OPTION_ENV_TEXT("service", NULL,
-                      "the resource's service.name")
+                      "the resource's service.name"),
+    D_OPTION_ENV_INT_RANGE_KNOB("real_digits", D_CFG_LOG_REAL_DIGITS, 0, 17,
+                                "a real's significant digits: 0 all, read "
+                                "back exactly; 1 to 17 rounds")
 };
 
 // dj_internal_log_djin_storage
@@ -656,7 +675,8 @@ static struct dj_internal_log_djin d_internal_log_djin =
             &SCHEMA[5],  &SCHEMA[6],  &SCHEMA[7],  &SCHEMA[8],  &SCHEMA[9],
             &SCHEMA[10], &SCHEMA[11], &SCHEMA[12], &SCHEMA[13], &SCHEMA[14],
             &SCHEMA[15], &SCHEMA[16], &SCHEMA[17], &SCHEMA[18], &SCHEMA[19],
-            &SCHEMA[20], &SCHEMA[21], &SCHEMA[22], &SCHEMA[23], &SCHEMA[24]
+            &SCHEMA[20], &SCHEMA[21], &SCHEMA[22], &SCHEMA[23], &SCHEMA[24],
+            &SCHEMA[25]
         }
     }
 };
@@ -910,7 +930,7 @@ const struct dj_log_code*
 d_log_code_find(
     const char* _module,
     size_t      _size,
-    uint32_t    _number
+    int32_t     _number
 )
 {
     size_t index;
@@ -982,6 +1002,8 @@ d_log_settings(
     _settings->dropped_count   = d_internal_log_bool(scope,
                                      D_LOG_VAR_DROPPED_COUNT);
     _settings->service         = d_internal_log_text(D_LOG_VAR_SERVICE);
+    _settings->real_digits     = (uint32_t)d_internal_log_int(scope,
+                                     D_LOG_VAR_REAL_DIGITS);
 #else
     (void)scope;
     _settings->format          = (uint32_t)D_CFG_LOG_FORMAT;
@@ -989,6 +1011,7 @@ d_log_settings(
     _settings->nesting         = (uint32_t)D_CFG_LOG_NESTING;
     _settings->json_integers   = (uint32_t)D_CFG_LOG_JSON_INTEGERS;
     _settings->json_nonfinite  = (uint32_t)D_CFG_LOG_JSON_NONFINITE;
+    _settings->real_digits     = (uint32_t)D_CFG_LOG_REAL_DIGITS;
     _settings->time            = (uint32_t)D_CFG_LOG_TIME;
     _settings->severity_number = 1u;
     _settings->scope           = (uint32_t)D_CFG_LOG_SCOPE;
@@ -1045,6 +1068,35 @@ d_internal_log_now(
 }
 
 /*
+d_internal_log_clock_now
+  The time now, by the program's clock where it set one.
+*/
+static uint64_t
+d_internal_log_clock_now(void)
+{
+    return (d_internal_log.clock != NULL)
+               ? d_internal_log.clock(d_internal_log.clock_context)
+               : d_internal_log_now(NULL);
+}
+
+#if D_CFG_LOG_THREADSAFE
+/*
+d_internal_log_lock_make
+  Makes the lock: run once, through d_call_once, so two threads that log
+first at the same moment make one lock between them. It lasts as long as
+the program.
+*/
+static void
+d_internal_log_lock_make(void)
+{
+    d_internal_log.lock_ready = (d_mutex_init(&d_internal_log.lock) == 0)
+                                    ? 1 : -1;
+
+    return;
+}
+#endif
+
+/*
 d_internal_log_lock, d_internal_log_unlock
   The lock around the writer and its stream, where built.
 */
@@ -1052,11 +1104,7 @@ static void
 d_internal_log_lock(void)
 {
 #if D_CFG_LOG_THREADSAFE
-    if (d_internal_log.lock_ready == 0)
-    {
-        d_internal_log.lock_ready = (d_mutex_init(&d_internal_log.lock) == 0)
-                                        ? 1 : -1;
-    }
+    d_call_once(&d_internal_log_once, d_internal_log_lock_make);
 
     if (d_internal_log.lock_ready == 1)
     {
@@ -1335,6 +1383,11 @@ d_internal_log_cache_of(
 {
     size_t slot;
 
+    // the first cache made once, so threads that log first at the same
+    // moment, before d_log_init, do not race to make it
+#if D_CFG_LOG_THREADSAFE
+    d_call_once(&d_internal_log_cache_once, d_internal_log_refresh);
+#endif
     d_internal_log_refresh();
     (void)d_internal_log_scope_of(_code->module, &slot);
 
@@ -1423,6 +1476,7 @@ d_log_open(
                             : d_internal_log_cache_of(_code)
                                   ->grades[_code->grade];
     _record->open     = 1u;
+    _record->time     = d_internal_log_clock_now();
     d_desc_collect_init(&_record->collected, _record->items,
                         (facts < (size_t)D_CFG_LOG_FACTS_MAX)
                             ? facts : (size_t)D_CFG_LOG_FACTS_MAX);
@@ -1638,6 +1692,111 @@ d_internal_log_body(
     return size;
 }
 
+int32_t
+d_log_module_check(
+    const struct dj_log_module*       _module,
+    const struct dj_log_code**        _bad,
+    struct dj_ostream_template_error* _error
+)
+{
+    struct dj_ostream_template_op    ops[D_CFG_LOG_TEMPLATE_OPS];
+    struct dj_ostream_template       compiled;
+    struct dj_ostream_template_error error;
+    struct dj_internal_log_fields    fields;
+    size_t                           index;
+    int32_t                          status;
+
+    if (_bad != NULL)
+    {
+        *_bad = NULL;
+    }
+
+    if ( (_module == NULL) ||
+         ( (_module->codes == NULL) && (_module->count != 0u) ) )
+    {
+        return (int32_t)D_OSTREAM_TEMPLATE_INVALID;
+    }
+
+    fields.facts = NULL;
+
+    for (index = 0u; index < _module->count; ++index)
+    {
+        const struct dj_log_code* const code = _module->codes[index];
+
+        if (code == NULL)
+        {
+            return (int32_t)D_OSTREAM_TEMPLATE_INVALID;
+        }
+
+        if (code->text == NULL)
+        {
+            continue;
+        }
+
+        fields.names = code->facts;
+        status       = d_ostream_template_compile(
+                           &compiled, ops, (size_t)D_CFG_LOG_TEMPLATE_OPS,
+                           code->text, d_internal_log_lookup, &fields,
+                           &error);
+
+        if (status != (int32_t)D_OSTREAM_TEMPLATE_OK)
+        {
+            if (_bad != NULL)
+            {
+                *_bad = code;
+            }
+
+            if (_error != NULL)
+            {
+                *_error = error;
+            }
+
+            return status;
+        }
+    }
+
+    return (int32_t)D_OSTREAM_TEMPLATE_OK;
+}
+
+/*
+d_internal_log_round_reals
+  log.real_digits: each finite real fact rounded to that many significant
+digits before any writer sees it, so every format writes the same value; 0
+keeps them whole. snprintf and strtod read one decimal point, the locale's,
+so the text between them reads back as written.
+*/
+static void
+d_internal_log_round_reals(
+    struct dj_desc_collect_state* _facts,
+    uint32_t                      _digits
+)
+{
+    char   text[40];
+    size_t index;
+
+    if ( (_digits == 0u) || (_digits > 17u) )
+    {
+        return;
+    }
+
+    for (index = 0u; index < _facts->count; ++index)
+    {
+        struct dj_ostream_value* const value =
+            &_facts->items[index].fact.value;
+
+        // NaN and the infinities have no digits to round: x - x is NaN
+        if ( (value->kind == (int32_t)D_OSTREAM_VALUE_REAL) &&
+             ((value->real - value->real) == 0.0) )
+        {
+            (void)snprintf(text, sizeof(text), "%.*e", (int)_digits - 1,
+                           value->real);
+            value->real = strtod(text, NULL);
+        }
+    }
+
+    return;
+}
+
 int
 d_log_close(
     struct dj_log_record* _record
@@ -1657,13 +1816,14 @@ d_log_close(
 
     _record->open = 0u;
     d_log_settings(&settings, _record->code->module);
+    d_internal_log_round_reals(&_record->collected, settings.real_digits);
     entry.code      = _record->code;
     entry.severity  = _record->severity;
     entry.level     = d_log_level_name(_record->severity);
-    entry.time      = (d_internal_log.clock != NULL)
-                          ? d_internal_log.clock(d_internal_log.clock_context)
-                          : d_internal_log_now(NULL);
-    entry.observed  = entry.time;
+    entry.time      = _record->time;
+    entry.observed  = (settings.observed_time != 0u)
+                          ? d_internal_log_clock_now()
+                          : entry.time;
     entry.body_size = d_internal_log_body(_record, body, sizeof(body));
     entry.body      = body;
     entry.facts     = &_record->collected;

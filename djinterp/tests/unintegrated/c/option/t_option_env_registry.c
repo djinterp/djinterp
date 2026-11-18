@@ -17,7 +17,7 @@
 * path:      /tests/unintegrated/c/option/t_option_env_registry.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 // std
 #include <stdbool.h>  // bool
@@ -501,7 +501,8 @@ d_tests_registry_bad_options(
 d_tests_registry_bare_forms
   Tests the following:
   - "--NAME" and "--no-NAME" on a TEXT setting are -1, INVALID_ARGUMENT,
-    and bind nothing: the title stays its default (lane G's E-9)
+    and bind nothing: the title stays its default (option_env's decision
+    37)
 */
 static void
 d_tests_registry_bare_forms(
@@ -690,6 +691,7 @@ struct dj_tests_heard
 {
     unsigned count;
     char     names[128];
+    char     settings[128];
 };
 
 /*
@@ -698,20 +700,19 @@ d_tests_registry_heard
 */
 static void
 d_tests_registry_heard(
-    void*                   _context,
-    const char*             _name,
-    const char*             _value,
-    struct dj_option_result _result
+    void*                              _context,
+    const struct dj_option_env_report* _report
 )
 {
     struct dj_tests_heard* const heard = (struct dj_tests_heard*)_context;
     const size_t                 used  = strlen(heard->names);
+    const size_t                 more  = strlen(heard->settings);
 
-    (void)_value;
-    (void)_result;
     ++heard->count;
     (void)snprintf(heard->names + used, sizeof(heard->names) - used, "%s;",
-                   _name);
+                   _report->variable);
+    (void)snprintf(heard->settings + more, sizeof(heard->settings) - more,
+                   "%s;", _report->setting);
 
     return;
 }
@@ -752,6 +753,9 @@ d_tests_registry_import_each(void)
     D_TESTS_REGISTRY_CHECK(strcmp(heard.names,
                                   "DJEACHREG_COLOR;"
                                   "DJEACHREG_PRINTER_KEY_WIDTH;") == 0);
+    // each setting by the full name the registry resolves
+    D_TESTS_REGISTRY_CHECK(strcmp(heard.settings,
+                                  "color;printer.key_width;") == 0);
     D_TESTS_REGISTRY_CHECK(d_option_env_int(&logger, 0u,
                                             d_option_env_find(&logger,
                                                               "level", 5u)
@@ -821,6 +825,41 @@ d_tests_registry_checking(void)
                                  &result) == (size_t)-1) &&
                             (D_TESTS_REGISTRY_STATUS(result) ==
                              (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT) );
+
+    // the name and the value apart: the value never split again, and the
+    // record says where the name resolved, and why a value is refused
+    {
+        struct dj_option_env_checked record;
+
+        record.size = (uint32_t)sizeof(record);
+        D_TESTS_REGISTRY_CHECK( (d_option_env_registry_check_from(&registry,
+                                     "printer.language.title", 22u, "a;b",
+                                     3u, file, buffer, sizeof(buffer),
+                                     &result, &record) == 5u) &&
+                                (strcmp(buffer, "\"a;b\"") == 0) &&
+                                (record.frame == &printer)       &&
+                                (record.scope != 0u)             &&
+                                (record.var == result.payload.value) &&
+                                (record.reason ==
+                                 (int32_t)D_OPTION_ENV_REASON_NONE) );
+        D_TESTS_REGISTRY_CHECK( (d_option_env_registry_check_from(&registry,
+                                     "logger.level", 12u, "9", 1u, file,
+                                     buffer, sizeof(buffer), &result,
+                                     &record) == (size_t)-1) &&
+                                (record.frame == &logger) &&
+                                (record.reason ==
+                                 (int32_t)D_OPTION_ENV_REASON_RANGE) );
+        D_TESTS_REGISTRY_CHECK( (d_option_env_registry_check_from(&registry,
+                                     "printer.nothing", 15u, "1", 1u, file,
+                                     NULL, 0u, &result, &record) ==
+                                 (size_t)-1) &&
+                                (record.frame == NULL) &&
+                                (record.reason ==
+                                 (int32_t)D_OPTION_ENV_REASON_NAME) );
+        D_TESTS_REGISTRY_CHECK(d_option_env_registry_check_from(NULL, "x",
+                                   1u, "1", 1u, file, NULL, 0u, NULL,
+                                   &record) == (size_t)-1);
+    }
 
     // nothing was bound
     D_TESTS_REGISTRY_CHECK(d_option_env_source(&printer, 0u, 0u) ==

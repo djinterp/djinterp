@@ -34,7 +34,7 @@
 * path:      /inc/djinterp/cpp/option/option_env.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -406,15 +406,18 @@ public:
      *
      * @param[in]  _name    the name, with a scope if any.
      * @param[in]  _value   the text.
-     * @param[in]  _source  the source it would be bound from.
-     * @param[out] _text    the value as text; empty when refused.
+     * @param[in]  _source   the source it would be bound from.
+     * @param[out] _text     the value as text; empty when refused.
+     * @param[out] _checked  where it resolved, and why refused; may be
+     *                       null; its size set by the caller.
      * @return true when binding it would be admitted; status() says why not.
      */
     bool check(
-        const char*  _name,
-        const char*  _value,
-        int32_t      _source,
-        std::string& _text
+        const char*                   _name,
+        const char*                   _value,
+        int32_t                       _source,
+        std::string&                  _text,
+        struct dj_option_env_checked* _checked = D_NULLPTR
     )
     {
         char                    small[64];
@@ -433,7 +436,7 @@ public:
         length = d_option_env_check_from(m_env, _name, std::strlen(_name),
                                          _value, std::strlen(_value),
                                          _source, small, sizeof(small),
-                                         &result);
+                                         &result, _checked);
 
         if ( (length != static_cast<std::size_t>(-1)) &&
              (length < sizeof(small)) )
@@ -446,7 +449,7 @@ public:
             (void)d_option_env_check_from(m_env, _name, std::strlen(_name),
                                           _value, std::strlen(_value),
                                           _source, &_text[0], _text.size(),
-                                          &result);
+                                          &result, D_NULLPTR);
             _text.resize(length);
         }
 
