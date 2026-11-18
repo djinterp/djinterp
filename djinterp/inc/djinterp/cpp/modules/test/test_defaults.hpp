@@ -698,12 +698,14 @@ using test_fn_ptr = bool (*)();
 
 // test_spec
 //   aggregate: one unit test - a name, a descriptor, and the predicate to
-// run.  Lowered to a unit_test node wrapping a test_fn leaf.
+// run.  Lowered to a unit_test node wrapping a test_fn leaf.  In all three
+// specs the names default to "" and test_spec's fn to nullptr, so a spec
+// declared without braces is empty rather than indeterminate.
 struct test_spec
 {
-    const char* name;
-    const char* descriptor;
-    test_fn_ptr fn;
+    const char* name       = "";
+    const char* descriptor = "";
+    test_fn_ptr fn         = nullptr;
 };
 
 // block_spec
@@ -711,8 +713,8 @@ struct test_spec
 // node.
 struct block_spec
 {
-    const char*            name;
-    const char*            descriptor;
+    const char*            name       = "";
+    const char*            descriptor = "";
     std::vector<test_spec> tests;
 };
 
@@ -720,8 +722,8 @@ struct block_spec
 //   aggregate: one header's worth of blocks.  Lowered to a test_module node.
 struct module_spec
 {
-    const char*             name;
-    const char*             descriptor;
+    const char*             name       = "";
+    const char*             descriptor = "";
     std::vector<block_spec> blocks;
 };
 

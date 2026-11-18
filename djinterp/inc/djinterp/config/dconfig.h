@@ -151,13 +151,12 @@
 #include "djinterp/config/c/modules/net/http/cfg_http.h"      // HTTP
 #include "djinterp/config/c/modules/net/ftp/cfg_ftp.h"        // FTP
 #include "djinterp/config/c/modules/net/sftp/cfg_sftp.h"      // SFTP
-// compression, archives and the test printer include the platform's headers,
+// compression and archives include the platform's headers,
 // so they come after every config whose answer turns on what a unit included
 // first (cfg_file_common.h's path limits, cfg_mem_source.h's aligned API):
 // those resolve here as they do on their own
 #include "djinterp/config/c/util/compress/cfg_compress.h"
 #include "djinterp/config/c/util/archive/cfg_archive.h"
-#include "djinterp/config/c/modules/test/cfg_test_printer.h"
 // the SQLite layer, after env's SQLite config: resolving everything leaves
 // D_CFG_ENV_USING_SQLITE as env's config decided it, off unless set
 #include "djinterp/config/c/db/sqlite/cfg_sqlite_common.h"  // SQLite layer

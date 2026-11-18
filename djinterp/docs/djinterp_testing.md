@@ -1255,19 +1255,25 @@ counters of 13.1. The field-form tally that stood here until 2026-11-09
 `_add`, style #79) is replaced by the owner's ruling of that date; 13.1 says
 how to move.
 
-**Not frozen**, and not to be written against: the classic C tree
-(`default/test.h`, `test_block.h`, `test_module.h`, `assert.h`,
-`test_handler`, `test_session`, `test_printer`, `test_tree`, the `dtest`
-umbrella), which does not compile yet and is being ported (B5: its sources
-stay, its old `_sa` suites are gone, and its suites are written against the C
-face when it is ported); the C++ framework's internals
-(`test_tree`, `test_kind`, `test_session`, the report model and the output
-headers), which may change under the surface above, including `test_session`'s
-status counts, which it now keeps in a tally (13.1).
+**Not frozen**, and not to be written against: the C++ framework's
+internals (`test_tree`, `test_kind`, `test_session`, the report model and the
+output headers), which may change under the surface above, including
+`test_session`'s status counts, which it now keeps in a tally (13.1).
 
 **Retired** (the owner's ruling of 2026-11-06, register 4.6): the standalone
 framework, `test_standalone.h` and `.c`, its defaults header and
-`d_assert_standalone`. Nothing runs a `_tests_sa*` suite any more; one still in
+`d_assert_standalone`.
+
+**Retired** (the owner's rulings 4 and 20 of 2026-11-14 and 11-17, which
+reverse B5): the classic C tree, whose core never compiled in this tree.
+`default/test.h`, `test_block.h`, `test_module.h` and `assert.h`, with their
+sources; `test_handler`, `test_session`, `test_printer` and `test_tree`; the
+`dtest` umbrella; `test_stats`, `test_cli` and `test_arg`, which served only
+it; and `cfg_test_printer.h` with its three `D_CFG_TEST_ENABLE_*` knobs,
+which only the classic printer read. The C face is DTest's one C runner. What
+the classic tree offered that the C face lacked comes to it as additions
+before 12-11: lifecycle listeners, setup and teardown hooks, colour, timing,
+stopping early, repeating, a report to a string and an arrays-equal check. Nothing runs a `_tests_sa*` suite any more; one still in
 the tree is converted (14.2) before its module's tests count.
 
 ### 13.1 The counters (the owner's rulings of 2026-11-09 and 11-10)

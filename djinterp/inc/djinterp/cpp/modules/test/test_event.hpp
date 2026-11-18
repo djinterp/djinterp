@@ -233,22 +233,6 @@ D_EVENT(DOnStatusChange, const basic_test*, test_status, test_status);
 D_EVENT(DOnListenerThrew, const char*, const char*);
 
 
-// ---- the names before the rename ----
-
-// on_session_end, on_module_start, on_test_start, on_test_failed,
-// on_test_error
-//   aliases: five tags' snake_case names from before they took the guide's
-// D + PascalCase. Each is the same type, so binding to either name binds the
-// same channel, and name() reports the new identifier. They stay until the
-// last suites written against them move (lane A's list: the array, concepts
-// and dtuple runners); write new code against the DOn* names.
-using on_session_end  = DOnSessionEnd;
-using on_module_start = DOnModuleStart;
-using on_test_start   = DOnTestStart;
-using on_test_failed  = DOnTestFailed;
-using on_test_error   = DOnTestError;
-
-
 
 NS_END  // test
 NS_END  // djinterp

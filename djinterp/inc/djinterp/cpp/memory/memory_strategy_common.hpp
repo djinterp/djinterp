@@ -89,6 +89,7 @@ V.    CONCEPTS  (C++20, gated)
 #include "../djinterp.hpp"
 #include "./mem_common.hpp"
 #include "../meta/member_types.hpp"  // has_value_type
+#include "../meta/memory_discipline.hpp"  // read_pointer_stable and kin
 
 
 NS_DJINTERP
@@ -380,34 +381,6 @@ NS_INTERNAL
     //   helper: read a descriptive constant, or a stated default when the
     // type does not declare it. Written as a specialization pair rather than
     // a ternary because the ternary would still require the member to name.
-    template<typename Type,
-             bool Has = has_pointer_stable<Type>::value>
-    struct read_pointer_stable
-    {
-        static D_CONSTEXPR const bool value =
-            strategy_clean_t<Type>::pointer_stable;
-    };
-
-    template<typename Type>
-    struct read_pointer_stable<Type, false>
-    {
-        static D_CONSTEXPR const bool value = false;
-    };
-
-    template<typename Type,
-             bool Has = has_individual_release<Type>::value>
-    struct read_individual_release
-    {
-        static D_CONSTEXPR const bool value =
-            strategy_clean_t<Type>::supports_individual_release;
-    };
-
-    template<typename Type>
-    struct read_individual_release<Type, false>
-    {
-        static D_CONSTEXPR const bool value = false;
-    };
-
     template<typename Type,
              bool Has = has_generational_sweep<Type>::value>
     struct read_generational_sweep
