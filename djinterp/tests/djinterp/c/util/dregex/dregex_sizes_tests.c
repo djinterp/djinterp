@@ -1,7 +1,8 @@
 /*******************************************************************************
-* djinterp [c]                                               test_dregex_sizes.c
+* djinterp [test]                                           dregex_sizes_tests.c
 *
-* Checks that every size dregex.c computes for an allocation refuses to wrap.
+* Checks that every size dregex.c computes for an allocation refuses to wrap,
+* in DTest's C face.
 *   Each pool, buffer and scratch array is sized by a count the engine keeps
 * itself, so no pattern a test can write reaches a count that wraps a size_t.
 * The suite therefore includes dregex.c, as a white-box test, and gives each
@@ -10,49 +11,29 @@
 * handed changed. The two-patches-a-copy list of an interval is the one site
 * not here: its count is an int, bounded by D_REGEX_DUP_MAX, so its product
 * cannot wrap a 64-bit size_t; the check guards 32-bit builds.
-*   Build this file alone, without dregex.c, which it includes:
-*     cc -std=c11 -D_XOPEN_SOURCE=700 tests/djinterp/c/util/dregex/
-*         test_dregex_sizes.c
+*   Its target links no dregex.c of its own: this file includes it.
 *
 *
-* path:      /tests/djinterp/c/util/dregex/test_dregex_sizes.c
+* path:      /tests/djinterp/c/util/dregex/dregex_sizes_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.19
 *******************************************************************************/
+#include "./dregex_sizes_tests.h"  // corresponding header
+// djinterp
 #include "../../../../../src/djinterp/c/util/dregex.c"  // the engine, whole
-// std
-#include <stdio.h>   // printf
 // re_std
 #include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // SIZE_MAX
 
 
-static int g_checks = 0;
-static int g_failed = 0;
+// g_suite
+//   state: the suite every check goes to, set by the section.
+static struct dj_test_suite* g_suite = NULL;
 
-
-/*
-d_tests_check
-  Records one check, and prints it when it failed.
-*/
-static
-void d_tests_check(
-    bool        _passed,
-    const char* _what
-)
-{
-    g_checks++;
-
-    // a failure names the check
-    if (!_passed)
-    {
-        g_failed++;
-        printf("  FAIL  %s\n",
-               _what);
-    }
-
-    return;
-}
+// D_TESTS_DREGEX_SIZES_CHECK
+//   macro: records one check, named by what it checks, with its line.
+#define D_TESTS_DREGEX_SIZES_CHECK(_passed, _what)                            \
+    (void)d_test_suite_check(g_suite, (_passed), (_what), __FILE__, __LINE__)
 
 /*
 d_tests_node_pool
@@ -64,6 +45,8 @@ whose double fits but whose bytes wrap:
 static
 void d_tests_node_pool(void)
 {
+    (void)d_test_suite_test(g_suite, "the node pool");
+
     const size_t capacities[2] =
     {
         (SIZE_MAX / 2u) + 1u,
@@ -82,13 +65,13 @@ void d_tests_node_pool(void)
         const int index = d_internal_node_new(&parser,
                                               D_INTERNAL_NODE_EMPTY);
 
-        d_tests_check( (index == -1)                              &&
-                       (parser.status == D_REGEX_ERR_MEMORY)      &&
-                       (parser.nodes == NULL)                     &&
-                       (parser.node_capacity == capacities[i])    &&
-                       (parser.node_count == capacities[i]),
-                       (i == 0u) ? "node pool: doubling wraps"
-                                 : "node pool: bytes wrap");
+        D_TESTS_DREGEX_SIZES_CHECK( (index == -1)                           &&
+                                    (parser.status == D_REGEX_ERR_MEMORY)   &&
+                                    (parser.nodes == NULL)                  &&
+                                    (parser.node_capacity == capacities[i]) &&
+                                    (parser.node_count == capacities[i]),
+                                    (i == 0u) ? "node pool: doubling wraps"
+                                              : "node pool: bytes wrap");
     }
 
     return;
@@ -104,6 +87,8 @@ double wraps and at one whose bytes wrap:
 static
 void d_tests_class_pool(void)
 {
+    (void)d_test_suite_test(g_suite, "the class pool");
+
     const size_t capacities[2] =
     {
         (SIZE_MAX / 2u) + 1u,
@@ -121,12 +106,12 @@ void d_tests_class_pool(void)
 
         const int index = d_internal_class_new(&parser);
 
-        d_tests_check( (index == -1)                              &&
-                       (parser.status == D_REGEX_ERR_MEMORY)      &&
-                       (parser.classes == NULL)                   &&
-                       (parser.class_capacity == capacities[i]),
-                       (i == 0u) ? "class pool: doubling wraps"
-                                 : "class pool: bytes wrap");
+        D_TESTS_DREGEX_SIZES_CHECK( (index == -1)                         &&
+                                    (parser.status == D_REGEX_ERR_MEMORY) &&
+                                    (parser.classes == NULL)              &&
+                                    (parser.class_capacity == capacities[i]),
+                                    (i == 0u) ? "class pool: doubling wraps"
+                                              : "class pool: bytes wrap");
     }
 
     return;
@@ -142,6 +127,8 @@ whose bytes wrap:
 static
 void d_tests_program(void)
 {
+    (void)d_test_suite_test(g_suite, "the program");
+
     const size_t capacities[2] =
     {
         (SIZE_MAX / 2u) + 1u,
@@ -160,12 +147,12 @@ void d_tests_program(void)
         const int address = d_internal_emit(&emitter,
                                             D_INTERNAL_OP_MATCH);
 
-        d_tests_check( (address == -1)                            &&
-                       (emitter.status == D_REGEX_ERR_MEMORY)     &&
-                       (emitter.program == NULL)                  &&
-                       (emitter.capacity == capacities[i]),
-                       (i == 0u) ? "program: doubling wraps"
-                                 : "program: bytes wrap");
+        D_TESTS_DREGEX_SIZES_CHECK( (address == -1)                        &&
+                                    (emitter.status == D_REGEX_ERR_MEMORY) &&
+                                    (emitter.program == NULL)              &&
+                                    (emitter.capacity == capacities[i]),
+                                    (i == 0u) ? "program: doubling wraps"
+                                              : "program: bytes wrap");
     }
 
     return;
@@ -182,6 +169,8 @@ d_tests_scratch
 static
 void d_tests_scratch(void)
 {
+    (void)d_test_suite_test(g_suite, "the scratch buffers");
+
     const size_t slots[2] =
     {
         (SIZE_MAX / sizeof(size_t)) + 1u,
@@ -197,15 +186,16 @@ void d_tests_scratch(void)
         const bool made = d_internal_scratch_new(&regex,
                                                  slots[i]);
 
-        d_tests_check( (!made)                         &&
-                       (regex.list_a.pc == NULL)       &&
-                       (regex.list_a.starts == NULL)   &&
-                       (regex.list_b.pc == NULL)       &&
-                       (regex.list_b.starts == NULL)   &&
-                       (regex.seen == NULL)            &&
-                       (regex.stack == NULL),
-                       (i == 0u) ? "scratch: start offsets' bytes wrap"
-                                 : "scratch: every list's bytes wrap");
+        D_TESTS_DREGEX_SIZES_CHECK( (!made)                       &&
+                                    (regex.list_a.pc == NULL)     &&
+                                    (regex.list_a.starts == NULL) &&
+                                    (regex.list_b.pc == NULL)     &&
+                                    (regex.list_b.starts == NULL) &&
+                                    (regex.seen == NULL)          &&
+                                    (regex.stack == NULL),
+                                    (i == 0u)
+                                        ? "scratch: start offsets' bytes wrap"
+                                        : "scratch: every list's bytes wrap");
     }
 
     struct dj_regex small;
@@ -215,8 +205,8 @@ void d_tests_scratch(void)
     const bool made = d_internal_scratch_new(&small,
                                              4u);
 
-    d_tests_check(made,
-                  "scratch: a small program gets its buffers");
+    D_TESTS_DREGEX_SIZES_CHECK(made,
+                               "scratch: a small program gets its buffers");
     free(small.list_a.pc);
     free(small.list_a.starts);
     free(small.list_b.pc);
@@ -240,6 +230,8 @@ d_tests_capture_state
 static
 void d_tests_capture_state(void)
 {
+    (void)d_test_suite_test(g_suite, "the capture state");
+
     struct
     {
         size_t      groups;
@@ -272,14 +264,14 @@ void d_tests_capture_state(void)
                                                        &regex,
                                                        cases[i].extent);
 
-        d_tests_check( (!made)                         &&
-                       (state.marks == NULL)           &&
-                       (state.best == NULL)            &&
-                       (state.undo == NULL)            &&
-                       (state.choice == NULL)          &&
-                       (state.undo_capacity == 0u)     &&
-                       (state.choice_capacity == 0u),
-                       cases[i].what);
+        D_TESTS_DREGEX_SIZES_CHECK( (!made)                     &&
+                                    (state.marks == NULL)       &&
+                                    (state.best == NULL)        &&
+                                    (state.undo == NULL)        &&
+                                    (state.choice == NULL)      &&
+                                    (state.undo_capacity == 0u) &&
+                                    (state.choice_capacity == 0u),
+                                    cases[i].what);
     }
 
     struct dj_regex                  small;
@@ -295,10 +287,10 @@ void d_tests_capture_state(void)
                                                    &small,
                                                    5u);
 
-    d_tests_check( (made)                              &&
-                   (state.undo_capacity == 200u)       &&
-                   (state.choice_capacity == 200u),
-                   "capture: a small pattern gets its buffers");
+    D_TESTS_DREGEX_SIZES_CHECK( (made)                        &&
+                                (state.undo_capacity == 200u) &&
+                                (state.choice_capacity == 200u),
+                                "capture: a small pattern gets its buffers");
     free(state.marks);
     free(state.best);
     free(state.undo);
@@ -308,12 +300,19 @@ void d_tests_capture_state(void)
 }
 
 /*
-main
-  Runs each group and reports the tally; exits non-zero on any failure.
+d_tests_dregex_sizes
+  The suite's section: each group, in order.
 */
-int main(void)
+void d_tests_dregex_sizes(
+    struct dj_test_suite* _suite
+)
 {
-    printf("djinterp [c] dregex: sizes that would wrap\n");
+    g_suite = _suite;
+
+    (void)d_test_suite_module(_suite, "dregex_sizes");
+    (void)d_test_suite_describe(_suite,
+                                "c/util/dregex: sizes that would wrap");
+    (void)d_test_suite_block(_suite, "dregex");
 
     d_tests_node_pool();
     d_tests_class_pool();
@@ -321,9 +320,7 @@ int main(void)
     d_tests_scratch();
     d_tests_capture_state();
 
-    printf("%d checks, %d failed\n",
-           g_checks,
-           g_failed);
+    g_suite = NULL;
 
-    return (g_failed == 0) ? 0 : 1;
+    return;
 }

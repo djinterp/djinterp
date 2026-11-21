@@ -17,12 +17,40 @@
 * unit that includes both this header and the POSIX <regex.h> -- the
 * differential test does -- would otherwise resolve the angle-bracket form to
 * this file whenever the include directory is on the search path.
+*   Every function is C, with C linkage from C++. A compiled pattern carries
+* its own scratch buffers, so one pattern serves one thread at a time; two
+* threads compile a pattern each.
+*
+* HOW TO USE
+* ----------
+*     enum dj_regex_status  status;
+*     struct dj_regex*      re = d_regex_compile("a(b+)c", &status);
+*     struct dj_regex_match groups[2];
+*
+*     if ( (re) &&
+*          (d_regex_search_groups(re, text, length, 0, groups, 2u) ==
+*           D_REGEX_OK) &&
+*          (groups[0].start != D_REGEX_NO_MATCH) )
+*     {
+*         // groups[1] is the run of b's
+*     }
+*
+*     d_regex_free(re);
+*
+* OPTIONS
+* -------
+*   None: nothing in this header is chosen at run time.
+*
+* CONFIGURATION
+* -------------
+*   None: no D_CFG_* knob reaches this header. Its limits are the constants
+* of section 1.1.
 *
 *
 * path:      /inc/djinterp/c/util/dregex.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.09.19
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
 /*
@@ -53,6 +81,11 @@ TABLE OF CONTENTS
 // std
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
+// djinterp
+#include "../djinterp.h"  // framework root
+
+
+D_EXTERN_C_BEGIN
 
 
 //==============================================================================
@@ -135,16 +168,44 @@ struct dj_regex_match
 
 // 2.1    Compilation
 //------------------------------------------------------------------------------
+/**
+ * @brief Parses and compiles a POSIX extended regular expression.
+ *
+ * @param[in]  _pattern     the pattern, NUL-terminated.
+ * @param[out] _out_status  receives the outcome; may be NULL.
+ * @return the compiled pattern, which d_regex_free releases; NULL with
+ *         D_REGEX_ERR_SYNTAX for a NULL or malformed pattern,
+ *         D_REGEX_ERR_RANGE for an interval over D_REGEX_DUP_MAX or more
+ *         than D_REGEX_GROUP_MAX groups, and D_REGEX_ERR_MEMORY when memory
+ *         runs out.
+ */
 struct dj_regex* d_regex_compile(
     const char*           _pattern,
     enum dj_regex_status* _out_status
 );
+/**
+ * @brief Releases a compiled pattern and its scratch buffers.
+ *
+ * @param[in] _regex  the pattern; NULL does nothing.
+ */
 void d_regex_free(
     struct dj_regex* _regex
 );
 
 // 2.2    Matching
 //------------------------------------------------------------------------------
+/**
+ * @brief Finds the leftmost-longest match that starts at or after `_from`.
+ *
+ * @param[in]  _regex      the compiled pattern; its scratch buffers are used.
+ * @param[in]  _text       the subject; may be NULL when `_length` is 0.
+ * @param[in]  _length     the subject's length in bytes; NULs are bytes.
+ * @param[in]  _from       where the search starts; at most `_length`.
+ * @param[out] _out_match  receives the match's extent; may be NULL; left
+ *                         alone when there is none.
+ * @return true when a match was found; false when none was, and for a NULL
+ *         pattern, a NULL subject with a length, or `_from` past the end.
+ */
 bool d_regex_search(
     struct dj_regex*       _regex,
     const char*            _text,
@@ -152,6 +213,18 @@ bool d_regex_search(
     size_t                 _from,
     struct dj_regex_match* _out_match
 );
+/**
+ * @brief Finds the longest match that starts exactly at `_at`.
+ *
+ * @param[in]  _regex       the compiled pattern; its scratch buffers are used.
+ * @param[in]  _text        the subject; may be NULL when `_length` is 0.
+ * @param[in]  _length      the subject's length in bytes.
+ * @param[in]  _at          where the match must start; at most `_length`.
+ * @param[out] _out_length  receives the match's length; may be NULL; left
+ *                          alone when there is none.
+ * @return true when a match starts there; false otherwise, and for the
+ *         arguments d_regex_search refuses.
+ */
 bool d_regex_match_at(
     struct dj_regex* _regex,
     const char*      _text,
@@ -159,6 +232,15 @@ bool d_regex_match_at(
     size_t           _at,
     size_t*          _out_length
 );
+/**
+ * @brief Whether the pattern matches anywhere in the subject: d_regex_search
+ *        from 0, without the extent.
+ *
+ * @param[in] _regex   the compiled pattern.
+ * @param[in] _text    the subject; may be NULL when `_length` is 0.
+ * @param[in] _length  the subject's length in bytes.
+ * @return true when it matches.
+ */
 bool d_regex_test(
     struct dj_regex* _regex,
     const char*      _text,
@@ -173,9 +255,37 @@ bool d_regex_test(
 // a start of D_REGEX_NO_MATCH.  D_REGEX_OK with a group-zero start of
 // D_REGEX_NO_MATCH means the pattern did not match at all, which is distinct
 // from the error statuses.
+/**
+ * @brief The pattern's capturing groups, not counting group 0, the whole
+ *        match.
+ *
+ * @param[in] _regex  the compiled pattern.
+ * @return the count; 0 for NULL.
+ */
 size_t d_regex_group_count(
     const struct dj_regex* _regex
 );
+/**
+ * @brief Finds the leftmost-longest match from `_from`, and each group's
+ *        extent within it, as GNU regex assigns them (dregex.c 6).
+ *
+ * @param[in]  _regex       the compiled pattern; its scratch buffers are used.
+ * @param[in]  _text        the subject; may be NULL when `_length` is 0.
+ * @param[in]  _length      the subject's length in bytes.
+ * @param[in]  _from        where the search starts; at most `_length`.
+ * @param[out] _out_groups  receives `_count` extents, index 0 the whole
+ *                          match; every entry not reported, and every group
+ *                          that did not take part, has a start of
+ *                          D_REGEX_NO_MATCH.
+ * @param[in]  _count       the entries of `_out_groups`; at least 1. Groups
+ *                          past it are not reported.
+ * @return D_REGEX_OK, a group-0 start of D_REGEX_NO_MATCH meaning no match;
+ *         D_REGEX_ERR_SYNTAX for a NULL pattern or groups, a `_count` of 0,
+ *         a NULL subject with a length, or `_from` past the end;
+ *         D_REGEX_ERR_MEMORY when the pass's buffers cannot be had; and
+ *         D_REGEX_ERR_BUDGET when the pass completes no parse within
+ *         D_REGEX_BACKTRACK_MAX steps, though the match exists.
+ */
 enum dj_regex_status d_regex_search_groups(
     struct dj_regex*       _regex,
     const char*            _text,
@@ -187,12 +297,28 @@ enum dj_regex_status d_regex_search_groups(
 
 // 2.4    Diagnostics
 //------------------------------------------------------------------------------
+/**
+ * @brief A status in words.
+ *
+ * @param[in] _status  the status.
+ * @return a description the library owns; never NULL.
+ */
 const char* d_regex_status_text(
     enum dj_regex_status _status
 );
+/**
+ * @brief The compiled program's instruction count, a measure of what a
+ *        pattern costs to run.
+ *
+ * @param[in] _regex  the compiled pattern.
+ * @return the count; 0 for NULL.
+ */
 size_t d_regex_program_size(
     const struct dj_regex* _regex
 );
+
+
+D_EXTERN_C_END
 
 
 #endif  // DJINTERP_C_UTIL_DREGEX_H

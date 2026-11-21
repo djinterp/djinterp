@@ -19,7 +19,7 @@
 * path:      /src/djinterp/c/util/dregex.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/util/dregex.h"  // corresponding header
 // std
@@ -540,6 +540,150 @@ int d_internal_parse_escape_byte(
 
 
 /*
+d_internal_parse_bracket_sub
+  Parses a bracketed sub-expression of a bracket expression -- a named class
+[:name:], a collating element [.c.] or an equivalence class [=c=] -- when one
+starts at the parser's position, and adds its members to the set.
+
+Parameter(s):
+  _parser: the parser positioned at a '[' inside a bracket expression.
+  _bitmap: the set being built.
+Return:
+  1 when a sub-expression was read and added; 0 when none starts here, the
+position unchanged; -1 on failure, with the parser's status set.
+*/
+static
+int d_internal_parse_bracket_sub(
+    struct dj_internal_parser* _parser,
+    unsigned char*             _bitmap
+)
+{
+    const int kind = (_parser->position + 1 < _parser->length)
+                   ? (int)_parser->pattern[_parser->position + 1]
+                   : -1;
+
+    // only ':', '.' and '=' introduce a bracketed sub-expression
+    if ((kind != ':') && (kind != '.') && (kind != '='))
+    {
+        return 0;
+    }
+
+    const char        terminator[3] = { (char)kind, ']', '\0' };
+    const char* const found         =
+        strstr(&_parser->pattern[_parser->position + 2], terminator);
+
+    // an unterminated sub-expression is a literal bracket
+    if (!found)
+    {
+        return 0;
+    }
+
+    const char* const body        = &_parser->pattern[_parser->position + 2];
+    const size_t      body_length = (size_t)(found - body);
+
+    // a named class expands; the other forms add one byte
+    if (kind == ':')
+    {
+        // reject a class name the implementation lacks
+        if (!d_internal_class_add_named(_bitmap, body, body_length))
+        {
+            _parser->status = D_REGEX_ERR_SYNTAX;
+
+            return -1;
+        }
+    }
+    else if (body_length >= 1)
+    {
+        d_internal_class_set(_bitmap, (unsigned char)body[0]);
+    }
+
+    _parser->position = (size_t)(found - _parser->pattern) + 2u;
+
+    return 1;
+}
+
+/*
+d_internal_parse_bracket_member
+  Parses one member of a bracket expression -- a byte, escaped or not, or a
+range of them -- and adds it to the set.
+
+Parameter(s):
+  _parser: the parser positioned at the member.
+  _bitmap: the set being built.
+Return:
+  0 when the member was added; -1 on failure, with the parser's status set
+where the member itself is malformed.
+*/
+static
+int d_internal_parse_bracket_member(
+    struct dj_internal_parser* _parser,
+    unsigned char*             _bitmap
+)
+{
+    int current = d_internal_peek(_parser);
+
+    // resolve the member, honouring a backslash escape
+    if (current == '\\')
+    {
+        _parser->position++;
+        current = d_internal_parse_escape_byte(_parser);
+
+        // propagate a malformed escape
+        if (current < 0)
+        {
+            return -1;
+        }
+    }
+    else
+    {
+        _parser->position++;
+    }
+
+    const int follow = d_internal_peek(_parser);
+
+    // a hyphen that is not last introduces a range
+    if ( (follow == '-')                                 &&
+         (_parser->position + 1 < _parser->length)        &&
+         (_parser->pattern[_parser->position + 1] != ']') )
+    {
+        _parser->position++;  // consume '-'
+
+        int upper = d_internal_peek(_parser);
+
+        // resolve the upper bound, honouring a backslash escape
+        if (upper == '\\')
+        {
+            _parser->position++;
+            upper = d_internal_parse_escape_byte(_parser);
+        }
+        else
+        {
+            _parser->position++;
+        }
+
+        // reject an inverted or malformed range
+        if ((upper < 0) || (upper < current))
+        {
+            _parser->status = D_REGEX_ERR_SYNTAX;
+
+            return -1;
+        }
+
+        // add every byte in the inclusive range
+        for (int byte = current; byte <= upper; ++byte)
+        {
+            d_internal_class_set(_bitmap, (unsigned char)byte);
+        }
+
+        return 0;
+    }
+
+    d_internal_class_set(_bitmap, (unsigned char)current);
+
+    return 0;
+}
+
+/*
 d_internal_parse_bracket
   Parses a bracket expression and produces a CLASS node.
 
@@ -578,12 +722,13 @@ int d_internal_parse_bracket(
     // members are read until the closing bracket, which is literal if first
     while (true)
     {
-        int current = d_internal_peek(_parser);
+        const int current = d_internal_peek(_parser);
 
         // an unterminated bracket expression is a syntax error
         if (current < 0)
         {
             _parser->status = D_REGEX_ERR_SYNTAX;
+
             return -1;
         }
 
@@ -596,114 +741,28 @@ int d_internal_parse_bracket(
 
         first = false;
 
-        // a named class, collating element or equivalence class opens with '['
+        // a named class, collating element or equivalence class
         if (current == '[')
         {
-            const size_t saved = _parser->position;
-            const int    kind  = (_parser->position + 1 < _parser->length)
-                               ? (int)_parser->pattern[_parser->position + 1]
-                               : -1;
+            const int sub = d_internal_parse_bracket_sub(_parser, bitmap);
 
-            // only ':', '.' and '=' introduce a bracketed sub-expression
-            if ((kind == ':') || (kind == '.') || (kind == '='))
+            // a sub-expression read, or a failure in one
+            if (sub != 0)
             {
-                const char terminator[3] = { (char)kind, ']', '\0' };
-                const char* const found  =
-                    strstr(&_parser->pattern[_parser->position + 2],
-                           terminator);
-
-                // treat an unterminated sub-expression as a literal bracket
-                if (!found)
+                if (sub < 0)
                 {
-                    _parser->position = saved;
+                    return -1;
                 }
-                else
-                {
-                    const char* const body =
-                        &_parser->pattern[_parser->position + 2];
-                    const size_t body_length = (size_t)(found - body);
 
-                    // a named class expands; the other forms add one byte
-                    if (kind == ':')
-                    {
-                        // reject a class name the implementation lacks
-                        if (!d_internal_class_add_named(bitmap,
-                                                        body,
-                                                        body_length))
-                        {
-                            _parser->status = D_REGEX_ERR_SYNTAX;
-                            return -1;
-                        }
-                    }
-                    else if (body_length >= 1)
-                    {
-                        d_internal_class_set(bitmap,
-                                             (unsigned char)body[0]);
-                    }
-
-                    _parser->position =
-                        (size_t)(found - _parser->pattern) + 2u;
-                    continue;
-                }
+                continue;
             }
         }
 
-        // resolve the member, honouring a backslash escape
-        if (current == '\\')
+        // any other member: a byte or a range
+        if (d_internal_parse_bracket_member(_parser, bitmap) < 0)
         {
-            _parser->position++;
-            current = d_internal_parse_escape_byte(_parser);
-
-            // propagate a malformed escape
-            if (current < 0)
-            {
-                return -1;
-            }
+            return -1;
         }
-        else
-        {
-            _parser->position++;
-        }
-
-        const int follow = d_internal_peek(_parser);
-
-        // a hyphen that is not last introduces a range
-        if ( (follow == '-')                                 &&
-             (_parser->position + 1 < _parser->length)        &&
-             (_parser->pattern[_parser->position + 1] != ']') )
-        {
-            _parser->position++;  // consume '-'
-
-            int upper = d_internal_peek(_parser);
-
-            // resolve the upper bound, honouring a backslash escape
-            if (upper == '\\')
-            {
-                _parser->position++;
-                upper = d_internal_parse_escape_byte(_parser);
-            }
-            else
-            {
-                _parser->position++;
-            }
-
-            // reject an inverted or malformed range
-            if ((upper < 0) || (upper < current))
-            {
-                _parser->status = D_REGEX_ERR_SYNTAX;
-                return -1;
-            }
-
-            // add every byte in the inclusive range
-            for (int byte = current; byte <= upper; ++byte)
-            {
-                d_internal_class_set(bitmap, (unsigned char)byte);
-            }
-
-            continue;
-        }
-
-        d_internal_class_set(bitmap, (unsigned char)current);
     }
 
     // invert the membership of a negated set
@@ -855,117 +914,82 @@ bool d_internal_parse_interval(
 
 
 /*
-d_internal_parse_atom
-  Parses a single atom: a group, a bracket expression, an anchor, a wildcard,
-  an escape, or a literal byte.
+d_internal_parse_group
+  Parses a parenthesised group, which contains a full alternation and
+captures; groups are numbered by their opening parenthesis.
+
+Parameter(s):
+  _parser: the parser positioned at the opening parenthesis.
+Return:
+  The index of the new GROUP node, or -1 on failure.
+*/
+static
+int d_internal_parse_group(
+    struct dj_internal_parser* _parser
+)
+{
+    // groups are numbered by opening parenthesis, so claim the number now
+    if (_parser->group_count >= D_REGEX_GROUP_MAX)
+    {
+        _parser->status = D_REGEX_ERR_RANGE;
+
+        return -1;
+    }
+
+    const int number = ++_parser->group_count;
+
+    _parser->position++;
+
+    const int inner = d_internal_parse_alternation(_parser);
+
+    // propagate a failure from the nested expression
+    if (inner < 0)
+    {
+        return -1;
+    }
+
+    // the group must close
+    if (d_internal_peek(_parser) != ')')
+    {
+        _parser->status = D_REGEX_ERR_SYNTAX;
+
+        return -1;
+    }
+
+    _parser->position++;
+
+    const int node = d_internal_node_new(_parser, D_INTERNAL_NODE_GROUP);
+
+    // propagate a pool-growth failure
+    if (node < 0)
+    {
+        return -1;
+    }
+
+    _parser->nodes[node].left  = inner;
+    _parser->nodes[node].value = number;
+
+    return node;
+}
+
+/*
+d_internal_parse_literal
+  Parses a literal atom: a byte, or an escape standing for one.
 
 Parameter(s):
   _parser: the parser positioned at the atom.
 Return:
-  The index of the new node, or -1 on failure.
+  The index of the new CHAR node, or -1 on failure.
 */
 static
-int d_internal_parse_atom(
+int d_internal_parse_literal(
     struct dj_internal_parser* _parser
 )
 {
-    const int current = d_internal_peek(_parser);
-
-    // an atom cannot begin at end of pattern
-    if (current < 0)
-    {
-        _parser->status = D_REGEX_ERR_SYNTAX;
-        return -1;
-    }
-
-    // a parenthesised group contains a full alternation and captures
-    if (current == '(')
-    {
-        // groups are numbered by opening parenthesis, so claim the number now
-        if (_parser->group_count >= D_REGEX_GROUP_MAX)
-        {
-            _parser->status = D_REGEX_ERR_RANGE;
-            return -1;
-        }
-
-        const int number = ++_parser->group_count;
-
-        _parser->position++;
-
-        const int inner = d_internal_parse_alternation(_parser);
-
-        // propagate a failure from the nested expression
-        if (inner < 0)
-        {
-            return -1;
-        }
-
-        // the group must close
-        if (d_internal_peek(_parser) != ')')
-        {
-            _parser->status = D_REGEX_ERR_SYNTAX;
-            return -1;
-        }
-
-        _parser->position++;
-
-        const int node = d_internal_node_new(_parser, D_INTERNAL_NODE_GROUP);
-
-        // propagate a pool-growth failure
-        if (node < 0)
-        {
-            return -1;
-        }
-
-        _parser->nodes[node].left  = inner;
-        _parser->nodes[node].value = number;
-
-        return node;
-    }
-
-    // a bracket expression produces a class
-    if (current == '[')
-    {
-        return d_internal_parse_bracket(_parser);
-    }
-
-    // a quantifier with nothing to repeat is a syntax error
-    if ((current == '*') || (current == '+') || (current == '?'))
-    {
-        _parser->status = D_REGEX_ERR_SYNTAX;
-        return -1;
-    }
-
-    // an unbalanced closing parenthesis is a syntax error
-    if (current == ')')
-    {
-        _parser->status = D_REGEX_ERR_SYNTAX;
-        return -1;
-    }
-
-    // the remaining single-byte atoms map directly to node kinds
-    if (current == '.')
-    {
-        _parser->position++;
-        return d_internal_node_new(_parser, D_INTERNAL_NODE_ANY);
-    }
-
-    if (current == '^')
-    {
-        _parser->position++;
-        return d_internal_node_new(_parser, D_INTERNAL_NODE_BOL);
-    }
-
-    if (current == '$')
-    {
-        _parser->position++;
-        return d_internal_node_new(_parser, D_INTERNAL_NODE_EOL);
-    }
-
-    int literal = current;
+    int literal = d_internal_peek(_parser);
 
     // a backslash introduces an escape; anything else stands for itself
-    if (current == '\\')
+    if (literal == '\\')
     {
         _parser->position++;
         literal = d_internal_parse_escape_byte(_parser);
@@ -992,6 +1016,72 @@ int d_internal_parse_atom(
     _parser->nodes[node].value = literal;
 
     return node;
+}
+
+/*
+d_internal_parse_atom
+  Parses a single atom: a group, a bracket expression, an anchor, a wildcard,
+  an escape, or a literal byte.
+
+Parameter(s):
+  _parser: the parser positioned at the atom.
+Return:
+  The index of the new node, or -1 on failure.
+*/
+static
+int d_internal_parse_atom(
+    struct dj_internal_parser* _parser
+)
+{
+    const int current = d_internal_peek(_parser);
+
+    // an atom cannot begin at end of pattern
+    if (current < 0)
+    {
+        _parser->status = D_REGEX_ERR_SYNTAX;
+
+        return -1;
+    }
+
+    switch (current)
+    {
+        // a parenthesised group contains a full alternation and captures
+        case '(':
+            return d_internal_parse_group(_parser);
+
+        // a bracket expression produces a class
+        case '[':
+            return d_internal_parse_bracket(_parser);
+
+        // a quantifier with nothing to repeat, or an unbalanced closing
+        // parenthesis, is a syntax error
+        case '*':
+        case '+':
+        case '?':
+        case ')':
+            _parser->status = D_REGEX_ERR_SYNTAX;
+
+            return -1;
+
+        // the remaining single-byte atoms map directly to node kinds
+        case '.':
+            _parser->position++;
+
+            return d_internal_node_new(_parser, D_INTERNAL_NODE_ANY);
+
+        case '^':
+            _parser->position++;
+
+            return d_internal_node_new(_parser, D_INTERNAL_NODE_BOL);
+
+        case '$':
+            _parser->position++;
+
+            return d_internal_node_new(_parser, D_INTERNAL_NODE_EOL);
+
+        default:
+            return d_internal_parse_literal(_parser);
+    }
 }
 
 
@@ -1270,6 +1360,330 @@ bool d_internal_compile_node(
 
 
 /*
+d_internal_compile_copies
+  Lowers `_count` copies of a repetition's body, one after another.
+
+Parameter(s):
+  _emitter: the emitter to extend.
+  _nodes:   the parse-tree pool.
+  _body:    the index of the body.
+  _count:   how many copies; none when not positive.
+Return:
+  A boolean value corresponding to either:
+  - true, if every copy lowered, or
+  - false, otherwise.
+*/
+static
+bool d_internal_compile_copies(
+    struct dj_internal_emitter*    _emitter,
+    const struct dj_internal_node* _nodes,
+    int                            _body,
+    int                            _count
+)
+{
+    for (int copy = 0; copy < _count; ++copy)
+    {
+        // abandon compilation when a copy fails to lower
+        if (!d_internal_compile_node(_emitter, _nodes, _body))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/*
+d_internal_compile_star
+  Lowers the loop of an unbounded repetition with a zero lower bound: a loop
+around an optional body.
+
+Parameter(s):
+  _emitter: the emitter to extend.
+  _nodes:   the parse-tree pool.
+  _body:    the index of the body.
+  _loop:    the loop's counter.
+Return:
+  A boolean value corresponding to either:
+  - true, if the loop lowered, or
+  - false, otherwise.
+*/
+static
+bool d_internal_compile_star(
+    struct dj_internal_emitter*    _emitter,
+    const struct dj_internal_node* _nodes,
+    int                            _body,
+    int                            _loop
+)
+{
+    const int reset = d_internal_emit(_emitter, D_INTERNAL_OP_LOOP);
+    const int split = d_internal_emit(_emitter, D_INTERNAL_OP_SPLIT);
+    const int mark  = d_internal_emit(_emitter, D_INTERNAL_OP_MARK);
+
+    // propagate a buffer-growth failure
+    if ((reset < 0) || (split < 0) || (mark < 0))
+    {
+        return false;
+    }
+
+    _emitter->program[reset].value = _loop;
+    _emitter->program[reset].x     = 0;
+    _emitter->program[split].x     = split + 1;
+    _emitter->program[mark].value  = _loop;
+
+    // abandon compilation when the body fails to lower
+    if (!d_internal_compile_node(_emitter, _nodes, _body))
+    {
+        return false;
+    }
+
+    const int check = d_internal_emit(_emitter, D_INTERNAL_OP_PROGRESS);
+    const int jump  = d_internal_emit(_emitter, D_INTERNAL_OP_JMP);
+
+    // propagate a buffer-growth failure
+    if ((check < 0) || (jump < 0))
+    {
+        return false;
+    }
+
+    _emitter->program[check].value = _loop;
+    _emitter->program[jump].x      = split;
+    _emitter->program[split].y     = (int)_emitter->count;
+    _emitter->program[check].x     = (int)_emitter->count;
+
+    return true;
+}
+
+/*
+d_internal_compile_plus
+  Lowers the loop of an unbounded repetition with a lower bound of at least
+one: the body, then a branch back to it.
+
+Parameter(s):
+  _emitter: the emitter to extend.
+  _nodes:   the parse-tree pool.
+  _body:    the index of the body.
+  _loop:    the loop's counter.
+Return:
+  A boolean value corresponding to either:
+  - true, if the loop lowered, or
+  - false, otherwise.
+*/
+static
+bool d_internal_compile_plus(
+    struct dj_internal_emitter*    _emitter,
+    const struct dj_internal_node* _nodes,
+    int                            _body,
+    int                            _loop
+)
+{
+    const int reset = d_internal_emit(_emitter, D_INTERNAL_OP_LOOP);
+    const int entry = (int)_emitter->count;
+    const int mark  = d_internal_emit(_emitter, D_INTERNAL_OP_MARK);
+
+    // propagate a buffer-growth failure
+    if ((reset < 0) || (mark < 0))
+    {
+        return false;
+    }
+
+    _emitter->program[reset].value = _loop;
+    _emitter->program[reset].x     = 0;
+    _emitter->program[mark].value  = _loop;
+
+    // abandon compilation when the body fails to lower
+    if (!d_internal_compile_node(_emitter, _nodes, _body))
+    {
+        return false;
+    }
+
+    const int check = d_internal_emit(_emitter, D_INTERNAL_OP_PROGRESS);
+    const int split = d_internal_emit(_emitter, D_INTERNAL_OP_SPLIT);
+
+    // propagate a buffer-growth failure
+    if ((check < 0) || (split < 0))
+    {
+        return false;
+    }
+
+    // PROGRESS precedes the exit branch deliberately.  Deferring the exit
+    // first would give it an undo mark taken after this iteration's writes,
+    // so an empty final iteration would survive the backtrack and be
+    // reported in place of the last one that consumed.
+    _emitter->program[check].value = _loop;
+    _emitter->program[check].x     = (int)_emitter->count;
+    _emitter->program[split].x     = entry;
+    _emitter->program[split].y     = (int)_emitter->count;
+
+    return true;
+}
+
+/*
+d_internal_compile_optional_copy
+  Lowers one optional copy of a bounded repetition's body behind its own
+split, and reports the split and the progress check, both of which leave to
+the shared exit once its address is known.
+
+Parameter(s):
+  _emitter:   the emitter to extend.
+  _nodes:     the parse-tree pool.
+  _body:      the index of the body.
+  _bound:     the repetition's counter.
+  _out_split: receives the copy's split.
+  _out_check: receives the copy's progress check.
+Return:
+  A boolean value corresponding to either:
+  - true, if the copy lowered, or
+  - false, otherwise.
+*/
+static
+bool d_internal_compile_optional_copy(
+    struct dj_internal_emitter*    _emitter,
+    const struct dj_internal_node* _nodes,
+    int                            _body,
+    int                            _bound,
+    int*                           _out_split,
+    int*                           _out_check
+)
+{
+    const int split = d_internal_emit(_emitter, D_INTERNAL_OP_SPLIT);
+
+    // propagate a buffer-growth failure
+    if (split < 0)
+    {
+        return false;
+    }
+
+    const int mark = d_internal_emit(_emitter, D_INTERNAL_OP_MARK);
+
+    // propagate a buffer-growth failure
+    if (mark < 0)
+    {
+        return false;
+    }
+
+    _emitter->program[split].x    = split + 1;
+    _emitter->program[mark].value = _bound;
+
+    // abandon compilation when the body fails to lower
+    if (!d_internal_compile_node(_emitter, _nodes, _body))
+    {
+        return false;
+    }
+
+    const int check = d_internal_emit(_emitter, D_INTERNAL_OP_PROGRESS);
+
+    // propagate a buffer-growth failure
+    if (check < 0)
+    {
+        return false;
+    }
+
+    _emitter->program[check].value = _bound;
+    *_out_split                    = split;
+    *_out_check                    = check;
+
+    return true;
+}
+
+/*
+d_internal_compile_optional
+  Lowers the optional copies of a bounded repetition, after its mandatory
+ones.
+NOTE:
+  The optional copies follow the same rule as an unbounded repetition: an
+  empty copy is kept only when no copy consumed.  The mandatory copies seed
+  the count, so /(b{0,0}[^c]?){1,2}/ does not let an empty second copy
+  overwrite what the first one captured.
+
+Parameter(s):
+  _emitter:  the emitter to extend.
+  _nodes:    the parse-tree pool.
+  _body:     the index of the body.
+  _min:      the mandatory copies already lowered.
+  _optional: how many optional copies; at least one.
+Return:
+  A boolean value corresponding to either:
+  - true, if every copy lowered, or
+  - false, otherwise.
+*/
+static
+bool d_internal_compile_optional(
+    struct dj_internal_emitter*    _emitter,
+    const struct dj_internal_node* _nodes,
+    int                            _body,
+    int                            _min,
+    int                            _optional
+)
+{
+    const int bound = _emitter->loop_count++;
+    const int reset = d_internal_emit(_emitter, D_INTERNAL_OP_LOOP);
+    int*      exits = NULL;
+    size_t    bytes = 0;
+
+    // propagate a buffer-growth failure
+    if (reset < 0)
+    {
+        return false;
+    }
+
+    _emitter->program[reset].value = bound;
+    _emitter->program[reset].x     = _min;
+
+    // two patches a copy; abandon compilation where the size would wrap
+    if (d_ckd_mul(&bytes,
+                  (size_t)_optional,
+                  2u * sizeof(*exits)))
+    {
+        _emitter->status = D_REGEX_ERR_MEMORY;
+
+        return false;
+    }
+
+    exits = malloc(bytes);
+
+    // abandon compilation when the patch list cannot be held
+    if (!exits)
+    {
+        _emitter->status = D_REGEX_ERR_MEMORY;
+
+        return false;
+    }
+
+    // emit each optional copy behind its own split
+    for (int copy = 0; copy < _optional; ++copy)
+    {
+        // abandon compilation when a copy fails to lower
+        if (!d_internal_compile_optional_copy(_emitter,
+                                              _nodes,
+                                              _body,
+                                              bound,
+                                              &exits[copy * 2],
+                                              &exits[(copy * 2) + 1]))
+        {
+            free(exits);
+
+            return false;
+        }
+    }
+
+    // every optional copy leaves to the instruction after the last one, by its
+    // split when the copy is skipped and by its check when the copy was empty
+    for (int copy = 0; copy < _optional; ++copy)
+    {
+        const int split = exits[copy * 2];
+        const int check = exits[(copy * 2) + 1];
+
+        _emitter->program[split].y = (int)_emitter->count;
+        _emitter->program[check].x = (int)_emitter->count;
+    }
+
+    free(exits);
+
+    return true;
+}
+
+/*
 d_internal_compile_repeat
   Lowers a repetition node by replicating its body.
 NOTE:
@@ -1298,226 +1712,197 @@ bool d_internal_compile_repeat(
     const int                     min  = node->min;
     const int                     max  = node->max;
 
-    // an unbounded repetition ends in a loop
+    // an unbounded repetition: the copies that precede its loop, then the loop
     if (max < 0)
     {
-        // emit the copies that precede the loop
-        for (int copy = 0; copy < (min - 1); ++copy)
+        // abandon compilation when a copy fails to lower
+        if (!d_internal_compile_copies(_emitter, _nodes, body, min - 1))
         {
-            // abandon compilation when a copy fails to lower
-            if (!d_internal_compile_node(_emitter, _nodes, body))
-            {
-                return false;
-            }
+            return false;
         }
 
         const int loop = _emitter->loop_count++;
 
-        // a zero lower bound loops around an optional body
-        if (min == 0)
-        {
-            const int reset = d_internal_emit(_emitter, D_INTERNAL_OP_LOOP);
-            const int split = d_internal_emit(_emitter,
-                                              D_INTERNAL_OP_SPLIT);
-            const int mark  = d_internal_emit(_emitter, D_INTERNAL_OP_MARK);
-
-            // propagate a buffer-growth failure
-            if ((reset < 0) || (split < 0) || (mark < 0))
-            {
-                return false;
-            }
-
-            _emitter->program[reset].value = loop;
-            _emitter->program[reset].x     = 0;
-            _emitter->program[split].x     = split + 1;
-            _emitter->program[mark].value  = loop;
-
-            // abandon compilation when the body fails to lower
-            if (!d_internal_compile_node(_emitter, _nodes, body))
-            {
-                return false;
-            }
-
-            const int check = d_internal_emit(_emitter,
-                                              D_INTERNAL_OP_PROGRESS);
-            const int jump  = d_internal_emit(_emitter, D_INTERNAL_OP_JMP);
-
-            // propagate a buffer-growth failure
-            if ((check < 0) || (jump < 0))
-            {
-                return false;
-            }
-
-            _emitter->program[check].value = loop;
-            _emitter->program[jump].x      = split;
-            _emitter->program[split].y     = (int)_emitter->count;
-            _emitter->program[check].x     = (int)_emitter->count;
-
-            return true;
-        }
-
-        const int reset = d_internal_emit(_emitter, D_INTERNAL_OP_LOOP);
-        const int entry = (int)_emitter->count;
-        const int mark  = d_internal_emit(_emitter, D_INTERNAL_OP_MARK);
-
-        // propagate a buffer-growth failure
-        if ((reset < 0) || (mark < 0))
-        {
-            return false;
-        }
-
-        _emitter->program[reset].value = loop;
-        _emitter->program[reset].x     = 0;
-        _emitter->program[mark].value  = loop;
-
-        // abandon compilation when the body fails to lower
-        if (!d_internal_compile_node(_emitter, _nodes, body))
-        {
-            return false;
-        }
-
-        const int check = d_internal_emit(_emitter, D_INTERNAL_OP_PROGRESS);
-        const int split = d_internal_emit(_emitter, D_INTERNAL_OP_SPLIT);
-
-        // propagate a buffer-growth failure
-        if ((check < 0) || (split < 0))
-        {
-            return false;
-        }
-
-        // PROGRESS precedes the exit branch deliberately.  Deferring the exit
-        // first would give it an undo mark taken after this iteration's
-        // writes, so an empty final iteration would survive the backtrack and
-        // be reported in place of the last one that consumed.
-        _emitter->program[check].value = loop;
-        _emitter->program[check].x     = (int)_emitter->count;
-        _emitter->program[split].x     = entry;
-        _emitter->program[split].y     = (int)_emitter->count;
-
-        return true;
+        return (min == 0)
+                   ? d_internal_compile_star(_emitter, _nodes, body, loop)
+                   : d_internal_compile_plus(_emitter, _nodes, body, loop);
     }
 
-    // emit the mandatory copies
-    for (int copy = 0; copy < min; ++copy)
+    // a bounded one: the mandatory copies, then the optional ones
+    if (!d_internal_compile_copies(_emitter, _nodes, body, min))
     {
-        // abandon compilation when a copy fails to lower
-        if (!d_internal_compile_node(_emitter, _nodes, body))
-        {
-            return false;
-        }
+        return false;
     }
 
-    const int optional = max - min;
-    int*      exits    = NULL;
-    int       bound    = -1;
+    return (max > min)
+               ? d_internal_compile_optional(_emitter,
+                                             _nodes,
+                                             body,
+                                             min,
+                                             max - min)
+               : true;
+}
 
-    // the optional copies of a bounded repetition follow the same rule as an
-    // unbounded one: an empty copy is kept only when no copy consumed.  The
-    // mandatory copies seed the count, so /(b{0,0}[^c]?){1,2}/ does not let an
-    // empty second copy overwrite what the first one captured.
-    if (optional > 0)
+
+/*
+d_internal_compile_leaf
+  Lowers a leaf -- a byte, a class, the wildcard or an anchor -- to its one
+instruction.
+
+Parameter(s):
+  _emitter: the emitter to extend.
+  _node:    the leaf.
+Return:
+  A boolean value corresponding to either:
+  - true, if the leaf lowered successfully, or
+  - false, otherwise.
+*/
+static
+bool d_internal_compile_leaf(
+    struct dj_internal_emitter*    _emitter,
+    const struct dj_internal_node* _node
+)
+{
+    enum dj_internal_op op = D_INTERNAL_OP_ANY;
+
+    // map the leaf kind onto its opcode
+    if (_node->kind == D_INTERNAL_NODE_CHAR)
     {
-        bound = _emitter->loop_count++;
-
-        const int reset = d_internal_emit(_emitter, D_INTERNAL_OP_LOOP);
-
-        // propagate a buffer-growth failure
-        if (reset < 0)
-        {
-            return false;
-        }
-
-        _emitter->program[reset].value = bound;
-        _emitter->program[reset].x     = min;
+        op = D_INTERNAL_OP_CHAR;
     }
-
-    // record the split and the progress check of each optional copy, so both
-    // can be patched to the shared exit once its address is known
-    if (optional > 0)
+    else if (_node->kind == D_INTERNAL_NODE_CLASS)
     {
-        size_t bytes = 0;
-
-        // two patches a copy; abandon compilation where the size would wrap
-        if (d_ckd_mul(&bytes,
-                      (size_t)optional,
-                      2u * sizeof(*exits)))
-        {
-            _emitter->status = D_REGEX_ERR_MEMORY;
-
-            return false;
-        }
-
-        exits = malloc(bytes);
-
-        // abandon compilation when the patch list cannot be held
-        if (!exits)
-        {
-            _emitter->status = D_REGEX_ERR_MEMORY;
-            return false;
-        }
+        op = D_INTERNAL_OP_CLASS;
     }
-
-    // emit each optional copy behind its own split
-    for (int copy = 0; copy < optional; ++copy)
+    else if (_node->kind == D_INTERNAL_NODE_BOL)
     {
-        const int split = d_internal_emit(_emitter, D_INTERNAL_OP_SPLIT);
-
-        // propagate a buffer-growth failure
-        if (split < 0)
-        {
-            free(exits);
-            return false;
-        }
-
-        const int mark = d_internal_emit(_emitter, D_INTERNAL_OP_MARK);
-
-        // propagate a buffer-growth failure
-        if (mark < 0)
-        {
-            free(exits);
-            return false;
-        }
-
-        _emitter->program[split].x    = split + 1;
-        _emitter->program[mark].value = bound;
-        exits[copy * 2]               = split;
-
-        // abandon compilation when the body fails to lower
-        if (!d_internal_compile_node(_emitter, _nodes, body))
-        {
-            free(exits);
-            return false;
-        }
-
-        const int check = d_internal_emit(_emitter, D_INTERNAL_OP_PROGRESS);
-
-        // propagate a buffer-growth failure
-        if (check < 0)
-        {
-            free(exits);
-            return false;
-        }
-
-        _emitter->program[check].value = bound;
-        exits[(copy * 2) + 1]          = check;
+        op = D_INTERNAL_OP_BOL;
     }
-
-    // every optional copy leaves to the instruction after the last one, by its
-    // split when the copy is skipped and by its check when the copy was empty
-    for (int copy = 0; copy < optional; ++copy)
+    else if (_node->kind == D_INTERNAL_NODE_EOL)
     {
-        const int split = exits[copy * 2];
-        const int check = exits[(copy * 2) + 1];
-
-        _emitter->program[split].y = (int)_emitter->count;
-        _emitter->program[check].x = (int)_emitter->count;
+        op = D_INTERNAL_OP_EOL;
     }
 
-    free(exits);
+    const int address = d_internal_emit(_emitter, op);
+
+    // propagate a buffer-growth failure
+    if (address < 0)
+    {
+        return false;
+    }
+
+    _emitter->program[address].value = _node->value;
 
     return true;
 }
 
+/*
+d_internal_compile_group
+  Lowers a capturing group: its body between the two SAVE instructions that
+record where the group starts and ends.
+
+Parameter(s):
+  _emitter: the emitter to extend.
+  _nodes:   the parse-tree pool.
+  _node:    the group.
+Return:
+  A boolean value corresponding to either:
+  - true, if the group lowered successfully, or
+  - false, otherwise.
+*/
+static
+bool d_internal_compile_group(
+    struct dj_internal_emitter*    _emitter,
+    const struct dj_internal_node* _nodes,
+    const struct dj_internal_node* _node
+)
+{
+    const int open = d_internal_emit(_emitter, D_INTERNAL_OP_SAVE);
+
+    // propagate a buffer-growth failure
+    if (open < 0)
+    {
+        return false;
+    }
+
+    _emitter->program[open].value = _node->value * 2;
+
+    // abandon compilation when the body fails to lower
+    if (!d_internal_compile_node(_emitter, _nodes, _node->left))
+    {
+        return false;
+    }
+
+    const int close = d_internal_emit(_emitter, D_INTERNAL_OP_SAVE);
+
+    // propagate a buffer-growth failure
+    if (close < 0)
+    {
+        return false;
+    }
+
+    _emitter->program[close].value = (_node->value * 2) + 1;
+
+    return true;
+}
+
+/*
+d_internal_compile_alternation
+  Lowers an alternation: a split to either branch, the first jumping past
+the second.
+
+Parameter(s):
+  _emitter: the emitter to extend.
+  _nodes:   the parse-tree pool.
+  _node:    the alternation.
+Return:
+  A boolean value corresponding to either:
+  - true, if both branches lowered successfully, or
+  - false, otherwise.
+*/
+static
+bool d_internal_compile_alternation(
+    struct dj_internal_emitter*    _emitter,
+    const struct dj_internal_node* _nodes,
+    const struct dj_internal_node* _node
+)
+{
+    const int split = d_internal_emit(_emitter, D_INTERNAL_OP_SPLIT);
+
+    // propagate a buffer-growth failure
+    if (split < 0)
+    {
+        return false;
+    }
+
+    _emitter->program[split].x = split + 1;
+
+    // abandon compilation when the first branch fails to lower
+    if (!d_internal_compile_node(_emitter, _nodes, _node->left))
+    {
+        return false;
+    }
+
+    const int jump = d_internal_emit(_emitter, D_INTERNAL_OP_JMP);
+
+    // propagate a buffer-growth failure
+    if (jump < 0)
+    {
+        return false;
+    }
+
+    _emitter->program[split].y = (int)_emitter->count;
+
+    // abandon compilation when the second branch fails to lower
+    if (!d_internal_compile_node(_emitter, _nodes, _node->right))
+    {
+        return false;
+    }
+
+    _emitter->program[jump].x = (int)_emitter->count;
+
+    return true;
+}
 
 /*
 d_internal_compile_node
@@ -1544,134 +1929,28 @@ bool d_internal_compile_node(
     switch (node->kind)
     {
         case D_INTERNAL_NODE_EMPTY:
-        {
             return true;
-        }
 
         case D_INTERNAL_NODE_CHAR:
         case D_INTERNAL_NODE_CLASS:
         case D_INTERNAL_NODE_ANY:
         case D_INTERNAL_NODE_BOL:
         case D_INTERNAL_NODE_EOL:
-        {
-            enum dj_internal_op op = D_INTERNAL_OP_ANY;
-
-            // map the leaf kind onto its opcode
-            if (node->kind == D_INTERNAL_NODE_CHAR)
-            {
-                op = D_INTERNAL_OP_CHAR;
-            }
-            else if (node->kind == D_INTERNAL_NODE_CLASS)
-            {
-                op = D_INTERNAL_OP_CLASS;
-            }
-            else if (node->kind == D_INTERNAL_NODE_BOL)
-            {
-                op = D_INTERNAL_OP_BOL;
-            }
-            else if (node->kind == D_INTERNAL_NODE_EOL)
-            {
-                op = D_INTERNAL_OP_EOL;
-            }
-
-            const int address = d_internal_emit(_emitter, op);
-
-            // propagate a buffer-growth failure
-            if (address < 0)
-            {
-                return false;
-            }
-
-            _emitter->program[address].value = node->value;
-
-            return true;
-        }
+            return d_internal_compile_leaf(_emitter, node);
 
         case D_INTERNAL_NODE_CAT:
-        {
             // abandon compilation when either side fails to lower
-            if (!d_internal_compile_node(_emitter, _nodes, node->left))
-            {
-                return false;
-            }
-
-            return d_internal_compile_node(_emitter, _nodes, node->right);
-        }
+            return ( (d_internal_compile_node(_emitter, _nodes, node->left)) &&
+                     (d_internal_compile_node(_emitter, _nodes, node->right)) );
 
         case D_INTERNAL_NODE_GROUP:
-        {
-            const int open = d_internal_emit(_emitter, D_INTERNAL_OP_SAVE);
-
-            // propagate a buffer-growth failure
-            if (open < 0)
-            {
-                return false;
-            }
-
-            _emitter->program[open].value = node->value * 2;
-
-            // abandon compilation when the body fails to lower
-            if (!d_internal_compile_node(_emitter, _nodes, node->left))
-            {
-                return false;
-            }
-
-            const int close = d_internal_emit(_emitter, D_INTERNAL_OP_SAVE);
-
-            // propagate a buffer-growth failure
-            if (close < 0)
-            {
-                return false;
-            }
-
-            _emitter->program[close].value = (node->value * 2) + 1;
-
-            return true;
-        }
+            return d_internal_compile_group(_emitter, _nodes, node);
 
         case D_INTERNAL_NODE_ALT:
-        {
-            const int split = d_internal_emit(_emitter, D_INTERNAL_OP_SPLIT);
-
-            // propagate a buffer-growth failure
-            if (split < 0)
-            {
-                return false;
-            }
-
-            _emitter->program[split].x = split + 1;
-
-            // abandon compilation when the first branch fails to lower
-            if (!d_internal_compile_node(_emitter, _nodes, node->left))
-            {
-                return false;
-            }
-
-            const int jump = d_internal_emit(_emitter, D_INTERNAL_OP_JMP);
-
-            // propagate a buffer-growth failure
-            if (jump < 0)
-            {
-                return false;
-            }
-
-            _emitter->program[split].y = (int)_emitter->count;
-
-            // abandon compilation when the second branch fails to lower
-            if (!d_internal_compile_node(_emitter, _nodes, node->right))
-            {
-                return false;
-            }
-
-            _emitter->program[jump].x = (int)_emitter->count;
-
-            return true;
-        }
+            return d_internal_compile_alternation(_emitter, _nodes, node);
 
         default:
-        {
             return d_internal_compile_repeat(_emitter, _nodes, _index);
-        }
     }
 }
 
@@ -1805,6 +2084,125 @@ void d_internal_add_thread(
 
 
 /*
+d_internal_run_accept
+  Records every thread of a list that has reached the accepting instruction,
+keeping the leftmost start, and the longest extent within it.
+
+Parameter(s):
+  _regex:      the compiled pattern.
+  _list:       the threads at this position.
+  _position:   the input position the threads have reached.
+  _found:      whether a match is held; set when one is recorded.
+  _best_start: the held match's start; updated.
+  _best_end:   the held match's end; updated.
+Return:
+  None.
+*/
+static
+void d_internal_run_accept(
+    const struct dj_regex*         _regex,
+    const struct dj_internal_list* _list,
+    size_t                         _position,
+    bool*                          _found,
+    size_t*                        _best_start,
+    size_t*                        _best_end
+)
+{
+    for (size_t index = 0; index < _list->count; ++index)
+    {
+        const struct dj_internal_inst* inst =
+            &_regex->program[_list->pc[index]];
+
+        // only the accepting instruction reports a match
+        if (inst->op != D_INTERNAL_OP_MATCH)
+        {
+            continue;
+        }
+
+        const size_t start = _list->starts[index];
+
+        // keep the leftmost start, and the longest extent within it
+        if ( (!*_found)                                            ||
+             (start < *_best_start)                                ||
+             ((start == *_best_start) && (_position > *_best_end)) )
+        {
+            *_found      = true;
+            *_best_start = start;
+            *_best_end   = _position;
+        }
+    }
+
+    return;
+}
+
+/*
+d_internal_run_step
+  Steps every thread of a list that consumes the byte at a position into the
+next list, which it empties first.
+
+Parameter(s):
+  _regex:    the compiled pattern.
+  _current:  the threads at this position.
+  _next:     receives the threads at the next.
+  _byte:     the byte at this position.
+  _position: the position.
+  _length:   the length of the subject.
+Return:
+  None.
+*/
+static
+void d_internal_run_step(
+    struct dj_regex*               _regex,
+    const struct dj_internal_list* _current,
+    struct dj_internal_list*       _next,
+    unsigned char                  _byte,
+    size_t                         _position,
+    size_t                         _length
+)
+{
+    _regex->generation++;
+    _next->count = 0;
+
+    for (size_t index = 0; index < _current->count; ++index)
+    {
+        const int                     address = _current->pc[index];
+        const struct dj_internal_inst* inst    = &_regex->program[address];
+        bool                          consume = false;
+
+        // decide whether this instruction accepts the byte
+        if (inst->op == D_INTERNAL_OP_CHAR)
+        {
+            consume = (inst->value == (int)_byte);
+        }
+        else if (inst->op == D_INTERNAL_OP_ANY)
+        {
+            consume = true;
+        }
+        else if (inst->op == D_INTERNAL_OP_CLASS)
+        {
+            const unsigned char* bitmap =
+                &_regex->classes[(size_t)inst->value * 32u];
+
+            consume = d_internal_class_test(bitmap, _byte);
+        }
+
+        // carry the thread forward when the byte is accepted
+        if (consume)
+        {
+            d_internal_add_thread(_regex,
+                                  _next,
+                                  address + 1,
+                                  _current->starts[index],
+                                  _position + 1,
+                                  _length,
+                                  _regex->generation);
+        }
+    }
+
+    return;
+}
+
+/*
 d_internal_run
   Executes the program over a subject and reports the best match.
 
@@ -1856,29 +2254,12 @@ bool d_internal_run(
     for (size_t position = _from; ; ++position)
     {
         // record any thread that has reached the accepting instruction
-        for (size_t index = 0; index < current->count; ++index)
-        {
-            const struct dj_internal_inst* inst =
-                &_regex->program[current->pc[index]];
-
-            // only the accepting instruction reports a match
-            if (inst->op != D_INTERNAL_OP_MATCH)
-            {
-                continue;
-            }
-
-            const size_t start = current->starts[index];
-
-            // keep the leftmost start, and the longest extent within it
-            if ( (!found)                                        ||
-                 (start < best_start)                            ||
-                 ((start == best_start) && (position > best_end)) )
-            {
-                found      = true;
-                best_start = start;
-                best_end   = position;
-            }
-        }
+        d_internal_run_accept(_regex,
+                              current,
+                              position,
+                              &found,
+                              &best_start,
+                              &best_end);
 
         // the end position admits no further transition
         if (position == _length)
@@ -1886,47 +2267,13 @@ bool d_internal_run(
             break;
         }
 
-        const unsigned char byte = (unsigned char)_text[position];
-
-        _regex->generation++;
-        next->count = 0;
-
         // step every thread that consumes the byte at this position
-        for (size_t index = 0; index < current->count; ++index)
-        {
-            const int                     address = current->pc[index];
-            const struct dj_internal_inst* inst    = &_regex->program[address];
-            bool                          consume = false;
-
-            // decide whether this instruction accepts the byte
-            if (inst->op == D_INTERNAL_OP_CHAR)
-            {
-                consume = (inst->value == (int)byte);
-            }
-            else if (inst->op == D_INTERNAL_OP_ANY)
-            {
-                consume = true;
-            }
-            else if (inst->op == D_INTERNAL_OP_CLASS)
-            {
-                const unsigned char* bitmap =
-                    &_regex->classes[(size_t)inst->value * 32u];
-
-                consume = d_internal_class_test(bitmap, byte);
-            }
-
-            // carry the thread forward when the byte is accepted
-            if (consume)
-            {
-                d_internal_add_thread(_regex,
-                                      next,
-                                      address + 1,
-                                      current->starts[index],
-                                      position + 1,
-                                      _length,
-                                      _regex->generation);
-            }
-        }
+        d_internal_run_step(_regex,
+                            current,
+                            next,
+                            (unsigned char)_text[position],
+                            position,
+                            _length);
 
         struct dj_internal_list* const swap = current;
 
@@ -1945,14 +2292,10 @@ bool d_internal_run(
                                   _regex->generation);
         }
 
-        // nothing further can improve on an established match
-        if ((current->count == 0) && (found))
-        {
-            break;
-        }
-
-        // an anchored run cannot recover once every thread has died
-        if ((current->count == 0) && (_anchored))
+        // nothing further can improve on an established match, and an
+        // anchored run cannot recover once every thread has died
+        if ( (current->count == 0) &&
+             ((found) || (_anchored)) )
         {
             break;
         }
@@ -2023,6 +2366,335 @@ struct dj_internal_capture_state
 };
 
 
+// 6.2    The pass's steps
+//------------------------------------------------------------------------------
+// dj_internal_step
+//   enum: what one instruction of the capture pass did: the parse goes on,
+// the branch failed, a parse completed, or the pass ran out of room.
+enum dj_internal_step
+{
+    D_INTERNAL_STEP_ON     = 0,
+    D_INTERNAL_STEP_FAIL   = 1,
+    D_INTERNAL_STEP_DONE   = 2,
+    D_INTERNAL_STEP_BUDGET = 3
+};
+
+/*
+d_internal_capture_trail
+  Writes a mark, first recording the value it displaces on the trail, so a
+backtrack can restore it.
+
+Parameter(s):
+  _state: the per-call backtracking buffers.
+  _index: the mark to write.
+  _value: its new value.
+Return:
+  A boolean value corresponding to either:
+  - true, if the mark was written, or
+  - false, if the trail is full.
+*/
+static
+bool d_internal_capture_trail(
+    struct dj_internal_capture_state* _state,
+    size_t                           _index,
+    size_t                           _value
+)
+{
+    // the trail must be able to hold the displaced value
+    if (_state->undo_count >= _state->undo_capacity)
+    {
+        return false;
+    }
+
+    _state->undo[_state->undo_count].index = _index;
+    _state->undo[_state->undo_count].value = _state->marks[_index];
+    _state->undo_count++;
+
+    _state->marks[_index] = _value;
+
+    return true;
+}
+
+/*
+d_internal_capture_consume
+  Steps a consuming instruction -- a byte, the wildcard or a class -- over
+the byte at the position, within the window.
+
+Parameter(s):
+  _regex:    the compiled pattern.
+  _inst:     the instruction.
+  _text:     the subject bytes.
+  _end:      the offset at which the window ends.
+  _pc:       the program counter; advanced on success.
+  _position: the input position; advanced on success.
+Return:
+  D_INTERNAL_STEP_ON when the byte was consumed, D_INTERNAL_STEP_FAIL
+otherwise.
+*/
+static enum dj_internal_step
+d_internal_capture_consume(
+    const struct dj_regex*         _regex,
+    const struct dj_internal_inst* _inst,
+    const char*                    _text,
+    size_t                         _end,
+    int*                           _pc,
+    size_t*                        _position
+)
+{
+    // nothing is left in the window to consume
+    if (*_position >= _end)
+    {
+        return D_INTERNAL_STEP_FAIL;
+    }
+
+    const unsigned char byte = (unsigned char)_text[*_position];
+    bool                fail = false;
+
+    // decide whether this instruction accepts the byte
+    if (_inst->op == D_INTERNAL_OP_CHAR)
+    {
+        fail = ((int)byte != _inst->value);
+    }
+    else if (_inst->op == D_INTERNAL_OP_CLASS)
+    {
+        const unsigned char* bitmap =
+            &_regex->classes[(size_t)_inst->value * 32u];
+
+        fail = (!d_internal_class_test(bitmap, byte));
+    }
+
+    // consume the byte when it was accepted
+    if (fail)
+    {
+        return D_INTERNAL_STEP_FAIL;
+    }
+
+    (*_pc)++;
+    (*_position)++;
+
+    return D_INTERNAL_STEP_ON;
+}
+
+/*
+d_internal_capture_progress
+  Steps a repetition's PROGRESS check: an iteration that consumed takes the
+back-edge and counts; an empty iteration is kept only when it is the only
+one.
+NOTE:
+  GNU regex reports group 1 of /(a{0,1})*b/ against "b" as an empty match at
+  offset zero, but reports (a?)* against "aa" as (1,1) -- the trailing
+  empty iteration is discarded once an earlier one consumed.  Diverting keeps
+  the writes; failing unwinds them.
+
+Parameter(s):
+  _state:    the per-call backtracking buffers.
+  _inst:     the PROGRESS instruction.
+  _pairs:    the marks the capture slots take, before the loops' own.
+  _pc:       the program counter.
+  _position: the input position.
+Return:
+  D_INTERNAL_STEP_ON, D_INTERNAL_STEP_FAIL, or D_INTERNAL_STEP_BUDGET when
+the trail is full.
+*/
+static enum dj_internal_step
+d_internal_capture_progress(
+    struct dj_internal_capture_state* _state,
+    const struct dj_internal_inst*    _inst,
+    size_t                           _pairs,
+    int*                             _pc,
+    size_t                           _position
+)
+{
+    const size_t base    = _pairs + ((size_t)_inst->value * 2u);
+    const size_t entered = _state->marks[base];
+    const size_t taken   = _state->marks[base + 1u];
+
+    // an iteration that consumed takes the back-edge, and counts
+    if (_position != entered)
+    {
+        // the trail must be able to hold the displaced value
+        if (!d_internal_capture_trail(_state, base + 1u, taken + 1u))
+        {
+            return D_INTERNAL_STEP_BUDGET;
+        }
+
+        (*_pc)++;
+
+        return D_INTERNAL_STEP_ON;
+    }
+
+    // an empty iteration is kept only when it is the only one
+    if (taken == 0u)
+    {
+        *_pc = _inst->x;
+
+        return D_INTERNAL_STEP_ON;
+    }
+
+    return D_INTERNAL_STEP_FAIL;
+}
+
+/*
+d_internal_capture_step
+  Steps one instruction of the capture pass.
+
+Parameter(s):
+  _regex:    the compiled pattern.
+  _state:    the per-call backtracking buffers.
+  _pairs:    the marks the capture slots take, before the loops' own.
+  _text:     the subject bytes.
+  _length:   the length of the subject.
+  _end:      the offset at which the window ends.
+  _pc:       the program counter.
+  _position: the input position.
+Return:
+  What the instruction did (dj_internal_step).
+*/
+static enum dj_internal_step
+d_internal_capture_step(
+    struct dj_regex*                  _regex,
+    struct dj_internal_capture_state* _state,
+    size_t                           _pairs,
+    const char*                      _text,
+    size_t                           _length,
+    size_t                           _end,
+    int*                             _pc,
+    size_t*                          _position
+)
+{
+    const struct dj_internal_inst* inst = &_regex->program[*_pc];
+
+    switch (inst->op)
+    {
+        case D_INTERNAL_OP_CHAR:
+        case D_INTERNAL_OP_ANY:
+        case D_INTERNAL_OP_CLASS:
+            return d_internal_capture_consume(_regex,
+                                              inst,
+                                              _text,
+                                              _end,
+                                              _pc,
+                                              _position);
+
+        // the anchors hold only at the subject's start and end
+        case D_INTERNAL_OP_BOL:
+        case D_INTERNAL_OP_EOL:
+            if (*_position != ((inst->op == D_INTERNAL_OP_BOL) ? 0u : _length))
+            {
+                return D_INTERNAL_STEP_FAIL;
+            }
+
+            (*_pc)++;
+
+            return D_INTERNAL_STEP_ON;
+
+        // a group's edge, and a repetition's bookkeeping: LOOP clears the
+        // iteration count, MARK records where this iteration began
+        case D_INTERNAL_OP_SAVE:
+        case D_INTERNAL_OP_LOOP:
+        case D_INTERNAL_OP_MARK:
+        {
+            const size_t index =
+                (inst->op == D_INTERNAL_OP_SAVE)
+                    ? (size_t)inst->value
+                    : _pairs + ((size_t)inst->value * 2u) +
+                      ((inst->op == D_INTERNAL_OP_LOOP) ? 1u : 0u);
+            const size_t value = (inst->op == D_INTERNAL_OP_LOOP)
+                               ? (size_t)inst->x
+                               : *_position;
+
+            // the trail must be able to hold the displaced value
+            if (!d_internal_capture_trail(_state, index, value))
+            {
+                return D_INTERNAL_STEP_BUDGET;
+            }
+
+            (*_pc)++;
+
+            return D_INTERNAL_STEP_ON;
+        }
+
+        case D_INTERNAL_OP_PROGRESS:
+            return d_internal_capture_progress(_state,
+                                               inst,
+                                               _pairs,
+                                               _pc,
+                                               *_position);
+
+        case D_INTERNAL_OP_JMP:
+            *_pc = inst->x;
+
+            return D_INTERNAL_STEP_ON;
+
+        case D_INTERNAL_OP_SPLIT:
+            // the deferred branch is kept for backtracking
+            if (_state->choice_count >= _state->choice_capacity)
+            {
+                return D_INTERNAL_STEP_BUDGET;
+            }
+
+            _state->choice[_state->choice_count].pc        = inst->y;
+            _state->choice[_state->choice_count].position  = *_position;
+            _state->choice[_state->choice_count].undo_mark =
+                _state->undo_count;
+            _state->choice_count++;
+            *_pc = inst->x;
+
+            return D_INTERNAL_STEP_ON;
+
+        default:
+            // the first parse that ends exactly where it must is the answer
+            return (*_position == _end) ? D_INTERNAL_STEP_DONE
+                                        : D_INTERNAL_STEP_FAIL;
+    }
+}
+
+/*
+d_internal_capture_backtrack
+  Takes the most recent deferred branch, restoring every mark written since
+it was deferred.
+
+Parameter(s):
+  _state:    the per-call backtracking buffers.
+  _pc:       receives the branch's program counter.
+  _position: receives the branch's input position.
+Return:
+  A boolean value corresponding to either:
+  - true, if a branch was taken, or
+  - false, if nothing remains to try.
+*/
+static
+bool d_internal_capture_backtrack(
+    struct dj_internal_capture_state* _state,
+    int*                             _pc,
+    size_t*                          _position
+)
+{
+    // the exploration is complete when nothing remains to try
+    if (_state->choice_count == 0)
+    {
+        return false;
+    }
+
+    _state->choice_count--;
+
+    const struct dj_internal_choice* entry =
+        &_state->choice[_state->choice_count];
+
+    // restore every mark written since the branch was deferred
+    while (_state->undo_count > entry->undo_mark)
+    {
+        _state->undo_count--;
+        _state->marks[_state->undo[_state->undo_count].index] =
+            _state->undo[_state->undo_count].value;
+    }
+
+    *_pc       = entry->pc;
+    *_position = entry->position;
+
+    return true;
+}
+
 /*
 d_internal_capture
   Assigns capture groups within a window whose extent is already known.
@@ -2076,248 +2748,44 @@ d_internal_capture(
     _state->undo_count   = 0;
     _state->choice_count = 0;
 
-    size_t steps    = 0;
     size_t position = _start;
     int    pc       = 0;
 
     // explore until a parse completes, or the alternatives or budget run out
-    while (steps < (size_t)D_REGEX_BACKTRACK_MAX)
+    for (size_t steps = 0; steps < (size_t)D_REGEX_BACKTRACK_MAX; ++steps)
     {
-        steps++;
+        const enum dj_internal_step step =
+            d_internal_capture_step(_regex,
+                                    _state,
+                                    pairs,
+                                    _text,
+                                    _length,
+                                    _end,
+                                    &pc,
+                                    &position);
 
-        const struct dj_internal_inst* inst = &_regex->program[pc];
-        bool                          fail = false;
-
-        switch (inst->op)
+        // a completed parse is the answer
+        if (step == D_INTERNAL_STEP_DONE)
         {
-            case D_INTERNAL_OP_CHAR:
-            {
-                fail = ( (position >= _end) ||
-                         ((int)(unsigned char)_text[position] != inst->value) );
+            _state->marks[1] = position;
+            memcpy(_state->best,
+                   _state->marks,
+                   pairs * sizeof(*_state->best));
 
-                // consume the byte when it was accepted
-                if (!fail)
-                {
-                    pc++;
-                    position++;
-                }
+            return D_REGEX_OK;
+        }
 
-                break;
-            }
-
-            case D_INTERNAL_OP_ANY:
-            {
-                fail = (position >= _end);
-
-                // consume the byte when one remains in the window
-                if (!fail)
-                {
-                    pc++;
-                    position++;
-                }
-
-                break;
-            }
-
-            case D_INTERNAL_OP_CLASS:
-            {
-                const unsigned char* bitmap =
-                    &_regex->classes[(size_t)inst->value * 32u];
-
-                fail = ( (position >= _end) ||
-                         (!d_internal_class_test(
-                              bitmap,
-                              (unsigned char)_text[position])) );
-
-                // consume the byte when it is a member of the class
-                if (!fail)
-                {
-                    pc++;
-                    position++;
-                }
-
-                break;
-            }
-
-            case D_INTERNAL_OP_BOL:
-            {
-                fail = (position != 0);
-
-                // the anchor holds only at the start of the subject
-                if (!fail)
-                {
-                    pc++;
-                }
-
-                break;
-            }
-
-            case D_INTERNAL_OP_EOL:
-            {
-                fail = (position != _length);
-
-                // the anchor holds only at the end of the subject
-                if (!fail)
-                {
-                    pc++;
-                }
-
-                break;
-            }
-
-            case D_INTERNAL_OP_SAVE:
-            {
-                // the trail must be able to hold the displaced value
-                if (_state->undo_count >= _state->undo_capacity)
-                {
-                    return D_REGEX_ERR_BUDGET;
-                }
-
-                _state->undo[_state->undo_count].index = (size_t)inst->value;
-                _state->undo[_state->undo_count].value =
-                    _state->marks[inst->value];
-                _state->undo_count++;
-
-                _state->marks[inst->value] = position;
-                pc++;
-                break;
-            }
-
-            case D_INTERNAL_OP_LOOP:
-            case D_INTERNAL_OP_MARK:
-            {
-                // the trail must be able to hold the displaced value
-                if (_state->undo_count >= _state->undo_capacity)
-                {
-                    return D_REGEX_ERR_BUDGET;
-                }
-
-                // LOOP clears the iteration count; MARK records where this
-                // iteration began
-                const bool   is_reset = (inst->op == D_INTERNAL_OP_LOOP);
-                const size_t index    = pairs + ((size_t)inst->value * 2u) +
-                                        (is_reset ? 1u : 0u);
-
-                _state->undo[_state->undo_count].index = index;
-                _state->undo[_state->undo_count].value = _state->marks[index];
-                _state->undo_count++;
-
-                _state->marks[index] = is_reset
-                                     ? (size_t)inst->x
-                                     : position;
-                pc++;
-                break;
-            }
-
-            case D_INTERNAL_OP_PROGRESS:
-            {
-                const size_t base    = pairs + ((size_t)inst->value * 2u);
-                const size_t entered = _state->marks[base];
-                const size_t taken   = _state->marks[base + 1u];
-
-                // an iteration that consumed takes the back-edge, and counts
-                if (position != entered)
-                {
-                    // the trail must be able to hold the displaced value
-                    if (_state->undo_count >= _state->undo_capacity)
-                    {
-                        return D_REGEX_ERR_BUDGET;
-                    }
-
-                    _state->undo[_state->undo_count].index = base + 1u;
-                    _state->undo[_state->undo_count].value = taken;
-                    _state->undo_count++;
-
-                    _state->marks[base + 1u] = taken + 1u;
-                    pc++;
-
-                    break;
-                }
-
-                // an empty iteration is kept only when it is the only one.
-                // GNU regex reports group 1 of /(a{0,1})*b/ against "b" as an
-                // empty match at offset zero, but reports /(a?)*/ against "aa"
-                // as (1,1) -- the trailing empty iteration is discarded once
-                // an earlier one consumed.  Diverting keeps the writes;
-                // failing unwinds them.
-                if (taken == 0u)
-                {
-                    pc = inst->x;
-                }
-                else
-                {
-                    fail = true;
-                }
-
-                break;
-            }
-
-            case D_INTERNAL_OP_JMP:
-            {
-                pc = inst->x;
-                break;
-            }
-
-            case D_INTERNAL_OP_SPLIT:
-            {
-                // the deferred branch is kept for backtracking
-                if (_state->choice_count >= _state->choice_capacity)
-                {
-                    return D_REGEX_ERR_BUDGET;
-                }
-
-                _state->choice[_state->choice_count].pc        = inst->y;
-                _state->choice[_state->choice_count].position  = position;
-                _state->choice[_state->choice_count].undo_mark =
-                    _state->undo_count;
-                _state->choice_count++;
-
-                pc = inst->x;
-                break;
-            }
-
-            default:
-            {
-                // the first parse that ends exactly where it must is the answer
-                if (position == _end)
-                {
-                    _state->marks[1] = position;
-                    memcpy(_state->best,
-                           _state->marks,
-                           pairs * sizeof(*_state->best));
-
-                    return D_REGEX_OK;
-                }
-
-                fail = true;
-                break;
-            }
+        // the trail or the choices are full
+        if (step == D_INTERNAL_STEP_BUDGET)
+        {
+            return D_REGEX_ERR_BUDGET;
         }
 
         // take the most recent deferred branch when the current one died
-        if (fail)
+        if ( (step == D_INTERNAL_STEP_FAIL) &&
+             (!d_internal_capture_backtrack(_state, &pc, &position)) )
         {
-            // the exploration is complete when nothing remains to try
-            if (_state->choice_count == 0)
-            {
-                break;
-            }
-
-            _state->choice_count--;
-
-            const struct dj_internal_choice* entry =
-                &_state->choice[_state->choice_count];
-
-            // restore every mark written since the branch was deferred
-            while (_state->undo_count > entry->undo_mark)
-            {
-                _state->undo_count--;
-                _state->marks[_state->undo[_state->undo_count].index] =
-                    _state->undo[_state->undo_count].value;
-            }
-
-            pc       = entry->pc;
-            position = entry->position;
+            break;
         }
     }
 
@@ -2392,6 +2860,131 @@ d_internal_scratch_new(
 
 
 /*
+d_internal_report
+  Reports an outcome where the caller asked for one.
+
+Parameter(s):
+  _out_status: where to report it; may be NULL.
+  _status:     the outcome.
+Return:
+  None.
+*/
+static
+void d_internal_report(
+    enum dj_regex_status* _out_status,
+    enum dj_regex_status  _status
+)
+{
+    if (_out_status)
+    {
+        *_out_status = _status;
+    }
+
+    return;
+}
+
+/*
+d_internal_compile_parse
+  Parses a whole pattern to its tree. On failure the parser's pools are
+released.
+
+Parameter(s):
+  _parser:   the parser to fill.
+  _pattern:  the pattern text, NUL-terminated.
+  _out_root: receives the tree's root.
+Return:
+  D_REGEX_OK, or the first error the parser latched; a pattern not wholly
+consumed is D_REGEX_ERR_SYNTAX.
+*/
+static enum dj_regex_status
+d_internal_compile_parse(
+    struct dj_internal_parser* _parser,
+    const char*                _pattern,
+    int*                       _out_root
+)
+{
+    memset(_parser, 0, sizeof(*_parser));
+    _parser->pattern = _pattern;
+    _parser->length  = strlen(_pattern);
+    _parser->status  = D_REGEX_OK;
+
+    const int root = d_internal_parse_alternation(_parser);
+
+    // the whole pattern must be consumed
+    if ((root >= 0) && (_parser->position != _parser->length))
+    {
+        _parser->status = D_REGEX_ERR_SYNTAX;
+    }
+
+    // abandon compilation when parsing failed
+    if ((root < 0) || (_parser->status != D_REGEX_OK))
+    {
+        free(_parser->nodes);
+        free(_parser->classes);
+        _parser->nodes   = NULL;
+        _parser->classes = NULL;
+
+        // the first error the parser latched
+        return (_parser->status == D_REGEX_OK) ? D_REGEX_ERR_SYNTAX
+                                               : _parser->status;
+    }
+
+    *_out_root = root;
+
+    return D_REGEX_OK;
+}
+
+/*
+d_internal_compile_lower
+  Lowers a parsed tree to the program, ending in the accepting instruction.
+The tree is released either way; on failure, the program and the parser's
+classes are too.
+
+Parameter(s):
+  _emitter: the emitter to fill.
+  _parser:  the parser holding the tree and its classes.
+  _root:    the tree's root.
+Return:
+  D_REGEX_OK, or the error the emitter latched; a failure it latched none
+for is D_REGEX_ERR_MEMORY.
+*/
+static enum dj_regex_status
+d_internal_compile_lower(
+    struct dj_internal_emitter* _emitter,
+    struct dj_internal_parser*  _parser,
+    int                         _root
+)
+{
+    memset(_emitter, 0, sizeof(*_emitter));
+    _emitter->status = D_REGEX_OK;
+
+    const bool lowered = d_internal_compile_node(_emitter,
+                                                 _parser->nodes,
+                                                 _root);
+    const int  accept  = lowered
+                       ? d_internal_emit(_emitter, D_INTERNAL_OP_MATCH)
+                       : -1;
+
+    free(_parser->nodes);
+    _parser->nodes = NULL;
+
+    // abandon compilation when lowering failed
+    if (accept < 0)
+    {
+        free(_emitter->program);
+        free(_parser->classes);
+        _emitter->program = NULL;
+        _parser->classes  = NULL;
+
+        // the error the emitter latched
+        return (_emitter->status == D_REGEX_OK) ? D_REGEX_ERR_MEMORY
+                                                : _emitter->status;
+    }
+
+    return D_REGEX_OK;
+}
+
+/*
 d_regex_compile
   Parses and compiles a POSIX extended regular expression.
 
@@ -2407,75 +3000,31 @@ d_regex_compile(
     enum dj_regex_status* _out_status
 )
 {
+    struct dj_internal_parser  parser;
+    struct dj_internal_emitter emitter;
+    int                        root   = -1;
+    enum dj_regex_status       status = D_REGEX_ERR_SYNTAX;
+
     // parameter validation first
     if (!_pattern)
     {
-        // report the rejection when the caller asked for a status
-        if (_out_status)
-        {
-            *_out_status = D_REGEX_ERR_SYNTAX;
-        }
+        d_internal_report(_out_status, D_REGEX_ERR_SYNTAX);
 
         return NULL;
     }
 
-    struct dj_internal_parser parser;
-
-    memset(&parser, 0, sizeof(parser));
-    parser.pattern = _pattern;
-    parser.length  = strlen(_pattern);
-    parser.status  = D_REGEX_OK;
-
-    const int root = d_internal_parse_alternation(&parser);
-
-    // the whole pattern must be consumed
-    if ((root >= 0) && (parser.position != parser.length))
-    {
-        parser.status = D_REGEX_ERR_SYNTAX;
-    }
+    status = d_internal_compile_parse(&parser, _pattern, &root);
 
     // abandon compilation when parsing failed
-    if ((root < 0) || (parser.status != D_REGEX_OK))
+    if (status == D_REGEX_OK)
     {
-        // report the first error the parser latched
-        if (_out_status)
-        {
-            *_out_status = (parser.status == D_REGEX_OK)
-                         ? D_REGEX_ERR_SYNTAX
-                         : parser.status;
-        }
-
-        free(parser.nodes);
-        free(parser.classes);
-
-        return NULL;
+        status = d_internal_compile_lower(&emitter, &parser, root);
     }
 
-    struct dj_internal_emitter emitter;
-
-    memset(&emitter, 0, sizeof(emitter));
-    emitter.status = D_REGEX_OK;
-
-    const bool lowered = d_internal_compile_node(&emitter, parser.nodes, root);
-    const int  accept  = lowered
-                       ? d_internal_emit(&emitter, D_INTERNAL_OP_MATCH)
-                       : -1;
-
-    free(parser.nodes);
-
-    // abandon compilation when lowering failed
-    if (accept < 0)
+    // abandon compilation when parsing or lowering failed
+    if (status != D_REGEX_OK)
     {
-        // report the error the emitter latched
-        if (_out_status)
-        {
-            *_out_status = (emitter.status == D_REGEX_OK)
-                         ? D_REGEX_ERR_MEMORY
-                         : emitter.status;
-        }
-
-        free(emitter.program);
-        free(parser.classes);
+        d_internal_report(_out_status, status);
 
         return NULL;
     }
@@ -2485,12 +3034,7 @@ d_regex_compile(
     // abandon compilation when the handle cannot be held
     if (!regex)
     {
-        // report the allocation failure
-        if (_out_status)
-        {
-            *_out_status = D_REGEX_ERR_MEMORY;
-        }
-
+        d_internal_report(_out_status, D_REGEX_ERR_MEMORY);
         free(emitter.program);
         free(parser.classes);
 
@@ -2510,21 +3054,12 @@ d_regex_compile(
                                 emitter.count))
     {
         d_regex_free(regex);
-
-        // report the allocation failure
-        if (_out_status)
-        {
-            *_out_status = D_REGEX_ERR_MEMORY;
-        }
+        d_internal_report(_out_status, D_REGEX_ERR_MEMORY);
 
         return NULL;
     }
 
-    // report success when the caller asked for a status
-    if (_out_status)
-    {
-        *_out_status = D_REGEX_OK;
-    }
+    d_internal_report(_out_status, D_REGEX_OK);
 
     return regex;
 }
@@ -2860,7 +3395,10 @@ Parameter(s):
   _out_groups: receives one extent per group, with index zero the whole match.
   _count:      the number of entries in `_out_groups`.
 Return:
-  D_REGEX_ERR_UNSUPPORTED in every case.
+  D_REGEX_OK, with a group-zero start of D_REGEX_NO_MATCH where there is no
+  match; D_REGEX_ERR_SYNTAX for an argument that cannot be right;
+  D_REGEX_ERR_MEMORY when the pass's buffers cannot be held; and
+  D_REGEX_ERR_BUDGET when the pass completes no parse within its budget.
 */
 enum dj_regex_status
 d_regex_search_groups(

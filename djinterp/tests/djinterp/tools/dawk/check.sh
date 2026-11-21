@@ -65,7 +65,11 @@ mkdir -p "$OUT"
 OUT=$(cd "$OUT" && pwd)
 $CC $W -o "$OUT/dawk" $S/main.c $CORE $STORY $CMAKE $NINJA $MSVS $WIKI \
     $GIT -lm
-$CC $W -o "$OUT/test_dregex" tests/djinterp/c/util/dregex/test_dregex.c $RX
+# dregex's suite is DTest's, its runner in its CMake leaf
+RXT=build/cmake/config/testing/djinterp/c/util/dregex
+$CC $W -Itests/djinterp/c/util/dregex -o "$OUT/dregex_tests" \
+    $RXT/dregex_tests_runner.c tests/djinterp/c/util/dregex/dregex_tests.c \
+    $RX src/djinterp/c/modules/test/test_suite.c
 $CC $W -o "$OUT/test_dvalue" $T/test_dvalue.c $S/dvalue.c -lm
 $CC $W -o "$OUT/test_dparse" $T/test_dparse.c $S/dparse.c $S/dlex.c $RX
 $CC $W -o "$OUT/test_dzip" $T/test_dzip.c $S/dzip.c
@@ -92,7 +96,15 @@ set +e
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 failed=0
-for unit in test_dregex test_dvalue test_dparse test_dzip test_dedit test_dxml \
+printf '%-18s ' dregex_tests
+if out=$("$OUT/dregex_tests" --no-table 2>&1); then
+    printf '%s\n' "$out" | grep 'checks:' | sed 's/^ *//'
+else
+    failed=1
+    echo "FAILED"
+    printf '%s\n' "$out" | grep -E 'FAIL|note' | sed 's/^/    /'
+fi
+for unit in test_dvalue test_dparse test_dzip test_dedit test_dxml \
             test_dhost_story test_dcmake test_dcmake_doc test_dninja \
             test_dmake test_dmsvs test_dmsvs_doc test_dwiki test_dgit; do
     printf '%-18s ' "$unit"

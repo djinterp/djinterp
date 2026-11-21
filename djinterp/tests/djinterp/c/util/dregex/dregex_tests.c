@@ -1,26 +1,88 @@
 /*******************************************************************************
-* djinterp [c]                                                     test_dregex.c
+* djinterp [test]                                                 dregex_tests.c
 *
-*   Unit tests for the POSIX ERE engine in dregex.h.
+*   The suite of the POSIX ERE engine in dregex.h, in DTest's C face.
 *     The cases that matter most are the leftmost-longest ones: a backtracking
 * engine passes almost everything here except those, so they are grouped first
 * and stated explicitly against the alternative a Perl-style engine would give.
+* Each expectation is one check, named by its pattern and subject; a failure
+* notes what the engine gave instead.
 *
 *
-* path:      /tests/djinterp/c/util/dregex/test_dregex.c
+* path:      /tests/djinterp/c/util/dregex/dregex_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.19
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.19
 *******************************************************************************/
-#include "../../../../../inc/djinterp/c/util/dregex.h"  // the engine under test
+#include "./dregex_tests.h"  // corresponding header
 // std
-#include <stdio.h>   // printf
+#include <stdarg.h>  // va_list, va_start, va_end
+#include <stdio.h>   // vsnprintf
 #include <string.h>  // strlen, strcmp
-#include <sys/types.h>  // ssize_t, for reporting an absent group
+// djinterp
+#include "../../../../../inc/djinterp/c/util/dregex.h"  // the engine under test
 
 
-static int g_checks = 0;
-static int g_failed = 0;
+//==============================================================================
+// HARNESS
+//==============================================================================
+
+// g_suite
+//   state: the suite every check goes to, set by the section.
+static struct dj_test_suite* g_suite = NULL;
+
+/*
+d_tests_dregex_check
+  Records one check, named by a formatted description of what was expected.
+
+Parameter(s):
+  _ok:     whether the expectation held.
+  _line:   the line of the expectation.
+  _format: the description, as printf formats it.
+Return:
+  `_ok`.
+*/
+static
+bool d_tests_dregex_check(
+    bool        _ok,
+    int         _line,
+    const char* _format,
+    ...
+)
+{
+    char    what[256];
+    va_list args;
+
+    va_start(args, _format);
+    (void)vsnprintf(what, sizeof(what), _format, args);
+    va_end(args);
+
+    return d_test_suite_check(g_suite, _ok, what, __FILE__, _line);
+}
+
+/*
+d_tests_dregex_start
+  Opens a test.
+
+Parameter(s):
+  _name: the test's name.
+Return:
+  none.
+*/
+static
+void d_tests_dregex_start(
+    const char* _name
+)
+{
+    (void)d_test_suite_test(g_suite, _name);
+
+    return;
+}
+
+
+//==============================================================================
+// TESTS
+//==============================================================================
 
 
 /*
@@ -49,15 +111,14 @@ void d_tests_expect(
     enum dj_regex_status status = D_REGEX_OK;
     struct dj_regex*     regex  = d_regex_compile(_pattern, &status);
 
-    g_checks++;
-
     // a pattern that fails to compile cannot be evaluated
-    if (!regex)
+    if (!d_tests_dregex_check((regex != NULL),
+                              __LINE__,
+                              "/%s/ compiles",
+                              _pattern))
     {
-        g_failed++;
-        printf("  FAIL  /%s/ did not compile: %s\n",
-               _pattern,
-               d_regex_status_text(status));
+        (void)d_test_suite_note(g_suite, "%s", d_regex_status_text(status));
+
         return;
     }
 
@@ -68,29 +129,43 @@ void d_tests_expect(
                                       strlen(_subject),
                                       0,
                                       &match);
+    const bool ok    = ( (found == _expect) &&
+                         ( (!_expect)                  ||
+                           ((match.start == _start) &&
+                            (match.length == _length)) ) );
 
     // compare the outcome against the expectation
-    if (found != _expect)
+    if (_expect)
     {
-        g_failed++;
-        printf("  FAIL  /%s/ on \"%s\": expected %s, got %s\n",
-               _pattern,
-               _subject,
-               _expect ? "a match" : "no match",
-               found ? "a match" : "no match");
+        (void)d_tests_dregex_check(ok,
+                                   __LINE__,
+                                   "/%s/ on \"%s\" matches at (%zu,%zu)",
+                                   _pattern,
+                                   _subject,
+                                   _start,
+                                   _length);
     }
-    else if ( (_expect)                 &&
-              ((match.start != _start)  ||
-               (match.length != _length)) )
+    else
     {
-        g_failed++;
-        printf("  FAIL  /%s/ on \"%s\": expected (%zu,%zu), got (%zu,%zu)\n",
-               _pattern,
-               _subject,
-               _start,
-               _length,
-               match.start,
-               match.length);
+        (void)d_tests_dregex_check(ok,
+                                   __LINE__,
+                                   "/%s/ on \"%s\" does not match",
+                                   _pattern,
+                                   _subject);
+    }
+
+    // say what the engine gave instead
+    if ( (!ok) &&
+         (found) )
+    {
+        (void)d_test_suite_note(g_suite,
+                                "got (%zu,%zu)",
+                                match.start,
+                                match.length);
+    }
+    else if (!ok)
+    {
+        (void)d_test_suite_note(g_suite, "got no match");
     }
 
     d_regex_free(regex);
@@ -116,15 +191,12 @@ void d_tests_expect_error(
     enum dj_regex_status status = D_REGEX_OK;
     struct dj_regex*     regex  = d_regex_compile(_pattern, &status);
 
-    g_checks++;
-
     // the pattern should not have compiled
-    if (regex)
-    {
-        g_failed++;
-        printf("  FAIL  /%s/ compiled but should not have\n", _pattern);
-        d_regex_free(regex);
-    }
+    (void)d_tests_dregex_check((regex == NULL),
+                               __LINE__,
+                               "/%s/ is refused",
+                               _pattern);
+    d_regex_free(regex);
 
     return;
 }
@@ -132,7 +204,6 @@ void d_tests_expect_error(
 
 /*
 d_tests_leftmost_longest
-  brief description
   Tests the following:
   - alternation prefers the longest branch, not the first
   - the leftmost start wins even when a later start matches more
@@ -142,7 +213,7 @@ d_tests_leftmost_longest
 static
 void d_tests_leftmost_longest(void)
 {
-    printf("leftmost-longest\n");
+    d_tests_dregex_start("leftmost-longest");
 
     // a backtracking engine reports (0,1) for each of the next three
     d_tests_expect("a|ab",        "abc",   true, 0, 2);
@@ -163,7 +234,6 @@ void d_tests_leftmost_longest(void)
 
 /*
 d_tests_basics
-  brief description
   Tests the following:
   - literal text, the wildcard, and simple repetition
   - the wildcard matches a newline, as POSIX requires
@@ -173,7 +243,7 @@ d_tests_basics
 static
 void d_tests_basics(void)
 {
-    printf("basics\n");
+    d_tests_dregex_start("basics");
 
     d_tests_expect("abc",   "xxabcyy", true,  2, 3);
     d_tests_expect("abc",   "xxabyy",  false, 0, 0);
@@ -194,7 +264,6 @@ void d_tests_basics(void)
 
 /*
 d_tests_classes
-  brief description
   Tests the following:
   - bracket ranges, negation, and a literal bracket in first position
   - POSIX named classes inside a bracket expression
@@ -204,7 +273,7 @@ d_tests_classes
 static
 void d_tests_classes(void)
 {
-    printf("bracket expressions\n");
+    d_tests_dregex_start("bracket expressions");
 
     d_tests_expect("[a-c]+",       "xxabcyy",  true,  2, 3);
     d_tests_expect("[^a-c]+",      "abcxyz",   true,  3, 3);
@@ -222,7 +291,6 @@ void d_tests_classes(void)
 
 /*
 d_tests_intervals
-  brief description
   Tests the following:
   - exact, open and bounded repetition counts
   - a bounded interval still matches greedily
@@ -231,7 +299,7 @@ d_tests_intervals
 static
 void d_tests_intervals(void)
 {
-    printf("intervals\n");
+    d_tests_dregex_start("intervals");
 
     d_tests_expect("a{3}",    "aaaaa",   true, 0, 3);
     d_tests_expect("a{2,}",   "aaaa",    true, 0, 4);
@@ -247,7 +315,6 @@ void d_tests_intervals(void)
 
 /*
 d_tests_escapes
-  brief description
   Tests the following:
   - C escapes resolve to their control characters
   - a backslash before a metacharacter yields the literal
@@ -256,7 +323,7 @@ d_tests_escapes
 static
 void d_tests_escapes(void)
 {
-    printf("escapes\n");
+    d_tests_dregex_start("escapes");
 
     d_tests_expect("a\\tb",   "xa\tb",  true, 1, 3);
     d_tests_expect("a\\nb",   "a\nb",   true, 0, 3);
@@ -272,7 +339,6 @@ void d_tests_escapes(void)
 
 /*
 d_tests_errors
-  brief description
   Tests the following:
   - unbalanced parentheses are rejected
   - an unterminated bracket expression is rejected
@@ -282,7 +348,7 @@ d_tests_errors
 static
 void d_tests_errors(void)
 {
-    printf("rejections\n");
+    d_tests_dregex_start("rejections");
 
     d_tests_expect_error("(ab");
     d_tests_expect_error("ab)");
@@ -298,7 +364,6 @@ void d_tests_errors(void)
 
 /*
 d_tests_iteration
-  brief description
   Tests the following:
   - repeated search from an advancing offset, as gsub performs it
   - a null match does not stall the scan
@@ -307,20 +372,16 @@ d_tests_iteration
 static
 void d_tests_iteration(void)
 {
-    printf("iteration\n");
+    d_tests_dregex_start("iteration");
 
     enum dj_regex_status status  = D_REGEX_OK;
     struct dj_regex*     regex   = d_regex_compile("x*", &status);
     const char* const   subject = "abc";
     const size_t        length  = strlen(subject);
 
-    g_checks++;
-
     // the engine must compile before the scan can run
-    if (!regex)
+    if (!d_tests_dregex_check((regex != NULL), __LINE__, "/x*/ compiles"))
     {
-        g_failed++;
-        printf("  FAIL  /x*/ did not compile\n");
         return;
     }
 
@@ -352,11 +413,11 @@ void d_tests_iteration(void)
     }
 
     // gsub(/x*/, "-", "abc") replaces four times, giving "-a-b-c-"
-    if (matches != 4)
+    if (!d_tests_dregex_check((matches == 4),
+                              __LINE__,
+                              "/x*/ over \"abc\" matches 4 times"))
     {
-        g_failed++;
-        printf("  FAIL  /x*/ over \"abc\": expected 4 matches, got %d\n",
-               matches);
+        (void)d_test_suite_note(g_suite, "got %d", matches);
     }
 
     d_regex_free(regex);
@@ -367,7 +428,6 @@ void d_tests_iteration(void)
 
 /*
 d_tests_offsets
-  brief description
   Tests the following:
   - a search beginning past an earlier match finds the next one
   - an anchored match reports only what begins at the offset
@@ -375,48 +435,39 @@ d_tests_offsets
 static
 void d_tests_offsets(void)
 {
-    printf("offsets\n");
+    d_tests_dregex_start("offsets");
 
     enum dj_regex_status status = D_REGEX_OK;
     struct dj_regex*     regex  = d_regex_compile("ab", &status);
     const char* const   text   = "abxxab";
 
-    g_checks += 3;
-
     // the engine must compile before the offsets can be probed
-    if (!regex)
+    if (!d_tests_dregex_check((regex != NULL), __LINE__, "/ab/ compiles"))
     {
-        g_failed += 3;
-        printf("  FAIL  /ab/ did not compile\n");
         return;
     }
 
     struct dj_regex_match match = { 0, 0 };
 
     // a search from the middle skips the first occurrence
-    if ( (!d_regex_search(regex, text, 6, 1, &match)) ||
-         (match.start != 4) )
-    {
-        g_failed++;
-        printf("  FAIL  /ab/ from offset 1: expected start 4\n");
-    }
+    (void)d_tests_dregex_check( (d_regex_search(regex, text, 6, 1, &match)) &&
+                                (match.start == 4),
+                                __LINE__,
+                                "/ab/ from offset 1 finds the match at 4");
 
     size_t extent = 0;
 
     // an anchored probe succeeds exactly where the text begins with it
-    if ( (!d_regex_match_at(regex, text, 6, 0, &extent)) ||
-         (extent != 2) )
-    {
-        g_failed++;
-        printf("  FAIL  /ab/ anchored at 0: expected length 2\n");
-    }
+    (void)d_tests_dregex_check(
+        (d_regex_match_at(regex, text, 6, 0, &extent)) &&
+        (extent == 2),
+                                __LINE__,
+                                "/ab/ anchored at 0 matches 2 bytes");
 
     // an anchored probe fails where the text does not begin with it
-    if (d_regex_match_at(regex, text, 6, 1, &extent))
-    {
-        g_failed++;
-        printf("  FAIL  /ab/ anchored at 1: expected no match\n");
-    }
+    (void)d_tests_dregex_check(!d_regex_match_at(regex, text, 6, 1, &extent),
+                               __LINE__,
+                               "/ab/ anchored at 1 does not match");
 
     d_regex_free(regex);
 
@@ -449,13 +500,12 @@ void d_tests_expect_groups(
     enum dj_regex_status status = D_REGEX_OK;
     struct dj_regex*     regex  = d_regex_compile(_pattern, &status);
 
-    g_checks++;
-
     // a pattern that fails to compile cannot be evaluated
-    if (!regex)
+    if (!d_tests_dregex_check((regex != NULL),
+                              __LINE__,
+                              "/%s/ compiles",
+                              _pattern))
     {
-        g_failed++;
-        printf("  FAIL  /%s/ did not compile\n", _pattern);
         return;
     }
 
@@ -469,16 +519,19 @@ void d_tests_expect_groups(
                                    _count);
 
     // the pass must complete before the assignment can be compared
-    if (status != D_REGEX_OK)
+    if (!d_tests_dregex_check((status == D_REGEX_OK),
+                              __LINE__,
+                              "/%s/ on \"%s\" assigns its groups",
+                              _pattern,
+                              _subject))
     {
-        g_failed++;
-        printf("  FAIL  /%s/ on \"%s\": %s\n",
-               _pattern,
-               _subject,
-               d_regex_status_text(status));
+        (void)d_test_suite_note(g_suite, "%s", d_regex_status_text(status));
         d_regex_free(regex);
+
         return;
     }
+
+    size_t wrong = _count;
 
     // compare each group against its expected extent
     for (size_t group = 0; group < _count; ++group)
@@ -490,18 +543,27 @@ void d_tests_expect_groups(
              ((want_start != D_REGEX_NO_MATCH) &&
               (groups[group].length != want_length)) )
         {
-            g_failed++;
-            printf("  FAIL  /%s/ on \"%s\" group %zu: "
-                   "expected (%zd,%zu), got (%zd,%zu)\n",
-                   _pattern,
-                   _subject,
-                   group,
-                   (ssize_t)want_start,
-                   want_length,
-                   (ssize_t)groups[group].start,
-                   groups[group].length);
+            wrong = group;
             break;
         }
+    }
+
+    // every group as expected; the first that is not, noted
+    if (!d_tests_dregex_check((wrong == _count),
+                              __LINE__,
+                              "/%s/ on \"%s\": each group where expected",
+                              _pattern,
+                              _subject))
+    {
+        (void)d_test_suite_note(g_suite,
+                                "group %zu: expected start %zu, length %zu; "
+                                "got start %zu, length %zu (%zu is none)",
+                                wrong,
+                                _expected[wrong * 2u],
+                                _expected[(wrong * 2u) + 1u],
+                                groups[wrong].start,
+                                groups[wrong].length,
+                                (size_t)D_REGEX_NO_MATCH);
     }
 
     d_regex_free(regex);
@@ -512,7 +574,6 @@ void d_tests_expect_groups(
 
 /*
 d_tests_captures
-  brief description
   Tests the following:
   - group extents are reported for simple and nested groups
   - a group inside an unmatched alternative is reported as absent
@@ -523,7 +584,7 @@ d_tests_captures
 static
 void d_tests_captures(void)
 {
-    printf("capture extents\n");
+    d_tests_dregex_start("capture extents");
 
     static const size_t simple[]  = { 0, 2,  0, 1,  1, 1 };
     static const size_t nested[]  = { 1, 3,  1, 2,  1, 1,  2, 1 };
@@ -581,22 +642,17 @@ void d_tests_captures(void)
     struct dj_regex*      regex  = d_regex_compile("(z)", &status);
     struct dj_regex_match groups[2];
 
-    g_checks++;
-
     // the pattern must compile before the absent case can be probed
-    if (!regex)
+    if (!d_tests_dregex_check((regex != NULL), __LINE__, "/(z)/ compiles"))
     {
-        g_failed++;
-        printf("  FAIL  /(z)/ did not compile\n");
         return;
     }
 
-    if ( (d_regex_search_groups(regex, "ab", 2, 0, groups, 2) != D_REGEX_OK) ||
-         (groups[0].start != D_REGEX_NO_MATCH) )
-    {
-        g_failed++;
-        printf("  FAIL  /(z)/ on \"ab\": expected OK with an absent match\n");
-    }
+    (void)d_tests_dregex_check(
+        (d_regex_search_groups(regex, "ab", 2, 0, groups, 2) == D_REGEX_OK) &&
+        (groups[0].start == D_REGEX_NO_MATCH),
+        __LINE__,
+        "/(z)/ on \"ab\": OK, with no match");
 
     d_regex_free(regex);
 
@@ -606,7 +662,6 @@ void d_tests_captures(void)
 
 /*
 d_tests_groups
-  brief description
   Tests the following:
   - capturing groups are counted by opening parenthesis, including nested ones
   - compiling group boundaries does not alter the overall match
@@ -616,7 +671,7 @@ d_tests_groups
 static
 void d_tests_groups(void)
 {
-    printf("capture groups\n");
+    d_tests_dregex_start("capture groups");
 
     static const struct
     {
@@ -641,25 +696,22 @@ void d_tests_groups(void)
         struct dj_regex*     regex  = d_regex_compile(counts[index].pattern,
                                                      &status);
 
-        g_checks++;
-
         // a pattern that fails to compile cannot be counted
-        if (!regex)
+        if (!d_tests_dregex_check((regex != NULL),
+                                  __LINE__,
+                                  "/%s/ compiles",
+                                  counts[index].pattern))
         {
-            g_failed++;
-            printf("  FAIL  /%s/ did not compile\n", counts[index].pattern);
             continue;
         }
 
         // compare the reported count against the expectation
-        if (d_regex_group_count(regex) != counts[index].count)
-        {
-            g_failed++;
-            printf("  FAIL  /%s/: expected %zu groups, got %zu\n",
-                   counts[index].pattern,
-                   counts[index].count,
-                   d_regex_group_count(regex));
-        }
+        (void)d_tests_dregex_check(
+            (d_regex_group_count(regex) == counts[index].count),
+            __LINE__,
+            "/%s/ has %zu groups",
+            counts[index].pattern,
+            counts[index].count);
 
         d_regex_free(regex);
     }
@@ -687,17 +739,25 @@ void d_tests_groups(void)
 }
 
 
-/*
-main
-  Runs every test group and reports the aggregate result.
+//==============================================================================
+// RUN
+//==============================================================================
 
-Parameter(s):
-  none.
-Return:
-  Zero when every check passed, and one otherwise.
+/*
+d_tests_dregex
+  The suite's section: every test, in order.
 */
-int main(void)
+void d_tests_dregex(
+    struct dj_test_suite* _suite
+)
 {
+    g_suite = _suite;
+
+    (void)d_test_suite_module(_suite, "dregex");
+    (void)d_test_suite_describe(_suite,
+                                "c/util/dregex: POSIX EREs, leftmost-longest");
+    (void)d_test_suite_block(_suite, "dregex");
+
     d_tests_leftmost_longest();
     d_tests_basics();
     d_tests_classes();
@@ -709,7 +769,7 @@ int main(void)
     d_tests_groups();
     d_tests_captures();
 
-    printf("\n%d checks, %d failed\n", g_checks, g_failed);
+    g_suite = NULL;
 
-    return (g_failed == 0) ? 0 : 1;
+    return;
 }
