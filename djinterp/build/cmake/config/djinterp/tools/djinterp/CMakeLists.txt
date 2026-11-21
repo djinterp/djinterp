@@ -51,8 +51,43 @@ set(_djinterp_sources "${DJINTERP_ROOT}/src/djinterp")
 add_executable(djinterp
     "${_djinterp_sources}/tools/djinterp/djinterp_main.c"
     "${_djinterp_sources}/tools/djinterp/djinterp_commands.c"
-    "${_djinterp_sources}/c/modules/interp/djin.c")
+    "${_djinterp_sources}/c/modules/interp/djin.c"
+    "${_djinterp_sources}/c/modules/interp/djin_desc.c"
+    # every core djin, by path, until each is a library of its own: parse's,
+    # desc's, the environment printer's and the log's, and what they write
+    # through -- the option core's describer, desc's machines, the streams
+    "${_djinterp_sources}/c/modules/parse/settings.c"
+    "${_djinterp_sources}/c/desc/desc_machines.c"
+    "${_djinterp_sources}/c/desc/desc_options.c"
+    "${_djinterp_sources}/c/desc/desc_units.c"
+    "${_djinterp_sources}/env/env_printer.c"
+    "${_djinterp_sources}/c/log/log.c"
+    "${_djinterp_sources}/c/log/log_writers.c"
+    "${_djinterp_sources}/c/option/option_env_desc.c"
+    "${_djinterp_sources}/c/util/ostream/ostream.c"
+    "${_djinterp_sources}/c/util/ostream/ostream_console.c"
+    "${_djinterp_sources}/c/util/ostream/ostream_file.c"
+    "${_djinterp_sources}/c/text/ostream_format.c"
+    "${_djinterp_sources}/c/text/ostream_template.c"
+    "${_djinterp_sources}/c/sync/dmutex.c"
+    # parse's djin configures the expression core, which it hooks, and the
+    # core's diagnostics and storage
+    "${_djinterp_sources}/c/modules/parse/diagnostic.c"
+    "${_djinterp_sources}/c/modules/parse/storage.c"
+    "${_djinterp_sources}/c/memory/mem_source.c"
+    "${_djinterp_sources}/c/memory/mem_common.c"
+    "${_djinterp_sources}/c/modules/parse/expr/fold.c"
+    "${_djinterp_sources}/c/modules/parse/expr/parse.c"
+    "${_djinterp_sources}/c/modules/parse/expr/render.c"
+    "${_djinterp_sources}/c/modules/parse/expr/scan.c"
+    "${_djinterp_sources}/c/modules/parse/expr/signature.c"
+    "${_djinterp_sources}/c/modules/parse/expr/term.c")
+find_package(Threads)
 target_link_libraries(djinterp PRIVATE djinterp::cli)
+
+if(Threads_FOUND)
+    target_link_libraries(djinterp PRIVATE Threads::Threads)
+endif()
 set_target_properties(djinterp PROPERTIES
     C_STANDARD          99
     C_STANDARD_REQUIRED ON
@@ -106,6 +141,32 @@ function(djinterp_program_test _name _home)
 endfunction()
 
 if(DJINTERP_PROGRAM_BUILD_TESTS)
+    # the djin describers, on the program's own sources but its main and
+    # commands, run by DTest
+    get_target_property(_program_sources djinterp SOURCES)
+    list(FILTER _program_sources EXCLUDE REGEX "tools/djinterp/djinterp_")
+    add_executable(djinterp_djin_desc_tests
+        ${_program_sources}
+        "${DJINTERP_ROOT}/tests/djinterp/c/modules/interp/djin_desc_tests.c"
+        "${_djinterp_sources}/c/modules/test/test_suite.c")
+    target_link_libraries(djinterp_djin_desc_tests PRIVATE djinterp::cli)
+    if(Threads_FOUND)
+        target_link_libraries(djinterp_djin_desc_tests PRIVATE Threads::Threads)
+    endif()
+    set_target_properties(djinterp_djin_desc_tests PROPERTIES
+        C_STANDARD          99
+        C_STANDARD_REQUIRED ON
+        C_EXTENSIONS        OFF)
+    if(NOT MSVC)
+        target_compile_options(djinterp_djin_desc_tests PRIVATE
+                               -Wall -Wextra -pedantic)
+        if(UNIX AND NOT APPLE)
+            target_compile_definitions(djinterp_djin_desc_tests PRIVATE
+                                       _XOPEN_SOURCE=700)
+        endif()
+    endif()
+    add_test(NAME djinterp_djin_desc COMMAND djinterp_djin_desc_tests)
+
     # each test's home starts empty
     file(REMOVE_RECURSE "${CMAKE_CURRENT_BINARY_DIR}/homes")
 
@@ -121,6 +182,32 @@ if(DJINTERP_PROGRAM_BUILD_TESTS)
     djinterp_program_test(djinterp_describe_none plain
         COMMAND describe nosuch STATUS 2
         MATCHES "describe: no djin is named 'nosuch'")
+    # every core djin is registered, its settings read as the kit's are;
+    # parse is checked by rows it has had since 11-13, not its whole listing
+    djinterp_program_test(djinterp_list_core plain
+        COMMAND list STATUS 0
+        MATCHES "parse +- +settings only\ndesc +- +settings only\nenv_printer +- +settings only\nlog +- +settings only\n")
+    djinterp_program_test(djinterp_describe_parse plain
+        COMMAND describe parse STATUS 0
+        MATCHES "parse[.]expr_max_depth +int +1000 +D_CFG_PARSE_EXPR_MAX_DEPTH")
+    djinterp_program_test(djinterp_get_core plain
+        COMMAND --parse.expr_max_depth=7 get --show-origin
+                parse.expr_max_depth
+        STATUS 0
+        MATCHES "^parse[.]expr_max_depth = 7  [(]command line[)]\n")
+
+    # describe as JSON, of the shape it names first; a format it does not
+    # write, and a command a djin does not have, refused
+    djinterp_program_test(djinterp_describe_json plain
+        COMMAND describe cli --format=json STATUS 0
+        MATCHES "^[{]\n  \"format\": \"djinterp[.]describe/1[.]0\",\n  \"name\": \"cli\",\n  \"settings\": [{]\n.*\"plugin_strict_version\": [{]\n +\"value\": true,\n +\"source\": \"default\",.*\n[}]\n$")
+    djinterp_program_test(djinterp_describe_format plain
+        COMMAND describe cli --format=yaml STATUS 2
+        MATCHES "describe: 'yaml' is not a format: text or json")
+    djinterp_program_test(djinterp_describe_command plain
+        COMMAND describe parse run STATUS 2
+        MATCHES "describe: 'parse' has no command 'run'")
+
     djinterp_program_test(djinterp_get plain
         COMMAND get cli.plugin_strict_version STATUS 0
         MATCHES "^cli[.]plugin_strict_version = true\n$")
@@ -168,11 +255,13 @@ if(DJINTERP_PROGRAM_BUILD_TESTS)
 
     # an output that refuses what a command writes, said with its reason
     if(EXISTS "/dev/full")
-        foreach(_command IN ITEMS list describe get)
+        foreach(_command IN ITEMS list describe get json)
             set(_arguments ${_command})
 
             if(_command STREQUAL "describe")
                 set(_arguments describe cli)
+            elseif(_command STREQUAL "json")
+                set(_arguments describe cli --format=json)
             endif()
 
             djinterp_program_test(djinterp_${_command}_full plain

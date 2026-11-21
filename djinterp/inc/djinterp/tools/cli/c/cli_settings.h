@@ -7,11 +7,12 @@
 * user's settings file, the environment or the command line, each from its
 * own source, so that the order they arrive in cannot change the outcome.
 *   The kit's own settings are its djin's, `cli`, in the program's registry
-* (option_env_registry.h): `cli.plugin_strict_version`, and, where
-* D_CFG_CLI_PLUGIN_VARIABLE is 1, `cli.plugin_search` and the program's
-* `plugin_path` on the registry's root. Where it is 0, the environment is
-* not to choose what code a program loads, so neither of those two is
-* declared.
+* (option_env_registry.h): `cli.plugin_strict_version`, `cli.plugin_search`
+* and the program's `plugin_path` on the registry's root. Where
+* D_CFG_CLI_PLUGIN_VARIABLE is 0, the caller is not to choose what code a
+* program loads, so those two refuse every source the caller controls -- the
+* user's file, the environment, the command line -- and only the program
+* and an override bind them (D_OPTION_ENV_REFUSES_CALLER).
 *   At a program's first parse the kit:
 *     - registers its djin, after every djin a module registered before the
 *       program ran;
@@ -34,11 +35,35 @@
 *   The settings are the program's, as its registry is: read and written
 * by one thread at a time, before the program starts its threads.
 *
+* HOW TO USE
+* ----------
+*   A program built on the kit calls nothing here: d_cli_program_run starts
+* the settings at its first parse. A program reads the kit's settings
+* through 1.3's queries, and names the user's file with d_cli_settings_file.
+* A program of its own djins registers them before the run, so that their
+* settings are read from the same three sources.
+*
+* OPTIONS
+* -------
+*   `cli.plugin_strict_version` (bool), `cli.plugin_search` (text) and the
+* root's `plugin_path` (text): each set from the user's file
+* ($XDG_CONFIG_HOME/djinterp/settings), the environment (`DJINTERP_` and the
+* program's own prefix) and the command line (`--NAME=VALUE`, `--NAME`,
+* `--no-NAME`, `--set NAME=VALUE`), in that order of standing, the command
+* line's highest.
+*
+* CONFIGURATION
+* -------------
+*   Each setting's default is its knob in cfg_cli.h:
+* D_CFG_CLI_PLUGIN_STRICT_VERSION and D_CFG_CLI_PLUGIN_SEARCH.
+* D_CFG_CLI_PLUGIN_VARIABLE 0 makes the two plugin settings refuse every
+* source the caller controls.
+*
 *
 * path:      /inc/djinterp/tools/cli/c/cli_settings.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
 /*
@@ -195,8 +220,8 @@ const char* d_cli_settings_plugin_search(void);
 // 1.3.2
 // d_cli_settings_plugin_path
 //   query: the program's `plugin_path`, read from PROGRAM_PLUGIN_PATH, the
-// file or the command line; NULL when unset, or where
-// D_CFG_CLI_PLUGIN_VARIABLE is 0.
+// file or the command line; where D_CFG_CLI_PLUGIN_VARIABLE is 0, from the
+// program and an override alone. NULL when unset.
 const char* d_cli_settings_plugin_path(void);
 
 // 1.3.3

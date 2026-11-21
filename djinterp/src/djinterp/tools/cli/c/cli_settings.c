@@ -13,7 +13,7 @@
 * path:      /src/djinterp/tools/cli/c/cli_settings.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 #include "../../../../../inc/djinterp/tools/cli/c/cli_settings.h"  // corresponding header
 // std
@@ -54,32 +54,47 @@
 // variables, and the text their values take.
 D_OPTION_ENV_DECLARE(dj_internal_cli_settings_storage, 16u, 4u, 2048u);
 
+// D_INTERNAL_CLI_PLUGIN_REFUSED
+//   constant: the sources the plugin rows refuse. None where the caller may
+// choose where modules come from (D_CFG_CLI_PLUGIN_VARIABLE 1); where it may
+// not, every source the caller controls -- the user's file, the environment
+// and the command line -- so that only the program and an override bind
+// them (D_OPTION_ENV_REFUSES_CALLER, option_env's decision 69). A builder
+// who trusts one of those defines D_OPTION_ENV_REFUSES_CALLER as its own set.
+#if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1)
+    #define D_INTERNAL_CLI_PLUGIN_REFUSED 0u
+#else
+    #define D_INTERNAL_CLI_PLUGIN_REFUSED D_OPTION_ENV_REFUSES_CALLER
+#endif
+
 // d_internal_cli_settings_rows
 //   constant: the kit's variables, each defaulting to its knob.
 static const struct dj_option_env_var d_internal_cli_settings_rows[] =
 {
-#if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1)
-    D_OPTION_ENV_TEXT_KNOB("plugin_search", D_CFG_CLI_PLUGIN_SEARCH,
-                           "the directories a command's module is looked "
-                           "for in, after the run's and plugin_path's"),
-#endif
+    D_OPTION_ENV_ROW_REFUSING(D_OPTION_ENV_KIND_TEXT, "plugin_search", NULL,
+                              0u, NULL, 0u, D_CFG_CLI_PLUGIN_SEARCH, 0,
+                              INT64_MIN, INT64_MAX, 0.0, NULL,
+                              "D_CFG_CLI_PLUGIN_SEARCH",
+                              "the directories a command's module is looked "
+                              "for in, after the run's and plugin_path's",
+                              D_INTERNAL_CLI_PLUGIN_REFUSED),
     D_OPTION_ENV_BOOL_KNOB("plugin_strict_version",
                            D_CFG_CLI_PLUGIN_STRICT_VERSION,
                            "whether a module of another version of the "
                            "program is refused, or loaded with a warning")
 };
 
-#if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1)
-
 // d_internal_cli_settings_path_row
 //   constant: the program's own `plugin_path`, on the registry's root, read
 // as PROGRAM_PLUGIN_PATH: directories looked in before the build's.
 static const struct dj_option_env_var d_internal_cli_settings_path_row =
-    D_OPTION_ENV_TEXT("plugin_path", NULL,
-                      "the directories a command's module is looked for in "
-                      "first, separated as PATH separates them");
-
-#endif  // D_INTERNAL_CLI_PLUGIN_VARIABLE
+    D_OPTION_ENV_ROW_REFUSING(D_OPTION_ENV_KIND_TEXT, "plugin_path", NULL, 0u,
+                              NULL, 0u, NULL, 0, INT64_MIN, INT64_MAX, 0.0,
+                              NULL, NULL,
+                              "the directories a command's module is looked "
+                              "for in first, separated as PATH separates "
+                              "them",
+                              D_INTERNAL_CLI_PLUGIN_REFUSED);
 
 // d_internal_cli_settings_frame, _room, _made, _started
 //   variables: the djin, its storage, whether it is made, and whether the
@@ -506,10 +521,8 @@ int d_cli_settings_start(
         (void)d_option_env_registry_add(registry, djin);
     }
 
-#if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1)
     (void)d_option_env_declare(d_option_env_registry_frame(registry),
                                &d_internal_cli_settings_path_row);
-#endif
 
     // the shared prefix, then the program's own, whose binding wins
     d_internal_cli_settings_prefix((_program != NULL) ? _program->name
@@ -783,15 +796,11 @@ d_cli_settings_plugin_search
 */
 const char* d_cli_settings_plugin_search(void)
 {
-#if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1)
     const char* const search = d_internal_cli_settings_text(
                                    d_cli_settings_djin(), "plugin_search",
                                    D_CFG_CLI_PLUGIN_SEARCH);
 
     return (search != NULL) ? search : "";
-#else
-    return D_CFG_CLI_PLUGIN_SEARCH;
-#endif
 }
 
 /*
@@ -800,13 +809,9 @@ d_cli_settings_plugin_path
 */
 const char* d_cli_settings_plugin_path(void)
 {
-#if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1)
     return d_internal_cli_settings_text(
                d_option_env_registry_frame(d_option_env_registry()),
                "plugin_path", NULL);
-#else
-    return NULL;
-#endif
 }
 
 /*

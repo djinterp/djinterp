@@ -321,7 +321,7 @@ different settings still agree on every layout.
 | `D_CFG_CLI_HELP_WIDTH_MAX` | 100 | the most columns help takes on a terminal |
 | `D_CFG_CLI_HELP_COLUMN_MAX` | 30 | the furthest right a description starts |
 | `D_CFG_CLI_PLUGIN_SEARCH` | `"$ORIGIN:$ORIGIN/../lib/$PROGRAM"` (`;` on Windows) | the build's directories for a module, after those a run is given and `PROGRAM_PLUGIN_PATH`'s; `$ORIGIN` is the program's directory and `$PROGRAM` its name *(added 11-04: cli-taken 14)* |
-| `D_CFG_CLI_PLUGIN_VARIABLE` | 1 | whether `PROGRAM_PLUGIN_PATH` is read; 0 for a program that must not let its environment choose the code it loads *(added 11-04: cli-taken 14)* |
+| `D_CFG_CLI_PLUGIN_VARIABLE` | 1 | whether `PROGRAM_PLUGIN_PATH` is read; 0 for a program that must not let its environment choose the code it loads *(added 11-04: cli-taken 14)*. *(added 11-20)* At 0, `plugin_path` and `cli.plugin_search` refuse the user's file, the environment and the command line, and only the program and an override bind them |
 | `D_CFG_CLI_PLUGIN_STRICT_VERSION` | 1 | a module of another program version refused; 0 loads it with a warning naming both versions; a program sets it per run with `d_cli_program_set_plugin_versions`, and a module of another interface version is always refused *(added 11-04: cli-taken 15)* |
 
 ---

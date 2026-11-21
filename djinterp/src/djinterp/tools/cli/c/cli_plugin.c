@@ -21,7 +21,7 @@
 * path:      /src/djinterp/tools/cli/c/cli_plugin.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 #include "../../../../../inc/djinterp/tools/cli/c/cli_plugin.h"  // corresponding header
 // std
@@ -742,14 +742,17 @@ int d_cli_internal_try_variable(
 #else
 
 /**
- * @brief Reads no PROGRAM_PLUGIN_PATH: the build reads none.
+ * @brief Reads no PROGRAM_PLUGIN_PATH: tries only the directories the
+ *        program's own `plugin_path` lists, which here only the program and
+ *        an override can bind (D_OPTION_ENV_REFUSES_CALLER).
  *
  * @param[in]     _program   unused.
- * @param[in]     _tagged    unused.
- * @param[in]     _plain     unused.
- * @param[in,out] _found     unused.
- * @param[in,out] _searched  unused.
- * @return D_ARG_ERROR_FILE.
+ * @param[in]     _tagged    the module's tagged name, or NULL.
+ * @param[in]     _plain     its plain name.
+ * @param[in,out] _found     receives the path when found.
+ * @param[in,out] _searched  the directories searched; may be NULL.
+ * @return as d_cli_internal_try_list; D_ARG_ERROR_FILE where the program
+ *         set none.
  */
 static
 int d_cli_internal_try_variable(
@@ -760,13 +763,16 @@ int d_cli_internal_try_variable(
     struct dj_arg_buffer* _searched
 )
 {
-    (void)_program;
-    (void)_tagged;
-    (void)_plain;
-    (void)_found;
-    (void)_searched;
+    const char* const set = d_cli_settings_plugin_path();
 
-    return D_ARG_ERROR_FILE;
+    (void)_program;
+
+    return (set != NULL) ? d_cli_internal_try_list(set,
+                                                   _tagged,
+                                                   _plain,
+                                                   _found,
+                                                   _searched)
+                         : D_ARG_ERROR_FILE;
 }
 
 #endif  // D_INTERNAL_CLI_PLUGIN_VARIABLE

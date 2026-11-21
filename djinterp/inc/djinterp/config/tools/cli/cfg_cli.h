@@ -21,11 +21,31 @@
 *             beside them -> D_INTERNAL_CLI_*
 *   requires: cfg_common.h; env_cli.h, for what the platform can do
 *
+* HOW TO USE
+* ----------
+*   Define a knob before the kit's headers are included -- on the compiler's
+* command line, as -DD_CFG_CLI_PLUGINS=0, so every unit sees the same --
+* and the kit reads the D_INTERNAL_CLI_* it resolves to. The kit's headers
+* include it; a program on the kit reads its D_INTERNAL_CLI_* through them.
+*
+* OPTIONS
+* -------
+*   None: this header holds build-time knobs alone. The run-time settings
+* whose defaults they are -- `cli.plugin_strict_version`,
+* `cli.plugin_search` and `plugin_path` -- are cli_settings.h's.
+*
+* CONFIGURATION
+* -------------
+*   Section 1's knobs: the parts compiled (D_CFG_CLI_PLUGINS, colour, the
+* kit's help layout, a Windows console's wide writes), help's widths, and
+* the plugin defaults of 1.4. Each is checked where it is resolved, and a
+* value it does not take is an #error.
+*
 *
 * path:      /inc/djinterp/config/tools/cli/cfg_cli.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.04
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
 /*
@@ -214,9 +234,11 @@ TABLE OF CONTENTS
 // D_CFG_CLI_PLUGIN_VARIABLE
 //   knob: 1 reads PROGRAM_PLUGIN_PATH -- the program's name upper-cased,
 // each `-` an `_` -- and looks in its directories before the build's
-// (1.4.1); 0 never reads it, for a program whose environment is not to be
-// trusted with what code it loads, as one run with privileges it does not
-// share with its caller. Default 1.
+// (1.4.1); 0 never reads it, for a program whose caller is not to be trusted
+// with what code it loads, as one run with privileges it does not share
+// with its caller: `plugin_path` and `cli.plugin_search` then refuse the
+// user's file, the environment and the command line, and only the program
+// and an override bind them. Default 1.
 #ifndef D_CFG_CLI_PLUGIN_VARIABLE
     #define D_CFG_CLI_PLUGIN_VARIABLE    1
 #endif  // D_CFG_CLI_PLUGIN_VARIABLE

@@ -2,25 +2,30 @@
 * djinterp [tools]                                           djinterp_commands.c
 *
 * The djinterp program's 0.8 preview, declared in djinterp_commands.h.
-*   The kit starts the run's settings at the program's first parse, so a
-* command's work finds the registry whole: the kit's djin, the root's
-* variables, and every binding from the user's file, the environment and the
-* command line. `list` and `describe` are the djin records' text writers
-* (c/modules/interp/djin.h). `get` writes each setting as a statement
-* d_option_env_load reads back, with d_option_env_format_quoted, and, at
-* `--show-origin`, where its value came from and what lies under it. `set`
-* binds each setting for the run first, so that a name or a value the
-* setting does not take is refused before anything is written, then writes
-* the user's file whole: a line that sets the same name alone is replaced,
-* and each new statement goes at its end, where it is read last. Results go
-* through the kit's watched output (d_cli_program_watched), so that an output
-* that refuses them is said with the system's reason.
+*   The program registers every core djin -- parse's, desc's, the
+* environment printer's and the log's -- before it runs, and the kit starts
+* the run's settings at the program's first parse, so a command's work finds
+* the registry whole: those djins, the kit's, the root's variables, and every
+* binding from the user's file, the environment and the command line. `list`
+* and `describe` are the djin records' text writers (c/modules/interp/djin.h);
+* `describe --format=json` runs their fact describers (djin_desc.h) through
+* desc's JSON machine, and `describe DJIN COMMAND` describes one command.
+* `get` writes each setting as a statement d_option_env_load reads back, with
+* d_option_env_format_quoted, and, at `--show-origin`, where its value came
+* from and what lies under it. `set` checks each setting as the file will
+* bind it and binds it for the run, so that a name or a value the setting
+* does not take is refused before anything is written, then writes the
+* user's file whole, under each setting's canonical name: a line that sets
+* the same name alone is replaced, and each new statement goes at its end,
+* where it is read last. Results go through the kit's watched output
+* (d_cli_program_watched), so that an output that refuses them is said with
+* the system's reason.
 *
 *
 * path:      /src/djinterp/tools/djinterp/djinterp_commands.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 #include "./djinterp_commands.h"  // corresponding header
 // std
@@ -32,15 +37,22 @@
 #include <string.h>   // memchr, memcmp, memcpy, strlen
 // djinterp
 #include "../../../../inc/djinterp/c/djinterp.h"  // framework root
+#include "../../../../inc/djinterp/c/desc/desc_machines.h"  // JSON
+#include "../../../../inc/djinterp/c/desc/desc_options.h"  // desc's djin
 #include "../../../../inc/djinterp/c/dversion.h"  // D_VERSION_STRING
 #include "../../../../inc/djinterp/c/filesys/file_dir.h"  // d_dir_create_parents
+#include "../../../../inc/djinterp/c/log/log.h"  // the log's djin
 #include "../../../../inc/djinterp/c/modules/interp/djin.h"  // the records
+#include "../../../../inc/djinterp/c/modules/interp/djin_desc.h"  // as facts
+#include "../../../../inc/djinterp/c/modules/parse/settings.h"  // parse's djin
 #include "../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_command.h"  // commands
 #include "../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_option.h"  // options
 #include "../../../../inc/djinterp/c/option/option_env.h"  // frames
 #include "../../../../inc/djinterp/c/option/option_env_registry.h"  // registry
 #include "../../../../inc/djinterp/c/util/sink_common.h"  // d_sink_emit
+#include "../../../../inc/djinterp/c/util/ostream/ostream.h"  // dj_ostream
 #include "../../../../inc/djinterp/config/tools/cli/cfg_cli.h"  // the kit's hooks
+#include "../../../../inc/djinterp/env/env_printer.h"  // the printer's djin
 #include "../../../../inc/djinterp/tools/cli/c/cli_io.h"  // files
 #include "../../../../inc/djinterp/tools/cli/c/cli_settings.h"  // the user's file
 
@@ -138,8 +150,135 @@ d_internal_djinterp_work_list(
 }
 
 /*
+d_internal_djinterp_json
+  A description as JSON of the shape D_DJIN_DESC_SHAPE names, through a
+stream over the watched output; 0, or what the output refused, said.
+*/
+static int
+d_internal_djinterp_json(
+    struct dj_cli_program* _program,
+    fn_desc_describer      _describer,
+    const void*            _object
+)
+{
+    const struct dj_desc_machine* const machine = d_desc_json_machine();
+    struct dj_cli_watch                 watch;
+    struct dj_ostream                   os;
+    struct dj_desc_json_state           state;
+    struct dj_desc_sink                 sink;
+    unsigned char                       room[D_INTERNAL_DJINTERP_ROOM];
+    int32_t                             held;
+
+    if (machine == NULL)
+    {
+        d_cli_report(_program, (int)D_CLI_SEVERITY_ERROR,
+                     "this build has no JSON (D_CFG_DESC_MACHINES)");
+
+        return D_CLI_EXIT_TROUBLE;
+    }
+
+    if ( (d_ostream_init(&os, d_cli_program_watched(_program, &watch),
+                         NULL, 0) == 0) ||
+         (d_ostream_set_buffer(&os, room, sizeof(room)) == 0) )
+    {
+        return d_cli_output_error(_program, &watch);
+    }
+
+    d_desc_json_init(&state, &os,
+                     D_DESC_JSON_PRETTY | D_DESC_JSON_NEWLINE);
+    d_desc_json_shape(&state, D_DJIN_DESC_SHAPE);
+    d_desc_sink_init(&sink, machine, &state);
+    (void)d_desc_run(&sink, _describer, _object);
+    held = d_ostream_close(&os);
+
+    return (held != 0) ? D_CLI_EXIT_OK
+                       : d_cli_output_error(_program, &watch);
+}
+
+/*
+d_internal_djinterp_format
+  Whether describe writes JSON: --format's value, text by default; -1 for a
+value it does not take, with the value.
+*/
+static int
+d_internal_djinterp_format(
+    struct dj_arg_command*      _command,
+    const struct dj_pack_text** _value
+)
+{
+    size_t                           count = 0u;
+    const struct dj_pack_text* const value = d_arg_option_values(
+        d_arg_command_option(_command, "--format"), &count);
+
+    *_value = value;
+
+    if (count == 0u)
+    {
+        return 0;
+    }
+
+    if ( (value->length == 4u) &&
+         (memcmp(value->data, "json", 4u) == 0) )
+    {
+        return 1;
+    }
+
+    return ( (value->length == 4u) &&
+             (memcmp(value->data, "text", 4u) == 0) ) ? 0 : -1;
+}
+
+/*
+d_internal_djinterp_describe_command
+  One of a djin's commands: its name and summary, as text or JSON.
+*/
+static int
+d_internal_djinterp_describe_command(
+    struct dj_cli_program*     _program,
+    struct dj_arg_command*     _command,
+    const struct dj_djin*      _djin,
+    const struct dj_pack_text* _djin_name,
+    const struct dj_pack_text* _name,
+    int                        _json
+)
+{
+    struct dj_djin_command_of of;
+    char                      line[D_INTERNAL_DJINTERP_ROOM];
+    int                       made;
+
+    of.djin    = _djin;
+    of.command = (_djin != NULL)
+                 ? d_djin_command_find(_djin, _name->data, _name->length)
+                 : NULL;
+
+    if (of.command == NULL)
+    {
+        return d_cli_usage_error(_program, _command,
+                                 "'%.*s' has no command '%.*s'",
+                                 (int)_djin_name->length, _djin_name->data,
+                                 (int)_name->length, _name->data);
+    }
+
+    if (_json != 0)
+    {
+        return d_internal_djinterp_json(_program, d_djin_command_describer,
+                                        &of);
+    }
+
+    made = snprintf(line, sizeof(line), "%s %s\n  %s\n", _djin->name,
+                    of.command->name,
+                    (of.command->summary != NULL) ? of.command->summary : "");
+
+    return ( (made > 0) &&
+             ((size_t)made < sizeof(line)) &&
+             (d_internal_djinterp_put(_program, line, (size_t)made)) )
+           ? D_CLI_EXIT_OK
+           : D_CLI_EXIT_TROUBLE;
+}
+
+/*
 d_internal_djinterp_work_describe
-  A djin's description, or, for a frame no djin names, its settings.
+  A djin's description, or, for a frame no djin names, its settings; one of
+a djin's commands, given its name; as text, or as JSON at --format=json.
 */
 static int
 d_internal_djinterp_work_describe(
@@ -153,6 +292,14 @@ d_internal_djinterp_work_describe(
                                              d_arg_command_option(_command,
                                                                   "DJIN"),
                                              &count);
+    size_t                      given  = 0u;
+    const struct dj_pack_text*  which  = d_arg_option_values(
+                                             d_arg_command_option(_command,
+                                                                  "COMMAND"),
+                                             &given);
+    const struct dj_pack_text*  format = NULL;
+    const int                   json   = d_internal_djinterp_format(_command,
+                                                                    &format);
     const struct dj_djin*       djin;
     const struct dj_option_env* frame;
     struct dj_cli_watch         watch;
@@ -161,6 +308,13 @@ d_internal_djinterp_work_describe(
     int                         wrote;
 
     (void)_context;
+
+    if (json < 0)
+    {
+        return d_cli_usage_error(_program, _command,
+                                 "'%.*s' is not a format: text or json",
+                                 (int)format->length, format->data);
+    }
 
     if (count == 0u)
     {
@@ -180,6 +334,20 @@ d_internal_djinterp_work_describe(
         return d_cli_usage_error(_program, _command,
                                  "no djin is named '%.*s'",
                                  (int)name->length, name->data);
+    }
+
+    if (given != 0u)
+    {
+        return d_internal_djinterp_describe_command(_program, _command, djin,
+                                                    name, which, json);
+    }
+
+    if (json != 0)
+    {
+        return (djin != NULL)
+               ? d_internal_djinterp_json(_program, d_djin_describer, djin)
+               : d_internal_djinterp_json(_program, d_djin_frame_describer,
+                                          frame);
     }
 
     wrote = (djin != NULL)
@@ -601,10 +769,20 @@ d_internal_djinterp_bind(
             continue;
         }
 
-        bound = d_option_env_registry_assign(d_option_env_registry(),
+        // checked as the file will bind it, then bound for the run
+        bound = d_option_ok(0);
+
+        if (d_option_env_registry_check_from(d_option_env_registry(),
                                              _items[i].data, name,
                                              equals + 1, size,
-                                             D_OPTION_ENV_SOURCE_OVERRIDE);
+                                             D_OPTION_ENV_SOURCE_FILE, NULL,
+                                             0u, &bound, NULL) != (size_t)-1)
+        {
+            bound = d_option_env_registry_assign(d_option_env_registry(),
+                                                 _items[i].data, name,
+                                                 equals + 1, size,
+                                                 D_OPTION_ENV_SOURCE_OVERRIDE);
+        }
 
         if (!bound.is_ok)
         {
@@ -665,10 +843,73 @@ d_internal_djinterp_sets_alone(
 }
 
 /*
+d_internal_djinterp_canonical
+  A setting's canonical full name, as the file is to hold it: its row's name,
+after its djin's where it is a djin's; how long it is, or 0 when it does not
+fit.
+*/
+static size_t
+d_internal_djinterp_canonical(
+    const struct dj_internal_djinterp_setting* _setting,
+    char*                                      _name,
+    size_t                                     _capacity
+)
+{
+    const bool root = (_setting->frame ==
+                       d_option_env_registry_frame(d_option_env_registry()));
+    const int  made = (root)
+                      ? snprintf(_name, _capacity, "%s", _setting->row->name)
+                      : snprintf(_name, _capacity, "%s.%s",
+                                 _setting->frame->name,
+                                 _setting->row->name);
+
+    return ( (made > 0) &&
+             ((size_t)made < _capacity) ) ? (size_t)made : 0u;
+}
+
+/*
+d_internal_djinterp_drops
+  Whether an old line is one a statement replaces: one that sets, alone, the
+name as given or as canonical.
+*/
+static bool
+d_internal_djinterp_drops(
+    const char*                _line,
+    size_t                     _length,
+    const struct dj_pack_text* _items,
+    size_t                     _count
+)
+{
+    struct dj_internal_djinterp_setting setting;
+    char                                name[D_INTERNAL_DJINTERP_ROOM];
+    bool                                drop = false;
+
+    for (size_t i = 0u; (!drop) && (i < _count); ++i)
+    {
+        const size_t given = (size_t)((const char*)memchr(
+                                 _items[i].data, '=', _items[i].length) -
+                                 _items[i].data);
+        const size_t size  = (d_internal_djinterp_find(_items[i].data, given,
+                                                       &setting))
+                             ? d_internal_djinterp_canonical(&setting, name,
+                                                             sizeof(name))
+                             : 0u;
+
+        drop = ( (d_internal_djinterp_sets_alone(_line, _length,
+                                                 _items[i].data, given)) ||
+                 ( (size != 0u) &&
+                   (d_internal_djinterp_sets_alone(_line, _length, name,
+                                                   size)) ) );
+    }
+
+    return drop;
+}
+
+/*
 d_internal_djinterp_compose
   The file's new text into `_text`: each old line kept but one that sets a
-name given alone, then each statement, as get writes it; how long it is, or
-0 when it does not fit.
+name given alone, then each statement under the setting's canonical name, as
+get writes it; how long it is, or 0 when it does not fit.
 */
 static size_t
 d_internal_djinterp_compose(
@@ -690,17 +931,8 @@ d_internal_djinterp_compose(
                                                       _old_length - at);
         const size_t      line  = (end != NULL) ? (size_t)(end - _old) - at
                                                 : _old_length - at;
-        bool              drop  = false;
-
-        for (size_t i = 0u; (!drop) && (i < _count); ++i)
-        {
-            const size_t name = (size_t)((const char*)memchr(
-                                    _items[i].data, '=', _items[i].length) -
-                                    _items[i].data);
-
-            drop = d_internal_djinterp_sets_alone(_old + at, line,
-                                                  _items[i].data, name);
-        }
+        const bool        drop  = d_internal_djinterp_drops(_old + at, line,
+                                                            _items, _count);
 
         if ( (!drop) &&
              (used + line + 1u < _capacity) )
@@ -722,13 +954,20 @@ d_internal_djinterp_compose(
         const size_t name  = (size_t)((const char*)memchr(
                                  _items[i].data, '=', _items[i].length) -
                                  _items[i].data);
+        char         canonical[D_INTERNAL_DJINTERP_ROOM];
+        size_t       size;
         int          wrote;
 
         (void)d_internal_djinterp_find(_items[i].data, name, &setting);
+        size = d_internal_djinterp_canonical(&setting, canonical,
+                                             sizeof(canonical));
         (void)d_option_env_format_quoted(setting.frame, setting.scope,
                                          setting.var, value, sizeof(value));
-        wrote = snprintf(_text + used, _capacity - used, "%.*s = %s\n",
-                         (int)name, _items[i].data, value);
+        wrote = (size != 0u)
+                ? snprintf(_text + used, _capacity - used, "%s = %s\n",
+                           canonical, value)
+                : snprintf(_text + used, _capacity - used, "%.*s = %s\n",
+                           (int)name, _items[i].data, value);
 
         if ( (wrote < 0) ||
              ((size_t)wrote >= _capacity - used) )
@@ -875,6 +1114,16 @@ d_internal_djinterp_commands(
     struct dj_arg_option*        djin     = (describe != NULL)
         ? d_arg_command_add_option(describe, "DJIN", "the djin to describe")
         : NULL;
+    struct dj_arg_option*        which    = (describe != NULL)
+        ? d_arg_command_add_option(describe, "COMMAND",
+                                   "one of the djin's commands, to describe "
+                                   "it alone")
+        : NULL;
+    struct dj_arg_option*        format   = (describe != NULL)
+        ? d_arg_command_add_option(describe, "--format",
+                                   "text, or json: an object of the shape "
+                                   D_DJIN_DESC_SHAPE)
+        : NULL;
     struct dj_arg_option*        names    = (get != NULL)
         ? d_arg_command_add_option(get, "NAME", "a setting's full name")
         : NULL;
@@ -884,8 +1133,8 @@ d_internal_djinterp_commands(
                                    "its value")
         : NULL;
 
-    if ( (list == NULL) || (djin == NULL) || (names == NULL) ||
-         (items == NULL) ||
+    if ( (list == NULL) || (djin == NULL) || (which == NULL) ||
+         (format == NULL) || (names == NULL) || (items == NULL) ||
          (d_arg_command_add_flag(get, "--show-origin",
                                  "say where each value came from, and "
                                  "what lies under it") == NULL) )
@@ -894,6 +1143,8 @@ d_internal_djinterp_commands(
     }
 
     d_arg_option_set_required(djin, true);
+    d_arg_option_set_expected_range(which, 0, 1);
+    (void)d_arg_option_set_type_name(format, "FORMAT");
     d_arg_option_set_expected_range(names, 0, D_ARG_EXPECTED_UNLIMITED);
     d_arg_option_set_expected_range(items, 1, D_ARG_EXPECTED_UNLIMITED);
     d_arg_option_set_required(items, true);
@@ -902,8 +1153,37 @@ d_internal_djinterp_commands(
 }
 
 /*
+d_internal_djinterp_core
+  Every core djin's frame in the program's registry: parse's, desc's, the
+environment printer's and the log's, so that their settings are read from
+the user's file, the environment and the command line, and listed. One
+already there is kept.
+*/
+static bool
+d_internal_djinterp_core(void)
+{
+    struct dj_option_result made[4];
+    bool                    held = true;
+
+    made[0] = d_parse_register(NULL);
+    made[1] = d_desc_register(NULL);
+    made[2] = d_env_printer_register(NULL);
+    made[3] = d_log_register(NULL);
+
+    for (size_t i = 0u; i < sizeof(made) / sizeof(made[0]); ++i)
+    {
+        held = ( (held) &&
+                 ( (made[i].is_ok) ||
+                   (d_option_result_status(&made[i]) ==
+                    (int32_t)D_OPTION_STATUS_KEY_DUPLICATE) ) );
+    }
+
+    return held;
+}
+
+/*
 d_djinterp_program_make
-  The kit's program, the djins' set, and the commands.
+  The kit's program, the core djins, the djins' set, and the commands.
 */
 bool d_djinterp_program_make(
     struct dj_cli_program* _program,
@@ -922,5 +1202,6 @@ bool d_djinterp_program_make(
                           d_option_env_registry(),
                           d_internal_djinterp_reserved);
 
-    return d_internal_djinterp_commands(_program);
+    return ( (d_internal_djinterp_core()) &&
+             (d_internal_djinterp_commands(_program)) );
 }

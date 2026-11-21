@@ -1,6 +1,6 @@
 # The djinterp interpreter and its command language: design
 
-Written 2026-11-04, amended 2026-11-09, 2026-11-11, 2026-11-13 and 2026-11-18. Agreed with the
+Written 2026-11-04, amended 2026-11-09, 2026-11-11, 2026-11-13, 2026-11-18 and 2026-11-20. Agreed with the
 designs it depends on: expression core v2's, the options' and the
 registry's, and dawk's. The owner rules what they do not settle.
 
@@ -328,7 +328,7 @@ dawk's `dvalue` moves into the library as "the tagged value and hash array"
 (`desc.txt`'s table), and the interpreter's value is that module's, not a
 second one.
 
-- Its header comes on 11-13 and its code on 12-04. It carries the tags
+- Its header and its code come together on 12-04. It carries the tags
   above: a list, integers apart from reals, a truth value, bytes apart from
   text, and keys kept in insertion order.
 - A status needs no tag: the djin call carries it beside the value (6.2).
@@ -342,7 +342,7 @@ second one.
 | `a \| b` | `b` takes `a`'s value as its input. The first stage that fails ends the pipeline with its error (functional's `result`). The seed of a pipeline is nothing, or standard input's text where the program was given some. |
 | `a and b` / `a or b` | Short-circuit on `a`'s truth: a truth value as it is; nothing, zero, an empty text, list or record false; a status true when it is 0. The construct comes to the value that decided it. |
 | `not a` | The truth value opposite to `a`'s truth. |
-| `a == b`, `!=`, `<`, `<=`, `>`, `>=` | On two numbers, numerically. On two texts, by code point. A number and a text that reads wholly as a number, numerically. Anything else: `==` and `!=` by structure, and the rest an error. Never chained (the grammar's rule). |
+| `a == b`, `!=`, `<`, `<=`, `>`, `>=` | On two numbers, numerically. On two texts, by code point. A number and a text that reads wholly as a number, numerically. Two lists, or two records, `==` and `!=` by `d_value_equal_with` with the language's own rule for the scalars inside, so `[1] == [1.0]` is true as `1 == 1.0` is; a record's keys compare without regard to order. Anything else: `==` and `!=` by structure, and the rest an error. Never chained (the grammar's rule). |
 | `a =~ b` | `b` is a pattern, in `c/util/dregex`'s POSIX ERE; true when it matches anywhere in `a`'s text. |
 | a command | Run with its words and the input value; it comes to its result value and status (6.3). |
 | a literal | Its value: a number, or a text. A bare word is a command (PEG note 4). |
@@ -371,7 +371,7 @@ describe, configure and run. It registers:
   default and accepted values, and where its value came from;
 - **descriptions:** desc facts.
 
-dawk is one: awk is its command, and the awk machine's variables are its
+awk is one: `run` is its command, and the awk machine's variables are its
 settings. bitwisedom's model could be another.
 
 ### 6.2 The records
@@ -422,7 +422,7 @@ struct dj_djin
   - the input value, and a place for the output value;
   - the status.
 
-  Its exact shape follows the tagged value's header (11-13).
+  Its exact shape follows the tagged value's header (12-04).
 
 **The set** (`c/modules/interp/djin.h`, in the tree since 11-11). A program
 keeps its djins in a `dj_djin_set` over its registry, in room it gives, with
@@ -507,10 +507,16 @@ djinterp help, completion, --version the kit's
 Each djin is a command group, as `git`'s subcommands are. A djin named as a
 built-in command is refused at registration, by name.
 
-In the preview of 11-13, `describe` takes a djin alone, as text; `COMMAND`
-and `--format=json` come with desc's sink. With no djin of the program's
-own yet, `list` names the registry's frames, the kit's `cli` among them, as
-"settings only".
+In the preview of 11-13, `describe` takes a djin alone, as text. From
+11-20 it takes `COMMAND` too, one of the djin's commands, and
+`--format=json`, which writes an object of the shape
+`"djinterp.describe/1.0"`, named first as `"format"`, through desc's JSON
+machine (`c/modules/interp/djin_desc.h`). The settings in it are the option
+core's own reading of them (`option_env_desc.h`), so `describe`, `help` and
+`get --show-origin` cannot disagree. With no djin of the program's own yet,
+`list` names the registry's frames as "settings only": every core djin's
+-- parse's, desc's, the environment printer's and the log's, which
+`djinterp` registers from 11-20 -- and the kit's `cli`.
 
 - **`get`** prints statements, `net.timeout_ms = 5000`, one a line, with
   `d_option_env_format_quoted`. So its output can be pasted into a settings
@@ -530,6 +536,10 @@ own yet, `list` names the registry's frames, the kit's `cli` among them, as
     file and line, or the variable's name), 0.9 shows that too.
 - **`set`** writes each statement to the user's settings file, with
   `d_option_env_format_quoted`. Its bindings are `FILE`'s on the next run.
+  - Each is checked first as the file will bind it
+    (`d_option_env_registry_check_from`), so a setting that refuses the file
+    is refused before anything is written.
+  - Each is written under its canonical name: its row's, after its djin's.
   - A one-run override is `--set NAME=VALUE`.
   - In the 0.9 interpreter's prompt, `set` binds from `COMMAND_LINE` for the
     session instead.
@@ -552,9 +562,15 @@ Not in 0.8. In 0.9:
   program says (cli-taken 15, `D_CFG_CLI_PLUGIN_STRICT_VERSION`).
 - `list` then names where each came from.
 
-**The search list is a setting that decides what code runs**, so its rows
-refuse the environment when `D_CFG_CLI_PLUGIN_VARIABLE` is 0. A row names
-the sources it refuses, and a binding from one fails by name.
+**The search list is a setting that decides what code runs**, so where
+`D_CFG_CLI_PLUGIN_VARIABLE` is 0 its rows -- `plugin_path` and
+`cli.plugin_search` -- refuse every source the program's caller controls:
+the user's file, the environment and the command line
+(`D_OPTION_ENV_REFUSES_CALLER`, option_env's decision 69). The program and
+an override still bind them. A builder who trusts one of those sources
+defines `D_OPTION_ENV_REFUSES_CALLER` as its own set; no run-time option
+relaxes it. A row names the sources it refuses, and a binding from one fails
+by name.
 
 
 ## 7. awk
@@ -588,7 +604,10 @@ into the language's types.
   - When the reader meets `{` after `#lang awk`, it hands dawk the text
     after the brace.
   - dawk's block-end scanner finds the closing brace, and gives back its
-    offset, or an error at the place awk's lexer reports it.
+    offset; or an error at the place awk's lexer reports it; or that the
+    text ran out before the block closed (`D_AWK_BLOCK_UNCLOSED`), which the
+    reader marks incomplete (`D_PARSE_DIAG_FLAG_INCOMPLETE`), so a prompt
+    waits for more.
   - The reader gives core v2 that span as the block's raw text. The
     interpreter counts no braces in awk.
 
@@ -618,13 +637,13 @@ into the language's types.
 | option_env and the registry | rows, frames, sources and standing; `take_option`; `format_quoted`; text knobs | in the tree since 11-10 |
 | option_env and the registry | rows that refuse a source | 11-13 |
 | option_env and the registry | a binding's origin, for `--show-origin` | 0.9, at the earliest |
-| desc | its fact sink, for a djin's `describe` | 11-13 |
+| desc | its fact sink, for a djin's `describe` | 11-13; JSON 11-20 |
 | desc | `--help` from desc facts, laid out by the kit's help formatter, so the kit's rulings on help (84, 57, 65, 66) hold in one place | December |
-| the tagged value | its header, with the tags of decision 4 | 11-13; code 12-04 |
+| the tagged value | its header, with the tags of decision 4, and `d_value_equal_with` | 12-04, header and code together |
 | `c/util/dregex` | POSIX ERE, for `=~` | in the tree |
 | dawk | the hooks of decision 6, frozen; the output sink, RS-keeping text input and the block-end scanner | frozen 12-11; additions by 12-04 |
 | the root | `D_KEYWORD_INTERP` and `NS_INTERP` in `djinterp.h` | 11-13 |
-| the build | `D_CORE_API`, the core's export switch, for the kit's shared core (cli-taken 13) | proposed; settled by 11-13 |
+| the build | an export switch for each library, `D_<NAME>_API`, from `djinterp_add_library(... API <NAME> ...)`; there is no one `D_CORE_API` | in the tree; a shared build is tested once the runtime is shared |
 
 
 ## 9. Schedule
@@ -636,6 +655,7 @@ into the language's types.
 | Wed 11-11 | The djin records (6.2): the set, registration into the registry, and the text that `list` and `describe` print. |
 | Fri 11-13 | The `djinterp` program on the records (`src/djinterp/tools/djinterp/`, its leaf `build/cmake/config/djinterp/tools/djinterp/`): `list`, `describe DJIN`, `get [--show-origin] [NAME]...` and `set NAME=VALUE...`. The kit's settings on the knob-and-option pattern (`tools/cli/c/cli_settings.h`): the user's file, both imports, and the command line's settings. |
 | Wed 11-18 | The records' `describe` takes desc's sink, and `D_DJIN_ABI` is 2. `get --show-origin` reads the default from the layers where they end with it. Every result is written through the kit's watched output, so a full disk is said with its reason. `settings`, `cli` and `language` are reserved. |
+| Fri 11-20 | `djinterp` registers every core djin. `describe DJIN [COMMAND]` and `--format=json`. `set` checks each setting as the file will bind it, and writes its canonical name. The plugin rows refuse the caller's sources where `D_CFG_CLI_PLUGIN_VARIABLE` is 0. The kit's suites run on DTest. |
 | Weeks 2 and 3 | The 0.8 preview (6.4) whole: `describe DJIN COMMAND` and `--format=json` on desc's sink, and a djin's commands run. The interpreter's skeleton on core v2 -- sequences and pipelines -- behind it. |
 | Week 4 | The preview's suites and docs; this note's December half, refined. |
 | December | Predicates, blocks and values; djins through the interpreter; awk run by dawk; the language frozen 12-11; suites, docs and the man page by 12-18. |

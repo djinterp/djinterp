@@ -494,7 +494,6 @@ inc/djinterp/config/env/util/archive/cfg_env_archive.h	H	1
 inc/djinterp/config/env/util/compress/cfg_env_compress.h	H	1
 inc/djinterp/config/env/util/compress/cfg_env_compress_link.h	H	1
 inc/djinterp/config/tools/bitwisedom/cfg_bitwisedom.h	H	1
-inc/djinterp/config/tools/cli/cfg_cli.h	H	1
 inc/djinterp/cpp/binary/decode.hpp	H	1
 inc/djinterp/cpp/binary/decode.hpp	R	1
 inc/djinterp/cpp/binary/decode_options.hpp	H	1
@@ -1365,7 +1364,6 @@ inc/djinterp/tools/cli/c/cli_io.h	H	1
 inc/djinterp/tools/cli/c/cli_operand.h	H	1
 inc/djinterp/tools/cli/c/cli_plugin.h	H	1
 inc/djinterp/tools/cli/c/cli_program.h	H	1
-inc/djinterp/tools/cli/c/cli_settings.h	H	1
 inc/djinterp/tools/cli/cli.hpp	H	1
 inc/djinterp/tools/cli/cli_edit.hpp	H	1
 inc/djinterp/tools/cli/cli_io.hpp	H	1
