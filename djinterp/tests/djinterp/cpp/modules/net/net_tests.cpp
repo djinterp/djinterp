@@ -267,8 +267,8 @@ bool tests_net_vocabulary()
     bool                  result = true;
 
     // every enumerator is its C counterpart, and describes itself the same;
-    // PROTOCOL is the last
-    for (int i = 0; i <= static_cast<int>(D_NET_ERROR_PROTOCOL); ++i)
+    // HOST_NOT_FOUND is the last
+    for (int i = 0; i <= static_cast<int>(D_NET_ERROR_HOST_NOT_FOUND); ++i)
     {
         const dj_net_error          c_error   = static_cast<dj_net_error>(i);
         const net::io_error::value cpp_error = net::from_c(c_error);

@@ -712,7 +712,9 @@ NS_INTERNAL
                 return D_SMTP_ERROR_OUT_OF_MEMORY;
 
             case D_NET_ERROR_ADDRESS_INVALID:
+            case D_NET_ERROR_ADDRESS_UNAVAILABLE:
             case D_NET_ERROR_HOST_UNREACHABLE:
+            case D_NET_ERROR_HOST_NOT_FOUND:
                 return D_SMTP_ERROR_RESOLVE;
 
             default:

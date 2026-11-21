@@ -23,7 +23,7 @@
 *******************************************************************************/
 #include "./sqlite_stubs_tests.h"  // corresponding header
 // std
-#include <string.h>  // memset, strcmp, strstr
+#include <string.h>  // memset, strcmp, strncpy, strstr
 // djinterp
 #include "../../../../../../inc/djinterp/c/modules/db/sqlite/sqlite.h"  // unit under test
 // re_std
@@ -591,6 +591,125 @@ void d_tests_sqlite_stubs_maintenance(void)
     return;
 }
 
+// g_kind_calls, g_kind_code, g_kind_sqlstate, g_kind_user
+//   state: what the test's sorting function was last given, and how often;
+// the SQLSTATE copied, since the one it is given lasts only the call.
+static int         g_kind_calls    = 0;
+static int32_t     g_kind_code     = 0;
+static const char* g_kind_sqlstate = NULL;
+static char        g_kind_state[6] = { 0 };
+static void*       g_kind_user     = NULL;
+
+/*
+d_tests_sqlite_stubs_kind_fn
+  A program's sorting function: records what it is given, and sorts every
+failure as data.
+*/
+static
+enum dj_db_vendor_kind d_tests_sqlite_stubs_kind_fn(
+    int32_t     _code,
+    const char* _sqlstate,
+    void*       _user
+)
+{
+    ++g_kind_calls;
+    g_kind_code     = _code;
+    g_kind_sqlstate = NULL;
+
+    // the SQLSTATE lasts only the call: keep a copy
+    if (_sqlstate)
+    {
+        strncpy(g_kind_state, _sqlstate, sizeof(g_kind_state) - 1u);
+        g_kind_state[sizeof(g_kind_state) - 1u] = '\0';
+        g_kind_sqlstate = g_kind_state;
+    }
+
+    g_kind_user     = _user;
+
+    return D_DB_VENDOR_KIND_DATA;
+}
+
+/*
+d_tests_sqlite_stubs_kinds
+  Sorting SQLite's results into db_common.h's kinds, which needs no SQLite.
+  Tests the following:
+  - success, SQLITE_ROW, SQLITE_DONE, a notice and the layer's own results
+    are of no kind
+  - each primary result sorts as the header says, an extended one as its
+    primary but where it says more
+  - a program's function is called with the result, no SQLSTATE and its
+    pointer, and not for success; NULL sets the default again
+*/
+static
+void d_tests_sqlite_stubs_kinds(void)
+{
+    int marker = 0;
+
+    d_tests_sqlite_stubs_start("sqlite_common", "kinds");
+
+    // no kind
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(0) == D_DB_VENDOR_KIND_NONE);
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(100) == D_DB_VENDOR_KIND_NONE);
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(101) == D_DB_VENDOR_KIND_NONE);
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(27) == D_DB_VENDOR_KIND_NONE);
+    D_TESTS_SQLITE_STUBS_CHECK(
+        d_sqlite_kind(D_DB_NOT_FOUND) == D_DB_VENDOR_KIND_NONE);
+
+    // the primaries, and extended results under them
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(1) == D_DB_VENDOR_KIND_SYNTAX);
+    D_TESTS_SQLITE_STUBS_CHECK(
+        d_sqlite_kind(19) == D_DB_VENDOR_KIND_CONSTRAINT);
+    D_TESTS_SQLITE_STUBS_CHECK(
+        d_sqlite_kind(2067) == D_DB_VENDOR_KIND_CONSTRAINT);
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(5) == D_DB_VENDOR_KIND_BUSY);
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(6) == D_DB_VENDOR_KIND_BUSY);
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(517) == D_DB_VENDOR_KIND_BUSY);
+    D_TESTS_SQLITE_STUBS_CHECK(
+        d_sqlite_kind(14) == D_DB_VENDOR_KIND_CONNECTION);
+    D_TESTS_SQLITE_STUBS_CHECK(
+        d_sqlite_kind(26) == D_DB_VENDOR_KIND_CONNECTION);
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(3) == D_DB_VENDOR_KIND_AUTH);
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(8) == D_DB_VENDOR_KIND_AUTH);
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(23) == D_DB_VENDOR_KIND_AUTH);
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(20) == D_DB_VENDOR_KIND_DATA);
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(18) == D_DB_VENDOR_KIND_DATA);
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(25) == D_DB_VENDOR_KIND_DATA);
+    D_TESTS_SQLITE_STUBS_CHECK(
+        d_sqlite_kind(21) == D_DB_VENDOR_KIND_UNSUPPORTED);
+    D_TESTS_SQLITE_STUBS_CHECK(
+        d_sqlite_kind(22) == D_DB_VENDOR_KIND_UNSUPPORTED);
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(2) == D_DB_VENDOR_KIND_INTERNAL);
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(7) == D_DB_VENDOR_KIND_INTERNAL);
+    D_TESTS_SQLITE_STUBS_CHECK(
+        d_sqlite_kind(10) == D_DB_VENDOR_KIND_INTERNAL);
+    D_TESTS_SQLITE_STUBS_CHECK(
+        d_sqlite_kind(3850) == D_DB_VENDOR_KIND_INTERNAL);
+    D_TESTS_SQLITE_STUBS_CHECK(
+        d_sqlite_kind(11) == D_DB_VENDOR_KIND_INTERNAL);
+    D_TESTS_SQLITE_STUBS_CHECK(
+        d_sqlite_kind(257) == D_DB_VENDOR_KIND_NOT_FOUND);
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(513) == D_DB_VENDOR_KIND_BUSY);
+    D_TESTS_SQLITE_STUBS_CHECK(
+        d_sqlite_kind_default(19, NULL, NULL) == D_DB_VENDOR_KIND_CONSTRAINT);
+
+    // a program's function, and the default again
+    g_kind_calls = 0;
+    d_sqlite_kind_set(d_tests_sqlite_stubs_kind_fn, &marker);
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(19) == D_DB_VENDOR_KIND_DATA);
+    D_TESTS_SQLITE_STUBS_CHECK( (g_kind_calls == 1)     &&
+                                (g_kind_code == 19)     &&
+                                (g_kind_sqlstate == NULL) &&
+                                (g_kind_user == &marker) );
+    D_TESTS_SQLITE_STUBS_CHECK(d_sqlite_kind(0) == D_DB_VENDOR_KIND_NONE);
+    D_TESTS_SQLITE_STUBS_CHECK(g_kind_calls == 1);
+    d_sqlite_kind_set(NULL, &marker);
+    D_TESTS_SQLITE_STUBS_CHECK(
+        d_sqlite_kind(19) == D_DB_VENDOR_KIND_CONSTRAINT);
+    D_TESTS_SQLITE_STUBS_CHECK(g_kind_calls == 1);
+
+    return;
+}
+
 //==============================================================================
 // DRIVER
 //==============================================================================
@@ -621,6 +740,7 @@ void d_tests_sqlite_stubs(
     d_tests_sqlite_stubs_transaction();
     d_tests_sqlite_stubs_settings();
     d_tests_sqlite_stubs_maintenance();
+    d_tests_sqlite_stubs_kinds();
 
     g_suite = NULL;
 

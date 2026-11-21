@@ -24,7 +24,7 @@
 *******************************************************************************/
 #include "./postgres_stubs_tests.h"  // corresponding header
 // std
-#include <string.h>  // memset, strcmp, strstr
+#include <string.h>  // memset, strcmp, strncpy, strstr
 // djinterp
 #include "../../../../../../inc/djinterp/c/modules/db/postgres/postgres.h"  // under test
 // re_std
@@ -860,6 +860,163 @@ void d_tests_postgres_stubs_protocol(void)
     return;
 }
 
+// g_kind_calls, g_kind_code, g_kind_sqlstate, g_kind_user
+//   state: what the test's sorting function was last given, and how often;
+// the SQLSTATE copied, since the one it is given lasts only the call.
+static int         g_kind_calls    = 0;
+static int32_t     g_kind_code     = 0;
+static const char* g_kind_sqlstate = NULL;
+static char        g_kind_state[6] = { 0 };
+static void*       g_kind_user     = NULL;
+
+/*
+d_tests_postgres_stubs_kind_fn
+  A program's sorting function: records what it is given, and sorts every
+failure as data.
+*/
+static
+enum dj_db_vendor_kind d_tests_postgres_stubs_kind_fn(
+    int32_t     _code,
+    const char* _sqlstate,
+    void*       _user
+)
+{
+    ++g_kind_calls;
+    g_kind_code     = _code;
+    g_kind_sqlstate = NULL;
+
+    // the SQLSTATE lasts only the call: keep a copy
+    if (_sqlstate)
+    {
+        strncpy(g_kind_state, _sqlstate, sizeof(g_kind_state) - 1u);
+        g_kind_state[sizeof(g_kind_state) - 1u] = '\0';
+        g_kind_sqlstate = g_kind_state;
+    }
+
+    g_kind_user     = _user;
+
+    return D_DB_VENDOR_KIND_DATA;
+}
+
+// D_TESTS_POSTGRES_STUBS_KIND
+//   macro: the kind d_postgres_kind gives a five-character SQLSTATE, packed.
+#define D_TESTS_POSTGRES_STUBS_KIND(_c1, _c2, _c3, _c4, _c5)                   \
+    d_postgres_kind((int32_t)D_POSTGRES_SQLSTATE(_c1, _c2, _c3, _c4, _c5))
+
+/*
+d_tests_postgres_stubs_kinds
+  Sorting PostgreSQL's results into db_common.h's kinds, which needs no
+libpq.
+  Tests the following:
+  - success, the layer's own results and a warning are of no kind
+  - each class sorts as the header says; class 42 by its condition
+  - the default reads an SQLSTATE it is given, MariaDB's 42S among them, or
+    unpacks the result where it is given none; malformed text is internal
+  - a program's function is given the result spelled out, and not success;
+    NULL sets the default again
+*/
+static
+void d_tests_postgres_stubs_kinds(void)
+{
+    const int32_t duplicate =
+        (int32_t)D_POSTGRES_SQLSTATE('2', '3', '5', '0', '5');
+    int           marker    = 0;
+
+    d_tests_postgres_stubs_start("postgres_common", "kinds");
+
+    // no kind
+    D_TESTS_POSTGRES_STUBS_CHECK(d_postgres_kind(0) == D_DB_VENDOR_KIND_NONE);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        d_postgres_kind(D_DB_INVALID_ARGUMENT) == D_DB_VENDOR_KIND_NONE);
+
+    // classes, and class 42 by its condition
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('0', '1', '0', '0', '0') ==
+        D_DB_VENDOR_KIND_NONE);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('0', '8', '0', '0', '6') ==
+        D_DB_VENDOR_KIND_CONNECTION);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('2', '8', 'P', '0', '1') ==
+        D_DB_VENDOR_KIND_AUTH);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('2', '3', '5', '0', '5') ==
+        D_DB_VENDOR_KIND_CONSTRAINT);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('2', '2', '0', '1', '2') ==
+        D_DB_VENDOR_KIND_DATA);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('4', '0', 'P', '0', '1') ==
+        D_DB_VENDOR_KIND_BUSY);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('5', '5', 'P', '0', '3') ==
+        D_DB_VENDOR_KIND_BUSY);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('0', 'A', '0', '0', '0') ==
+        D_DB_VENDOR_KIND_UNSUPPORTED);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('X', 'X', '0', '0', '0') ==
+        D_DB_VENDOR_KIND_INTERNAL);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('5', '3', '2', '0', '0') ==
+        D_DB_VENDOR_KIND_INTERNAL);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('5', '3', '3', '0', '0') ==
+        D_DB_VENDOR_KIND_CONNECTION);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('5', '7', '0', '1', '4') ==
+        D_DB_VENDOR_KIND_BUSY);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('3', 'D', '0', '0', '0') ==
+        D_DB_VENDOR_KIND_NOT_FOUND);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('4', '2', '6', '0', '1') ==
+        D_DB_VENDOR_KIND_SYNTAX);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('4', '2', '5', '0', '1') ==
+        D_DB_VENDOR_KIND_AUTH);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('4', '2', 'P', '0', '1') ==
+        D_DB_VENDOR_KIND_NOT_FOUND);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('4', '2', '7', '0', '3') ==
+        D_DB_VENDOR_KIND_NOT_FOUND);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('4', '2', 'P', '0', '7') ==
+        D_DB_VENDOR_KIND_CONSTRAINT);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        D_TESTS_POSTGRES_STUBS_KIND('4', '2', '8', '0', '4') ==
+        D_DB_VENDOR_KIND_DATA);
+
+    // the default, given an SQLSTATE or none
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        d_postgres_kind_default(0, "42S02", NULL) ==
+        D_DB_VENDOR_KIND_NOT_FOUND);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        d_postgres_kind_default(duplicate, NULL, NULL) ==
+        D_DB_VENDOR_KIND_CONSTRAINT);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        d_postgres_kind_default(0, "4", NULL) == D_DB_VENDOR_KIND_INTERNAL);
+
+    // a program's function, and the default again
+    g_kind_calls = 0;
+    d_postgres_kind_set(d_tests_postgres_stubs_kind_fn, &marker);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        d_postgres_kind(duplicate) == D_DB_VENDOR_KIND_DATA);
+    D_TESTS_POSTGRES_STUBS_CHECK( (g_kind_calls == 1)                    &&
+                                  (g_kind_code == duplicate)             &&
+                                  (g_kind_sqlstate != NULL)              &&
+                                  (strcmp(g_kind_sqlstate, "23505") == 0) &&
+                                  (g_kind_user == &marker) );
+    D_TESTS_POSTGRES_STUBS_CHECK(d_postgres_kind(0) == D_DB_VENDOR_KIND_NONE);
+    D_TESTS_POSTGRES_STUBS_CHECK(g_kind_calls == 1);
+    d_postgres_kind_set(NULL, NULL);
+    D_TESTS_POSTGRES_STUBS_CHECK(
+        d_postgres_kind(duplicate) == D_DB_VENDOR_KIND_CONSTRAINT);
+
+    return;
+}
+
 //==============================================================================
 // RUN
 //==============================================================================
@@ -893,6 +1050,7 @@ void d_tests_postgres_stubs(
     d_tests_postgres_stubs_settings();
     d_tests_postgres_stubs_maintenance();
     d_tests_postgres_stubs_protocol();
+    d_tests_postgres_stubs_kinds();
 
     g_suite = NULL;
 

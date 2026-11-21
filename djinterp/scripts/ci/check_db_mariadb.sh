@@ -2,8 +2,8 @@
 #*******************************************************************************
 # djinterp [ci]                                              check_db_mariadb.sh
 #
-# Builds djinterp's MariaDB/MySQL layer (c/modules/db/db_*.c,
-# c/modules/db/mariadb/) and runs its harnesses through every client given, with
+# Builds djinterp's MariaDB/MySQL layer (c/modules/db/mariadb/, over db_common.c
+# and db_internal.c) and runs its harnesses through every client given, with
 # every compiler, at every language level, against the server the environment
 # names, and fails if any build or run fails:
 #     mariadb_tests.c     the C suite, at each C standard, with
@@ -94,7 +94,9 @@ if [[ $# -eq 0 ]]; then
     set -- mariadb
 fi
 
-layer=(src/djinterp/c/modules/db/db_*.c src/djinterp/c/modules/db/mariadb/mariadb_*.c)
+layer=(src/djinterp/c/modules/db/db_common.c
+       src/djinterp/c/modules/db/db_internal.c
+       src/djinterp/c/modules/db/mariadb/mariadb_*.c)
 core=(src/djinterp/cpp/modules/db/database.cpp
       src/djinterp/cpp/modules/db/database_statement.cpp
       src/djinterp/cpp/modules/db/mysql/mysql_common.cpp

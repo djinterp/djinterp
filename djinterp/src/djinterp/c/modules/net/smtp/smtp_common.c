@@ -170,7 +170,7 @@ d_smtp_error_to_net(
         case D_SMTP_ERROR_LINE_TOO_LONG:
             return D_NET_ERROR_MESSAGE_TOO_LARGE;
         case D_SMTP_ERROR_RESOLVE:
-            return D_NET_ERROR_HOST_UNREACHABLE;
+            return D_NET_ERROR_HOST_NOT_FOUND;
         case D_SMTP_ERROR_CONNECT:
             return D_NET_ERROR_CONNECTION_REFUSED;
         case D_SMTP_ERROR_CLOSED:
@@ -223,7 +223,9 @@ d_smtp_error_from_net(
         case D_NET_ERROR_CONNECTION_REFUSED:
         case D_NET_ERROR_ADDRESS_IN_USE:
         case D_NET_ERROR_ADDRESS_INVALID:
+        case D_NET_ERROR_ADDRESS_UNAVAILABLE:
         case D_NET_ERROR_HOST_UNREACHABLE:
+        case D_NET_ERROR_HOST_NOT_FOUND:
         case D_NET_ERROR_NETWORK_DOWN:
         case D_NET_ERROR_UNSUPPORTED:
         case D_NET_ERROR_ACCESS_DENIED:

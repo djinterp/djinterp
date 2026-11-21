@@ -737,3 +737,90 @@ bool d_postgres_result_is_own(
 }
 
 #endif  // D_INTERNAL_POSTGRES
+
+
+//==============================================================================
+// KINDS, IN EVERY BUILD
+//==============================================================================
+// A result is a packed SQLSTATE in every build, so sorting one needs nothing
+// of libpq's.
+
+// 3.4    Kinds
+//------------------------------------------------------------------------------
+// g_postgres_kind, g_postgres_kind_user
+//   state: the function the program set to sort PostgreSQL's results, and
+// what it gave with it; none, to use the default. The process's: set before
+// the first connection, and read on any thread.
+static dj_db_kind_fn g_postgres_kind      = NULL;
+static void*         g_postgres_kind_user = NULL;
+
+/*
+d_postgres_kind_set
+  NULL sets the default again, and drops what came with the old function.
+*/
+void
+d_postgres_kind_set(
+    dj_db_kind_fn _fn,
+    void*         _user
+)
+{
+    g_postgres_kind      = _fn;
+    g_postgres_kind_user = (_fn) ? _user : NULL;
+
+    return;
+}
+
+/*
+d_postgres_kind
+  Success and the layer's own negative results are no failure of the
+server's, so no function sorts them; a positive result that is no packed
+SQLSTATE goes on with none, which the default sorts as internal.
+*/
+enum dj_db_vendor_kind
+d_postgres_kind(
+    int32_t _result
+)
+{
+    char        spelled[6];
+    const char* sqlstate = NULL;
+
+    // not a failure: success, or the layer's own
+    if (_result <= 0)
+    {
+        return D_DB_VENDOR_KIND_NONE;
+    }
+
+    if (d_postgres_result_sqlstate((int)_result, spelled))
+    {
+        sqlstate = spelled;
+    }
+
+    return (g_postgres_kind)
+               ? g_postgres_kind(_result, sqlstate, g_postgres_kind_user)
+               : d_postgres_kind_default(_result, sqlstate, NULL);
+}
+
+/*
+d_postgres_kind_default
+  The SQLSTATE given, or, where a caller gives none, the one the result
+packs; then the class, or the condition where it sorts apart.
+*/
+enum dj_db_vendor_kind
+d_postgres_kind_default(
+    int32_t     _result,
+    const char* _sqlstate,
+    void*       _user
+)
+{
+    char spelled[6];
+
+    (void)_user;
+
+    if ( (!_sqlstate) &&
+         (d_postgres_result_sqlstate((int)_result, spelled)) )
+    {
+        _sqlstate = spelled;
+    }
+
+    return d_internal_db_kind_of_sqlstate(_sqlstate);
+}

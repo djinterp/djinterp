@@ -1,0 +1,30 @@
+/*******************************************************************************
+* djinterp [test]                                                 db_log_tests.h
+*
+* The suite of db's codes for the log: its two tables, their registration
+* and the vendor's message, in DTest's C face.
+*
+*
+* path:      /tests/djinterp/c/modules/db/db_log_tests.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.19
+*                                                            revised: 2026.11.19
+*******************************************************************************/
+
+#ifndef DJINTERP_TESTS_C_DB_LOG_TESTS_H
+#define DJINTERP_TESTS_C_DB_LOG_TESTS_H 1
+
+// djinterp
+#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // DTest
+
+
+/*
+d_tests_db_log
+  section: every test of the suite, under its module.
+*/
+void d_tests_db_log(
+    struct dj_test_suite* _suite
+);
+
+
+#endif  // DJINTERP_TESTS_C_DB_LOG_TESTS_H

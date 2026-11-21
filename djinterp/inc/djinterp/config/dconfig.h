@@ -173,6 +173,8 @@
 // D_CFG_ENV_USING_MONGODB off unless set
 #include "djinterp/config/c/modules/db/mongodb/cfg_mongodb_common.h"  // MongoDB layer
 #include "djinterp/config/c/modules/db/mongodb/cfg_mongodb_connection.h"  // connects
+// what db gives the log: a vendor's message, or none
+#include "djinterp/config/c/modules/db/cfg_db_log.h"  // db's records
 // the layers' C++ faces, which read nothing above
 #include "djinterp/config/cpp/modules/db/cfg_db_face.h"  // the faces' format check
 // #include "<path>/cfg_<sub>.h"  // <- add future subframeworks here

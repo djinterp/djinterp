@@ -98,10 +98,10 @@ bool d_tests_sa_net_errors(
     bool              distinct = true;
     bool              result   = true;
 
-    // compare every pair of enumerators' phrases; PROTOCOL is the last
-    for (int i = 0; i <= (int)D_NET_ERROR_PROTOCOL; ++i)
+    // compare every pair of enumerators' phrases; HOST_NOT_FOUND is the last
+    for (int i = 0; i <= (int)D_NET_ERROR_HOST_NOT_FOUND; ++i)
     {
-        for (int j = i + 1; j <= (int)D_NET_ERROR_PROTOCOL; ++j)
+        for (int j = i + 1; j <= (int)D_NET_ERROR_HOST_NOT_FOUND; ++j)
         {
             const char* const a = d_net_error_string((enum dj_net_error)i);
             const char* const b = d_net_error_string((enum dj_net_error)j);
@@ -123,8 +123,13 @@ bool d_tests_sa_net_errors(
                                  "too many open files"))           &&
                             (d_tests_net_phrase_is(D_NET_ERROR_UNKNOWN,
                                                    "unknown error")) );
-    const bool protocol = d_tests_net_phrase_is(D_NET_ERROR_PROTOCOL,
-                                                "protocol violation");
+    const bool protocol = ( (d_tests_net_phrase_is(D_NET_ERROR_PROTOCOL,
+                                                   "protocol violation")) &&
+                            (d_tests_net_phrase_is(
+                                 D_NET_ERROR_ADDRESS_UNAVAILABLE,
+                                 "address unavailable"))                 &&
+                            (d_tests_net_phrase_is(D_NET_ERROR_HOST_NOT_FOUND,
+                                                   "host not found")) );
     const bool outside  = d_tests_net_phrase_is((enum dj_net_error)99,
                                                 "unknown error");
 

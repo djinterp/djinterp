@@ -605,3 +605,221 @@ const char* d_mariadb_sqlstate(
 }
 
 #endif  // D_INTERNAL_MARIADB
+
+
+//==============================================================================
+// KINDS, IN EVERY BUILD
+//==============================================================================
+// Error numbers are the documented ones, written out here, so that the layer
+// built without a client sorts them too.
+
+// 4.3    Kinds
+//------------------------------------------------------------------------------
+// g_mariadb_kind, g_mariadb_kind_user
+//   state: the function the program set to sort MariaDB's and MySQL's
+// results, and what it gave with it; none, to use the default. The
+// process's: set before the first connection, and read on any thread.
+static dj_db_kind_fn g_mariadb_kind      = NULL;
+static void*         g_mariadb_kind_user = NULL;
+
+/*
+d_mariadb_kind_set
+  NULL sets the default again, and drops what came with the old function.
+*/
+void
+d_mariadb_kind_set(
+    dj_db_kind_fn _fn,
+    void*         _user
+)
+{
+    g_mariadb_kind      = _fn;
+    g_mariadb_kind_user = (_fn) ? _user : NULL;
+
+    return;
+}
+
+/*
+d_mariadb_kind
+  Success and the layer's own negative results are no failure of the
+server's or the client's, so no function sorts them. An empty SQLSTATE, or
+"00000", is none.
+*/
+enum dj_db_vendor_kind
+d_mariadb_kind(
+    const struct dj_mariadb* _db,
+    int32_t                  _result
+)
+{
+    const char* sqlstate = NULL;
+
+    // not a failure: success, or the layer's own
+    if (_result <= 0)
+    {
+        return D_DB_VENDOR_KIND_NONE;
+    }
+
+    if (_db)
+    {
+        sqlstate = d_mariadb_sqlstate(_db);
+
+        if ( (!sqlstate) ||
+             (sqlstate[0] == '\0') ||
+             (strcmp(sqlstate, "00000") == 0) )
+        {
+            sqlstate = NULL;
+        }
+    }
+
+    return (g_mariadb_kind)
+               ? g_mariadb_kind(_result, sqlstate, g_mariadb_kind_user)
+               : d_mariadb_kind_default(_result, sqlstate, NULL);
+}
+
+/*
+d_mariadb_kind_default
+  The numbers it knows, then the SQLSTATE's class but for the catch-all
+HY000, then internal. The numbers are the servers' and Connector/C's, which
+MariaDB and MySQL share.
+*/
+enum dj_db_vendor_kind
+d_mariadb_kind_default(
+    int32_t     _result,
+    const char* _sqlstate,
+    void*       _user
+)
+{
+    static const struct
+    {
+        int32_t                number;
+        enum dj_db_vendor_kind kind;
+    } numbers[] =
+    {
+        // a connection refused, lost or out of room
+        { 1040, D_DB_VENDOR_KIND_CONNECTION },  // too many connections
+        { 1053, D_DB_VENDOR_KIND_CONNECTION },  // server shutting down
+        { 1152, D_DB_VENDOR_KIND_CONNECTION },  // connection aborted
+        { 1184, D_DB_VENDOR_KIND_CONNECTION },  // new connection aborted
+        { 1203, D_DB_VENDOR_KIND_CONNECTION },  // the user's connections
+        { 2001, D_DB_VENDOR_KIND_CONNECTION },  // no socket
+        { 2002, D_DB_VENDOR_KIND_CONNECTION },  // no local server
+        { 2003, D_DB_VENDOR_KIND_CONNECTION },  // no server at the host
+        { 2005, D_DB_VENDOR_KIND_CONNECTION },  // unknown host
+        { 2006, D_DB_VENDOR_KIND_CONNECTION },  // server gone away
+        { 2012, D_DB_VENDOR_KIND_CONNECTION },  // handshake failed
+        { 2013, D_DB_VENDOR_KIND_CONNECTION },  // connection lost
+        { 2026, D_DB_VENDOR_KIND_CONNECTION },  // TLS failed
+        // who the client is, or what it may do
+        { 1044, D_DB_VENDOR_KIND_AUTH },        // no access to the database
+        { 1045, D_DB_VENDOR_KIND_AUTH },        // access denied
+        { 1130, D_DB_VENDOR_KIND_AUTH },        // host not allowed
+        { 1142, D_DB_VENDOR_KIND_AUTH },        // command denied
+        { 1143, D_DB_VENDOR_KIND_AUTH },        // column denied
+        { 1227, D_DB_VENDOR_KIND_AUTH },        // privilege needed
+        { 1251, D_DB_VENDOR_KIND_AUTH },        // auth protocol
+        { 1698, D_DB_VENDOR_KIND_AUTH },        // access denied, no password
+        { 1820, D_DB_VENDOR_KIND_AUTH },        // password must be reset
+        { 1862, D_DB_VENDOR_KIND_AUTH },        // password expired
+        { 2059, D_DB_VENDOR_KIND_AUTH },        // auth plugin not loaded
+        { 2061, D_DB_VENDOR_KIND_AUTH },        // auth failed
+        // a key, a check, a NOT NULL, or what is already there
+        { 1007, D_DB_VENDOR_KIND_CONSTRAINT },  // database exists
+        { 1022, D_DB_VENDOR_KIND_CONSTRAINT },  // duplicate key
+        { 1048, D_DB_VENDOR_KIND_CONSTRAINT },  // column cannot be null
+        { 1050, D_DB_VENDOR_KIND_CONSTRAINT },  // table exists
+        { 1060, D_DB_VENDOR_KIND_CONSTRAINT },  // duplicate column
+        { 1061, D_DB_VENDOR_KIND_CONSTRAINT },  // duplicate key name
+        { 1062, D_DB_VENDOR_KIND_CONSTRAINT },  // duplicate entry
+        { 1169, D_DB_VENDOR_KIND_CONSTRAINT },  // duplicate unique
+        { 1216, D_DB_VENDOR_KIND_CONSTRAINT },  // no parent row
+        { 1217, D_DB_VENDOR_KIND_CONSTRAINT },  // a child row
+        { 1364, D_DB_VENDOR_KIND_CONSTRAINT },  // no default value
+        { 1451, D_DB_VENDOR_KIND_CONSTRAINT },  // a child row: foreign key
+        { 1452, D_DB_VENDOR_KIND_CONSTRAINT },  // no parent: foreign key
+        { 1557, D_DB_VENDOR_KIND_CONSTRAINT },  // duplicate, foreign key
+        { 1586, D_DB_VENDOR_KIND_CONSTRAINT },  // duplicate entry
+        { 3819, D_DB_VENDOR_KIND_CONSTRAINT },  // check violated (MySQL)
+        { 4025, D_DB_VENDOR_KIND_CONSTRAINT },  // CONSTRAINT failed
+        // the statement does not parse
+        { 1064, D_DB_VENDOR_KIND_SYNTAX },      // syntax error
+        { 1065, D_DB_VENDOR_KIND_SYNTAX },      // empty query
+        { 1149, D_DB_VENDOR_KIND_SYNTAX },      // syntax error
+        // what is not there
+        { 1049, D_DB_VENDOR_KIND_NOT_FOUND },   // unknown database
+        { 1051, D_DB_VENDOR_KIND_NOT_FOUND },   // unknown table
+        { 1054, D_DB_VENDOR_KIND_NOT_FOUND },   // unknown column
+        { 1091, D_DB_VENDOR_KIND_NOT_FOUND },   // cannot drop: no such
+        { 1109, D_DB_VENDOR_KIND_NOT_FOUND },   // unknown table in
+        { 1146, D_DB_VENDOR_KIND_NOT_FOUND },   // no such table
+        { 1176, D_DB_VENDOR_KIND_NOT_FOUND },   // no such key
+        { 1243, D_DB_VENDOR_KIND_NOT_FOUND },   // unknown statement
+        { 1305, D_DB_VENDOR_KIND_NOT_FOUND },   // no such routine
+        { 1360, D_DB_VENDOR_KIND_NOT_FOUND },   // no such trigger
+        { 1630, D_DB_VENDOR_KIND_NOT_FOUND },   // no such function
+        // a lock, a deadlock, a statement stopped
+        { 1205, D_DB_VENDOR_KIND_BUSY },        // lock wait timed out
+        { 1213, D_DB_VENDOR_KIND_BUSY },        // deadlock
+        { 1317, D_DB_VENDOR_KIND_BUSY },        // query interrupted
+        { 1969, D_DB_VENDOR_KIND_BUSY },        // statement time ran out
+        { 3024, D_DB_VENDOR_KIND_BUSY },        // execution time ran out
+        { 3572, D_DB_VENDOR_KIND_BUSY },        // NOWAIT: row locked
+        // a value that does not fit or convert
+        { 1138, D_DB_VENDOR_KIND_DATA },        // invalid use of NULL
+        { 1172, D_DB_VENDOR_KIND_DATA },        // more than one row
+        { 1242, D_DB_VENDOR_KIND_DATA },        // subquery rows
+        { 1264, D_DB_VENDOR_KIND_DATA },        // out of range
+        { 1265, D_DB_VENDOR_KIND_DATA },        // data truncated
+        { 1292, D_DB_VENDOR_KIND_DATA },        // incorrect value
+        { 1300, D_DB_VENDOR_KIND_DATA },        // invalid character
+        { 1365, D_DB_VENDOR_KIND_DATA },        // division by 0
+        { 1366, D_DB_VENDOR_KIND_DATA },        // incorrect value
+        { 1367, D_DB_VENDOR_KIND_DATA },        // illegal value
+        { 1406, D_DB_VENDOR_KIND_DATA },        // data too long
+        { 1411, D_DB_VENDOR_KIND_DATA },        // incorrect date or time
+        { 1690, D_DB_VENDOR_KIND_DATA },        // value out of range
+        // what the server or client cannot do
+        { 1178, D_DB_VENDOR_KIND_UNSUPPORTED }, // the engine cannot
+        { 1235, D_DB_VENDOR_KIND_UNSUPPORTED }, // not supported yet
+        { 1286, D_DB_VENDOR_KIND_UNSUPPORTED }, // unknown engine
+        { 1289, D_DB_VENDOR_KIND_UNSUPPORTED }, // feature disabled
+        { 1290, D_DB_VENDOR_KIND_UNSUPPORTED }, // server read-only
+        { 1295, D_DB_VENDOR_KIND_UNSUPPORTED }, // not in prepared statements
+        { 1792, D_DB_VENDOR_KIND_UNSUPPORTED }, // read-only transaction
+        { 2014, D_DB_VENDOR_KIND_UNSUPPORTED }, // commands out of sync
+        { 2034, D_DB_VENDOR_KIND_UNSUPPORTED }, // invalid parameter number
+        // the server's or the client's own failures
+        { 1021, D_DB_VENDOR_KIND_INTERNAL },    // disk full
+        { 1030, D_DB_VENDOR_KIND_INTERNAL },    // storage engine error
+        { 1037, D_DB_VENDOR_KIND_INTERNAL },    // out of memory
+        { 1038, D_DB_VENDOR_KIND_INTERNAL },    // out of sort memory
+        { 1105, D_DB_VENDOR_KIND_INTERNAL },    // unknown error
+        { 1114, D_DB_VENDOR_KIND_INTERNAL },    // table full
+        { 1194, D_DB_VENDOR_KIND_INTERNAL },    // table crashed
+        { 1195, D_DB_VENDOR_KIND_INTERNAL },    // table crashed, repair
+        { 2000, D_DB_VENDOR_KIND_INTERNAL },    // client: unknown error
+        { 2008, D_DB_VENDOR_KIND_INTERNAL }     // client: out of memory
+    };
+
+    (void)_user;
+
+    if (_result <= 0)
+    {
+        return D_DB_VENDOR_KIND_NONE;
+    }
+
+    for (size_t i = 0u; i < (sizeof(numbers) / sizeof(numbers[0])); ++i)
+    {
+        if (numbers[i].number == _result)
+        {
+            return numbers[i].kind;
+        }
+    }
+
+    // the SQLSTATE's class, but for the catch-all, which says nothing
+    if ( (_sqlstate) &&
+         (strcmp(_sqlstate, "HY000") != 0) )
+    {
+        return d_internal_db_kind_of_sqlstate(_sqlstate);
+    }
+
+    return D_DB_VENDOR_KIND_INTERNAL;
+}

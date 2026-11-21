@@ -484,3 +484,133 @@ const char* d_sqlite_error_message(
 }
 
 #endif  // D_INTERNAL_SQLITE
+
+
+//==============================================================================
+// KINDS, IN EVERY BUILD
+//==============================================================================
+// Sorting a result needs nothing of SQLite's: its codes are the documented
+// numbers, written out here so the layer built without SQLite sorts them too.
+
+// 2.4    Kinds
+//------------------------------------------------------------------------------
+// g_sqlite_kind, g_sqlite_kind_user
+//   state: the function the program set to sort SQLite's results, and what
+// it gave with it; none, to use the default. The process's: set before the
+// first connection, and read on any thread.
+static dj_db_kind_fn g_sqlite_kind      = NULL;
+static void*         g_sqlite_kind_user = NULL;
+
+/*
+d_sqlite_kind_set
+  NULL sets the default again, and drops what came with the old function.
+*/
+void
+d_sqlite_kind_set(
+    dj_db_kind_fn _fn,
+    void*         _user
+)
+{
+    g_sqlite_kind      = _fn;
+    g_sqlite_kind_user = (_fn) ? _user : NULL;
+
+    return;
+}
+
+/*
+d_sqlite_kind
+  Success, SQLITE_ROW, SQLITE_DONE, a notice, a warning and the layer's own
+negative results are no failure of SQLite's, so no function sorts them.
+*/
+enum dj_db_vendor_kind
+d_sqlite_kind(
+    int32_t _result
+)
+{
+    const int32_t primary = (_result & 0xFF);
+
+    // not a failure: OK, NOTICE, WARNING, ROW, DONE, or the layer's own
+    if ( (_result <= 0) ||
+         (primary == 27) ||
+         (primary == 28) ||
+         (primary == 100) ||
+         (primary == 101) )
+    {
+        return D_DB_VENDOR_KIND_NONE;
+    }
+
+    return (g_sqlite_kind) ? g_sqlite_kind(_result, NULL, g_sqlite_kind_user)
+                           : d_sqlite_kind_default(_result, NULL, NULL);
+}
+
+/*
+d_sqlite_kind_default
+  By the primary result (SQLite's result codes, by number), and by the
+extended one where it says more than its primary: SQLITE_ERROR_RETRY and
+SQLITE_ERROR_SNAPSHOT are busy, SQLITE_ERROR_MISSING_COLLSEQ not found.
+*/
+enum dj_db_vendor_kind
+d_sqlite_kind_default(
+    int32_t     _result,
+    const char* _sqlstate,
+    void*       _user
+)
+{
+    (void)_sqlstate;
+    (void)_user;
+
+    // the extended results that sort apart from their primary
+    switch (_result)
+    {
+        case 257:  // SQLITE_ERROR_MISSING_COLLSEQ
+            return D_DB_VENDOR_KIND_NOT_FOUND;
+        case 513:  // SQLITE_ERROR_RETRY
+        case 769:  // SQLITE_ERROR_SNAPSHOT
+            return D_DB_VENDOR_KIND_BUSY;
+        default:
+            break;
+    }
+
+    if (_result <= 0)
+    {
+        return D_DB_VENDOR_KIND_NONE;
+    }
+
+    switch (_result & 0xFF)
+    {
+        case 1:    // SQLITE_ERROR: a statement SQLite could not prepare
+            return D_DB_VENDOR_KIND_SYNTAX;
+        case 3:    // SQLITE_PERM
+        case 8:    // SQLITE_READONLY
+        case 23:   // SQLITE_AUTH
+            return D_DB_VENDOR_KIND_AUTH;
+        case 4:    // SQLITE_ABORT
+        case 5:    // SQLITE_BUSY
+        case 6:    // SQLITE_LOCKED
+        case 9:    // SQLITE_INTERRUPT
+        case 15:   // SQLITE_PROTOCOL
+        case 17:   // SQLITE_SCHEMA
+            return D_DB_VENDOR_KIND_BUSY;
+        case 14:   // SQLITE_CANTOPEN
+        case 26:   // SQLITE_NOTADB
+            return D_DB_VENDOR_KIND_CONNECTION;
+        case 18:   // SQLITE_TOOBIG
+        case 20:   // SQLITE_MISMATCH
+        case 24:   // SQLITE_FORMAT
+        case 25:   // SQLITE_RANGE
+            return D_DB_VENDOR_KIND_DATA;
+        case 19:   // SQLITE_CONSTRAINT
+            return D_DB_VENDOR_KIND_CONSTRAINT;
+        case 21:   // SQLITE_MISUSE
+        case 22:   // SQLITE_NOLFS
+            return D_DB_VENDOR_KIND_UNSUPPORTED;
+        case 16:   // SQLITE_EMPTY, unused
+        case 27:   // SQLITE_NOTICE
+        case 28:   // SQLITE_WARNING
+        case 100:  // SQLITE_ROW
+        case 101:  // SQLITE_DONE
+            return D_DB_VENDOR_KIND_NONE;
+        default:   // INTERNAL, NOMEM, IOERR, CORRUPT, NOTFOUND, FULL, ...
+            return D_DB_VENDOR_KIND_INTERNAL;
+    }
+}

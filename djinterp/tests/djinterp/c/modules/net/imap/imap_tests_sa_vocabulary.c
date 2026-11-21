@@ -102,7 +102,7 @@ static const struct dj_tests_imap_error_case ERRORS[] =
     { D_IMAP_ERROR_PROTOCOL,         "protocol",
       D_NET_ERROR_PROTOCOL,           '-' },
     { D_IMAP_ERROR_RESOLVE,          "resolve",
-      D_NET_ERROR_HOST_UNREACHABLE,   't' },
+      D_NET_ERROR_HOST_NOT_FOUND,     't' },
     { D_IMAP_ERROR_CONNECT,          "connect",
       D_NET_ERROR_CONNECTION_REFUSED, 't' },
     { D_IMAP_ERROR_TLS,              "tls",

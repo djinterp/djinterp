@@ -1908,3 +1908,128 @@ size_t d_internal_db_key_column(
 
     return _count;
 }
+
+
+//==============================================================================
+// 6.  KINDS
+//==============================================================================
+
+// 6.1    SQLSTATEs
+//------------------------------------------------------------------------------
+/*
+d_internal_db_kind_of_sqlstate
+  The conditions first, where one sorts apart from its class -- class 42 is
+both syntax and access rules, and holds every undefined and duplicate object
+-- then the class. MariaDB's own subclass of 42, 42S, names tables, columns
+and indexes not found or already there. Each table is searched in order;
+they are short.
+*/
+enum dj_db_vendor_kind
+d_internal_db_kind_of_sqlstate(
+    const char* _sqlstate
+)
+{
+    static const struct
+    {
+        char                   state[6];
+        enum dj_db_vendor_kind kind;
+    } conditions[] =
+    {
+        { "42501", D_DB_VENDOR_KIND_AUTH },         // insufficient privilege
+        { "42P01", D_DB_VENDOR_KIND_NOT_FOUND },    // undefined table
+        { "42P02", D_DB_VENDOR_KIND_NOT_FOUND },    // undefined parameter
+        { "42703", D_DB_VENDOR_KIND_NOT_FOUND },    // undefined column
+        { "42704", D_DB_VENDOR_KIND_NOT_FOUND },    // undefined object
+        { "42883", D_DB_VENDOR_KIND_NOT_FOUND },    // undefined function
+        { "42S02", D_DB_VENDOR_KIND_NOT_FOUND },    // MariaDB: no such table
+        { "42S12", D_DB_VENDOR_KIND_NOT_FOUND },    // MariaDB: no such index
+        { "42S22", D_DB_VENDOR_KIND_NOT_FOUND },    // MariaDB: no such column
+        { "42P03", D_DB_VENDOR_KIND_CONSTRAINT },   // duplicate cursor
+        { "42P04", D_DB_VENDOR_KIND_CONSTRAINT },   // duplicate database
+        { "42P05", D_DB_VENDOR_KIND_CONSTRAINT },   // duplicate statement
+        { "42P06", D_DB_VENDOR_KIND_CONSTRAINT },   // duplicate schema
+        { "42P07", D_DB_VENDOR_KIND_CONSTRAINT },   // duplicate table
+        { "42701", D_DB_VENDOR_KIND_CONSTRAINT },   // duplicate column
+        { "42710", D_DB_VENDOR_KIND_CONSTRAINT },   // duplicate object
+        { "42712", D_DB_VENDOR_KIND_CONSTRAINT },   // duplicate alias
+        { "42723", D_DB_VENDOR_KIND_CONSTRAINT },   // duplicate function
+        { "42S01", D_DB_VENDOR_KIND_CONSTRAINT },   // MariaDB: table exists
+        { "42S11", D_DB_VENDOR_KIND_CONSTRAINT },   // MariaDB: index exists
+        { "42S21", D_DB_VENDOR_KIND_CONSTRAINT },   // MariaDB: column exists
+        { "42804", D_DB_VENDOR_KIND_DATA },         // datatype mismatch
+        { "42846", D_DB_VENDOR_KIND_DATA },         // cannot coerce
+        { "53300", D_DB_VENDOR_KIND_CONNECTION },   // too many connections
+        { "57014", D_DB_VENDOR_KIND_BUSY }          // query canceled
+    };
+    static const struct
+    {
+        char                   state[3];
+        enum dj_db_vendor_kind kind;
+    } classes[] =
+    {
+        { "00", D_DB_VENDOR_KIND_NONE },         // success
+        { "01", D_DB_VENDOR_KIND_NONE },         // warning
+        { "02", D_DB_VENDOR_KIND_NOT_FOUND },    // no data
+        { "03", D_DB_VENDOR_KIND_INTERNAL },     // statement not complete
+        { "08", D_DB_VENDOR_KIND_CONNECTION },   // connection exception
+        { "09", D_DB_VENDOR_KIND_INTERNAL },     // triggered action
+        { "0A", D_DB_VENDOR_KIND_UNSUPPORTED },  // feature not supported
+        { "0B", D_DB_VENDOR_KIND_UNSUPPORTED },  // transaction initiation
+        { "0F", D_DB_VENDOR_KIND_DATA },         // locator
+        { "0L", D_DB_VENDOR_KIND_AUTH },         // invalid grantor
+        { "0P", D_DB_VENDOR_KIND_AUTH },         // invalid role
+        { "0Z", D_DB_VENDOR_KIND_INTERNAL },     // diagnostics
+        { "20", D_DB_VENDOR_KIND_DATA },         // case not found
+        { "21", D_DB_VENDOR_KIND_DATA },         // cardinality
+        { "22", D_DB_VENDOR_KIND_DATA },         // data exception
+        { "23", D_DB_VENDOR_KIND_CONSTRAINT },   // integrity constraint
+        { "24", D_DB_VENDOR_KIND_UNSUPPORTED },  // cursor state
+        { "25", D_DB_VENDOR_KIND_UNSUPPORTED },  // transaction state
+        { "26", D_DB_VENDOR_KIND_NOT_FOUND },    // statement name
+        { "27", D_DB_VENDOR_KIND_CONSTRAINT },   // triggered data change
+        { "28", D_DB_VENDOR_KIND_AUTH },         // authorization
+        { "2B", D_DB_VENDOR_KIND_CONSTRAINT },   // dependent privileges
+        { "2D", D_DB_VENDOR_KIND_UNSUPPORTED },  // transaction termination
+        { "2F", D_DB_VENDOR_KIND_INTERNAL },     // routine exception
+        { "34", D_DB_VENDOR_KIND_NOT_FOUND },    // cursor name
+        { "38", D_DB_VENDOR_KIND_INTERNAL },     // external routine
+        { "39", D_DB_VENDOR_KIND_INTERNAL },     // external invocation
+        { "3B", D_DB_VENDOR_KIND_NOT_FOUND },    // savepoint
+        { "3D", D_DB_VENDOR_KIND_NOT_FOUND },    // catalog name
+        { "3F", D_DB_VENDOR_KIND_NOT_FOUND },    // schema name
+        { "40", D_DB_VENDOR_KIND_BUSY },         // transaction rollback
+        { "42", D_DB_VENDOR_KIND_SYNTAX },       // syntax or access rule
+        { "44", D_DB_VENDOR_KIND_CONSTRAINT },   // check option
+        { "53", D_DB_VENDOR_KIND_INTERNAL },     // insufficient resources
+        { "54", D_DB_VENDOR_KIND_UNSUPPORTED },  // program limit
+        { "55", D_DB_VENDOR_KIND_BUSY },         // prerequisite state
+        { "57", D_DB_VENDOR_KIND_CONNECTION },   // operator intervention
+        { "58", D_DB_VENDOR_KIND_INTERNAL },     // system error
+        { "72", D_DB_VENDOR_KIND_BUSY }          // snapshot failure
+    };
+
+    // five characters, or none to sort
+    if ( (!_sqlstate) ||
+         (strlen(_sqlstate) != 5u) )
+    {
+        return D_DB_VENDOR_KIND_INTERNAL;
+    }
+
+    for (size_t i = 0u; i < (sizeof(conditions) / sizeof(conditions[0])); ++i)
+    {
+        if (memcmp(_sqlstate, conditions[i].state, 5u) == 0)
+        {
+            return conditions[i].kind;
+        }
+    }
+
+    for (size_t i = 0u; i < (sizeof(classes) / sizeof(classes[0])); ++i)
+    {
+        if (memcmp(_sqlstate, classes[i].state, 2u) == 0)
+        {
+            return classes[i].kind;
+        }
+    }
+
+    return D_DB_VENDOR_KIND_INTERNAL;
+}

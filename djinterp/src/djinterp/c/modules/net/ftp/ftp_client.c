@@ -230,9 +230,10 @@ d_ftp_internal_client_failure(
 /*
 d_ftp_internal_client_dial_error
   File-local: the FTP error for a failed connection attempt. A host the
-resolver rejects is D_FTP_ERROR_RESOLVE; an unknown name, which TCP reports
-as HOST_UNREACHABLE just as it does a host truly unreachable, stays `_lost`,
-with the exact cause left in `net_error`.
+resolver rejects -- a malformed address, a name that does not resolve
+(HOST_NOT_FOUND), an address this host does not have -- is
+D_FTP_ERROR_RESOLVE; a host no route reaches stays `_lost`, with the exact
+cause left in `net_error`.
 */
 D_STATIC enum dj_ftp_error
 d_ftp_internal_client_dial_error(
@@ -249,6 +250,8 @@ d_ftp_internal_client_dial_error(
             return D_FTP_ERROR_TIMED_OUT;
 
         case D_NET_ERROR_ADDRESS_INVALID:
+        case D_NET_ERROR_ADDRESS_UNAVAILABLE:
+        case D_NET_ERROR_HOST_NOT_FOUND:
             return D_FTP_ERROR_RESOLVE;
 
         case D_NET_ERROR_OUT_OF_MEMORY:

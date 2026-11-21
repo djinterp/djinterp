@@ -88,6 +88,7 @@ TABLE OF CONTENTS
     2.  Conditions the layer documents
          1.  dj_postgres_sqlstate
     3.  Reading results
+    4.  Kinds
 4.  LIBRARY
     -------
     1.  Client
@@ -404,6 +405,33 @@ int d_postgres_result_from_sqlstate(
 // (d_postgres_error_message). Never NULL, and never to be freed.
 const char* d_postgres_result_message(
     int _result
+) D_NOTHROW;
+
+// 3.4    Kinds
+//------------------------------------------------------------------------------
+// kinds -- what a result was, as db_common.h's kinds name it (1.4):
+// d_postgres_kind spells the result's SQLSTATE and sorts it by the function
+// the program set with d_postgres_kind_set, or by d_postgres_kind_default
+// where it set none (NULL sets none again). The default reads the SQLSTATE's
+// class, its first two characters: 08 is a connection, 28 auth, 23 and 44 a
+// constraint, 22 data, 40 busy, 0A unsupported, and 42, syntax or an access
+// rule, by its condition -- 42501 auth, an undefined object not found, a
+// duplicate object a constraint, a datatype mismatch data, the rest syntax.
+// A class it does not sort, XX among them, is internal. Success and the
+// layer's own negative results are of no kind, and d_postgres_kind answers
+// them without calling any function. Set the function once, before the
+// first connection: it is the process's.
+enum dj_db_vendor_kind d_postgres_kind(
+    int32_t _result
+) D_NOTHROW;
+void d_postgres_kind_set(
+    dj_db_kind_fn _fn,
+    void*         _user
+) D_NOTHROW;
+enum dj_db_vendor_kind d_postgres_kind_default(
+    int32_t     _result,
+    const char* _sqlstate,
+    void*       _user
 ) D_NOTHROW;
 
 

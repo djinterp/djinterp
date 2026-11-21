@@ -271,8 +271,10 @@ void d_tcp_connection_init(
  * @param[in]  _options     connect_timeout_ms, io_timeout_ms and no_delay
  *                          apply; NULL means the defaults.
  * @return D_NET_OK; D_NET_ERROR_INVALID_ARGUMENT for a NULL
- *         argument or a UDP endpoint; D_NET_ERROR_ADDRESS_INVALID for a
- *         unix-domain endpoint without unix-domain support;
+ *         argument or a UDP endpoint; D_NET_ERROR_UNSUPPORTED for a
+ *         unix-domain endpoint where the platform has none, and
+ *         D_NET_ERROR_ADDRESS_INVALID for one whose path is too long;
+ *         D_NET_ERROR_HOST_NOT_FOUND for a name that does not resolve;
  *         D_NET_ERROR_TIMED_OUT when the timeout expires; otherwise the
  *         last address's error, the resolver's, or the error setting the
  *         I/O timeout, which closes the connection again.
@@ -463,9 +465,11 @@ void d_tcp_listener_init(
  *                           for accepted connections, io_timeout_ms and
  *                           no_delay apply; NULL means the defaults.
  * @return D_NET_OK; D_NET_ERROR_INVALID_ARGUMENT for a NULL
- *         argument or a UDP endpoint; D_NET_ERROR_ADDRESS_INVALID for a
- *         unix-domain endpoint without unix-domain support, or a path too
- *         long; D_NET_ERROR_ADDRESS_IN_USE; otherwise the mapped native or
+ *         argument or a UDP endpoint; D_NET_ERROR_UNSUPPORTED for a
+ *         unix-domain endpoint where the platform has none, and
+ *         D_NET_ERROR_ADDRESS_INVALID for one whose path is too long;
+ *         D_NET_ERROR_ADDRESS_UNAVAILABLE for an address this host does not
+ *         have; D_NET_ERROR_ADDRESS_IN_USE; otherwise the mapped native or
  *         resolver error.
  */
 enum dj_net_error d_tcp_listen(

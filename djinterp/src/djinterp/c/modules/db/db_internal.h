@@ -58,6 +58,9 @@ TABLE OF CONTENTS
 5.  COLUMN DEFINITIONS
     ------------------
     1.  Primary keys
+6.  KINDS
+    -----
+    1.  SQLSTATEs
 */
 
 #ifndef DJINTERP_C_DB_DB_INTERNAL_H
@@ -496,6 +499,24 @@ size_t d_internal_db_key_column(
     const struct dj_db_column* _columns,
     size_t                     _count,
     size_t                     _place
+);
+
+
+
+//==============================================================================
+// 6.  KINDS
+//==============================================================================
+
+
+// 6.1    SQLSTATEs
+//------------------------------------------------------------------------------
+// kind of an SQLSTATE -- db_common.h's kind of a five-character SQLSTATE, for
+// the vendors that report one: by its class, its first two characters, and,
+// for class 42 and a few others, by the condition. 00 and 01, success and a
+// warning, are of no kind; a class it does not sort, malformed text and
+// NULL are internal.
+enum dj_db_vendor_kind d_internal_db_kind_of_sqlstate(
+    const char* _sqlstate
 );
 
 

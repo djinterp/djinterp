@@ -2,8 +2,8 @@
 #*******************************************************************************
 # djinterp [ci]                                             check_db_postgres.sh
 #
-# Builds djinterp's PostgreSQL layer (c/modules/db/db_*.c,
-# c/modules/db/postgres/) and runs its harnesses through every libpq given, with
+# Builds djinterp's PostgreSQL layer (c/modules/db/postgres/, over db_common.c
+# and db_internal.c) and runs its harnesses through every libpq given, with
 # every compiler, at every language level, against the server the environment
 # names, and fails if any build or run fails:
 #     postgres_tests.c     the C suite, at each C standard, with
@@ -93,7 +93,9 @@ if [[ $# -eq 0 ]]; then
     set -- libpq
 fi
 
-layer=(src/djinterp/c/modules/db/db_*.c src/djinterp/c/modules/db/postgres/postgres_*.c)
+layer=(src/djinterp/c/modules/db/db_common.c
+       src/djinterp/c/modules/db/db_internal.c
+       src/djinterp/c/modules/db/postgres/postgres_*.c)
 core=(src/djinterp/cpp/modules/db/database.cpp
       src/djinterp/cpp/modules/db/database_statement.cpp
       src/djinterp/cpp/modules/db/postgres/postgres.cpp)

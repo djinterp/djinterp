@@ -23,7 +23,7 @@
 *******************************************************************************/
 #include "./mariadb_stubs_tests.h"  // corresponding header
 // std
-#include <string.h>  // memset, strcmp, strstr
+#include <string.h>  // memset, strcmp, strncpy, strstr
 // djinterp
 #include "../../../../../../inc/djinterp/c/modules/db/mariadb/mariadb.h"  // unit under test
 // re_std
@@ -793,6 +793,126 @@ void d_tests_mariadb_stubs_maintenance(void)
     return;
 }
 
+// g_kind_calls, g_kind_code, g_kind_sqlstate, g_kind_user
+//   state: what the test's sorting function was last given, and how often;
+// the SQLSTATE copied, since the one it is given lasts only the call.
+static int         g_kind_calls    = 0;
+static int32_t     g_kind_code     = 0;
+static const char* g_kind_sqlstate = NULL;
+static char        g_kind_state[6] = { 0 };
+static void*       g_kind_user     = NULL;
+
+/*
+d_tests_mariadb_stubs_kind_fn
+  A program's sorting function: records what it is given, and sorts every
+failure as data.
+*/
+static
+enum dj_db_vendor_kind d_tests_mariadb_stubs_kind_fn(
+    int32_t     _code,
+    const char* _sqlstate,
+    void*       _user
+)
+{
+    ++g_kind_calls;
+    g_kind_code     = _code;
+    g_kind_sqlstate = NULL;
+
+    // the SQLSTATE lasts only the call: keep a copy
+    if (_sqlstate)
+    {
+        strncpy(g_kind_state, _sqlstate, sizeof(g_kind_state) - 1u);
+        g_kind_state[sizeof(g_kind_state) - 1u] = '\0';
+        g_kind_sqlstate = g_kind_state;
+    }
+
+    g_kind_user     = _user;
+
+    return D_DB_VENDOR_KIND_DATA;
+}
+
+/*
+d_tests_mariadb_stubs_kinds
+  Sorting MariaDB's and MySQL's results into db_common.h's kinds, which
+needs no client.
+  Tests the following:
+  - success and the layer's own results are of no kind
+  - the numbers the header names sort as it says; another number sorts by
+    its SQLSTATE but for HY000, and is internal without one
+  - a program's function is given no SQLSTATE for no handle, and is not
+    called for success; NULL sets the default again
+*/
+static
+void d_tests_mariadb_stubs_kinds(void)
+{
+    int marker = 0;
+
+    d_tests_mariadb_stubs_start("mariadb_common", "kinds");
+
+    // no kind
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 0) == D_DB_VENDOR_KIND_NONE);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, D_DB_EXISTS) == D_DB_VENDOR_KIND_NONE);
+
+    // the numbers, and one it does not know
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 2006) == D_DB_VENDOR_KIND_CONNECTION);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 1040) == D_DB_VENDOR_KIND_CONNECTION);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 1045) == D_DB_VENDOR_KIND_AUTH);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 1142) == D_DB_VENDOR_KIND_AUTH);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 1062) == D_DB_VENDOR_KIND_CONSTRAINT);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 1452) == D_DB_VENDOR_KIND_CONSTRAINT);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 1064) == D_DB_VENDOR_KIND_SYNTAX);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 1146) == D_DB_VENDOR_KIND_NOT_FOUND);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 1213) == D_DB_VENDOR_KIND_BUSY);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 1366) == D_DB_VENDOR_KIND_DATA);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 1235) == D_DB_VENDOR_KIND_UNSUPPORTED);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 2008) == D_DB_VENDOR_KIND_INTERNAL);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 9999) == D_DB_VENDOR_KIND_INTERNAL);
+
+    // another number's SQLSTATE, but for the catch-all
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind_default(9999, "23000", NULL) ==
+        D_DB_VENDOR_KIND_CONSTRAINT);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind_default(9999, "42S22", NULL) ==
+        D_DB_VENDOR_KIND_NOT_FOUND);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind_default(9999, "HY000", NULL) ==
+        D_DB_VENDOR_KIND_INTERNAL);
+
+    // a program's function, and the default again
+    g_kind_calls = 0;
+    d_mariadb_kind_set(d_tests_mariadb_stubs_kind_fn, &marker);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 1062) == D_DB_VENDOR_KIND_DATA);
+    D_TESTS_MARIADB_STUBS_CHECK( (g_kind_calls == 1)       &&
+                                 (g_kind_code == 1062)     &&
+                                 (g_kind_sqlstate == NULL) &&
+                                 (g_kind_user == &marker) );
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 0) == D_DB_VENDOR_KIND_NONE);
+    D_TESTS_MARIADB_STUBS_CHECK(g_kind_calls == 1);
+    d_mariadb_kind_set(NULL, NULL);
+    D_TESTS_MARIADB_STUBS_CHECK(
+        d_mariadb_kind(NULL, 1062) == D_DB_VENDOR_KIND_CONSTRAINT);
+
+    return;
+}
+
 /*
 d_tests_mariadb_stubs
   The suite's section: every test of the layer built without a client, in
@@ -820,6 +940,7 @@ void d_tests_mariadb_stubs(
     d_tests_mariadb_stubs_transaction();
     d_tests_mariadb_stubs_settings();
     d_tests_mariadb_stubs_maintenance();
+    d_tests_mariadb_stubs_kinds();
 
     g_suite = NULL;
 

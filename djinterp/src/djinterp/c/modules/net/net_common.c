@@ -349,6 +349,10 @@ d_net_error_string(
             return "unknown error";
         case D_NET_ERROR_PROTOCOL:
             return "protocol violation";
+        case D_NET_ERROR_ADDRESS_UNAVAILABLE:
+            return "address unavailable";
+        case D_NET_ERROR_HOST_NOT_FOUND:
+            return "host not found";
     }
 
     return "unknown error";

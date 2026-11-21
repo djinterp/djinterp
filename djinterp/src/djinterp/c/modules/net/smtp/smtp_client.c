@@ -2361,8 +2361,8 @@ unsigned int d_internal_smtp_port(
 /*
 d_internal_smtp_connect_error
   What a failure to open the connection is. One tcp.h could not find the
-host for -- by its name, or by any route, both of which it reports as
-HOST_UNREACHABLE -- or whose address is malformed is RESOLVE; one the host
+host for -- by its name (HOST_NOT_FOUND) or by any route (HOST_UNREACHABLE)
+-- or whose address is malformed or not this host's is RESOLVE; one the host
 refused, or that failed on the way, is CONNECT. A timeout, a lack of memory,
 and a bad argument are their namesakes.
 */
@@ -2382,7 +2382,9 @@ d_internal_smtp_connect_error(
         case D_NET_ERROR_TIMED_OUT:
             return D_SMTP_ERROR_TIMED_OUT;
         case D_NET_ERROR_ADDRESS_INVALID:
+        case D_NET_ERROR_ADDRESS_UNAVAILABLE:
         case D_NET_ERROR_HOST_UNREACHABLE:
+        case D_NET_ERROR_HOST_NOT_FOUND:
             return D_SMTP_ERROR_RESOLVE;
         case D_NET_ERROR_CLOSED:
         case D_NET_ERROR_WOULD_BLOCK:

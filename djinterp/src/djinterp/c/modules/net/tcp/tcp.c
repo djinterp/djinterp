@@ -124,8 +124,9 @@ d_tcp_os_map(
         case EADDRINUSE:
             return D_NET_ERROR_ADDRESS_IN_USE;
         case EADDRNOTAVAIL:
+            return D_NET_ERROR_ADDRESS_UNAVAILABLE;
         case EAFNOSUPPORT:
-            return D_NET_ERROR_ADDRESS_INVALID;
+            return D_NET_ERROR_UNSUPPORTED;
         case EHOSTUNREACH:
             return D_NET_ERROR_HOST_UNREACHABLE;
         case ENETUNREACH:
@@ -882,8 +883,9 @@ d_tcp_os_map(
         case WSAEADDRINUSE:
             return D_NET_ERROR_ADDRESS_IN_USE;
         case WSAEADDRNOTAVAIL:
+            return D_NET_ERROR_ADDRESS_UNAVAILABLE;
         case WSAEAFNOSUPPORT:
-            return D_NET_ERROR_ADDRESS_INVALID;
+            return D_NET_ERROR_UNSUPPORTED;
         case WSAEHOSTUNREACH:
             return D_NET_ERROR_HOST_UNREACHABLE;
         case WSAENETUNREACH:
@@ -1272,7 +1274,8 @@ d_tcp_os_await_accept(
 
 /*
 d_tcp_os_unix_address
-  Unix-domain sockets are not served under Winsock.
+  Unix-domain sockets are not served under Winsock: a facility the platform
+does not have, which no retry helps.
 */
 static enum dj_net_error
 d_tcp_os_unix_address(
@@ -1285,7 +1288,7 @@ d_tcp_os_unix_address(
     (void)_address;
     (void)_length;
 
-    return D_NET_ERROR_ADDRESS_INVALID;
+    return D_NET_ERROR_UNSUPPORTED;
 }
 
 /*
@@ -1446,8 +1449,12 @@ bool d_tcp_os_host_name(
 
 /*
 d_tcp_resolver_error
-  Maps a getaddrinfo failure onto dj_net_error, as tcp.hpp did: a name that
-does not resolve is an unreachable host, and a temporary failure a timeout.
+  Maps a getaddrinfo failure onto dj_net_error (net's decision 50): a name
+that does not resolve, or has no address, is HOST_NOT_FOUND; a temporary
+failure a timeout; a resolver that failed for good an unreachable host; a
+family the platform does not have UNSUPPORTED; bad flags the caller's
+INVALID_ARGUMENT; and anything else UNKNOWN. EAI_NODATA is its own case only
+where the platform keeps it apart from EAI_NONAME.
 */
 static enum dj_net_error
 d_tcp_resolver_error(
@@ -1467,10 +1474,18 @@ d_tcp_resolver_error(
         case EAI_MEMORY:
             return D_NET_ERROR_OUT_OF_MEMORY;
         case EAI_NONAME:
+#if defined(EAI_NODATA) && (EAI_NODATA != EAI_NONAME)
+        case EAI_NODATA:
+#endif
+            return D_NET_ERROR_HOST_NOT_FOUND;
         case EAI_FAIL:
             return D_NET_ERROR_HOST_UNREACHABLE;
+        case EAI_FAMILY:
+            return D_NET_ERROR_UNSUPPORTED;
+        case EAI_BADFLAGS:
+            return D_NET_ERROR_INVALID_ARGUMENT;
         default:
-            return D_NET_ERROR_ADDRESS_INVALID;
+            return D_NET_ERROR_UNKNOWN;
     }
 }
 
@@ -2542,7 +2557,7 @@ d_tcp_listen_tcp(
         return found;
     }
 
-    enum dj_net_error last = D_NET_ERROR_ADDRESS_INVALID;
+    enum dj_net_error last = D_NET_ERROR_ADDRESS_UNAVAILABLE;
 
     // bind the first address that allows it
     for (const struct addrinfo* entry = results;

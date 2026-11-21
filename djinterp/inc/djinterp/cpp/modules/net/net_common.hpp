@@ -204,7 +204,9 @@ struct io_error
         out_of_memory       = D_NET_ERROR_OUT_OF_MEMORY,
         unknown             = D_NET_ERROR_UNKNOWN,
         protocol            = D_NET_ERROR_PROTOCOL,
-        unsupported         = D_NET_ERROR_UNSUPPORTED
+        unsupported         = D_NET_ERROR_UNSUPPORTED,
+        address_unavailable = D_NET_ERROR_ADDRESS_UNAVAILABLE,
+        host_not_found      = D_NET_ERROR_HOST_NOT_FOUND
     };
 };
 

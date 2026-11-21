@@ -918,7 +918,7 @@ d_imap_error_to_net(
         case D_IMAP_ERROR_LIMIT:
             return D_NET_ERROR_MESSAGE_TOO_LARGE;
         case D_IMAP_ERROR_RESOLVE:
-            return D_NET_ERROR_HOST_UNREACHABLE;
+            return D_NET_ERROR_HOST_NOT_FOUND;
         case D_IMAP_ERROR_CONNECT:
             return D_NET_ERROR_CONNECTION_REFUSED;
         case D_IMAP_ERROR_BYE:

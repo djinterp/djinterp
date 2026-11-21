@@ -63,6 +63,7 @@ TABLE OF CONTENTS
          1.  dj_net_port
     2.  Errors
          1.  dj_net_error
+         2.  D_NET_LOG_CODES
     3.  Transport vocabulary
          1.  dj_net_shutdown
          2.  dj_net_protocol
@@ -265,15 +266,18 @@ typedef uint16_t dj_net_port;
 //     - Data that breaks the protocol, sent or received, and two ends that
 //       cannot agree on it, are PROTOCOL; a line or message over its limit
 //       is MESSAGE_TOO_LARGE; input that stops short of a whole item, more
-//       being due, is WOULD_BLOCK; a malformed address is ADDRESS_INVALID.
-//     - A name that does not resolve is HOST_UNREACHABLE, as d_tcp maps it;
-//       a connection that cannot be made is CONNECTION_REFUSED, and one the
-//       peer lost CONNECTION_RESET; a stream or connection that has ended,
-//       early or by the peer's goodbye, is CLOSED.
+//       being due, is WOULD_BLOCK; text that does not parse as an address
+//       -- a host, a port, a path too long -- is ADDRESS_INVALID.
+//     - A name that does not resolve is HOST_NOT_FOUND, and a well-formed
+//       address this host does not have ADDRESS_UNAVAILABLE, as d_tcp maps
+//       them; a connection that cannot be made is CONNECTION_REFUSED, and
+//       one the peer lost CONNECTION_RESET; a stream or connection that has
+//       ended, early or by the peer's goodbye, is CLOSED.
 //     - A refusal on security grounds -- credentials, a certificate, a host
 //       key, a policy -- is ACCESS_DENIED.
-//     - A facility this build does not have -- no socket backend, so the
-//       stubs answer -- is UNSUPPORTED: no retry can help.
+//     - A facility this build or platform does not have -- no socket
+//       backend, so the stubs answer; an address family, local sockets
+//       under Winsock -- is UNSUPPORTED: no retry can help.
 //     - Everything else is UNKNOWN: a negative reply, a request the peer
 //       does not support, a transfer the caller ended, a failure beneath the
 //       module whose cause it no longer holds.
@@ -313,8 +317,67 @@ enum dj_net_error
     D_NET_ERROR_OUT_OF_MEMORY       = 16,  // an allocation failed
     D_NET_ERROR_UNKNOWN             = 17,  // anything else
     D_NET_ERROR_PROTOCOL            = 18,  // the exchange broke the protocol
-    D_NET_ERROR_UNSUPPORTED         = 19   // this build has no backend for it
+    D_NET_ERROR_UNSUPPORTED         = 19,  // this build has no backend for it
+    D_NET_ERROR_ADDRESS_UNAVAILABLE = 20,  // a well-formed address this host
+                                           // does not have
+    D_NET_ERROR_HOST_NOT_FOUND      = 21   // a name that does not resolve
 };
+
+// 2.2.2
+// D_NET_LOG_CODES
+//   table: net's codes for the log, "net" (the log's decisions 75 to 77),
+// numbered as dj_net_error numbers them; D_NET_OK has no row. Each row is a
+// number, a name, a class, a grade, a template and the facts it names
+// (log.h 2.4). Text the preprocessor holds until net_log.h declares the
+// table and net_log.c defines it; this header needs no log. Grades follow
+// what the failure did: refused before anything was sent or changed is
+// rejected; a call that cannot proceed yet, soft; the rest, failed.
+#define D_NET_LOG_CODES(X, m)                                                  \
+    X(m, 1, closed, FORMAT_TRUNCATED, FAILED,                                  \
+      "{?peer}{peer}: {/}the stream ended too soon", (peer))                   \
+    X(m, 2, would_block, IO_WOULD_BLOCK, SOFT,                                 \
+      "{?peer}{peer}: {/}the call cannot proceed without blocking", (peer))    \
+    X(m, 3, timed_out, IO_TIMED_OUT, FAILED,                                   \
+      "{?peer}{peer}: {/}timed out{?timeout_ms} after {timeout_ms} ms{/}",     \
+      (peer, timeout_ms))                                                      \
+    X(m, 4, interrupted, IO_INTERRUPTED, SOFT,                                 \
+      "{?operation}{operation}: {/}a signal interrupted the call",             \
+      (operation))                                                             \
+    X(m, 5, connection_reset, IO_RESET, FAILED,                                \
+      "{?peer}{peer}: {/}the peer reset the connection", (peer))               \
+    X(m, 6, connection_refused, IO_REFUSED, FAILED,                            \
+      "{?peer}{peer}: {/}nothing listens there", (peer))                       \
+    X(m, 7, connection_aborted, IO_FAILED, FAILED,                             \
+      "{?peer}{peer}: {/}the connection was aborted on this side", (peer))     \
+    X(m, 8, address_in_use, RESOURCE_IN_USE, FAILED,                           \
+      "{?address}{address}: {/}the address is taken", (address))               \
+    X(m, 9, address_invalid, FORMAT_MALFORMED, REJECTED,                       \
+      "{?address}{address}: {/}not an address", (address))                     \
+    X(m, 10, host_unreachable, IO_UNREACHABLE, FAILED,                         \
+      "{?host}{host}: {/}no route reaches the host", (host))                   \
+    X(m, 11, network_down, IO_UNREACHABLE, FAILED,                             \
+      "the local network is down", ())                                         \
+    X(m, 12, access_denied, ACCESS_DENIED, FAILED,                             \
+      "{?peer}{peer}: {/}permission was refused", (peer))                      \
+    X(m, 13, invalid_argument, ARGUMENT_INVALID, REJECTED,                     \
+      "{?operation}{operation}: {/}an argument cannot be right", (operation))  \
+    X(m, 14, message_too_large, QUANTITY_SIZE, REJECTED,                       \
+      "the message exceeds its limit{?limit} of {limit} bytes{/}", (limit))    \
+    X(m, 15, too_many_open_files, RESOURCE_BUDGET, FAILED,                     \
+      "no descriptor is left to open", ())                                     \
+    X(m, 16, out_of_memory, RESOURCE_MEMORY, FAILED,                           \
+      "out of memory", ())                                                     \
+    X(m, 17, unknown, GENERIC_CALLEE, FAILED,                                  \
+      "{?operation}{operation}: {/}failed"                                     \
+      "{?native} (native error {native}){/}", (operation, native))             \
+    X(m, 18, protocol, FORMAT_MALFORMED, FAILED,                               \
+      "{?peer}{peer}: {/}the exchange broke the protocol", (peer))             \
+    X(m, 19, unsupported, OPERATION_UNSUPPORTED, REJECTED,                     \
+      "{?operation}{operation}: {/}this build cannot do this", (operation))    \
+    X(m, 20, address_unavailable, LOOKUP_NOT_FOUND, FAILED,                    \
+      "{?address}{address}: {/}not an address of this host", (address))        \
+    X(m, 21, host_not_found, LOOKUP_NOT_FOUND, FAILED,                         \
+      "{?host}{host}: {/}the name does not resolve", (host))
 
 // 2.3    Transport vocabulary
 //------------------------------------------------------------------------------

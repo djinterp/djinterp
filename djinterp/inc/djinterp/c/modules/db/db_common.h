@@ -33,7 +33,7 @@
 * path:      /inc/djinterp/c/modules/db/db_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.12
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
 /*
@@ -48,6 +48,12 @@ TABLE OF CONTENTS
          1.  dj_db_socket
          2.  dj_db_wait
          3.  dj_db_pending
+    4.  Vendor kinds
+         1.  dj_db_vendor_kind
+         2.  dj_db_kind_fn
+    5.  Log codes
+         1.  D_DB_LOG_CODES
+         2.  D_DB_VENDOR_LOG_CODES
 2.  FLAGS
     -----
     1.  Definition flags
@@ -194,6 +200,115 @@ struct dj_db_pending
     unsigned    state;       // anything else the call must remember
 };
 
+// 1.4    Vendor kinds
+//------------------------------------------------------------------------------
+//   A failure the database reports is the vendor's own code, which means
+// nothing to a reader who knows another vendor. Each vendor's layer sorts its
+// codes into the same few kinds (the log's decision 75), so a program, or a
+// log, can treat a duplicate key alike whatever reported it: d_sqlite_kind,
+// d_postgres_kind and d_mariadb_kind. The sorting is a default a program may
+// replace, a vendor at a time, with a function of its own (d_<vendor>_kind_
+// set): its server may report a condition under a code the default reads
+// otherwise. A layer's own negative results, and success, are of no kind.
+
+// 1.4.1
+// dj_db_vendor_kind
+//   enum: what a vendor's failure was, whichever vendor reported it. Values
+// are pinned, so a new one comes last.
+enum dj_db_vendor_kind
+{
+    D_DB_VENDOR_KIND_NONE        = 0,  // not a vendor's failure: success, a
+                                       // warning, or a negative D_DB_* value
+    D_DB_VENDOR_KIND_CONNECTION  = 1,  // no connection, or one lost
+    D_DB_VENDOR_KIND_AUTH        = 2,  // who the client is was not accepted,
+                                       // or may not do this
+    D_DB_VENDOR_KIND_CONSTRAINT  = 3,  // a key, a check or a NOT NULL refused
+                                       // the change
+    D_DB_VENDOR_KIND_SYNTAX      = 4,  // the statement does not parse
+    D_DB_VENDOR_KIND_NOT_FOUND   = 5,  // the statement names what is not there
+    D_DB_VENDOR_KIND_BUSY        = 6,  // a lock, a deadlock or a conflict: the
+                                       // statement may succeed if retried
+    D_DB_VENDOR_KIND_DATA        = 7,  // a value does not fit or convert
+    D_DB_VENDOR_KIND_UNSUPPORTED = 8,  // the database cannot do this
+    D_DB_VENDOR_KIND_INTERNAL    = 9   // the database or its client failed in
+                                       // itself: I/O, memory, corruption, a
+                                       // server's internal error
+};
+
+// 1.4.2
+// dj_db_kind_fn
+//   type: a function that sorts a vendor's failure into a kind: the code the
+// layer returned, the failure's SQLSTATE where the vendor has one (NULL
+// where it has none, as SQLite; valid during the call only), and what the
+// program gave with it. It is called on whatever thread the failure is
+// sorted on, so it touches nothing another thread may change.
+typedef enum dj_db_vendor_kind (*dj_db_kind_fn)(
+    int32_t     _code,
+    const char* _sqlstate,
+    void*       _user
+);
+
+// 1.5    Log codes
+//------------------------------------------------------------------------------
+//   db's two tables of codes for the log (the log's decisions 75 to 77), one
+// for each enumeration: db's own results above, and the kinds. Each row is a
+// number, a name, a class, a grade, a template and the facts it names
+// (log.h 2.4). The tables are text the preprocessor holds until db_log.h
+// declares them and db_log.c defines them; this header needs no log. A
+// record of a vendor's failure carries the vendor's product, code, SQLSTATE
+// and message as facts, the message only where D_CFG_DB_LOG_VENDOR_MESSAGE
+// allows it (cfg_db_log.h).
+
+// D_DB_LOG_CODES
+//   table: db's own results, "db", numbered as dj_db_status numbers them.
+#define D_DB_LOG_CODES(X, m)                                                   \
+    X(m, -1, unsupported, OPERATION_UNSUPPORTED, REJECTED,                     \
+      "{?operation}{operation}: {/}the library or server in use cannot do "    \
+      "this", (operation))                                                     \
+    X(m, -2, exists, CONSTRAINT_VIOLATED, FAILED,                              \
+      "{?name}{name}: {/}already exists", (name))                              \
+    X(m, -3, not_found, LOOKUP_NOT_FOUND, FAILED,                              \
+      "{?name}{name}: {/}not found", (name))                                   \
+    X(m, -4, invalid_argument, ARGUMENT_INVALID, REJECTED,                     \
+      "{?operation}{operation}: {/}an argument cannot be right", (operation))  \
+    X(m, -5, mismatch, TYPE_MISMATCH, FAILED,                                  \
+      "{?column}column {column}: {/}the value is not of the type asked for",   \
+      (column))                                                                \
+    X(m, -6, wait, IO_WOULD_BLOCK, SOFT,                                       \
+      "{?operation}{operation}: {/}not finished; wait, then continue it",      \
+      (operation))
+
+// D_DB_VENDOR_LOG_CODES
+//   table: the kinds, "db.vendor", numbered as dj_db_vendor_kind numbers
+// them; none has no row.
+#define D_DB_VENDOR_LOG_CODES(X, m)                                            \
+    X(m, 1, connection, IO_FAILED, FAILED,                                     \
+      "{?system}{system}: {/}the connection failed"                            \
+      "{?message}: {message}{/}", (system, code, sqlstate, message))           \
+    X(m, 2, auth, ACCESS_UNAUTHENTICATED, FAILED,                              \
+      "{?system}{system}: {/}the client was not accepted"                      \
+      "{?message}: {message}{/}", (system, code, sqlstate, message))           \
+    X(m, 3, constraint, CONSTRAINT_VIOLATED, FAILED,                           \
+      "{?system}{system}: {/}a constraint refused the change"                  \
+      "{?message}: {message}{/}", (system, code, sqlstate, message))           \
+    X(m, 4, syntax, SYNTAX_UNEXPECTED, REJECTED,                               \
+      "{?system}{system}: {/}the statement does not parse"                     \
+      "{?message}: {message}{/}", (system, code, sqlstate, message))           \
+    X(m, 5, not_found, LOOKUP_NOT_FOUND, REJECTED,                             \
+      "{?system}{system}: {/}the statement names what is not there"            \
+      "{?message}: {message}{/}", (system, code, sqlstate, message))           \
+    X(m, 6, busy, SYNC_BUSY, SOFT,                                             \
+      "{?system}{system}: {/}busy; the statement may be retried"               \
+      "{?message}: {message}{/}", (system, code, sqlstate, message))           \
+    X(m, 7, data, VALUE_RANGE, REJECTED,                                       \
+      "{?system}{system}: {/}a value does not fit or convert"                  \
+      "{?message}: {message}{/}", (system, code, sqlstate, message))           \
+    X(m, 8, unsupported, OPERATION_UNSUPPORTED, REJECTED,                      \
+      "{?system}{system}: {/}the database cannot do this"                      \
+      "{?message}: {message}{/}", (system, code, sqlstate, message))           \
+    X(m, 9, internal, GENERIC_CALLEE, FAILED,                                  \
+      "{?system}{system}: {/}the database failed in itself"                    \
+      "{?message}: {message}{/}", (system, code, sqlstate, message))
 
 //==============================================================================
 // 2.  FLAGS

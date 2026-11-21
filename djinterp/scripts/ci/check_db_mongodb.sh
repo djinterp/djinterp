@@ -2,10 +2,10 @@
 #*******************************************************************************
 # djinterp [ci]                                              check_db_mongodb.sh
 #
-# Builds djinterp's MongoDB layer (c/modules/db/db_*.c, c/modules/db/mongodb/)
-# and runs its harnesses through every driver given, with every compiler, at
-# every language level, against the deployment the environment names, and fails
-# if any build or run fails:
+# Builds djinterp's MongoDB layer (c/modules/db/mongodb/, over db_common.c and
+# db_internal.c) and runs its harnesses through every driver given, with every
+# compiler, at every language level, against the deployment the environment
+# names, and fails if any build or run fails:
 #     mongodb_tests.c      the C suite, at each C standard, with
 #                          -pedantic-errors -Wall -Wextra -Wshadow -Werror
 #     t_mongodb_cpp.cpp    the C++ consumer, at each C++ standard, ISO strict
@@ -329,7 +329,9 @@ for client in "$@"; do
     fi
 
     flags=()
-    layer=(src/djinterp/c/modules/db/db_*.c src/djinterp/c/modules/db/mongodb/mongodb_*.c)
+    layer=(src/djinterp/c/modules/db/db_common.c
+           src/djinterp/c/modules/db/db_internal.c
+           src/djinterp/c/modules/db/mongodb/mongodb_*.c)
     suite=("$suites/mongodb_tests.c" "$leaf/mongodb_tests_runner.c")
     library_path=""
     if [[ "$client" == stubs ]]; then

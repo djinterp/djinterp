@@ -2,9 +2,9 @@
 #*******************************************************************************
 # djinterp [ci]                                               check_db_sqlite.sh
 #
-# Builds djinterp's SQLite layer (c/modules/db/db_*.c, c/modules/db/sqlite/) and
-# runs its harnesses against every SQLite given, with every compiler, at every
-# language level, and fails if any build or run fails:
+# Builds djinterp's SQLite layer (c/modules/db/sqlite/, over db_common.c and
+# db_internal.c) and runs its harnesses against every SQLite given, with every
+# compiler, at every language level, and fails if any build or run fails:
 #     sqlite_tests.c     the C suite, at each C standard, with
 #                        -pedantic-errors -Wall -Wextra -Wshadow -Werror
 #     t_sqlite_cpp.cpp   the C++ consumer, at each C++ standard, ISO strict
@@ -88,7 +88,9 @@ if [[ $# -eq 0 ]]; then
     set -- system
 fi
 
-layer=(src/djinterp/c/modules/db/db_*.c src/djinterp/c/modules/db/sqlite/sqlite_*.c)
+layer=(src/djinterp/c/modules/db/db_common.c
+       src/djinterp/c/modules/db/db_internal.c
+       src/djinterp/c/modules/db/sqlite/sqlite_*.c)
 core=(src/djinterp/cpp/modules/db/database.cpp
       src/djinterp/cpp/modules/db/database_statement.cpp
       src/djinterp/cpp/modules/db/sqlite/sqlite.cpp)

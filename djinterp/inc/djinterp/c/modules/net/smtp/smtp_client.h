@@ -285,9 +285,9 @@ void d_smtp_client_init(
  *
  * @note Opening the connection is judged apart from what the session reads
  *       and writes: a host whose name does not resolve, or that no route
- *       reaches, is D_SMTP_ERROR_RESOLVE -- tcp.h reports both as
- *       D_NET_ERROR_HOST_UNREACHABLE -- and one that refuses or drops the
- *       connection D_SMTP_ERROR_CONNECT.
+ *       reaches, is D_SMTP_ERROR_RESOLVE -- tcp.h reports them as
+ *       D_NET_ERROR_HOST_NOT_FOUND and D_NET_ERROR_HOST_UNREACHABLE -- and
+ *       one that refuses or drops the connection D_SMTP_ERROR_CONNECT.
  *
  * @param[in,out] _client   a closed client.
  * @param[in]     _options  where and how to connect.

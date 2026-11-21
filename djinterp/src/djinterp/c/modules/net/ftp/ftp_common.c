@@ -142,7 +142,7 @@ d_ftp_error_to_net(
         case D_FTP_ERROR_UNEXPECTED_REPLY:
             return D_NET_ERROR_PROTOCOL;
         case D_FTP_ERROR_RESOLVE:
-            return D_NET_ERROR_HOST_UNREACHABLE;
+            return D_NET_ERROR_HOST_NOT_FOUND;
         case D_FTP_ERROR_CONNECT:
         case D_FTP_ERROR_DATA_CONNECTION:
             return D_NET_ERROR_CONNECTION_REFUSED;
@@ -205,7 +205,9 @@ d_ftp_error_from_net(
             return D_FTP_ERROR_CLOSED;
 
         case D_NET_ERROR_ADDRESS_INVALID:
+        case D_NET_ERROR_ADDRESS_UNAVAILABLE:
         case D_NET_ERROR_HOST_UNREACHABLE:
+        case D_NET_ERROR_HOST_NOT_FOUND:
             return D_FTP_ERROR_RESOLVE;
 
         case D_NET_ERROR_CONNECTION_REFUSED:
