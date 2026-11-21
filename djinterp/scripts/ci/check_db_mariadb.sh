@@ -2,10 +2,10 @@
 #*******************************************************************************
 # djinterp [ci]                                              check_db_mariadb.sh
 #
-# Builds djinterp's MariaDB/MySQL layer (c/db/db_*.c, c/db/mariadb/) and runs
-# its harnesses through every client given, with every compiler, at every
-# language level, against the server the environment names, and fails if any
-# build or run fails:
+# Builds djinterp's MariaDB/MySQL layer (c/modules/db/db_*.c,
+# c/modules/db/mariadb/) and runs its harnesses through every client given, with
+# every compiler, at every language level, against the server the environment
+# names, and fails if any build or run fails:
 #     mariadb_tests.c     the C suite, at each C standard, with
 #                         -pedantic-errors -Wall -Wextra -Wshadow -Werror
 #     t_mariadb_cpp.cpp   the C++ consumer, at each C++ standard, ISO strict
@@ -30,11 +30,11 @@
 # Each test asks the server its flavor and version for every check whose
 # answer depends on them, so one suite covers MariaDB from 10.3 and MySQL
 # from 5.7.
-# The C suites are DTest's: tests/djinterp/c/db/mariadb/mariadb_tests.c and
-# mariadb_stubs_tests.c, each built with its runner, in the CMake leaf
-# (build/cmake/config/testing/djinterp/c/db/mariadb/), and DTest's C face, and
-# run with --failures --no-table, so that a failure's log ends with what
-# failed.
+# The C suites are DTest's: tests/djinterp/c/modules/db/mariadb/mariadb_tests.c
+# and mariadb_stubs_tests.c, each built with its runner, in the CMake leaf
+# (build/cmake/config/testing/djinterp/c/modules/db/mariadb/), and DTest's C
+# face, and run with --failures --no-table, so that a failure's log ends with
+# what failed.
 #   Over a client, the white-box suite of checked sizes,
 # mariadb_sizes_tests.c, is built and run as well, at each C standard: it
 # includes mariadb_query.c, which its build leaves out of the layer's sources.
@@ -94,19 +94,19 @@ if [[ $# -eq 0 ]]; then
     set -- mariadb
 fi
 
-layer=(src/djinterp/c/db/db_*.c src/djinterp/c/db/mariadb/mariadb_*.c)
-core=(src/djinterp/cpp/db/database.cpp
-      src/djinterp/cpp/db/database_statement.cpp
-      src/djinterp/cpp/db/mysql/mysql_common.cpp
-      src/djinterp/cpp/db/mariadb/mariadb.cpp
-      src/djinterp/cpp/db/mysql/mysql.cpp)
+layer=(src/djinterp/c/modules/db/db_*.c src/djinterp/c/modules/db/mariadb/mariadb_*.c)
+core=(src/djinterp/cpp/modules/db/database.cpp
+      src/djinterp/cpp/modules/db/database_statement.cpp
+      src/djinterp/cpp/modules/db/mysql/mysql_common.cpp
+      src/djinterp/cpp/modules/db/mariadb/mariadb.cpp
+      src/djinterp/cpp/modules/db/mysql/mysql.cpp)
 # the layer but mariadb_query.c, which the sizes suite includes
 rest=()
 for source in "${layer[@]}"; do
     [[ "$source" == */mariadb_query.c ]] || rest+=("$source")
 done
-suites=tests/djinterp/c/db/mariadb
-leaf=build/cmake/config/testing/djinterp/c/db/mariadb
+suites=tests/djinterp/c/modules/db/mariadb
+leaf=build/cmake/config/testing/djinterp/c/modules/db/mariadb
 dtest=src/djinterp/c/modules/test/test_suite.c
 sizes=("$suites/mariadb_sizes_tests.c" "$leaf/mariadb_sizes_tests_runner.c")
 warnings=(-pedantic-errors -Wall -Wextra -Wshadow -Werror -Werror=undef)
@@ -171,7 +171,7 @@ supports_std() {
 # standard (db_face.hpp's D_INTERNAL_DB_FACE_FORMAT_CHECK): C++20, with
 # consteval and concepts.
 format_check_on() {
-    printf '%s\n' '#include "djinterp/cpp/db/db_face.hpp"' \
+    printf '%s\n' '#include "djinterp/cpp/modules/db/db_face.hpp"' \
            '#if !D_INTERNAL_DB_FACE_FORMAT_CHECK' '#error off' '#endif' |
         "$1" $(std_flags "$2") -D_XOPEN_SOURCE=700 -Iinc -x c++ \
              -fsyntax-only - > /dev/null 2>&1
@@ -429,7 +429,7 @@ for client in "$@"; do
                              "${core[@]}")
                 else
                     sources=(tests/unintegrated/cpp/db/t_database.cpp
-                             src/djinterp/cpp/db/database.cpp)
+                             src/djinterp/cpp/modules/db/database.cpp)
                 fi
                 if "$cxx" $(std_flags "$std") "${warnings[@]}" $extra \
                         -D_XOPEN_SOURCE=700 -Iinc \

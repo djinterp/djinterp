@@ -66,7 +66,7 @@
     #include <poll.h>      // poll, struct pollfd
 #endif
 // djinterp
-#include "../../../../../inc/djinterp/cpp/db/mariadb/mariadb_face.hpp"  // under
+#include "../../../../../inc/djinterp/cpp/modules/db/mariadb/mariadb_face.hpp"  // under
                                                                        // test
 // re_std
 #include "../../../../../inc/re_std/cpp/cstdint/cstdint.hpp"  // re_std::int64_t,

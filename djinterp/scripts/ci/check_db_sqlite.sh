@@ -2,8 +2,8 @@
 #*******************************************************************************
 # djinterp [ci]                                               check_db_sqlite.sh
 #
-# Builds djinterp's SQLite layer (c/db/db_*.c, c/db/sqlite/) and runs its
-# harnesses against every SQLite given, with every compiler, at every
+# Builds djinterp's SQLite layer (c/modules/db/db_*.c, c/modules/db/sqlite/) and
+# runs its harnesses against every SQLite given, with every compiler, at every
 # language level, and fails if any build or run fails:
 #     sqlite_tests.c     the C suite, at each C standard, with
 #                        -pedantic-errors -Wall -Wextra -Wshadow -Werror
@@ -32,11 +32,11 @@
 # sqlite_stubs_tests.c in place of sqlite_tests.c, and links no SQLite at
 # all. A C++ standard a compiler does not have -- C++26 before GCC 14 and
 # Clang 17 -- is skipped, and said to be.
-#   The C suites are DTest's: tests/djinterp/c/db/sqlite/sqlite_tests.c and
-# sqlite_stubs_tests.c, each built with its runner, in the CMake leaf
-# (build/cmake/config/testing/djinterp/c/db/sqlite/), and DTest's C face, and
-# run with --failures --no-table, so that a failure's log ends with what
-# failed.
+#   The C suites are DTest's: tests/djinterp/c/modules/db/sqlite/sqlite_tests.c
+# and sqlite_stubs_tests.c, each built with its runner, in the CMake leaf
+# (build/cmake/config/testing/djinterp/c/modules/db/sqlite/), and DTest's C
+# face, and run with --failures --no-table, so that a failure's log ends with
+# what failed.
 #   Every compile defines _XOPEN_SOURCE=700, as the ladders do. Each run
 # happens in a fresh directory, which the suite or harness fills and
 # empties: the C suite's by default, the C++ harnesses' named to them as
@@ -88,12 +88,12 @@ if [[ $# -eq 0 ]]; then
     set -- system
 fi
 
-layer=(src/djinterp/c/db/db_*.c src/djinterp/c/db/sqlite/sqlite_*.c)
-core=(src/djinterp/cpp/db/database.cpp
-      src/djinterp/cpp/db/database_statement.cpp
-      src/djinterp/cpp/db/sqlite/sqlite.cpp)
-suites=tests/djinterp/c/db/sqlite
-leaf=build/cmake/config/testing/djinterp/c/db/sqlite
+layer=(src/djinterp/c/modules/db/db_*.c src/djinterp/c/modules/db/sqlite/sqlite_*.c)
+core=(src/djinterp/cpp/modules/db/database.cpp
+      src/djinterp/cpp/modules/db/database_statement.cpp
+      src/djinterp/cpp/modules/db/sqlite/sqlite.cpp)
+suites=tests/djinterp/c/modules/db/sqlite
+leaf=build/cmake/config/testing/djinterp/c/modules/db/sqlite
 dtest=src/djinterp/c/modules/test/test_suite.c
 warnings=(-pedantic-errors -Wall -Wextra -Wshadow -Werror -Werror=undef)
 passed=0
@@ -163,7 +163,7 @@ supports_std() {
 # standard (db_face.hpp's D_INTERNAL_DB_FACE_FORMAT_CHECK): C++20, with
 # consteval and concepts.
 format_check_on() {
-    printf '%s\n' '#include "djinterp/cpp/db/db_face.hpp"' \
+    printf '%s\n' '#include "djinterp/cpp/modules/db/db_face.hpp"' \
            '#if !D_INTERNAL_DB_FACE_FORMAT_CHECK' '#error off' '#endif' |
         "$1" $(std_flags "$2") -D_XOPEN_SOURCE=700 -Iinc -x c++ \
              -fsyntax-only - > /dev/null 2>&1
@@ -442,7 +442,7 @@ for sqlite in "$@"; do
                              "${core[@]}")
                 else
                     sources=(tests/unintegrated/cpp/db/t_database.cpp
-                             src/djinterp/cpp/db/database.cpp)
+                             src/djinterp/cpp/modules/db/database.cpp)
                 fi
                 if "$cxx" $(std_flags "$std") "${warnings[@]}" $extra \
                         -D_XOPEN_SOURCE=700 -Iinc \

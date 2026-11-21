@@ -28,7 +28,7 @@
 *   Below C++17 core/db compiles to nothing, and so does this test.
 *
 *   Build: compile the layer's C sources and src/djinterp/c/sync/dmutex.c as
-* C, src/djinterp/cpp/db/database.cpp, database_statement.cpp and
+* C, src/djinterp/cpp/modules/db/database.cpp, database_statement.cpp and
 * mongodb/mongodb.cpp and this file as C++17 or later, and link them with
 * the driver and -lpthread -- scripts/ci/check_db_mongodb.sh does.
 *
@@ -55,9 +55,9 @@
 #include <utility>      // std::declval, std::move
 #include <vector>       // std::vector
 // djinterp
-#include "../../../../../inc/djinterp/cpp/db/mongodb/mongodb.hpp"  // under
+#include "../../../../../inc/djinterp/cpp/modules/db/mongodb/mongodb.hpp"  // under
                                                                      // test
-#include "../../../../../inc/djinterp/cpp/db/mongodb/mongodb_table.hpp"
+#include "../../../../../inc/djinterp/cpp/modules/db/mongodb/mongodb_table.hpp"
 #include "../t_db_core.hpp"  // the counts and the check macros
 
 

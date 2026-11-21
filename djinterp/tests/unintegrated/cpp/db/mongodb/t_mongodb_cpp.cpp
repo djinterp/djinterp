@@ -33,7 +33,7 @@
 #include <cstdlib>  // std::getenv
 #include <cstring>  // std::memcpy, std::strcmp, std::strlen, std::strstr
 // djinterp
-#include "../../../../../inc/djinterp/c/db/mongodb/mongodb.h"  // under test
+#include "../../../../../inc/djinterp/c/modules/db/mongodb/mongodb.h"  // under test
 // re_std
 #include "../../../../../inc/re_std/cpp/cstdint/cstdint.hpp"  // re_std::int64_t,
                                                          // INT64_MAX

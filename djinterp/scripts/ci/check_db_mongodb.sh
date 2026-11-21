@@ -2,9 +2,9 @@
 #*******************************************************************************
 # djinterp [ci]                                              check_db_mongodb.sh
 #
-# Builds djinterp's MongoDB layer (c/db/db_*.c, c/db/mongodb/) and runs its
-# harnesses through every driver given, with every compiler, at every
-# language level, against the deployment the environment names, and fails
+# Builds djinterp's MongoDB layer (c/modules/db/db_*.c, c/modules/db/mongodb/)
+# and runs its harnesses through every driver given, with every compiler, at
+# every language level, against the deployment the environment names, and fails
 # if any build or run fails:
 #     mongodb_tests.c      the C suite, at each C standard, with
 #                          -pedantic-errors -Wall -Wextra -Wshadow -Werror
@@ -29,11 +29,11 @@
 # with dmutex.c, which those builds compile, and link with the platform's
 # threads. Each test asks the server its version for every check whose
 # answer depends on it, so one suite covers MongoDB from 4.2.
-# The C suites are DTest's: tests/djinterp/c/db/mongodb/mongodb_tests.c and
-# mongodb_stubs_tests.c, each built with its runner, in the CMake leaf
-# (build/cmake/config/testing/djinterp/c/db/mongodb/), and DTest's C face, and
-# run with --failures --no-table, so that a failure's log ends with what
-# failed.
+# The C suites are DTest's: tests/djinterp/c/modules/db/mongodb/mongodb_tests.c
+# and mongodb_stubs_tests.c, each built with its runner, in the CMake leaf
+# (build/cmake/config/testing/djinterp/c/modules/db/mongodb/), and DTest's C
+# face, and run with --failures --no-table, so that a failure's log ends with
+# what failed.
 #   Every compile defines _XOPEN_SOURCE=700, as the ladders do.
 #
 #   usage:   scripts/ci/check_db_mongodb.sh [libmongoc | mongoc2 | custom | stubs] ...
@@ -94,11 +94,11 @@ if [[ $# -eq 0 ]]; then
     set -- libmongoc
 fi
 
-core=(src/djinterp/cpp/db/database.cpp
-      src/djinterp/cpp/db/database_statement.cpp
-      src/djinterp/cpp/db/mongodb/mongodb.cpp)
-suites=tests/djinterp/c/db/mongodb
-leaf=build/cmake/config/testing/djinterp/c/db/mongodb
+core=(src/djinterp/cpp/modules/db/database.cpp
+      src/djinterp/cpp/modules/db/database_statement.cpp
+      src/djinterp/cpp/modules/db/mongodb/mongodb.cpp)
+suites=tests/djinterp/c/modules/db/mongodb
+leaf=build/cmake/config/testing/djinterp/c/modules/db/mongodb
 dtest=src/djinterp/c/modules/test/test_suite.c
 warnings=(-pedantic-errors -Wall -Wextra -Wshadow -Werror -Werror=undef)
 passed=0
@@ -162,7 +162,7 @@ supports_std() {
 # standard (db_face.hpp's D_INTERNAL_DB_FACE_FORMAT_CHECK): C++20, with
 # consteval and concepts.
 format_check_on() {
-    printf '%s\n' '#include "djinterp/cpp/db/db_face.hpp"' \
+    printf '%s\n' '#include "djinterp/cpp/modules/db/db_face.hpp"' \
            '#if !D_INTERNAL_DB_FACE_FORMAT_CHECK' '#error off' '#endif' |
         "$1" $(std_flags "$2") -D_XOPEN_SOURCE=700 -Iinc -x c++ \
              -fsyntax-only - > /dev/null 2>&1
@@ -329,7 +329,7 @@ for client in "$@"; do
     fi
 
     flags=()
-    layer=(src/djinterp/c/db/db_*.c src/djinterp/c/db/mongodb/mongodb_*.c)
+    layer=(src/djinterp/c/modules/db/db_*.c src/djinterp/c/modules/db/mongodb/mongodb_*.c)
     suite=("$suites/mongodb_tests.c" "$leaf/mongodb_tests_runner.c")
     library_path=""
     if [[ "$client" == stubs ]]; then
@@ -409,7 +409,7 @@ for client in "$@"; do
                      "${core[@]}"
             run_part "$cxx" "$std" database \
                      tests/unintegrated/cpp/db/t_database.cpp \
-                     src/djinterp/cpp/db/database.cpp
+                     src/djinterp/cpp/modules/db/database.cpp
         done
     done
 done

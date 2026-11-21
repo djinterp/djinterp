@@ -20,7 +20,7 @@
 * checks that nothing connects.
 *   Below C++17 core/db compiles to nothing, and so does this test.
 *
-*   Build: compile the layer's C sources as C, src/djinterp/cpp/db/
+*   Build: compile the layer's C sources as C, src/djinterp/cpp/modules/db/
 * database.cpp, database_statement.cpp, mysql/mysql_common.cpp,
 * mariadb/mariadb.cpp and mysql/mysql.cpp and this file as C++17 or later,
 * and link them with the client -- scripts/ci/check_db_mariadb.sh does.
@@ -64,10 +64,10 @@
 #include <type_traits>  // std::is_same_v
 #include <vector>       // std::vector
 // djinterp
-#include "../../../../../inc/djinterp/cpp/db/mariadb/mariadb.hpp"  // under
-#include "../../../../../inc/djinterp/cpp/db/mysql/mysql.hpp"      // test
-#include "../../../../../inc/djinterp/cpp/db/mariadb/mariadb_table.hpp"
-#include "../../../../../inc/djinterp/cpp/db/mysql/mysql_table.hpp"
+#include "../../../../../inc/djinterp/cpp/modules/db/mariadb/mariadb.hpp"  // under
+#include "../../../../../inc/djinterp/cpp/modules/db/mysql/mysql.hpp"      // test
+#include "../../../../../inc/djinterp/cpp/modules/db/mariadb/mariadb_table.hpp"
+#include "../../../../../inc/djinterp/cpp/modules/db/mysql/mysql_table.hpp"
 // D_TESTS_DB_CORE_SOCKETS
 //   switch: the shared checks wait on the server's socket, for the
 // operations that do not block.

@@ -31,7 +31,7 @@
 #include <cstdlib>  // std::getenv, std::strtoul
 #include <cstring>  // std::memcpy, std::strcmp
 // djinterp
-#include "../../../../../inc/djinterp/c/db/mariadb/mariadb.h"  // unit under test
+#include "../../../../../inc/djinterp/c/modules/db/mariadb/mariadb.h"  // unit under test
 // re_std
 #include "../../../../../inc/re_std/cpp/cstdint/cstdint.hpp"  // re_std::int64_t,
                                                          // INT64_MAX

@@ -159,22 +159,22 @@
 #include "djinterp/config/c/util/archive/cfg_archive.h"
 // the SQLite layer, after env's SQLite config: resolving everything leaves
 // D_CFG_ENV_USING_SQLITE as env's config decided it, off unless set
-#include "djinterp/config/c/db/sqlite/cfg_sqlite_common.h"  // SQLite layer
-#include "djinterp/config/c/db/sqlite/cfg_sqlite_connection.h"  // its opens
+#include "djinterp/config/c/modules/db/sqlite/cfg_sqlite_common.h"  // SQLite layer
+#include "djinterp/config/c/modules/db/sqlite/cfg_sqlite_connection.h"  // its opens
 // the MariaDB/MySQL layer, likewise after env's MariaDB config, which leaves
 // D_CFG_ENV_USING_MARIADB off unless set
-#include "djinterp/config/c/db/mariadb/cfg_mariadb_common.h"  // MariaDB layer
-#include "djinterp/config/c/db/mariadb/cfg_mariadb_connection.h"  // connects
+#include "djinterp/config/c/modules/db/mariadb/cfg_mariadb_common.h"  // MariaDB layer
+#include "djinterp/config/c/modules/db/mariadb/cfg_mariadb_connection.h"  // connects
 // the PostgreSQL layer, likewise after env's PostgreSQL config, which leaves
 // D_CFG_ENV_USING_POSTGRESQL off unless set
-#include "djinterp/config/c/db/postgres/cfg_postgres_common.h"  // PostgreSQL
-#include "djinterp/config/c/db/postgres/cfg_postgres_connection.h"  // connects
+#include "djinterp/config/c/modules/db/postgres/cfg_postgres_common.h"  // PostgreSQL
+#include "djinterp/config/c/modules/db/postgres/cfg_postgres_connection.h"  // connects
 // the MongoDB layer, likewise after env's MongoDB config, which leaves
 // D_CFG_ENV_USING_MONGODB off unless set
-#include "djinterp/config/c/db/mongodb/cfg_mongodb_common.h"  // MongoDB layer
-#include "djinterp/config/c/db/mongodb/cfg_mongodb_connection.h"  // connects
+#include "djinterp/config/c/modules/db/mongodb/cfg_mongodb_common.h"  // MongoDB layer
+#include "djinterp/config/c/modules/db/mongodb/cfg_mongodb_connection.h"  // connects
 // the layers' C++ faces, which read nothing above
-#include "djinterp/config/cpp/db/cfg_db_face.h"  // the faces' format check
+#include "djinterp/config/cpp/modules/db/cfg_db_face.h"  // the faces' format check
 // #include "<path>/cfg_<sub>.h"  // <- add future subframeworks here
 
 

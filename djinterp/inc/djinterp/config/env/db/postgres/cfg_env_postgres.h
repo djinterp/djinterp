@@ -12,7 +12,7 @@
 *   targets:  env/db/postgres/env_postgres.h
 *             -> D_CFG_ENV_USING_POSTGRESQL, D_CFG_ENV_POSTGRESQL_C_PATH,
 *                _CPP_PATH, D_CFG_ENV_PG_CUSTOM
-*             c/db/postgres/cfg_postgres_common.h
+*             c/modules/db/postgres/cfg_postgres_common.h
 *             -> D_CFG_ENV_USING_POSTGRESQL, D_CFG_ENV_POSTGRESQL_C_PATH
 *   requires: cfg_common.h (D_CFG_IS_BOOL, D_CFG_CUSTOM, user overrides)
 *

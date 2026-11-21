@@ -27,7 +27,7 @@
 #include <cstdio>   // std::printf
 #include <cstring>  // std::strcmp
 // djinterp
-#include "../../../../../inc/djinterp/c/db/sqlite/sqlite.h"  // unit under test
+#include "../../../../../inc/djinterp/c/modules/db/sqlite/sqlite.h"  // unit under test
 // re_std
 #include "../../../../../inc/re_std/cpp/cstdint/cstdint.hpp"  // re_std::int64_t,
                                                          // INT64_MAX

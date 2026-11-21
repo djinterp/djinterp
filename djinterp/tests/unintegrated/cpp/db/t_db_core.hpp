@@ -50,12 +50,12 @@
     #endif
 #endif  // D_TESTS_DB_CORE_SOCKETS
 // djinterp
-#include "../../../../inc/djinterp/cpp/db/database.hpp"  // the vocabulary
-#include "../../../../inc/djinterp/cpp/db/database_async.hpp"
+#include "../../../../inc/djinterp/cpp/modules/db/database.hpp"  // the vocabulary
+#include "../../../../inc/djinterp/cpp/modules/db/database_async.hpp"
                                                   // async_operation
-#include "../../../../inc/djinterp/cpp/db/database_table.hpp"
+#include "../../../../inc/djinterp/cpp/modules/db/database_table.hpp"
                                                   // database_table
-#include "../../../../inc/djinterp/cpp/db/database_table_render.hpp"
+#include "../../../../inc/djinterp/cpp/modules/db/database_table_render.hpp"
                                                   // relational_table_view,
                                                   // store_table, load_table
 

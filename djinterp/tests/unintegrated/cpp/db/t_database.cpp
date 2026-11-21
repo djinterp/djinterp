@@ -10,8 +10,8 @@
 * test the connections.
 *   Below C++17 core/db compiles to nothing, and so does this test.
 *
-*   Build: compile src/djinterp/cpp/db/database.cpp and this file as C++17
-* or later, with c/db/db_common.c as C -- the database CI scripts do, at
+*   Build: compile src/djinterp/cpp/modules/db/database.cpp and this file as
+* C++17 or later, with c/db/db_common.c as C -- the database CI scripts do, at
 * each level from C++17.
 *
 *
@@ -38,7 +38,7 @@
 #include <variant>    // std::get, std::holds_alternative
 #include <vector>     // std::vector
 // djinterp
-#include "../../../../inc/djinterp/cpp/db/database.hpp"  // under test
+#include "../../../../inc/djinterp/cpp/modules/db/database.hpp"  // under test
 
 
 namespace db = djinterp;

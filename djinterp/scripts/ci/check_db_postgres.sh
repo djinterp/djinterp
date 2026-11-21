@@ -2,10 +2,10 @@
 #*******************************************************************************
 # djinterp [ci]                                             check_db_postgres.sh
 #
-# Builds djinterp's PostgreSQL layer (c/db/db_*.c, c/db/postgres/) and runs
-# its harnesses through every libpq given, with every compiler, at every
-# language level, against the server the environment names, and fails if any
-# build or run fails:
+# Builds djinterp's PostgreSQL layer (c/modules/db/db_*.c,
+# c/modules/db/postgres/) and runs its harnesses through every libpq given, with
+# every compiler, at every language level, against the server the environment
+# names, and fails if any build or run fails:
 #     postgres_tests.c     the C suite, at each C standard, with
 #                          -pedantic-errors -Wall -Wextra -Wshadow -Werror
 #     t_postgres_cpp.cpp   the C++ consumer, at each C++ standard, ISO strict
@@ -27,11 +27,12 @@
 # postgres_stubs_tests.c in place of postgres_tests.c, and needs no server.
 # Each test asks the server its version for every check whose answer depends
 # on it, so one suite covers PostgreSQL from 10.
-# The C suites are DTest's: tests/djinterp/c/db/postgres/postgres_tests.c and
+# The C suites are DTest's:
+# tests/djinterp/c/modules/db/postgres/postgres_tests.c and
 # postgres_stubs_tests.c, each built with its runner, in the CMake leaf
-# (build/cmake/config/testing/djinterp/c/db/postgres/), and DTest's C face, and
-# run with --failures --no-table, so that a failure's log ends with what
-# failed.
+# (build/cmake/config/testing/djinterp/c/modules/db/postgres/), and DTest's C
+# face, and run with --failures --no-table, so that a failure's log ends with
+# what failed.
 #   Over a client, the white-box suite of checked sizes,
 # postgres_sizes_tests.c, is built and run as well, at each C standard: it
 # includes postgres_connection.c, which its build leaves out of the layer's
@@ -92,17 +93,17 @@ if [[ $# -eq 0 ]]; then
     set -- libpq
 fi
 
-layer=(src/djinterp/c/db/db_*.c src/djinterp/c/db/postgres/postgres_*.c)
-core=(src/djinterp/cpp/db/database.cpp
-      src/djinterp/cpp/db/database_statement.cpp
-      src/djinterp/cpp/db/postgres/postgres.cpp)
+layer=(src/djinterp/c/modules/db/db_*.c src/djinterp/c/modules/db/postgres/postgres_*.c)
+core=(src/djinterp/cpp/modules/db/database.cpp
+      src/djinterp/cpp/modules/db/database_statement.cpp
+      src/djinterp/cpp/modules/db/postgres/postgres.cpp)
 # the layer but postgres_connection.c, which the sizes suite includes
 rest=()
 for source in "${layer[@]}"; do
     [[ "$source" == */postgres_connection.c ]] || rest+=("$source")
 done
-suites=tests/djinterp/c/db/postgres
-leaf=build/cmake/config/testing/djinterp/c/db/postgres
+suites=tests/djinterp/c/modules/db/postgres
+leaf=build/cmake/config/testing/djinterp/c/modules/db/postgres
 dtest=src/djinterp/c/modules/test/test_suite.c
 sizes=("$suites/postgres_sizes_tests.c" "$leaf/postgres_sizes_tests_runner.c")
 warnings=(-pedantic-errors -Wall -Wextra -Wshadow -Werror -Werror=undef)
@@ -167,7 +168,7 @@ supports_std() {
 # standard (db_face.hpp's D_INTERNAL_DB_FACE_FORMAT_CHECK): C++20, with
 # consteval and concepts.
 format_check_on() {
-    printf '%s\n' '#include "djinterp/cpp/db/db_face.hpp"' \
+    printf '%s\n' '#include "djinterp/cpp/modules/db/db_face.hpp"' \
            '#if !D_INTERNAL_DB_FACE_FORMAT_CHECK' '#error off' '#endif' |
         "$1" $(std_flags "$2") -D_XOPEN_SOURCE=700 -Iinc -x c++ \
              -fsyntax-only - > /dev/null 2>&1
@@ -422,7 +423,7 @@ for client in "$@"; do
                              "${core[@]}")
                 else
                     sources=(tests/unintegrated/cpp/db/t_database.cpp
-                             src/djinterp/cpp/db/database.cpp)
+                             src/djinterp/cpp/modules/db/database.cpp)
                 fi
                 if "$cxx" $(std_flags "$std") "${warnings[@]}" $extra \
                         -D_XOPEN_SOURCE=700 -Iinc \

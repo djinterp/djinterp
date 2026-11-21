@@ -88,7 +88,7 @@
 #include <variant>
 #include <vector>
 // djinterp
-#include "../../../../inc/djinterp/cpp/db/database.hpp"
+#include "../../../../inc/djinterp/cpp/modules/db/database.hpp"
 // re_std
 #include "../../../../inc/re_std/cpp/cstdint/cstdint.hpp"  // re_std::int64_t
 

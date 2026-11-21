@@ -13,7 +13,7 @@ here.
 
 The database tests moved here on 2026.10.26 (git keeps their history
 as renames), and its C harnesses left again on 2026.11.10, as DTest suites
-in `tests/djinterp/c/db/<vendor>/` (CMake's `c_<vendor>_tests` and
+in `tests/djinterp/c/modules/db/<vendor>/` (CMake's `c_<vendor>_tests` and
 `c_<vendor>_stubs_tests`); its C++ harnesses are still here. The output
 stream's, its template engine's, the machine environment's and the
 environment printer's joined them from the stream's delivery of 2026.10.29,
@@ -30,7 +30,7 @@ went is under "Ported" below.
 | `cpp/db/<vendor>/t_<vendor>_core.cpp` | cpp/db over each vendor; the checks shared by all of them are in `cpp/db/t_db_core.hpp` | the CI scripts; CMake `<vendor>_core_tests` |
 | `cpp/db/t_database.cpp` | cpp/db's vocabulary: values, types, the shared parts | the CI scripts |
 | `cpp/db/t_db_face_cost.cpp` | the faces' cost against the C calls, at -O2 | `scripts/check_db_face_cost.py` |
-| `cpp/db/database_tests*.{hpp,cpp}` | the older cpp/db suite, by sections | CMake `database_tests` (its runner is in `build/cmake/config/testing/djinterp/cpp/db/database`) |
+| `cpp/db/database_tests*.{hpp,cpp}` | the older cpp/db suite, by sections | CMake `database_tests` (its runner is in `build/cmake/config/testing/djinterp/cpp/modules/db/database`) |
 
 Rows still to add: the machine environment and the
 environment printer (`c/option`, `cpp/option`, `c/env`, `cpp/env`), and the

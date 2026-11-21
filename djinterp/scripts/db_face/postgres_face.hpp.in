@@ -54,7 +54,7 @@
 * the template, not this file.
 *
 *
-* path:      /inc/djinterp/cpp/db/postgres/postgres_face.hpp
+* path:      /inc/djinterp/cpp/modules/db/postgres/postgres_face.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
 *                                                            revised: 2026.10.24
@@ -98,9 +98,9 @@ TABLE OF CONTENTS
 #include <vector>   // std::vector
 // djinterp
 #include "../db_face.hpp"  // string_arg, text, the lists, the levels
-#include "../../../c/db/postgres/postgres.h"    // the layer
+#include "../../../../c/modules/db/postgres/postgres.h"  // the layer
 // re_std
-#include "../../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::int64_t, INT64_MAX
+#include "../../../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::int64_t, INT64_MAX
 
 // std, by level: what the forms each level adds take and return
 // (db_face.hpp, 1)

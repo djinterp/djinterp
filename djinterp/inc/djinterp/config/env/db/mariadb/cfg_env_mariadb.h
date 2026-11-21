@@ -12,8 +12,8 @@
 *   targets:  env/db/mariadb/env_mariadb.h, through
 *             env/db/mysql/env_mysql_common.h -> D_CFG_ENV_USING_MARIADB,
 *             D_CFG_ENV_MARIADB_C_PATH, _CPP_PATH, _CUSTOM
-*             c/db/mariadb/cfg_mariadb_common.h -> D_CFG_ENV_USING_MARIADB,
-*             D_CFG_ENV_MARIADB_C_PATH
+*             c/modules/db/mariadb/cfg_mariadb_common.h ->
+*             D_CFG_ENV_USING_MARIADB, D_CFG_ENV_MARIADB_C_PATH
 *   requires: cfg_common.h (D_CFG_IS_BOOL, D_CFG_CUSTOM, user overrides)
 *
 *

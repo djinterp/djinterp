@@ -24,13 +24,13 @@
 *                                                            revised: 2026.10.28
 *******************************************************************************/
 // djinterp
-#include "../../../../inc/djinterp/cpp/db/sqlite/sqlite_face.hpp"      // under
+#include "../../../../inc/djinterp/cpp/modules/db/sqlite/sqlite_face.hpp"      // under
                                                                      // test
-#include "../../../../inc/djinterp/cpp/db/mariadb/mariadb_face.hpp"    // under
+#include "../../../../inc/djinterp/cpp/modules/db/mariadb/mariadb_face.hpp"    // under
                                                                      // test
-#include "../../../../inc/djinterp/cpp/db/postgres/postgres_face.hpp"  // under
+#include "../../../../inc/djinterp/cpp/modules/db/postgres/postgres_face.hpp"  // under
                                                                      // test
-#include "../../../../inc/djinterp/cpp/db/mongodb/mongodb_face.hpp"    // under
+#include "../../../../inc/djinterp/cpp/modules/db/mongodb/mongodb_face.hpp"    // under
                                                                      // test
 // re_std
 #include "../../../../inc/re_std/cpp/cstdint/cstdint.hpp"  // re_std::int64_t,

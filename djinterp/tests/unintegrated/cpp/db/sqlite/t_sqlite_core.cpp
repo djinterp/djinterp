@@ -12,7 +12,7 @@
 * table on it, refuse every operation.
 *   Below C++17 core/db compiles to nothing, and so does this test.
 *
-*   Build: compile the layer's C sources as C, src/djinterp/cpp/db/
+*   Build: compile the layer's C sources as C, src/djinterp/cpp/modules/db/
 * database.cpp, database_statement.cpp and sqlite/sqlite.cpp and this file as
 * C++17 or later, and link them with SQLite -- scripts/ci/check_db_sqlite.sh does.
 *
@@ -36,8 +36,8 @@
 #include <type_traits>  // std::is_same_v
 #include <vector>       // std::vector
 // djinterp
-#include "../../../../../inc/djinterp/cpp/db/sqlite/sqlite.hpp"  // under test
-#include "../../../../../inc/djinterp/cpp/db/sqlite/sqlite_table.hpp"
+#include "../../../../../inc/djinterp/cpp/modules/db/sqlite/sqlite.hpp"  // under test
+#include "../../../../../inc/djinterp/cpp/modules/db/sqlite/sqlite_table.hpp"
                                                          // under test
 #include "../t_db_core.hpp"  // the shared checks
 

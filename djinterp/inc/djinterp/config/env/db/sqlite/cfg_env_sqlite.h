@@ -14,7 +14,7 @@
 *
 *   targets:  env/db/sqlite/env_sqlite.h -> D_CFG_ENV_USING_SQLITE,
 *             D_CFG_ENV_SQLITE_C_PATH, D_CFG_ENV_SQLITE_CUSTOM
-*             c/db/sqlite/cfg_sqlite_common.h -> D_CFG_ENV_USING_SQLITE,
+*             c/modules/db/sqlite/cfg_sqlite_common.h -> D_CFG_ENV_USING_SQLITE,
 *             D_CFG_ENV_SQLITE_C_PATH
 *   requires: cfg_common.h (D_CFG_IS_BOOL, D_CFG_CUSTOM, user overrides)
 *

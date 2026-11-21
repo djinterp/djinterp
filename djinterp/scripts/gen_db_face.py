@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """gen_db_face.py -- write the C++ faces of the database layers.
 
-Each layer's face, inc/djinterp/c/db/<vendor>/<vendor>_face.hpp, is a class
-with a member for every function of the layer, the connection argument
+Each layer's face, inc/djinterp/c/modules/db/<vendor>/<vendor>_face.hpp, is a
+class with a member for every function of the layer, the connection argument
 dropped and every other argument in the C order, and a class for each object
 the layer hands out -- the SQL layers' prepared statement, MongoDB's cursor
 and change stream -- with a member for every function that takes one first,
@@ -579,7 +579,8 @@ def member(vendor, ret_c, cname, params):
 
 def records(vendor):
     """one record per function of the layer, in its headers' order"""
-    layer = os.path.join(ROOT, 'inc', 'djinterp', 'c', 'db', vendor)
+    layer = os.path.join(ROOT, 'inc', 'djinterp', 'c', 'modules', 'db',
+                         vendor)
     umbrella = open(os.path.join(layer, vendor + '.h'),
                     encoding='utf-8').read()
     headers = re.findall(r'^#include "\./(%s_[a-z]*\.h)"' % vendor,
@@ -648,8 +649,8 @@ def main(argv):
         if vendor not in VENDORS:
             raise SystemExit('unknown vendor: %s' % vendor)
         text = assemble(vendor, records(vendor))
-        face = os.path.join(ROOT, 'inc', 'djinterp', 'cpp', 'db', vendor,
-                            vendor + '_face.hpp')
+        face = os.path.join(ROOT, 'inc', 'djinterp', 'cpp', 'modules', 'db',
+                            vendor, vendor + '_face.hpp')
         rel = os.path.relpath(face, ROOT)
         if check:
             current = (open(face, encoding='utf-8', newline='').read()

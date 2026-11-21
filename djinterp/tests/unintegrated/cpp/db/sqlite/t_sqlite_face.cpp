@@ -34,7 +34,7 @@
 #include <string>   // std::string
 #include <vector>   // std::vector
 // djinterp
-#include "../../../../../inc/djinterp/cpp/db/sqlite/sqlite_face.hpp"  // under
+#include "../../../../../inc/djinterp/cpp/modules/db/sqlite/sqlite_face.hpp"  // under
                                                                      // test
 // re_std
 #include "../../../../../inc/re_std/cpp/cstdint/cstdint.hpp"  // re_std::int64_t,
