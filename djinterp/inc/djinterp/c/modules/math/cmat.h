@@ -888,16 +888,16 @@ D_MATH_FN_KERNEL void
 d_internal_cmat_f_correction(
     struct dj_cplx_f*       _fix,
     struct dj_cplx_f*       _res,
-    float*                      _largest,
-    float*                      _relative,
+    float*                  _largest,
+    float*                  _relative,
     const struct dj_cplx_f* _x,
     const struct dj_cplx_f* _tail,
     const struct dj_cplx_f* _a,
     const struct dj_cplx_f* _b,
-    size_t                    _sb,
+    size_t                  _sb,
     const struct dj_cplx_f* _lu,
-    const size_t*             _perm,
-    size_t                    _n
+    const size_t*           _perm,
+    size_t                  _n
 )
 {
     size_t i = 0u;
@@ -952,10 +952,10 @@ d_internal_cmat_f_refine(
     struct dj_cplx_f*       _res,
     const struct dj_cplx_f* _a,
     const struct dj_cplx_f* _b,
-    size_t                    _sb,
+    size_t                  _sb,
     const struct dj_cplx_f* _lu,
-    const size_t*             _perm,
-    size_t                    _n
+    const size_t*           _perm,
+    size_t                  _n
 )
 {
     float    last_largest  = (float)0;
