@@ -63,7 +63,8 @@ static const char* const STATUS_NAMES[] =
     "OutOfMemory",            // D_ARG_ERROR_OUT_OF_MEMORY
     "BadArgument",            // D_ARG_ERROR_BAD_ARGUMENT
     "Unsupported",            // D_ARG_ERROR_UNSUPPORTED
-    "TooDeep"                 // D_ARG_ERROR_TOO_DEEP
+    "TooDeep",                // D_ARG_ERROR_TOO_DEEP
+    "SettingError"            // D_ARG_ERROR_SETTING
 };
 
 D_STATIC_ASSERT( (sizeof(STATUS_NAMES) / sizeof(STATUS_NAMES[0])) ==
@@ -72,8 +73,9 @@ D_STATIC_ASSERT( (sizeof(STATUS_NAMES) / sizeof(STATUS_NAMES[0])) ==
 
 // STATUS_EXIT_CODES
 //   constant: d_arg_status_exit_code's code for each status, in the same
-// order: CLI11's ExitCodes, 1 for RuntimeError as CLI11's default, and
-// BaseClass for the statuses CLI11 lacks.
+// order: CLI11's ExitCodes, 1 for RuntimeError as CLI11's default, 2 for a
+// setting the hook refused, and BaseClass for the other statuses CLI11
+// lacks.
 static const int STATUS_EXIT_CODES[] =
 {
     D_ARG_EXIT_SUCCESS,                 // D_ARG_OK
@@ -102,7 +104,8 @@ static const int STATUS_EXIT_CODES[] =
     D_ARG_EXIT_BASE_CLASS,              // D_ARG_ERROR_OUT_OF_MEMORY
     D_ARG_EXIT_BASE_CLASS,              // D_ARG_ERROR_BAD_ARGUMENT
     D_ARG_EXIT_BASE_CLASS,              // D_ARG_ERROR_UNSUPPORTED
-    D_ARG_EXIT_BASE_CLASS               // D_ARG_ERROR_TOO_DEEP
+    D_ARG_EXIT_BASE_CLASS,              // D_ARG_ERROR_TOO_DEEP
+    D_ARG_EXIT_SETTING_ERROR            // D_ARG_ERROR_SETTING
 };
 
 D_STATIC_ASSERT( (sizeof(STATUS_EXIT_CODES) /
@@ -148,7 +151,8 @@ static const char* const STATUS_MESSAGES[] =
     "Out of memory",            // D_ARG_ERROR_OUT_OF_MEMORY
     "Bad argument",             // D_ARG_ERROR_BAD_ARGUMENT
     "Unsupported",              // D_ARG_ERROR_UNSUPPORTED
-    "Too deep"                  // D_ARG_ERROR_TOO_DEEP
+    "Too deep",                 // D_ARG_ERROR_TOO_DEEP
+    "Setting refused"           // D_ARG_ERROR_SETTING
 };
 
 D_STATIC_ASSERT( (sizeof(STATUS_MESSAGES) /

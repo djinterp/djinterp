@@ -21,7 +21,7 @@
 * path:      /inc/djinterp/c/modules/parse/cli/arg_parser/arg_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 /*
@@ -72,6 +72,7 @@ TABLE OF CONTENTS
          7.  dj_arg_command_text_fn
          8.  dj_arg_option_text_fn
          9.  dj_arg_failure_fn
+        10.  dj_arg_setting_fn
     4.  The error report
          1.  dj_arg_error
          2.  D_ARG_ERROR_INIT
@@ -115,6 +116,8 @@ TABLE OF CONTENTS
 #include "../../../../util/sink_common.h"  // dj_pack_text, dj_pack_sink
 #include "../../../../../config/c/modules/parse/cli/arg_parser/cfg_arg_parser.h"  // knobs
 #include "../../../../../env/c/env_vendor_attributes.h"  // D_FORMAT_PRINTF
+// re_std
+#include "../../../../../../re_std/c/cstdint/dstdint.h"  // int32_t
 
 
 //==============================================================================
@@ -123,10 +126,11 @@ TABLE OF CONTENTS
 // Every fallible call returns an `int` holding one of the statuses below:
 // D_ARG_OK, a completed request that ends the program successfully (help,
 // version), or an error. The errors are CLI11's, one for one, and each maps
-// to CLI11's exit code; the last four have no CLI11 counterpart because
-// CLI11 throws std::bad_alloc or misbehaves where this API reports, or, for
-// D_ARG_ERROR_TOO_DEEP (response files nested past
-// D_CFG_ARG_PARSER_RESPONSE_DEPTH), has no response files at all.
+// to CLI11's exit code; the last five have no CLI11 counterpart: CLI11
+// throws std::bad_alloc or misbehaves where this API reports, has no
+// response files to nest past D_CFG_ARG_PARSER_RESPONSE_DEPTH
+// (D_ARG_ERROR_TOO_DEEP), and no settings hook to refuse an argument
+// (D_ARG_ERROR_SETTING, see d_arg_parser_set_setting_hook).
 
 
 // 1.1    Status codes
@@ -165,7 +169,8 @@ enum dj_arg_status
     D_ARG_ERROR_BAD_ARGUMENT           = 24,
     D_ARG_ERROR_UNSUPPORTED            = 25,
     D_ARG_ERROR_TOO_DEEP               = 26,
-    D_ARG_STATUS_COUNT                 = 27
+    D_ARG_ERROR_SETTING                = 27,
+    D_ARG_STATUS_COUNT                 = 28
 };
 
 // 1.1.2
@@ -173,11 +178,13 @@ enum dj_arg_status
 //   enum: CLI11's ExitCodes, numerically identical, so a program ported from
 // CLI11 exits with the codes its scripts already test for. The completed
 // requests exit with D_ARG_EXIT_SUCCESS; D_ARG_RUNTIME_ERROR exits with the
-// code its callback chose; the four errors CLI11 lacks exit with
-// D_ARG_EXIT_BASE_CLASS.
+// code its callback chose; of the errors CLI11 lacks, D_ARG_ERROR_SETTING
+// exits with D_ARG_EXIT_SETTING_ERROR, 2, as a command line's usage error
+// exits in most programs, and the other four with D_ARG_EXIT_BASE_CLASS.
 enum dj_arg_exit_code
 {
     D_ARG_EXIT_SUCCESS                = 0,
+    D_ARG_EXIT_SETTING_ERROR          = 2,
     D_ARG_EXIT_INCORRECT_CONSTRUCTION = 100,
     D_ARG_EXIT_BAD_NAME_STRING        = 101,
     D_ARG_EXIT_OPTION_ALREADY_ADDED   = 102,
@@ -567,6 +574,28 @@ typedef int (*dj_arg_failure_fn)(const struct dj_arg_command* _command,
                                 const struct dj_arg_error*   _error,
                                 struct dj_pack_sink          _sink,
                                 void*                       _context);
+
+// 3.3.10
+// dj_arg_setting_fn
+//   type: a parser's setting hook, offered each long option the parse does
+// not know (d_arg_parser_set_setting_hook says when), with its context first,
+// as getopt's caller sees the arguments: `_argv` is the parser's list,
+// response files expanded, `_argv[0]` the program's name ("" for a parse
+// given none) and `_argv[_argc]` NULL; `_argv[*_at]` is the option offered.
+// The strings are the parser's, valid until its next parse and never to be
+// changed; one holding a NUL byte reads as ending there. Unlike the other
+// callbacks it returns a count, not a dj_arg_status: how many arguments it
+// took, the offered one first; 0 for "not mine", so that the parse goes on as
+// it would without a hook; a negative count for a refusal, with `*_status`
+// set to the hook's own reason, which the parse keeps as the parser's
+// `setting_status`. A hook may instead move `*_at` onto the last argument it
+// took, as the option registry's take_option moves it: the parser takes
+// through the further of the two.
+typedef int (*dj_arg_setting_fn)(void*        _ctx,
+                                int          _argc,
+                                char* const* _argv,
+                                int*         _at,
+                                int32_t*     _status);
 
 // 3.4    The error report
 //------------------------------------------------------------------------------

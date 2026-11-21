@@ -23,7 +23,7 @@
 * path:      /tests/djinterp/c/modules/parse/cli/arg_parser/arg_sweep_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.20
-*                                                            revised: 2026.10.21
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 #include "./arg_sweep_tests.h"  // corresponding header
 // std
@@ -31,7 +31,7 @@
 #include <stddef.h>   // size_t, NULL
 #include <stdio.h>    // printf
 #include <stdlib.h>   // malloc, free
-#include <string.h>   // memcmp, memcpy
+#include <string.h>   // memcmp, memcpy, strcmp, strncmp
 // djinterp
 #include "../../../../../../../inc/djinterp/c/util/sink_common.h"  // dj_pack_text, dj_pack_sink
 #include "../../../../../../../inc/djinterp/config/c/modules/parse/cli/arg_parser/cfg_arg_parser.h"  // the knobs
@@ -2454,6 +2454,105 @@ void d_tests_arg_sweep_text_run(void)
     return;
 }
 
+/**
+ * @brief The setting hook the settings scenario sets: `--cli.NAME=VALUE`
+ *        and `--set NAME=VALUE` taken, `--cli.bad=...` refused, anything
+ *        else left; it allocates nothing, so every allocation counted is
+ *        the parser's.
+ *
+ * @param[in]     _ctx     unused.
+ * @param[in]     _argc    the parser's argument count.
+ * @param[in]     _argv    the parser's arguments.
+ * @param[in,out] _at      the offered argument's index.
+ * @param[out]    _status  the reason for a refusal.
+ * @return how many arguments it took, 0, or -1.
+ */
+static
+int d_tests_arg_sweep_setting_hook(
+    void*        _ctx,
+    int          _argc,
+    char* const* _argv,
+    int*         _at,
+    int32_t*     _status
+)
+{
+    const char* const given = _argv[*_at];
+
+    (void)_ctx;
+
+    // refused
+    if (strncmp(given, "--cli.bad=", 10u) == 0)
+    {
+        *_status = 7;
+
+        return -1;
+    }
+
+    // `--set NAME=VALUE`, two arguments
+    if ( (strcmp(given, "--set") == 0) &&
+         (*_at + 1 < _argc) )
+    {
+        return 2;
+    }
+
+    return (strncmp(given, "--cli.", 6u) == 0) ? 1 : 0;
+}
+
+/**
+ * @brief Settings: a parser with the setting hook, parsed with settings
+ *        taken by one and two arguments, an option the hook declines and
+ *        the search then finds, a subcommand's setting, a refusal, and once
+ *        more after it, each run ended as main ends one.
+ */
+static
+void d_tests_arg_sweep_settings_run(void)
+{
+    static char* TAKEN[] =
+    {
+        "prog", "--cli.a=1", "--set", "cli.b=2", "--lev", "3", "sub",
+        "--cli.c=4", "w"
+    };
+    static char* REFUSED[] =
+    {
+        "prog", "--level", "1", "--cli.bad=5", "sub"
+    };
+    struct dj_arg_parser parser;
+
+    d_tests_arg_sweep_parser(&parser);
+    d_arg_parser_set_abbreviations(&parser,
+                                   true);
+    d_arg_parser_set_setting_hook(&parser,
+                                  d_tests_arg_sweep_setting_hook,
+                                  NULL);
+
+    struct dj_arg_command* const app = &parser.command;
+
+    (void)d_arg_command_add_option(app,
+                                   "--level",
+                                   "a level");
+
+    struct dj_arg_command* const sub = d_arg_command_add_subcommand(app,
+                                                                   "sub",
+                                                                   "a "
+                                                                   "subcommand");
+
+    (void)d_arg_command_add_option(sub,
+                                   "word",
+                                   "a word");
+    d_tests_arg_sweep_parse(&parser,
+                            (int)(sizeof(TAKEN) / sizeof(TAKEN[0])),
+                            TAKEN);
+    d_tests_arg_sweep_parse(&parser,
+                            (int)(sizeof(REFUSED) / sizeof(REFUSED[0])),
+                            REFUSED);
+    d_tests_arg_sweep_parse(&parser,
+                            (int)(sizeof(TAKEN) / sizeof(TAKEN[0])),
+                            TAKEN);
+    d_arg_parser_release(&parser);
+
+    return;
+}
+
 //==============================================================================
 // 3.  THE SWEEPS
 //==============================================================================
@@ -2547,6 +2646,21 @@ bool d_tests_arg_sweep_text(void)
                                  d_tests_arg_sweep_text_run);
 }
 
+/*
+d_tests_arg_sweep_settings
+  The setting hook, every allocation refused in turn.
+  Tests the following:
+  - the arguments kept for the hook, and the list it is handed at each call
+  - settings taken by one argument and by two, at the root and in a
+    subcommand; an abbreviation the hook declines; a refusal
+  - a parse after a refusal; nothing live after release
+*/
+bool d_tests_arg_sweep_settings(void)
+{
+    return d_tests_arg_sweep_run("settings",
+                                 d_tests_arg_sweep_settings_run);
+}
+
 //==============================================================================
 // 4.  THE SUITE
 //==============================================================================
@@ -2564,7 +2678,9 @@ const struct dj_tests_section d_tests_arg_sweep[] =
     { "arg_sweep_validators",
       d_tests_arg_sweep_validators },
     { "arg_sweep_text",
-      d_tests_arg_sweep_text }
+      d_tests_arg_sweep_text },
+    { "arg_sweep_settings",
+      d_tests_arg_sweep_settings }
 };
 
 // d_tests_arg_sweep_count

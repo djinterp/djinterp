@@ -22,7 +22,7 @@
 * path:      /src/djinterp/c/modules/parse/cli/arg_parser/arg_parse.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 #include "../../../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_parser.h"  // corresponding header
 // std
@@ -205,16 +205,18 @@ int d_arg_internal_parse_push_built(
 /*
 d_arg_internal_parse_resume
   What every call that parses starts with, whether or not it clears the
-root: the last call's error and stacked arguments forgotten, then a
-definition error, when there is one, reported as this call's, which ends
-it.
+root: the last call's error, the setting hook's reason for it and the
+arguments stacked and kept for the hook forgotten, then a definition error,
+when there is one, reported as this call's, which ends it.
 */
 int d_arg_internal_parse_resume(
     struct dj_arg_parser* _parser
 )
 {
     d_arg_error_release(&_parser->error);
-    _parser->pending.count = 0u;
+    _parser->pending.count      = 0u;
+    _parser->setting_args.count = 0u;
+    _parser->setting_status     = 0;
 
     // a failed definition ends the parse before it starts
     if (_parser->definition.status == D_ARG_OK)
@@ -751,13 +753,62 @@ void d_arg_internal_configure(
     return;
 }
 
+/**
+ * @brief Keeps the arguments the parse begins with for the setting hook, when
+ *        one is set.
+ *
+ * @param[in,out] _parser  the parser.
+ * @return D_ARG_OK, or D_ARG_ERROR_OUT_OF_MEMORY, recorded.
+ *
+ * The program's name -- "" for a parse given none -- then the stack from its
+ * top down, response files expanded: the list the hook reads, which the
+ * stack stays a tail of while the parse goes.
+ */
+D_STATIC
+int d_arg_internal_parse_keep_args(
+    struct dj_arg_parser* _parser
+)
+{
+    struct dj_arg_text_list* const       kept    = &_parser->setting_args;
+    const struct dj_arg_text_list* const pending = &_parser->pending;
+
+    kept->count = 0u;
+
+    // nothing to keep without a hook
+    if (_parser->setting_hook == NULL)
+    {
+        return D_ARG_OK;
+    }
+
+    int status = d_arg_internal_text_reserve(kept,
+                                             pending->count + 1u);
+
+    status = (status == D_ARG_OK)
+             ? d_arg_internal_text_push(kept,
+                                        d_arg_internal_text_of(
+                                            _parser->program))
+             : status;
+
+    // the first on top, kept first
+    for (size_t index = pending->count;
+         (status == D_ARG_OK) && (index > 0u);
+         --index)
+    {
+        status = d_arg_internal_text_push(kept,
+                                          pending->items[index - 1u]);
+    }
+
+    return d_arg_internal_parse_stored(&_parser->command,
+                                       status);
+}
+
 /*
 d_arg_internal_parse_run
   CLI11's _parse_setup, _parse and run_callback, once the parser is
-cleared: the root counts a use while the checks run -- so a failed check
-still clears at the next parse, as CLI11's does -- and none once
-configured; then the root parses the stack, processing what it parsed, and
-the callbacks run.
+cleared: the arguments kept for a setting hook; the root counts a use while
+the checks run -- so a failed check still clears at the next parse, as
+CLI11's does -- and none once configured; then the root parses the stack,
+processing what it parsed, and the callbacks run.
 */
 int d_arg_internal_parse_run(
     struct dj_arg_parser* _parser
@@ -765,9 +816,16 @@ int d_arg_internal_parse_run(
 {
     struct dj_arg_command* const root = &_parser->command;
 
+    int status = d_arg_internal_parse_keep_args(_parser);
+
+    if (status != D_ARG_OK)
+    {
+        return status;
+    }
+
     root->parsed = 1u;
 
-    int status = d_arg_internal_validate(root);
+    status = d_arg_internal_validate(root);
 
     // configured, then parsed
     if (status == D_ARG_OK)
@@ -2036,8 +2094,9 @@ int d_arg_internal_parse_lone(
  * @return D_ARG_OK, or the error a step raised, recorded.
  *
  * CLI11's _parse_single: the next argument recognized -- or, once the
- * positionals stand alone, taken as one -- and handed to its step; the `++`
- * that ends a named subcommand is taken off the stack and ends it.
+ * positionals stand alone, taken as one -- and handed to its step, a long
+ * option offered to the setting hook first; the `++` that ends a named
+ * subcommand is taken off the stack and ends it.
  */
 D_STATIC
 int d_arg_internal_parse_single(
@@ -2054,6 +2113,7 @@ int d_arg_internal_parse_single(
                                                 argument,
                                                 true);
     int                      status     = D_ARG_OK;
+    bool                     setting    = false;
 
     *_go_on = true;
 
@@ -2078,6 +2138,20 @@ int d_arg_internal_parse_single(
             break;
 
         case D_ARG_CLASS_LONG:
+            status = d_arg_internal_parse_setting(_command,
+                                                  &setting);
+
+            // not the setting hook's: an option like any other
+            if ( (status == D_ARG_OK) &&
+                 (!setting) )
+            {
+                status = d_arg_internal_parse_arg(_command,
+                                                  classifier,
+                                                  false,
+                                                  _go_on);
+            }
+            break;
+
         case D_ARG_CLASS_SHORT:
         case D_ARG_CLASS_WINDOWS_STYLE:
             status = d_arg_internal_parse_arg(_command,

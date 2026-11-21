@@ -14,7 +14,7 @@
 * path:      /src/djinterp/c/modules/parse/cli/arg_parser/arg_parser.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 #include "../../../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_parser.h"  // corresponding header
 // std
@@ -531,6 +531,7 @@ void d_arg_parser_release(
     d_arg_string_list_release(&_parser->pool);
     free(_parser->program);
     d_arg_string_list_release(&_parser->utf8_argv);
+    d_arg_text_list_release(&_parser->setting_args);
     *_parser = PARSER_EMPTY;
 
     return;
@@ -539,8 +540,8 @@ void d_arg_parser_release(
 /*
 d_arg_parser_clear
   CLI11's clear() on the root, then the last parse's error and storage --
-the program's name among it: the values that borrowed from the storage are
-gone first.
+the program's name and the arguments kept for the setting hook among it:
+the values that borrowed from the storage are gone first.
 */
 void d_arg_parser_clear(
     struct dj_arg_parser* _parser
@@ -555,9 +556,11 @@ void d_arg_parser_clear(
     d_arg_command_clear(&_parser->command);
     d_arg_error_release(&_parser->error);
     d_arg_text_list_release(&_parser->pending);
+    d_arg_text_list_release(&_parser->setting_args);
     d_arg_string_list_release(&_parser->pool);
     free(_parser->program);
-    _parser->program = NULL;
+    _parser->program        = NULL;
+    _parser->setting_status = 0;
 
     return;
 }
@@ -871,8 +874,9 @@ int d_arg_internal_parser_emit(
 
 /*
 d_arg_failure_simple
-  CLI11's FailureMessage::simple: the message and a newline, then the line
-naming the help flags.
+  CLI11's FailureMessage::simple: the message and a newline -- a refused
+setting's argument after its status's text, as the message holds only the
+argument -- then the line naming the help flags.
 */
 int d_arg_failure_simple(
     const struct dj_arg_command* _command,
@@ -881,11 +885,18 @@ int d_arg_failure_simple(
     void*                        _context
 )
 {
-    struct dj_arg_buffer text   = D_ARG_BUFFER_INIT;
-    int                 status = d_arg_buffer_printf(
-                                     &text,
-                                     "%s\n",
-                                     d_arg_error_message(_error));
+    const bool          setting = ( (_error != NULL)                        &&
+                                    (_error->status == D_ARG_ERROR_SETTING) &&
+                                    (_error->message != NULL) );
+    struct dj_arg_buffer text    = D_ARG_BUFFER_INIT;
+    int                 status  = d_arg_buffer_printf(
+                                      &text,
+                                      "%s%s%s\n",
+                                      setting
+                                      ? d_arg_status_message(_error->status)
+                                      : "",
+                                      setting ? ": " : "",
+                                      d_arg_error_message(_error));
 
     (void)_context;
 
@@ -1152,6 +1163,27 @@ void d_arg_parser_set_abbreviations(
         _parser->flags = _enabled
                          ? (_parser->flags | D_ARG_PARSER_ABBREVIATIONS)
                          : (_parser->flags & ~D_ARG_PARSER_ABBREVIATIONS);
+    }
+
+    return;
+}
+
+/*
+d_arg_parser_set_setting_hook
+  The hook and its context; the arguments the last parse kept for a hook
+stay until the next parse, clear or release.
+*/
+void d_arg_parser_set_setting_hook(
+    struct dj_arg_parser* _parser,
+    dj_arg_setting_fn     _hook,
+    void*                 _ctx
+)
+{
+    // nothing to set without a parser
+    if (_parser != NULL)
+    {
+        _parser->setting_hook    = _hook;
+        _parser->setting_context = _ctx;
     }
 
     return;

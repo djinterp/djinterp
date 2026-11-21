@@ -25,7 +25,7 @@
 * path:      /inc/djinterp/cpp/modules/parse/cli/arg_parser/arg_parser.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.17
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 /*
@@ -361,6 +361,19 @@ public:
         bool _enabled = true
     ) D_NOEXCEPT;
     bool get_abbreviations() const D_NOEXCEPT;
+
+    // setting hook: the C function offered each long option the parse does
+    // not know -- so that a program takes its settings where the parser
+    // reads an option -- with its context; NULL for none, as at first. The
+    // reason the hook gave with the refusal that ended the last parse is
+    // get_setting_status(), 0 otherwise. See d_arg_parser_set_setting_hook.
+    DArgParser& setting_hook(
+        dj_arg_setting_fn _hook,
+        void*             _ctx = D_NULLPTR
+    ) D_NOEXCEPT;
+    dj_arg_setting_fn get_setting_hook() const D_NOEXCEPT;
+    void* get_setting_context() const D_NOEXCEPT;
+    int32_t get_setting_status() const D_NOEXCEPT;
 
 #if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
     // completion: the option that asks for a completion script -- `prog
@@ -879,6 +892,40 @@ inline
 bool DArgParser::get_abbreviations() const D_NOEXCEPT
 {
     return ((this->dj_arg_parser::flags & D_ARG_PARSER_ABBREVIATIONS) != 0u);
+}
+
+// DArgParser::setting_hook and kin
+//   d_arg_parser_set_setting_hook; the hook, its context and the reason of
+// the last refusal read back.
+inline
+DArgParser& DArgParser::setting_hook(
+    dj_arg_setting_fn _hook,
+    void*             _ctx
+) D_NOEXCEPT
+{
+    d_arg_parser_set_setting_hook(this,
+                                  _hook,
+                                  _ctx);
+
+    return *this;
+}
+
+inline
+dj_arg_setting_fn DArgParser::get_setting_hook() const D_NOEXCEPT
+{
+    return this->dj_arg_parser::setting_hook;
+}
+
+inline
+void* DArgParser::get_setting_context() const D_NOEXCEPT
+{
+    return this->dj_arg_parser::setting_context;
+}
+
+inline
+int32_t DArgParser::get_setting_status() const D_NOEXCEPT
+{
+    return this->dj_arg_parser::setting_status;
 }
 
 #if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)

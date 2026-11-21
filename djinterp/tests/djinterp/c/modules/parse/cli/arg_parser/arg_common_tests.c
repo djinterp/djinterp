@@ -112,7 +112,9 @@ static const struct dj_tests_arg_common_status_row STATUS_ROWS[] =
     { D_ARG_ERROR_UNSUPPORTED,            "Unsupported",
       127,                                "Unsupported" },
     { D_ARG_ERROR_TOO_DEEP,               "TooDeep",
-      127,                                "Too deep" }
+      127,                                "Too deep" },
+    { D_ARG_ERROR_SETTING,                "SettingError",
+      2,                                  "Setting refused" }
 };
 
 // STATUS_ROW_COUNT

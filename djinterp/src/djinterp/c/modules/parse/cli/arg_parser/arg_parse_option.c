@@ -1,8 +1,8 @@
 /*******************************************************************************
 * djinterp [c/parse]                                          arg_parse_option.c
 *
-* The option step of the parse, declared in arg_internal.h (8.1.7 and
-* 8.4.8).
+* The option step of the parse, declared in arg_internal.h (8.1.7, 8.1.9
+* and 8.4.8).
 *   CLI11's _parse_arg: an argument recognized as an option is split into
 * its name, its value and what follows a short name, and taken by the
 * command's option that answers to the name -- or one an option group, a
@@ -11,17 +11,21 @@
 * otherwise it is an unused argument, with what follows it as the extras
 * mode keeps that. Where the parser takes a unique prefix of a long name for
 * the name, an argument that is one is replaced by the name before the
-* search, or refused as ambiguous.
+* search, or refused as ambiguous. Before all of that, a long option the
+* search would not find is offered to the parser's setting hook, which may
+* take it and the arguments after it.
 *
 *
 * path:      /src/djinterp/c/modules/parse/cli/arg_parser/arg_parse_option.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.25
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 #include "./arg_internal.h"  // corresponding header
 // std
+#include <limits.h>  // INT_MAX
 #include <stddef.h>  // size_t, NULL
+#include <stdlib.h>  // malloc, free
 #include <string.h>  // memchr, memcmp, strlen
 // djinterp
 #include "../../../../../../../inc/djinterp/c/djinterp.h"  // framework root
@@ -1734,4 +1738,342 @@ int d_arg_internal_parse_arg(
     return d_arg_internal_parse_values(_command,
                                        option,
                                        &split);
+}
+
+//==============================================================================
+// 5.  THE SETTING HOOK
+//==============================================================================
+
+/**
+ * @brief Whether a command's search, kept to the command as CLI11's dot
+ *        notation keeps it, finds an option for a rebuilt argument.
+ *
+ * @param[in] _command  the command the dot notation named.
+ * @param[in] _name     what followed the dot.
+ * @return `true` when one of the command's options or its option groups'
+ *         answers to the name -- a long name for one of two characters or
+ *         more, a short name for one -- or a further dot names an option of
+ *         a subcommand of its; `false` otherwise.
+ *
+ * What d_arg_internal_parse_dotted_arg's local search would take: the name
+ * rebuilt as `--name` or `-n`, offered to the command's own options, its
+ * enabled option groups' in turn, and, a named command's, to the dot
+ * notation once more; never abbreviated, and never handed to a parent.
+ */
+D_STATIC
+bool d_arg_internal_parse_setting_local(
+    const struct dj_arg_command* _command,
+    struct dj_pack_text          _name
+)
+{
+    const int class_of = (_name.length > 1u)
+                         ? (int)D_ARG_CLASS_LONG
+                         : (int)D_ARG_CLASS_SHORT;
+    size_t    index    = 0u;
+
+    // the command's own
+    for (index = 0u; index < _command->options.count; ++index)
+    {
+        if (d_arg_internal_parse_answers(_command->options.items[index],
+                                         class_of,
+                                         _name))
+        {
+            return true;
+        }
+    }
+
+    // its option groups', each kept to itself
+    for (index = 0u; index < _command->subcommands.count; ++index)
+    {
+        if ( (d_arg_internal_parse_open_group(
+                  _command->subcommands.items[index])) &&
+             (d_arg_internal_parse_setting_local(
+                  _command->subcommands.items[index],
+                  _name)) )
+        {
+            return true;
+        }
+    }
+
+    // a group leaves the rest to its parent; a named command's dot notation
+    if ( (class_of != (int)D_ARG_CLASS_LONG) ||
+         (d_arg_command_name(_command)[0] == '\0') )
+    {
+        return false;
+    }
+
+    struct dj_pack_text                rest = _name;
+    const struct dj_arg_command* const sub  = d_arg_internal_parse_dotted_sub(
+                                                 _command,
+                                                 _name,
+                                                 &rest);
+
+    return ( (sub != NULL)                                   &&
+             (rest.length > 0u)                              &&
+             (d_arg_internal_valid_first_char(rest.data[0])) &&
+             (d_arg_internal_parse_setting_local(sub,
+                                                 rest)) );
+}
+
+/**
+ * @brief Whether the long option on top of the stack is one the setting hook
+ *        is offered.
+ *
+ * @param[in] _command  the command parsing it.
+ * @return `true` when no option the search reaches answers to its name, CLI11's
+ *         dot notation gives it to no subcommand's option, and the command the
+ *         search would end in is no prefix command that keeps it; `false`
+ *         otherwise.
+ *
+ * The option step's search, without its abbreviations and without taking
+ * anything: the command's own options, its option groups' and, as it falls
+ * through, its parents', by name (d_arg_internal_parse_reach); at the command
+ * and each parent it falls through to, the dot notation; and the command the
+ * search would end in, where a prefix command that stops at anything
+ * unrecognized keeps the argument and those after it.
+ */
+D_STATIC
+bool d_arg_internal_parse_setting_unknown(
+    const struct dj_arg_command* _command
+)
+{
+    struct dj_pack_text                 name   = { NULL, 0u };
+    struct dj_pack_text                 value  = { NULL, 0u };
+    struct dj_arg_internal_parse_prefix prefix = { { NULL, 0u },
+                                                  true,
+                                                  NULL,
+                                                  false,
+                                                  D_ARG_OK };
+
+    // `--name`, as recognizing found it
+    if (!d_arg_internal_parse_split_long(d_arg_internal_parse_back(_command),
+                                         &name,
+                                         &value))
+    {
+        return false;
+    }
+
+    prefix.name = name;
+
+    // an option's name, wherever the search reaches
+    if (!d_arg_internal_parse_reach(_command,
+                                    d_arg_internal_parse_whole,
+                                    &prefix))
+    {
+        return false;
+    }
+
+    const struct dj_arg_command* at = _command;
+
+    // the command, then each parent it falls through to
+    for (;;)
+    {
+        struct dj_pack_text                rest = name;
+        const struct dj_arg_command* const sub  =
+            d_arg_internal_parse_dotted_sub(at,
+                                            name,
+                                            &rest);
+
+        // a subcommand's option, by the dot notation
+        if ( (sub != NULL)                                   &&
+             (rest.length > 0u)                              &&
+             (d_arg_internal_valid_first_char(rest.data[0])) &&
+             (d_arg_internal_parse_setting_local(sub,
+                                                 rest)) )
+        {
+            return false;
+        }
+
+        // where the search ends
+        if ( (at->parent == NULL)                         ||
+             (!d_arg_command_has_flag(at,
+                                      D_ARG_COMMAND_FALLTHROUGH)) )
+        {
+            break;
+        }
+
+        at = d_arg_internal_fallthrough_parent(at);
+    }
+
+    return (at->prefix_command != (int)D_ARG_PREFIX_ON);
+}
+
+/**
+ * @brief Calls the setting hook with the parser's arguments.
+ *
+ * @param[in,out] _command  the command parsing the offered option.
+ * @param[out]    _count    receives what the hook returned.
+ * @param[out]    _taken    receives how many arguments it took: the further
+ *                          of its count and where it left `*_at`; 0 when it
+ *                          took none.
+ * @return D_ARG_OK; or, recorded, D_ARG_ERROR_OUT_OF_MEMORY, or
+ *         D_ARG_ERROR_HORRIBLE for more arguments than an int counts.
+ *
+ * The arguments as the hook sees them: those the parse began with, up to the
+ * offered one -- the program's name first -- then the stack from its top
+ * down, the offered one first, then NULL. The stack is a tail of the
+ * arguments the parse began with whenever a long option is on top, so the
+ * offered one sits where it was given; were it not, it would sit after
+ * those before it all the same.
+ */
+D_STATIC
+int d_arg_internal_parse_setting_call(
+    struct dj_arg_command* _command,
+    int*                   _count,
+    size_t*                _taken
+)
+{
+    struct dj_arg_parser* const          parser = _command->parser;
+    const struct dj_arg_text_list* const begun  = &parser->setting_args;
+    const struct dj_arg_text_list* const left   = &parser->pending;
+    const size_t                         at     = (begun->count > left->count)
+                                                  ? begun->count - left->count
+                                                  : 1u;
+    const size_t                         count  = at + left->count;
+
+    *_count = 0;
+    *_taken = 0u;
+
+    // as many as an int counts, each with its place
+    if (count >= (size_t)INT_MAX)
+    {
+        return d_arg_internal_fail(_command,
+                                   NULL,
+                                   D_ARG_ERROR_HORRIBLE,
+                                   "Too many arguments for the setting hook: "
+                                   "%lu",
+                                   (unsigned long)count);
+    }
+
+    char** const view = (char**)malloc((count + 1u) * sizeof(char*));
+
+    if (!view)
+    {
+        return d_arg_internal_fail(_command,
+                                   NULL,
+                                   D_ARG_ERROR_OUT_OF_MEMORY,
+                                   NULL);
+    }
+
+    // the strings are the parser's, given as getopt's caller sees them
+    view[0] = (char*)( (begun->count > 0u)
+                       ? begun->items[0].data
+                       : (parser->program != NULL)
+                       ? parser->program
+                       : "" );
+
+    for (size_t index = 1u; index < at; ++index)
+    {
+        view[index] = (char*)begun->items[index].data;
+    }
+
+    for (size_t index = 0u; index < left->count; ++index)
+    {
+        view[at + index] = (char*)left->items[left->count - 1u - index].data;
+    }
+
+    view[count] = NULL;
+
+    int     where  = (int)at;
+    int32_t reason = 0;
+
+    *_count = parser->setting_hook(parser->setting_context,
+                                   (int)count,
+                                   view,
+                                   &where,
+                                   &reason);
+    free(view);
+
+    // a refusal's reason, kept for the program
+    if (*_count < 0)
+    {
+        parser->setting_status = reason;
+
+        return D_ARG_OK;
+    }
+
+    // what it took, counted or pointed at
+    if (*_count > 0)
+    {
+        *_taken = (size_t)(*_count);
+
+        if ( (where > (int)at) &&
+             ((size_t)(where - (int)at) + 1u > *_taken) )
+        {
+            *_taken = (size_t)(where - (int)at) + 1u;
+        }
+    }
+
+    return D_ARG_OK;
+}
+
+/*
+d_arg_internal_parse_setting
+  The setting hook's offer, where a hook is set and the long option on top
+of the stack is one it is offered: the arguments it took off the stack; a
+refusal the parse's failure, naming the argument as typed; more taken than
+there are, CLI11's HorribleError.
+*/
+int d_arg_internal_parse_setting(
+    struct dj_arg_command* _command,
+    bool*                  _taken
+)
+{
+    struct dj_arg_parser* const parser = _command->parser;
+    int                        count  = 0;
+    size_t                     taken  = 0u;
+
+    *_taken = false;
+
+    // no hook, or not the hook's to see
+    if ( (parser->setting_hook == NULL) ||
+         (!d_arg_internal_parse_setting_unknown(_command)) )
+    {
+        return D_ARG_OK;
+    }
+
+    const struct dj_pack_text offered = d_arg_internal_parse_back(_command);
+    const int                 status  = d_arg_internal_parse_setting_call(
+                                            _command,
+                                            &count,
+                                            &taken);
+
+    if (status != D_ARG_OK)
+    {
+        return status;
+    }
+
+    // refused: the argument as typed
+    if (count < 0)
+    {
+        return d_arg_internal_fail(_command,
+                                   NULL,
+                                   D_ARG_ERROR_SETTING,
+                                   "%.*s",
+                                   d_arg_internal_print_length(offered),
+                                   offered.data);
+    }
+
+    // more than there is
+    if (taken > d_arg_internal_parse_left(_command))
+    {
+        return d_arg_internal_fail(_command,
+                                   NULL,
+                                   D_ARG_ERROR_HORRIBLE,
+                                   "The setting hook took more arguments than "
+                                   "were left: %lu of %lu",
+                                   (unsigned long)taken,
+                                   (unsigned long)d_arg_internal_parse_left(
+                                       _command));
+    }
+
+    // taken off, the parse going on after them
+    for (size_t index = 0u; index < taken; ++index)
+    {
+        d_arg_internal_parse_pop(_command);
+    }
+
+    *_taken = (taken > 0u);
+
+    return D_ARG_OK;
 }

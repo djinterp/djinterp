@@ -56,14 +56,14 @@ const char EXIT_CODES[] =
     "validation_error=105 required_error=106 requires_error=107 "
     "excludes_error=108 extras_error=109 config_error=110 invalid_error=111 "
     "horrible_error=112 option_not_found=113 argument_mismatch=114 "
-    "base_class=127\n";
+    "setting_error=2 base_class=127\n";
 
 // VOCABULARY
 //   constant: what the steps of d_tests_arg_cpp_common_vocabulary write: the
 // module's own, as CLI11's enumerations are enum classes of values of their
 // own, where each of the face's is the C library's.
 const char VOCABULARY[] =
-    "94 enumerators, 0 not their C values\n";
+    "96 enumerators, 0 not their C values\n";
 
 // STATUSES
 //   constant: what the steps of d_tests_arg_cpp_common_statuses write: the
@@ -96,8 +96,9 @@ const char STATUSES[] =
     "BadArgument: code=24 exit=127 ok=0 error=1\n"
     "Unsupported: code=25 exit=127 ok=0 error=1\n"
     "TooDeep: code=26 exit=127 ok=0 error=1\n"
+    "SettingError: code=27 exit=2 ok=0 error=1\n"
     "Error: code=-1 exit=127 ok=0 error=1\n"
-    "Error: code=27 exit=127 ok=0 error=1\n"
+    "Error: code=28 exit=127 ok=0 error=1\n"
     "made=OK coded==raw=1 coded!=made=1 coded==code=1 code==coded=1 "
     "code!=made=1 made==ok=1\n";
 
@@ -234,6 +235,7 @@ void exit_codes_each(
          << " horrible_error=" << cli::exit_code::horrible_error
          << " option_not_found=" << cli::exit_code::option_not_found
          << " argument_mismatch=" << cli::exit_code::argument_mismatch
+         << " setting_error=" << cli::exit_code::setting_error
          << " base_class=" << cli::exit_code::base_class;
     _run.note(line.str());
 
@@ -336,6 +338,8 @@ const DVocabularyRow VOCABULARY_ROWS[] =
       cli::status_code::unsupported, D_ARG_ERROR_UNSUPPORTED },
     { "status_code::too_deep",
       cli::status_code::too_deep, D_ARG_ERROR_TOO_DEEP },
+    { "status_code::setting_error",
+      cli::status_code::setting_error, D_ARG_ERROR_SETTING },
     { "exit_code::success", cli::exit_code::success, D_ARG_EXIT_SUCCESS },
     { "exit_code::incorrect_construction",
       cli::exit_code::incorrect_construction,
@@ -369,6 +373,8 @@ const DVocabularyRow VOCABULARY_ROWS[] =
       cli::exit_code::option_not_found, D_ARG_EXIT_OPTION_NOT_FOUND },
     { "exit_code::argument_mismatch",
       cli::exit_code::argument_mismatch, D_ARG_EXIT_ARGUMENT_MISMATCH },
+    { "exit_code::setting_error",
+      cli::exit_code::setting_error, D_ARG_EXIT_SETTING_ERROR },
     { "exit_code::base_class",
       cli::exit_code::base_class, D_ARG_EXIT_BASE_CLASS },
     { "multi_option_policy::throw_error",

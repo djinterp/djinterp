@@ -25,7 +25,7 @@
 * path:      /tests/djinterp/cpp/modules/parse/cli/arg_parser/arg_parser_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.19
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_CLI_ARG_PARSER_ARG_PARSER_TESTS_HPP
@@ -69,6 +69,7 @@ bool d_tests_arg_cpp_parser_suggestions();
 #endif
 bool d_tests_arg_cpp_parser_empty_values();
 bool d_tests_arg_cpp_parser_abbreviations();
+bool d_tests_arg_cpp_parser_setting_hook();
 #if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
 bool d_tests_arg_cpp_parser_completion_flag();
 #endif

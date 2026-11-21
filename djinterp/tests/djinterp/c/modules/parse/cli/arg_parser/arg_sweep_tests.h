@@ -20,7 +20,7 @@
 * path:      /tests/djinterp/c/modules/parse/cli/arg_parser/arg_sweep_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.20
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 #ifndef DJINTERP_PARSE_CLI_ARG_PARSER_C_ARG_SWEEP_TESTS_H
@@ -39,6 +39,7 @@ bool d_tests_arg_sweep_flags(void);
 bool d_tests_arg_sweep_commands(void);
 bool d_tests_arg_sweep_validators(void);
 bool d_tests_arg_sweep_text(void);
+bool d_tests_arg_sweep_settings(void);
 
 // the suite's sections, in the order they run
 extern const struct dj_tests_section d_tests_arg_sweep[];

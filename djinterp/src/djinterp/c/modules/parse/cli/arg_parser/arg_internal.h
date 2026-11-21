@@ -21,7 +21,7 @@
 * path:      /src/djinterp/c/modules/parse/cli/arg_parser/arg_internal.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.10
-*                                                            revised: 2026.10.21
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 /*
@@ -149,6 +149,7 @@ TABLE OF CONTENTS
          6.  d_arg_internal_trigger_pre_parse
          7.  d_arg_internal_parse_positional / d_arg_internal_parse_arg
          8.  d_arg_internal_parse_begin and kin
+         9.  d_arg_internal_parse_setting
     2.  Processing
          1.  d_arg_internal_process / d_arg_internal_process_extras
          2.  d_arg_internal_run_callback
@@ -1878,8 +1879,9 @@ int d_arg_internal_validator_replace(
 // 8.1.1
 // d_arg_internal_parse_run
 //   parse: what CLI11's parse(vector&&) does once the parser is cleared: the
-// checks, the configuration of the tree, the parse of `pending` by the
-// root, the processing and the callbacks. Defined in arg_parse.c.
+// arguments kept for a setting hook, the checks, the configuration of the
+// tree, the parse of `pending` by the root, the processing and the
+// callbacks. Defined in arg_parse.c.
 int d_arg_internal_parse_run(
     struct dj_arg_parser* _parser
 );
@@ -1992,8 +1994,9 @@ int d_arg_internal_parse_begin(
 );
 /**
  * @brief Starts a call that parses without clearing the root, as CLI11's
- *        parse_from_stream adds to a parse: the last call's error and
- *        stacked arguments forgotten -- its storage, which values may borrow
+ *        parse_from_stream adds to a parse: the last call's error, the
+ *        setting hook's reason for it, and the arguments stacked and kept
+ *        for the hook forgotten -- its storage, which values may borrow
  *        from, kept -- and a definition error reported as this call's.
  *        Defined in arg_parse.c.
  *
@@ -2034,6 +2037,27 @@ int d_arg_internal_parse_words(
     struct dj_arg_parser*          _parser,
     const struct dj_arg_text_list* _words,
     size_t                         _first
+);
+
+// 8.1.9
+// d_arg_internal_parse_setting
+/**
+ * @brief Offers the long option on top of the stack to the parser's setting
+ *        hook (d_arg_parser_set_setting_hook). Defined in
+ *        arg_parse_option.c.
+ *
+ * @param[in,out] _command  the command parsing it.
+ * @param[out]    _taken    receives whether the hook took it, and the
+ *                          arguments it took are off the stack.
+ * @return D_ARG_OK -- the hook set, the option no option's the search
+ *         reaches nor one a prefix command keeps, and offered; or not
+ *         offered -- or, recorded, D_ARG_ERROR_SETTING for a refusal,
+ *         D_ARG_ERROR_HORRIBLE for a hook that took more than there is, or
+ *         D_ARG_ERROR_OUT_OF_MEMORY.
+ */
+int d_arg_internal_parse_setting(
+    struct dj_arg_command* _command,
+    bool*                  _taken
 );
 
 // 8.2    Processing

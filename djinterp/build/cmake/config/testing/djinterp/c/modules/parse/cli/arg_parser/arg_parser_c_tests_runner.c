@@ -14,7 +14,7 @@
 * path:      /build/cmake/config/testing/djinterp/c/modules/parse/cli/arg_parser/arg_parser_c_tests_runner.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-*                                                            revised: 2026.10.17
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 // std
 #include <stdbool.h>  // bool
@@ -31,6 +31,7 @@
 #include "../../../../../../../../../../tests/djinterp/c/modules/parse/cli/arg_parser/arg_parse_tests.h"  // the parse
 #include "../../../../../../../../../../tests/djinterp/c/modules/parse/cli/arg_parser/arg_parser_tests.h"  // the parser itself
 #include "../../../../../../../../../../tests/djinterp/c/modules/parse/cli/arg_parser/arg_process_tests.h"  // its processing
+#include "../../../../../../../../../../tests/djinterp/c/modules/parse/cli/arg_parser/arg_setting_tests.h"  // the setting hook
 #include "../../../../../../../../../../tests/djinterp/c/modules/parse/cli/arg_parser/arg_smoke_tests.h"  // the C API end to end
 #include "../../../../../../../../../../tests/djinterp/c/modules/parse/cli/arg_parser/arg_suggest_tests.h"  // suggestions
 #include "../../../../../../../../../../tests/djinterp/c/modules/parse/cli/arg_parser/arg_type_tests.h"  // value types
@@ -76,6 +77,7 @@ static const struct dj_tests_arg_c_suite SUITES[] =
     { d_tests_arg_text,       &d_tests_arg_text_count       },
     { d_tests_arg_parser,     &d_tests_arg_parser_count     },
     { d_tests_arg_suggest,    &d_tests_arg_suggest_count    },
+    { d_tests_arg_setting,    &d_tests_arg_setting_count    },
 #if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
     { d_tests_arg_completion, &d_tests_arg_completion_count },
 #endif

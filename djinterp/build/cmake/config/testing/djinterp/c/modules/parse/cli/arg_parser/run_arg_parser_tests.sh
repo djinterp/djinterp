@@ -59,13 +59,13 @@
 # path:      /build/cmake/config/testing/djinterp/c/modules/parse/cli/arg_parser/run_arg_parser_tests.sh
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.13
-#                                                            revised: 2026.10.23
+#                                                            revised: 2026.11.20
 #*******************************************************************************
 set -uo pipefail
 export LC_ALL=C
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="$(cd "${HERE}/../../../../../../../.." && pwd)"
+ROOT="$(cd "${HERE}/../../../../../../../../../.." && pwd)"
 CC="${CC:-gcc}"
 CXX="${CXX:-g++}"
 AR="${AR:-ar}"
@@ -143,9 +143,9 @@ esac
 # source, which is what the fixed-width integer header declares
 C_SOURCES=( "${ROOT}"/src/djinterp/c/modules/parse/cli/arg_parser/*.c
             "${ROOT}/src/djinterp/c/util/sink_common.c"
-            "${ROOT}/src/djinterp/c/re_std/dstdint.c" )
+            "${ROOT}/src/re_std/c/cstdint/dstdint.c" )
 
-SUITES_DIR="${ROOT}/tests/djinterp/parse/cli/arg_parser/c"
+SUITES_DIR="${ROOT}/tests/djinterp/c/modules/parse/cli/arg_parser"
 C_SUITES=( "${SUITES_DIR}/arg_tests_support.c"
            "${SUITES_DIR}/arg_tests_files.c"
            "${SUITES_DIR}/arg_common_tests.c"
@@ -164,13 +164,14 @@ C_SUITES=( "${SUITES_DIR}/arg_tests_support.c"
            "${SUITES_DIR}/arg_argv_tests.c"
            "${SUITES_DIR}/arg_parser_tests.c"
            "${SUITES_DIR}/arg_suggest_tests.c"
+           "${SUITES_DIR}/arg_setting_tests.c"
            "${SUITES_DIR}/arg_completion_tests.c"
            "${SUITES_DIR}/arg_smoke_tests.c"
            "${HERE}/arg_parser_c_tests_runner.c" )
 
 # the C++ suites; the scratch directories their cases make files in are C,
 # compiled with the library
-CXX_DIR="${ROOT}/tests/djinterp/parse/cli/arg_parser"
+CXX_DIR="${ROOT}/tests/djinterp/cpp/modules/parse/cli/arg_parser"
 CXX_SUITES=( "${CXX_DIR}/arg_tests_support.cpp"
              "${CXX_DIR}/arg_common_tests.cpp"
              "${CXX_DIR}/arg_type_tests.cpp"
@@ -231,10 +232,11 @@ std_flag()
 
 # expected <build>
 #   Prints the section count expected_sections.txt gives a build -- a level,
-# and `-noexc` after a C++ one without exceptions -- or nothing.
+# and `-noexc` after a C++ one without exceptions -- or nothing. A line's
+# carriage return is dropped, so that a CRLF checkout reads alike.
 expected()
 {
-    awk -v level="$1" '$1 == level { print $2 }' \
+    awk -v level="$1" '{ sub(/\r$/, "") } $1 == level { print $2 }' \
         "${HERE}/expected_sections.txt"
 }
 
@@ -281,7 +283,7 @@ build_library()
         mkdir -p "${out}/cxx"
 
         if ! "${CC}" ${floor} "${COMMON[@]}" "$@" \
-                -c "${CXX_DIR}/c/arg_tests_files.c" \
+                -c "${SUITES_DIR}/arg_tests_files.c" \
                 -o "${out}/cxx/arg_tests_files.o" 2>>"${out}/log"; then
             details="$(grep -m 5 'error' "${out}/log" | sed 's/^/      /')"$'\n'
             return 1

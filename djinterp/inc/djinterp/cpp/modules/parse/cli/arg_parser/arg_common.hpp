@@ -183,7 +183,8 @@ struct status_code
         out_of_memory          = D_ARG_ERROR_OUT_OF_MEMORY,
         bad_argument           = D_ARG_ERROR_BAD_ARGUMENT,
         unsupported            = D_ARG_ERROR_UNSUPPORTED,
-        too_deep               = D_ARG_ERROR_TOO_DEEP
+        too_deep               = D_ARG_ERROR_TOO_DEEP,
+        setting_error          = D_ARG_ERROR_SETTING
     };
 };
 
@@ -210,6 +211,7 @@ struct exit_code
         horrible_error         = D_ARG_EXIT_HORRIBLE_ERROR,
         option_not_found       = D_ARG_EXIT_OPTION_NOT_FOUND,
         argument_mismatch      = D_ARG_EXIT_ARGUMENT_MISMATCH,
+        setting_error          = D_ARG_EXIT_SETTING_ERROR,
         base_class             = D_ARG_EXIT_BASE_CLASS
     };
 };

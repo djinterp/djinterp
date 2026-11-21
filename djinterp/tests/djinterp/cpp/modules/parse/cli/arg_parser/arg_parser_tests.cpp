@@ -19,7 +19,7 @@
 * path:      /tests/djinterp/cpp/modules/parse/cli/arg_parser/arg_parser_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.19
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 #include "./arg_parser_tests.hpp"  // corresponding header
 // std
@@ -385,6 +385,26 @@ const char ABBREVIATIONS[] =
     "cmd app n=1 miss=[] subs=[] order=[]\n"
     "opt verbose n=0 res=[]\n"
     "opt version n=0 res=[]\n";
+
+// SETTING_HOOK
+//   constant: what the steps of d_tests_arg_cpp_parser_setting_hook write:
+// the module's own, as CLI11 has no setting hook.
+const char SETTING_HOOK[] =
+    "none: 1\n"
+    "set: 1 context=1\n"
+    "hook 1 of 3 [--cli.x=1] -> 1\n"
+    "cmd app n=1 miss=[] subs=[] order=[--verbose]\n"
+    "opt verbose n=1 res=[true]\n"
+    "hook 2 of 3 [--cli.bad=2] -> -1\n"
+    "ERR SettingError 2: --cli.bad=2\n"
+    "cmd app n=1 miss=[] subs=[] order=[--verbose]\n"
+    "opt verbose n=1 res=[true]\n"
+    "reason=7\n"
+    "removed: 1 context=1\n"
+    "ERR ExtrasError 109: prog: The following argument was not expected: "
+    "--cli.x=1\n"
+    "cmd app n=1 miss=[--cli.x=1] subs=[] order=[--verbose]\n"
+    "opt verbose n=1 res=[true]\n";
 
 #if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
 
@@ -1427,6 +1447,102 @@ const step_fn ABBREVIATIONS_STEPS[] =
 const std::size_t ABBREVIATIONS_COUNT =
     sizeof(ABBREVIATIONS_STEPS) / sizeof(ABBREVIATIONS_STEPS[0]);
 
+/**
+ * @brief The setting hook the steps set: a C++ function of the C hook's
+ *        type, which takes `--cli.NAME=VALUE`, refuses `--cli.bad=...`
+ *        with reason 7, and leaves anything else; each call written.
+ *
+ * @param[in]     _ctx     the run.
+ * @param[in]     _argc    the parser's argument count.
+ * @param[in]     _argv    the parser's arguments.
+ * @param[in,out] _at      the offered argument's index.
+ * @param[out]    _status  the reason for a refusal.
+ * @return 1, 0 or -1.
+ */
+int setting_hook_kit(
+    void*        _ctx,
+    int          _argc,
+    char* const* _argv,
+    int*         _at,
+    int32_t*     _status
+)
+{
+    run&              given    = *static_cast<run*>(_ctx);
+    const std::string argument = _argv[*_at];
+    int               result   = 0;
+
+    // a refused setting, a taken one, or not the hook's
+    if (argument.compare(0u, 10u, "--cli.bad=") == 0)
+    {
+        *_status = 7;
+        result   = -1;
+    }
+    else if (argument.compare(0u, 6u, "--cli.") == 0)
+    {
+        result = 1;
+    }
+
+    given.note("hook " + number(static_cast<long>(*_at)) + " of " +
+               number(static_cast<long>(_argc)) + " [" + argument +
+               "] -> " + number(static_cast<long>(result)));
+
+    return result;
+}
+
+/**
+ * @brief SETTING_HOOK 1: none at first; set, with its context read back; a
+ *        setting taken and a refusal, its reason read back; removed.
+ *
+ * @param[in,out] _run  the step's run.
+ */
+void setting_hook_given(
+    run& _run
+)
+{
+    static const char* const TAKEN[]   = { "--cli.x=1", "--verbose" };
+    static const char* const REFUSED[] = { "--verbose", "--cli.bad=2" };
+
+    (void)_run.watch("verbose",
+                     _run.app().add_flag("--verbose"));
+    _run.note(std::string("none: ") +
+              ((_run.app().get_setting_hook() == D_NULLPTR) ? "1" : "0"));
+    _run.app().setting_hook(&setting_hook_kit,
+                            &_run);
+    _run.note(std::string("set: ") +
+              ((_run.app().get_setting_hook() == &setting_hook_kit)
+               ? "1"
+               : "0") +
+              " context=" +
+              ((_run.app().get_setting_context() == &_run) ? "1" : "0"));
+    _run.parse(TAKEN,
+               2u);
+    _run.parse(REFUSED,
+               2u);
+    _run.note("reason=" +
+              number(static_cast<long>(_run.app().get_setting_status())));
+    _run.app().setting_hook(D_NULLPTR);
+    _run.note(std::string("removed: ") +
+              ((_run.app().get_setting_hook() == D_NULLPTR) ? "1" : "0") +
+              " context=" +
+              ((_run.app().get_setting_context() == D_NULLPTR) ? "1" : "0"));
+    _run.parse(TAKEN,
+               2u);
+
+    return;
+}
+
+// SETTING_HOOK_STEPS
+//   constant: the steps of d_tests_arg_cpp_parser_setting_hook.
+const step_fn SETTING_HOOK_STEPS[] =
+{
+    &setting_hook_given
+};
+
+// SETTING_HOOK_COUNT
+//   constant: how many steps SETTING_HOOK_STEPS holds.
+const std::size_t SETTING_HOOK_COUNT =
+    sizeof(SETTING_HOOK_STEPS) / sizeof(SETTING_HOOK_STEPS[0]);
+
 #if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
 
 /**
@@ -2004,6 +2120,24 @@ bool d_tests_arg_cpp_parser_abbreviations()
                       ABBREVIATIONS);
 }
 
+/*
+d_tests_arg_cpp_parser_setting_hook
+  The setting hook, which CLI11 has not, through the face.
+  Tests the following:
+  - none at first; a C++ function of the C hook's type set, with its
+    context, both read back
+  - a setting taken, the parse going on after it; a refusal, its status and
+    its reason read back
+  - removed: the hook and its context gone, the setting no option's
+*/
+bool d_tests_arg_cpp_parser_setting_hook()
+{
+    return steps_hold("SETTING_HOOK",
+                      SETTING_HOOK_STEPS,
+                      SETTING_HOOK_COUNT,
+                      SETTING_HOOK);
+}
+
 #if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
 
 /*
@@ -2134,6 +2268,8 @@ const dj_tests_section d_tests_arg_cpp_parser[] =
       d_tests_arg_cpp_parser_empty_values },
     { "cpp_parser_abbreviations",
       d_tests_arg_cpp_parser_abbreviations },
+    { "cpp_parser_setting_hook",
+      d_tests_arg_cpp_parser_setting_hook },
 #if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
     { "cpp_parser_completion_flag",
       d_tests_arg_cpp_parser_completion_flag },

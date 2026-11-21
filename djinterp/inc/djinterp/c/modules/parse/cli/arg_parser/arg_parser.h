@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/c/modules/parse/cli/arg_parser/arg_parser.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.11
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 /*
@@ -85,6 +85,8 @@ TABLE OF CONTENTS
          2.  d_arg_parser_set_suggestions
          3.  d_arg_parser_set_empty_values
          4.  d_arg_parser_set_abbreviations
+    3.  Hooks
+         1.  d_arg_parser_set_setting_hook
 7.  ERRORS
     ------
     1.  The last parse
@@ -194,7 +196,12 @@ TABLE OF CONTENTS
 // `utf8_argv` the arguments d_arg_parser_ensure_utf8 recovered,
 // NULL-terminated. `completion` is the option that asks for a completion
 // script, if any; `response_quoting` a dj_arg_quoting value; `flags` the
-// D_ARG_PARSER_* switches.
+// D_ARG_PARSER_* switches. `setting_hook` is the hook offered the long
+// options the parse does not know, NULL for none, and `setting_context` its
+// context; `setting_args` the arguments the last parse began with, response
+// files expanded, the program's name first -- kept only while a hook is
+// set, for the hook to read; `setting_status` the reason the hook gave with
+// the refusal that ended the last parse, 0 otherwise.
 //   Public-payload layout: read any field; change one only through the calls
 // below.
 struct dj_arg_parser
@@ -213,6 +220,10 @@ struct dj_arg_parser
     struct dj_arg_option*       completion;
     int                        response_quoting;
     uint32_t                   flags;
+    dj_arg_setting_fn           setting_hook;
+    void*                      setting_context;
+    struct dj_arg_text_list     setting_args;
+    int32_t                    setting_status;
 };
 
 
@@ -693,7 +704,9 @@ bool d_arg_parser_parse_or_exit(
 // d_arg_failure_simple
 //   failure message: CLI11's FailureMessage::simple, the default: the error's
 // message and a newline, then "Run with <help> for more information." when
-// the command has a help flag -- "<help> or <help-all>" when it has both.
+// the command has a help flag -- "<help> or <help-all>" when it has both. A
+// setting the hook refused (D_ARG_ERROR_SETTING), whose message is the
+// argument alone, reads "Setting refused: <argument>".
 int d_arg_failure_simple(
     const struct dj_arg_command* _command,
     const struct dj_arg_error*   _error,
@@ -878,6 +891,56 @@ void d_arg_parser_set_empty_values(
 void d_arg_parser_set_abbreviations(
     struct dj_arg_parser* _parser,
     bool                  _enabled
+);
+
+// 6.3    Hooks
+//------------------------------------------------------------------------------
+// 6.3.1
+// d_arg_parser_set_setting_hook
+/**
+ * @brief Offers each long option the parse does not know to a hook, so that
+ *        a program can take settings -- `--name.key=value`, `--set
+ *        NAME=VALUE` -- where the parser reads an option, by the parser's
+ *        own rules.
+ *
+ * @note An argument is offered where the parse reads it as a long option
+ *       (`--name` or `--name=value`) that no option the search for it
+ *       reaches has by name -- the command's own, its option groups', and,
+ *       as it falls through, its parents', each by its own name rules --
+ *       and that CLI11's dot notation gives no subcommand's option. It is
+ *       offered before abbreviations (d_arg_parser_set_abbreviations), so a
+ *       prefix of another option's name is offered first, and before an
+ *       argument nothing takes is reported, kept, or suggested for. Those
+ *       steps follow as before when the hook returns 0.
+ * @note It is never offered an argument the parse reads as a positional --
+ *       anything after the `--` that ends a command's options -- nor a
+ *       value an option takes, nor one a prefix command keeps: where the
+ *       search for it would end -- in the command, or in the parent it falls
+ *       through to -- in a command that stops at anything unrecognized
+ *       (D_ARG_PREFIX_ON), the argument and those after it stay that
+ *       command's. A `--` that ends a subcommand whose positionals are full
+ *       is, as in CLI11, that subcommand's end, and the parent goes on
+ *       reading options after it.
+ * @note One hook serves the whole parse, every subcommand included. The
+ *       arguments it sees are the parser's, an `\@file`'s words in its
+ *       place as if typed (d_arg_parser_set_response_files); it is told no
+ *       more of where they came from.
+ * @note The arguments it takes are taken off the parse, which goes on after
+ *       them. A refusal ends the parse with D_ARG_ERROR_SETTING (exit code
+ *       2), the offered argument as typed as the error's message and the
+ *       hook's reason as `setting_status`; d_arg_failure_simple writes
+ *       "Setting refused: " before it. A hook that takes more arguments than
+ *       there are ends it with D_ARG_ERROR_HORRIBLE.
+ *
+ * @param[in,out] _parser  the parser.
+ * @param[in]     _hook    the hook; NULL for none, as at first.
+ * @param[in]     _ctx     the hook's context, given it first at each call;
+ *                         the parser neither reads nor frees it.
+ */
+void d_arg_parser_set_setting_hook(
+    struct dj_arg_parser* _parser,
+    dj_arg_setting_fn     _hook,
+    void*                 _ctx
 );
 
 
