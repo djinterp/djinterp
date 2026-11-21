@@ -18,7 +18,7 @@
 * path:      /inc/djinterp/env/env_arch.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 /*
@@ -40,6 +40,7 @@ TABLE OF CONTENTS
               10. D_ENV_ARCH_TYPE_IA64
               11. D_ENV_ARCH_TYPE_ALPHA
               12. D_ENV_ARCH_TYPE_UNKNOWN
+              13. D_ENV_ARCH_TYPE_WASM
     2.  Endianness
          1.  Endianness identifiers
               1.  D_ENV_ARCH_ENDIAN_UNKNOWN
@@ -60,7 +61,8 @@ TABLE OF CONTENTS
               9.  IBM System/390
               10. Itanium (IA-64)
               11. Alpha
-              12. Unknown architecture
+              12. WebAssembly
+              13. Unknown architecture
     2.  Predefined detection
          1.  D_ENV_DETECTED_ARCH_* overrides
               1.  x86-64
@@ -74,7 +76,8 @@ TABLE OF CONTENTS
               9.  IBM System/390
               10. Itanium (IA-64)
               11. Alpha
-              12. Unknown architecture
+              12. WebAssembly
+              13. Unknown architecture
     3.  Pointer width
          1.  D_INTERNAL_ENV_ARCH_STATED_POINTER_BITS
          2.  D_ENV_ARCH_POINTER_BITS
@@ -169,6 +172,12 @@ TABLE OF CONTENTS
 // D_ENV_ARCH_TYPE_UNKNOWN
 //   constant: architecture type identifier for an unknown architecture.
 #define D_ENV_ARCH_TYPE_UNKNOWN 11
+
+// D_ENV_ARCH_TYPE_WASM
+//   constant: architecture type identifier for WebAssembly, 32-bit or 64-bit
+// (D_ENV_ARCH_WASM32, D_ENV_ARCH_WASM64). It follows UNKNOWN, which keeps
+// its value.
+#define D_ENV_ARCH_TYPE_WASM    12
 
 // 1.2    Endianness
 //------------------------------------------------------------------------------
@@ -572,6 +581,45 @@ TABLE OF CONTENTS
         #define D_ENV_ARCH_ENDIAN D_ENV_ARCH_ENDIAN_LITTLE
 
     // 2.1.1.12
+    // WebAssembly
+    #elif ( (defined(__wasm32__)) ||                                           \
+            (defined(__wasm64__)) )
+        #if defined(__wasm64__)
+            // D_ENV_ARCH_WASM64
+            //   macro: indicates a 64-bit WebAssembly target (memory64).
+            #define D_ENV_ARCH_WASM64 1
+
+            // D_ENV_ARCH_NAME
+            //   constant: human-readable name of the detected architecture.
+            #define D_ENV_ARCH_NAME   "WebAssembly 64"
+
+            // D_ENV_ARCH_BITS
+            //   constant: native architecture width in bits.
+            #define D_ENV_ARCH_BITS   64
+        #else
+            // D_ENV_ARCH_WASM32
+            //   macro: indicates a 32-bit WebAssembly target.
+            #define D_ENV_ARCH_WASM32 1
+
+            // D_ENV_ARCH_NAME
+            //   constant: human-readable name of the detected architecture.
+            #define D_ENV_ARCH_NAME   "WebAssembly 32"
+
+            // D_ENV_ARCH_BITS
+            //   constant: native architecture width in bits.
+            #define D_ENV_ARCH_BITS   32
+        #endif
+
+        // D_ENV_ARCH_TYPE
+        //   constant: architecture type identifier for the detected target.
+        #define D_ENV_ARCH_TYPE   D_ENV_ARCH_TYPE_WASM
+
+        // D_ENV_ARCH_ENDIAN
+        //   constant: byte-order identifier for the detected architecture.
+        // WebAssembly's memory is always little-endian.
+        #define D_ENV_ARCH_ENDIAN D_ENV_ARCH_ENDIAN_LITTLE
+
+    // 2.1.1.13
     // Unknown architecture
     #else
         // D_ENV_ARCH_UNKNOWN
@@ -857,6 +905,50 @@ TABLE OF CONTENTS
         #define D_ENV_ARCH_ENDIAN  D_ENV_ARCH_ENDIAN_LITTLE
 
     // 2.2.1.12
+    // WebAssembly
+    #elif defined(D_ENV_DETECTED_ARCH_WASM32)
+        // D_ENV_ARCH_WASM32
+        //   macro: indicates a configured 32-bit WebAssembly target.
+        #define D_ENV_ARCH_WASM32 1
+
+        // D_ENV_ARCH_NAME
+        //   constant: human-readable name of the configured architecture.
+        #define D_ENV_ARCH_NAME   "WebAssembly 32"
+
+        // D_ENV_ARCH_TYPE
+        //   constant: configured architecture type identifier.
+        #define D_ENV_ARCH_TYPE   D_ENV_ARCH_TYPE_WASM
+
+        // D_ENV_ARCH_BITS
+        //   constant: configured architecture width in bits.
+        #define D_ENV_ARCH_BITS   32
+
+        // D_ENV_ARCH_ENDIAN
+        //   constant: configured architecture byte order.
+        #define D_ENV_ARCH_ENDIAN D_ENV_ARCH_ENDIAN_LITTLE
+
+    #elif defined(D_ENV_DETECTED_ARCH_WASM64)
+        // D_ENV_ARCH_WASM64
+        //   macro: indicates a configured 64-bit WebAssembly target.
+        #define D_ENV_ARCH_WASM64 1
+
+        // D_ENV_ARCH_NAME
+        //   constant: human-readable name of the configured architecture.
+        #define D_ENV_ARCH_NAME   "WebAssembly 64"
+
+        // D_ENV_ARCH_TYPE
+        //   constant: configured architecture type identifier.
+        #define D_ENV_ARCH_TYPE   D_ENV_ARCH_TYPE_WASM
+
+        // D_ENV_ARCH_BITS
+        //   constant: configured architecture width in bits.
+        #define D_ENV_ARCH_BITS   64
+
+        // D_ENV_ARCH_ENDIAN
+        //   constant: configured architecture byte order.
+        #define D_ENV_ARCH_ENDIAN D_ENV_ARCH_ENDIAN_LITTLE
+
+    // 2.2.1.13
     // Unknown architecture
     #elif defined(D_ENV_DETECTED_ARCH_UNKNOWN)
         // D_ENV_ARCH_UNKNOWN

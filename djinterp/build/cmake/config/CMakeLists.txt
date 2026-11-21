@@ -128,6 +128,7 @@ include("${DJINTERP_LIBRARY_ROOT}/library.cmake")
 include("${DJINTERP_LIBRARY_ROOT}/runtime.cmake")
 include("${DJINTERP_LIBRARY_ROOT}/sync.cmake")
 include("${DJINTERP_LIBRARY_ROOT}/test.cmake")
+include("${DJINTERP_LIBRARY_ROOT}/net.cmake")
 
 
 # -----------------------------------------------------------------------------
@@ -146,7 +147,8 @@ djinterp_add_module_test_targets()
 # -----------------------------------------------------------------------------
 #   tests/bench holds timing programs, not tests: they report figures and
 # never fail.  -DDJINTERP_BUILD_BENCHMARKS=ON builds them, best with
-# -DCMAKE_BUILD_TYPE=Release, since their figures are meant at -O2.
+# -DCMAKE_BUILD_TYPE=RelWithDebInfo, since their figures are meant at -O2
+# (Release is -O3 with GCC and Clang).
 option(DJINTERP_BUILD_BENCHMARKS "build the benchmarks under tests/bench" OFF)
 if(DJINTERP_BUILD_BENCHMARKS)
     add_subdirectory(bench)

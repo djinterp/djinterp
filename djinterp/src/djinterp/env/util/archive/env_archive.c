@@ -10,7 +10,7 @@
 * path:      /src/djinterp/env/util/archive/env_archive.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 #include "../../../../../inc/djinterp/env/util/archive/env_archive.h"
 #include "../../../../../inc/djinterp/env/util/compress/env_compress_link.h"
@@ -21,7 +21,7 @@
 #include <string.h>  // memcpy, strchr, strlen
 #if D_INTERNAL_ENV_ARCHIVE_OS_WINDOWS
     #include <io.h>      // _access
-#else
+#elif !D_INTERNAL_ENV_ARCHIVE_OS_WASM_HOST
     #include <unistd.h>  // access, X_OK
 #endif
 
@@ -29,11 +29,17 @@
 // D_INTERNAL_ENV_ARCHIVE_ACCESS / _PATH_SEP / _DIR_SEP
 //   macro: the executable-access test, PATH-list separator, and directory
 // separator the tool probe (d_env_archive_has_tool) uses. They live here, not
-// in env_archive.h, whose includers need none of them (decision 122).
+// in env_archive.h, whose includers need none of them (decision 122). A
+// WebAssembly module whose only system is its host can run no program, so
+// its access test finds none.
 #if D_INTERNAL_ENV_ARCHIVE_OS_WINDOWS
     #define D_INTERNAL_ENV_ARCHIVE_ACCESS(p)  _access((p), 0)
     #define D_INTERNAL_ENV_ARCHIVE_PATH_SEP   ';'
     #define D_INTERNAL_ENV_ARCHIVE_DIR_SEP    '\\'
+#elif D_INTERNAL_ENV_ARCHIVE_OS_WASM_HOST
+    #define D_INTERNAL_ENV_ARCHIVE_ACCESS(p)  ((void)(p), -1)
+    #define D_INTERNAL_ENV_ARCHIVE_PATH_SEP   ':'
+    #define D_INTERNAL_ENV_ARCHIVE_DIR_SEP    '/'
 #else
     #define D_INTERNAL_ENV_ARCHIVE_ACCESS(p)  access((p), X_OK)
     #define D_INTERNAL_ENV_ARCHIVE_PATH_SEP   ':'

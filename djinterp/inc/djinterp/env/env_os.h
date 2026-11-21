@@ -14,7 +14,7 @@
 * path:      /inc/djinterp/env/env_os.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 /*
@@ -82,6 +82,8 @@ TABLE OF CONTENTS
               8.  D_ENV_OS_FLAG_UNKNOWN
          11. WebAssembly flags (block 0x2)
               1.  D_ENV_OS_FLAG_WASI
+              2.  D_ENV_OS_FLAG_WASM_HOST
+              3.  D_ENV_OS_FLAG_EMSCRIPTEN
     2.  Flag ranges
          1.  D_ENV_OS_BLOCK_SIZE
          2.  Flag range bounds
@@ -108,6 +110,9 @@ TABLE OF CONTENTS
          7.  D_ENV_IS_OS_DISCONTINUED
          8.  D_ENV_IS_OS_UNSUPPORTED
          9.  D_ENV_IS_OS_WASI
+         10. D_ENV_IS_OS_WASM_HOST
+         11. D_ENV_IS_OS_EMSCRIPTEN
+         12. D_ENV_IS_OS_WASM
     3.  POSIX tests
          1.  D_ENV_IS_OS_POSIX_COMPLIANT
          2.  D_ENV_IS_OS_POSIX_LIKE
@@ -124,7 +129,7 @@ TABLE OF CONTENTS
               5.  Apple platforms
               6.  Linux
               7.  Solaris
-              8.  WASI
+              8.  WebAssembly
               9.  Unix variants
               10. Legacy and discontinued systems
               11. Unknown
@@ -141,7 +146,9 @@ TABLE OF CONTENTS
               9.  Unix
               10. MS-DOS
               11. WASI
-              12. Unknown
+              12. WebAssembly host
+              13. Emscripten
+              14. Unknown
 4.  LEGACY PLATFORM FLAGS
     ---------------------
     1.  Platform flags
@@ -443,6 +450,25 @@ TABLE OF CONTENTS
 // register, ruled 2026.11.04: WASI is env's to name).
 #define D_ENV_OS_FLAG_WASI              0x20
 
+// 1.1.11.2
+// D_ENV_OS_FLAG_WASM_HOST
+//   constant: OS flag for a WebAssembly module whose only system is the
+// program or page that hosts it: no WASI and no Emscripten runtime, as
+// clang's wasm32-unknown-unknown target builds it (__wasm__ without __wasi__
+// or __EMSCRIPTEN__). It has no files, processes or environment of its own;
+// what it may ask of its host is the host interface's (platform/wasm, the
+// wasm module's decision 4). Not POSIX-like.
+#define D_ENV_OS_FLAG_WASM_HOST         0x21
+
+// 1.1.11.3
+// D_ENV_OS_FLAG_EMSCRIPTEN
+//   constant: OS flag for a WebAssembly module built by Emscripten, which
+// brings a POSIX-like runtime of its own in JavaScript (__EMSCRIPTEN__). Its
+// compiler names __unix__ as well, so it is told apart before the Unix
+// variants. Not POSIX-like here: a module takes its ISO C path, as WASI's
+// does.
+#define D_ENV_OS_FLAG_EMSCRIPTEN        0x22
+
 // 1.2    Flag ranges
 //------------------------------------------------------------------------------
 // 1.2.1
@@ -582,6 +608,26 @@ TABLE OF CONTENTS
 //   macro: 1 for WASI; 0 otherwise.
 #define D_ENV_IS_OS_WASI(OS_FLAG)                                              \
     ( (OS_FLAG) == D_ENV_OS_FLAG_WASI )
+
+// 2.2.10
+// D_ENV_IS_OS_WASM_HOST
+//   macro: 1 for a WebAssembly module whose only system is its host; 0
+// otherwise.
+#define D_ENV_IS_OS_WASM_HOST(OS_FLAG)                                         \
+    ( (OS_FLAG) == D_ENV_OS_FLAG_WASM_HOST )
+
+// 2.2.11
+// D_ENV_IS_OS_EMSCRIPTEN
+//   macro: 1 for a WebAssembly module built by Emscripten; 0 otherwise.
+#define D_ENV_IS_OS_EMSCRIPTEN(OS_FLAG)                                        \
+    ( (OS_FLAG) == D_ENV_OS_FLAG_EMSCRIPTEN )
+
+// 2.2.12
+// D_ENV_IS_OS_WASM
+//   macro: 1 for any WebAssembly target (WASI, a module with its host alone,
+// Emscripten): block 0x2; 0 otherwise.
+#define D_ENV_IS_OS_WASM(OS_FLAG)                                              \
+    ( D_ENV_IS_OS_FLAG_IN_BLOCK(OS_FLAG, 0x2) )
 
 // 2.3    POSIX tests
 //------------------------------------------------------------------------------
@@ -729,12 +775,21 @@ TABLE OF CONTENTS
             #define D_ENV_OS_NAME  "solaris"
 
         // 3.1.1.8
-        // WASI
-        //   before the Unix variants, in case a WASI toolchain defines
-        // __unix__ as well.
+        // WebAssembly
+        //   before the Unix variants, since WASI's and Emscripten's
+        // toolchains may define __unix__ as well; a module with neither
+        // has its host alone.
         #elif defined(__wasi__)
             #define D_ENV_OS_ID    D_ENV_OS_FLAG_WASI
             #define D_ENV_OS_NAME  "WASI"
+
+        #elif defined(__EMSCRIPTEN__)
+            #define D_ENV_OS_ID    D_ENV_OS_FLAG_EMSCRIPTEN
+            #define D_ENV_OS_NAME  "Emscripten"
+
+        #elif defined(__wasm__)
+            #define D_ENV_OS_ID    D_ENV_OS_FLAG_WASM_HOST
+            #define D_ENV_OS_NAME  "WebAssembly host"
 
         // 3.1.1.9
         // Unix variants
@@ -841,6 +896,16 @@ TABLE OF CONTENTS
         #define D_ENV_OS_ID    D_ENV_OS_FLAG_WASI
         #define D_ENV_OS_NAME  "WASI"
     // 3.2.1.12
+    // WebAssembly host
+    #elif defined(D_ENV_DETECTED_OS_WASM_HOST)
+        #define D_ENV_OS_ID    D_ENV_OS_FLAG_WASM_HOST
+        #define D_ENV_OS_NAME  "WebAssembly host"
+    // 3.2.1.13
+    // Emscripten
+    #elif defined(D_ENV_DETECTED_OS_EMSCRIPTEN)
+        #define D_ENV_OS_ID    D_ENV_OS_FLAG_EMSCRIPTEN
+        #define D_ENV_OS_NAME  "Emscripten"
+    // 3.2.1.14
     // Unknown
     #elif defined(D_ENV_DETECTED_OS_UNKNOWN)
         #define D_ENV_OS_ID    D_ENV_OS_FLAG_UNKNOWN

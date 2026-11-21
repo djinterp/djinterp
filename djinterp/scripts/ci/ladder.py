@@ -10,7 +10,10 @@
 #   A unit is a library file: each .h and .c of the C tree, and each .hpp and
 # .cpp of the C++ tree, under inc/djinterp/ and src/djinterp/ (the generated
 # tables under c/util/macro/ excepted), as the upgrade audit counted them;
-# and, in their own groups, the headers of env/, config/ and inc/re_std/.
+# and, in their own groups, the headers of env/, config/ and inc/re_std/, and
+# the tools' units: each .h, .c, .hpp and .cpp under inc/djinterp/tools/ and
+# src/djinterp/tools/ (the CLI kit, dawk, the djinterp program, bitwisedom,
+# ui, vparse).
 # A C header is compiled as C and, for its C++ face, as C++ as well. A header
 # is compiled through a one-line unit that includes it, so it must stand
 # alone. Nothing is linked: each compile checks syntax and meaning only.
@@ -43,7 +46,8 @@
 #                                  Windows)
 #            --levels LIST         only these rungs (e.g. c99,c++98s,c++23)
 #            --modes LIST          plain,testing (default both)
-#            --groups LIST         c,cpp,env,config,re_std (default all)
+#            --groups LIST         c,cpp,env,config,re_std,tools (default
+#                                  all)
 #            --changed REV         only the units changed since REV (and the
 #                                  new ones git does not track yet), with
 #                                  the units that include a changed header
@@ -64,7 +68,7 @@
 # path:      /scripts/ci/ladder.py
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-#                                                            revised: 2026.11.05
+#                                                            revised: 2026.11.20
 #*******************************************************************************
 import argparse
 import collections
@@ -143,6 +147,13 @@ def all_units(groups):
         for path in (walk('inc/djinterp/cpp', ('.hpp',)) +
                      walk('src/djinterp/cpp', ('.cpp', '.hpp'))):
             units.append(('cpp', 'cpp', path))
+    if 'tools' in groups:
+        for path in (walk('inc/djinterp/tools', ('.h', '.hpp')) +
+                     walk('src/djinterp/tools', ('.c', '.h', '.cpp', '.hpp'))):
+            language = 'c' if path.endswith(('.c', '.h')) else 'cpp'
+            units.append(('tools', language, path))
+            if path.startswith('inc/') and path.endswith('.h'):
+                units.append(('tools', 'cpp', path))
     for group, top in (('env', 'inc/djinterp/env'),
                        ('config', 'inc/djinterp/config'),
                        ('re_std', 'inc/re_std')):
@@ -390,6 +401,8 @@ def module_of(path):
     parts = path.split('/')
     if parts[0] == 'inc' and parts[1] == 're_std':
         return 're_std'
+    if len(parts) > 4 and parts[2] == 'tools':
+        return 'tools/' + parts[3]
     if len(parts) > 3 and parts[2] in ('c', 'cpp'):
         if parts[3] == 'modules' and len(parts) > 5:
             return parts[2] + '/' + parts[4]
@@ -406,7 +419,7 @@ def main():
     parser.add_argument('--cxx')
     parser.add_argument('--levels')
     parser.add_argument('--modes', default='plain,testing')
-    parser.add_argument('--groups', default='c,cpp,env,config,re_std')
+    parser.add_argument('--groups', default='c,cpp,env,config,re_std,tools')
     parser.add_argument('--changed')
     parser.add_argument('--known')
     parser.add_argument('--write-known')

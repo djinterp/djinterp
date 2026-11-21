@@ -9,11 +9,13 @@
 # endings, and the deletions a zip cannot carry. With --gates it then builds
 # the result in a scratch checkout and runs the checks over it: the ladder
 # and the style over what it changed, the fixed-width includes, the roots'
-# growth and the version; with --apply it writes the result into the tree,
+# growth, the version, and no lane named in a line the window adds or in a
+# commit message; with --apply it writes the result into the tree,
 # and with --commit it commits each zip as its own commit, with its lane's
 # message.
 #   A lane zip holds whole files, at their paths under the tree's root
-# (inc/, src/, tests/, ...), CRLF throughout, except .sh files, which are LF
+# (inc/, src/, tests/, platform/, ...), CRLF throughout, except .sh files,
+# which are LF
 # (ruled 2026.11.05). Where two zips carry one file, or where the tree
 # changed a file after the base the lane started from, the later whole file
 # would silently undo the other change. Given the lane's base (--base, or
@@ -43,7 +45,7 @@
 # path:      /scripts/ci/merge_window.py
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-#                                                            revised: 2026.11.11
+#                                                            revised: 2026.11.20
 #*******************************************************************************
 import argparse
 import os
@@ -57,6 +59,7 @@ import zipfile
 TREE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
     __file__))))
 TOPS = {'inc', 'src', 'tests', 'docs', 'build', 'scripts', 'tools', 'res',
+        'platform',
         'lib', 'bin', '.gitattributes', '.gitignore', 'README.md',
         'README.html'}
 BINARY = ('.png', '.jpg', '.jpeg', '.gif', '.ico', '.bmp', '.zip', '.gz',
@@ -308,7 +311,8 @@ def main():
         plan.append((name, message, sorted(files), deletions.get(name, [])))
 
     if options.gates:
-        failed = gates(written, head) or failed
+        failed = gates(written, head,
+                       [message for _, message in zips if message]) or failed
 
     if options.apply and not failed:
         for name, message, rels, removed in plan:
@@ -351,9 +355,10 @@ def main():
     return 1 if failed else 0
 
 
-def gates(written, head):
+def gates(written, head, messages=()):
     """Builds the window's result in a scratch checkout of HEAD and runs the
-    checks over it. Returns whether anything failed."""
+    checks over it, and over the window's commit messages. Returns whether
+    anything failed."""
     scratch = tempfile.mkdtemp(prefix='merge_window_gates_')
     checkout = os.path.join(scratch, 'tree')
     git(['worktree', 'add', '--detach', '-f', checkout, head])
@@ -372,7 +377,8 @@ def gates(written, head):
         # the checks beside this script, over the scratch tree, each held to
         # the punch list the window's result has (or, failing that, this
         # tree's): the ladder and the style over the changed files, the
-        # fixed-width includes, the roots' growth, and the version
+        # fixed-width includes, the roots' growth, the version, and the lines
+        # the window adds and its messages, which name no lane
         here = os.path.dirname(os.path.abspath(__file__))
 
         def known(name):
@@ -397,6 +403,10 @@ def gates(written, head):
             ('the roots only grow',
              script('check_root_growth.py') + ['--base', 'HEAD']),
             ('the version', script('check_version.py')),
+            ('no lane named',
+             script('check_lane_names.py') + ['--base', 'HEAD'] +
+             [item for message in messages
+              for item in ('--message', os.path.abspath(message))]),
         ]
         failed = False
         for title, command in checks:

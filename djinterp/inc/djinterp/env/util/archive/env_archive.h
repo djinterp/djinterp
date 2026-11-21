@@ -20,7 +20,7 @@
 * path:      /inc/djinterp/env/util/archive/env_archive.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.16
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 /*
@@ -30,6 +30,7 @@ TABLE OF CONTENTS
     ----------------
     1.  PATH-probe helpers
          1.  D_INTERNAL_ENV_ARCHIVE_OS_WINDOWS
+         2.  D_INTERNAL_ENV_ARCHIVE_OS_WASM_HOST
 2.  CONFIGURATION AND PROBING
     -------------------------
     1.  Configuration and probing
@@ -139,6 +140,19 @@ TABLE OF CONTENTS
     #define D_INTERNAL_ENV_ARCHIVE_OS_WINDOWS 1
 #else
     #define D_INTERNAL_ENV_ARCHIVE_OS_WINDOWS 0
+#endif
+
+// 1.1.2
+// D_INTERNAL_ENV_ARCHIVE_OS_WASM_HOST
+//   constant: 1 when the target is a WebAssembly module whose only system is
+// its host (D_ENV_OS_FLAG_WASM_HOST): it has no PATH, no files to probe and
+// no programs to run, so env_archive.c's tool probe finds nothing and needs
+// neither <unistd.h> nor access(); 0 otherwise.
+#if ( (defined(D_ENV_OS_ID)) &&                                                \
+      (D_ENV_IS_OS_WASM_HOST(D_ENV_OS_ID)) )
+    #define D_INTERNAL_ENV_ARCHIVE_OS_WASM_HOST 1
+#else
+    #define D_INTERNAL_ENV_ARCHIVE_OS_WASM_HOST 0
 #endif
 
 

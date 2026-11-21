@@ -1275,13 +1275,8 @@ inc/djinterp/env/db/redis/env_redis_config.h	H	1
 inc/djinterp/env/db/sqlite/env_sqlite.h	H	1
 inc/djinterp/env/env.h	H	1
 inc/djinterp/env/env_arch.h	H	1
-inc/djinterp/env/env_archive.h	H	1
-inc/djinterp/env/env_archive.h	R	1
 inc/djinterp/env/env_build.h	H	1
 inc/djinterp/env/env_compiler.h	H	1
-inc/djinterp/env/env_compress.h	H	1
-inc/djinterp/env/env_compress.h	R	1
-inc/djinterp/env/env_compress_link.h	H	1
 inc/djinterp/env/env_lang.h	H	1
 inc/djinterp/env/env_os.h	H	1
 inc/djinterp/env/env_pdf.h	H	1
