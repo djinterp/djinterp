@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                      model.hpp
+* djinterp [cpp][tools]                                                model.hpp
 *
 * A document's state: its sheet, what it resolves to, its history, and how
 * it is being looked at.
@@ -28,14 +28,29 @@
 * into every document so its look -- the sheet's colours with what it
 * leaves automatic filled in from them -- is what every renderer draws with.
 *
+* HOW TO USE
+* ----------
+*   A model holds one document: its sheet, its resolution, its history and
+* its ui_state. Edits go through the app (app.hpp), which keeps undo; a view
+* reads the model to build the interface (view.hpp).
+*
+* OPTIONS
+* -------
+*   None of its own; a sheet's settings are settings.hpp's.
+*
+* CONFIGURATION
+* -------------
+*   None.
+*
+*
 * path:      /inc/ui/bitwisedom/model.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
-#ifndef UI_BITWISEDOM_MODEL_HPP
-#define UI_BITWISEDOM_MODEL_HPP 1
+#ifndef DJINTERP_UI_BITWISEDOM_MODEL_HPP
+#define DJINTERP_UI_BITWISEDOM_MODEL_HPP 1
 
 // std
 #include <cstddef>  // std::size_t
@@ -383,4 +398,4 @@ int active_row(
 }  // namespace bitwisedom
 
 
-#endif  // UI_BITWISEDOM_MODEL_HPP
+#endif  // DJINTERP_UI_BITWISEDOM_MODEL_HPP

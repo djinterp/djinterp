@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                       host.hpp
+* djinterp [cpp][tools]                                                 host.hpp
 *
 * The window's host: what opens the window, runs its frames and closes it.
 *   Each platform's host defines run_window -- Win32 and Direct3D 11 on
@@ -11,11 +11,27 @@
 * program the module made, so it says it as every djinterp program does.
 * window_host() names the host for `bitwisedom gui --version --verbose`.
 *
+* HOW TO USE
+* ----------
+*   A program's main fills a window_options and calls run_window(), which
+* the platform's host defines; window_features() and window_host() say what
+* this build's host can do and which it is.
+*
+* OPTIONS
+* -------
+*   window_options: the window's size and scale, and, for a scripted run,
+* the events to post, the frames to run and the screenshot to take.
+*
+* CONFIGURATION
+* -------------
+*   The host is chosen at build time: Win32 and Direct3D 11 on Windows,
+* GLFW and OpenGL 3 elsewhere.
+*
 *
 * path:      /inc/ui/bitwisedom/host.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
 /*
@@ -32,8 +48,8 @@ TABLE OF CONTENTS
          1.  run_window
 */
 
-#ifndef UI_BITWISEDOM_HOST_HPP
-#define UI_BITWISEDOM_HOST_HPP 1
+#ifndef DJINTERP_UI_BITWISEDOM_HOST_HPP
+#define DJINTERP_UI_BITWISEDOM_HOST_HPP 1
 
 // std
 #include <string>  // std::string
@@ -154,4 +170,4 @@ int run_window(
 }  // namespace bitwisedom
 
 
-#endif  // UI_BITWISEDOM_HOST_HPP
+#endif  // DJINTERP_UI_BITWISEDOM_HOST_HPP

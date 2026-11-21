@@ -27,7 +27,7 @@
 * path:      /src/djinterp/tools/cli/c/cli_program.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 #include "../../../../../inc/djinterp/tools/cli/c/cli_program.h"  // corresponding header
 // std
@@ -4086,6 +4086,17 @@ bool d_cli_program_parse(
                                           (char* const*)argv);
 
     d_cli_internal_read_standard(_program);
+
+    // what the settings' start held, said now that -q, -v and the command
+    // line's settings are known; one a setting made an error ends the run
+    if ( (_program->host == NULL) &&
+         (d_cli_settings_report(_program) != D_CLI_EXIT_OK) &&
+         (status == (int)D_ARG_OK) )
+    {
+        *_exit = D_CLI_EXIT_TROUBLE;
+
+        return true;
+    }
 
     // a command after `--`; or a parse that went well, the program going
     // on unless --color was given a word it does not know

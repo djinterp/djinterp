@@ -67,6 +67,25 @@ D_OPTION_ENV_DECLARE(dj_internal_cli_settings_storage, 16u, 4u, 2048u);
     #define D_INTERNAL_CLI_PLUGIN_REFUSED D_OPTION_ENV_REFUSES_CALLER
 #endif
 
+// d_internal_cli_settings_unknown_names, _refusal_names
+//   constants: the words `cli.unknown_settings` and `cli.shared_refusals`
+// take (cfg_cli.h, 1.5).
+static const struct dj_option_env_name d_internal_cli_settings_unknown_names[] =
+{
+    { "none",  D_CLI_UNKNOWN_SETTINGS_NONE  },
+    { "typos", D_CLI_UNKNOWN_SETTINGS_TYPOS },
+    { "all",   D_CLI_UNKNOWN_SETTINGS_ALL   },
+    { "error", D_CLI_UNKNOWN_SETTINGS_ERROR }
+};
+
+static const struct dj_option_env_name d_internal_cli_settings_refusal_names[] =
+{
+    { "none",    D_CLI_SHARED_REFUSALS_NONE    },
+    { "verbose", D_CLI_SHARED_REFUSALS_VERBOSE },
+    { "warn",    D_CLI_SHARED_REFUSALS_WARN    },
+    { "error",   D_CLI_SHARED_REFUSALS_ERROR   }
+};
+
 // d_internal_cli_settings_rows
 //   constant: the kit's variables, each defaulting to its knob.
 static const struct dj_option_env_var d_internal_cli_settings_rows[] =
@@ -81,7 +100,19 @@ static const struct dj_option_env_var d_internal_cli_settings_rows[] =
     D_OPTION_ENV_BOOL_KNOB("plugin_strict_version",
                            D_CFG_CLI_PLUGIN_STRICT_VERSION,
                            "whether a module of another version of the "
-                           "program is refused, or loaded with a warning")
+                           "program is refused, or loaded with a warning"),
+    D_OPTION_ENV_CHOICE_KNOB("unknown_settings",
+                             d_internal_cli_settings_unknown_names,
+                             D_CFG_CLI_UNKNOWN_SETTINGS,
+                             "what is said of a line of the user's file "
+                             "that names no setting here: none, typos, all "
+                             "or error"),
+    D_OPTION_ENV_CHOICE_KNOB("shared_refusals",
+                             d_internal_cli_settings_refusal_names,
+                             D_CFG_CLI_SHARED_REFUSALS,
+                             "what is said when the user's file or "
+                             "DJINTERP_ sets a setting that refuses it: "
+                             "none, verbose, warn or error")
 };
 
 // d_internal_cli_settings_path_row
@@ -103,6 +134,69 @@ static struct dj_option_env                    d_internal_cli_settings_frame;
 static struct dj_internal_cli_settings_storage d_internal_cli_settings_room;
 static bool                                    d_internal_cli_settings_made;
 static bool                                    d_internal_cli_settings_started;
+
+// D_INTERNAL_CLI_SETTINGS_HELD
+//   constant: the most notes the run's start holds; past them, counted.
+#define D_INTERNAL_CLI_SETTINGS_HELD 32u
+
+// dj_internal_cli_settings_kind
+//   enum: what a held note is about, which decides what says it.
+enum dj_internal_cli_settings_kind
+{
+    D_INTERNAL_CLI_HELD_FOREIGN = 0,  // a djin not registered here
+    D_INTERNAL_CLI_HELD_UNKNOWN = 1,  // a near miss, or a djin's unknown
+    D_INTERNAL_CLI_HELD_SHARED  = 2,  // refused from a shared source
+    D_INTERNAL_CLI_HELD_OWN     = 3,  // refused from the program's prefix
+    D_INTERNAL_CLI_HELD_VALUE   = 4   // a value the setting does not take
+};
+
+// dj_internal_cli_settings_note
+//   struct: a note the run's start held: its kind, its line in the user's
+// file (0 for the environment), and its words.
+struct dj_internal_cli_settings_note
+{
+    int  kind;
+    long line;
+    char text[D_INTERNAL_CLI_SETTINGS_ROOM];
+};
+
+// d_internal_cli_settings_notes, _count, _past, _path
+//   variables: the held notes, how many, how many more there were, and the
+// user's file's path, which a file's notes name.
+static struct dj_internal_cli_settings_note
+    d_internal_cli_settings_notes[D_INTERNAL_CLI_SETTINGS_HELD];
+static size_t d_internal_cli_settings_count;
+static size_t d_internal_cli_settings_past;
+static char   d_internal_cli_settings_path[D_INTERNAL_CLI_SETTINGS_ROOM];
+
+/*
+d_internal_cli_settings_hold
+  A note kept for d_cli_settings_report; past the room, counted.
+*/
+static void
+d_internal_cli_settings_hold(
+    int         _kind,
+    long        _line,
+    const char* _text
+)
+{
+    struct dj_internal_cli_settings_note* note;
+
+    if (d_internal_cli_settings_count >= D_INTERNAL_CLI_SETTINGS_HELD)
+    {
+        ++d_internal_cli_settings_past;
+
+        return;
+    }
+
+    note       = &d_internal_cli_settings_notes[d_internal_cli_settings_count];
+    note->kind = _kind;
+    note->line = _line;
+    (void)snprintf(note->text, sizeof(note->text), "%s", _text);
+    ++d_internal_cli_settings_count;
+
+    return;
+}
 
 /*
 d_cli_settings_djin
@@ -342,15 +436,74 @@ d_internal_cli_settings_value_at(
 }
 
 /*
+d_internal_cli_settings_kind_of
+  What a statement's failure is about: a name no setting here has, from a
+djin not registered here, or near one or a djin's that is (the CLI kit's
+decision 35); a source the setting refuses; or a value it does not take.
+The words for a refused source go into `_why`.
+*/
+static int
+d_internal_cli_settings_kind_of(
+    int32_t     _status,
+    const char* _name,
+    size_t      _size,
+    const char* _value,
+    char*       _why,
+    size_t      _capacity
+)
+{
+    struct dj_option_env_registry* const registry = d_option_env_registry();
+    const char* const                    dot      =
+        (_name != NULL) ? (const char*)memchr(_name, '.', _size) : NULL;
+    struct dj_option_env_checked         checked;
+    struct dj_option_result              result;
+    char                                 near[D_INTERNAL_CLI_SETTINGS_ROOM];
+
+    if (_status == (int32_t)D_OPTION_STATUS_KEY_ABSENT)
+    {
+        const size_t found = d_option_env_registry_suggest(registry, _name,
+                                                           _size, near,
+                                                           sizeof(near));
+
+        return ( (found == 0u) &&
+                 (dot != NULL) &&
+                 (d_option_env_registry_find(registry, _name,
+                                             (size_t)(dot - _name)) ==
+                  NULL) )
+               ? (int)D_INTERNAL_CLI_HELD_FOREIGN
+               : (int)D_INTERNAL_CLI_HELD_UNKNOWN;
+    }
+
+    memset(&checked, 0, sizeof(checked));
+    checked.size = (uint32_t)sizeof(checked);
+
+    if ( (_status == (int32_t)D_OPTION_STATUS_POLICY_REJECTED) &&
+         (_value != NULL) &&
+         (d_option_env_registry_check_from(registry, _name, _size, _value,
+                                           strlen(_value),
+                                           D_OPTION_ENV_SOURCE_FILE, NULL,
+                                           0u, &result, &checked) ==
+          (size_t)-1) &&
+         (checked.reason == (int32_t)D_OPTION_ENV_REASON_SOURCE) )
+    {
+        (void)snprintf(_why, _capacity,
+                       "'%.*s' is not taken from the user's settings file",
+                       (int)_size, _name);
+
+        return (int)D_INTERNAL_CLI_HELD_SHARED;
+    }
+
+    return (int)D_INTERNAL_CLI_HELD_VALUE;
+}
+
+/*
 d_internal_cli_settings_load
   The file's statements, through the registry, from FILE: at each failure,
-its line said and the rest read on, from where the failing statement ends.
+its line held and the rest read on, from where the failing statement ends.
 */
 static void
 d_internal_cli_settings_load(
-    const struct dj_cli_program* _program,
-    const char*                  _path,
-    const char*                  _script
+    const char* _script
 )
 {
     size_t offset  = 0u;
@@ -371,6 +524,8 @@ d_internal_cli_settings_load(
         size_t                        size;
         char                          value[D_INTERNAL_CLI_SETTINGS_ROOM];
         char                          why[D_INTERNAL_CLI_SETTINGS_ROOM];
+        const char*                   given;
+        int                           kind;
 
         if (done.is_ok)
         {
@@ -386,14 +541,14 @@ d_internal_cli_settings_load(
         end  = d_option_env_statement_end(_script, at);
         size = d_internal_cli_settings_name_at(_script, at, end, &name);
 
-        d_cli_settings_why(d_option_result_status(&done),
-                                    name, size,
-                                    d_internal_cli_settings_value_at(
-                                        _script, at, end,
-                                        value, sizeof(value)),
-                                    why, sizeof(why));
-        d_cli_report_at(_program, (int)D_CLI_SEVERITY_WARNING, _path, line,
-                        0L, "%s", why);
+        given = d_internal_cli_settings_value_at(_script, at, end, value,
+                                                 sizeof(value));
+        d_cli_settings_why(d_option_result_status(&done), name, size, given,
+                           why, sizeof(why));
+        kind  = d_internal_cli_settings_kind_of(d_option_result_status(&done),
+                                                name, size, given, why,
+                                                sizeof(why));
+        d_internal_cli_settings_hold(kind, line, why);
 
         // on from the end of the one that failed, and never back
         offset = (end > at) ? end : (at + 1u);
@@ -445,7 +600,9 @@ d_internal_cli_settings_read_file(
 
     if (failed == 0)
     {
-        d_internal_cli_settings_load(_program, path, text);
+        (void)snprintf(d_internal_cli_settings_path,
+                       sizeof(d_internal_cli_settings_path), "%s", path);
+        d_internal_cli_settings_load(text);
     }
 
     d_cli_free(text);
@@ -494,10 +651,63 @@ d_internal_cli_settings_prefix(
     return;
 }
 
+// d_internal_cli_settings_shared, _own
+//   constants: which prefix an import's report is told of, as its context.
+static const int d_internal_cli_settings_shared = 1;
+static const int d_internal_cli_settings_own    = 0;
+
+/*
+d_internal_cli_settings_reported
+  An import's report: a value the environment set that a setting refused,
+held, a refused source by the prefix it came under; an empty one passed
+over.
+*/
+static void
+d_internal_cli_settings_reported(
+    void*                              _context,
+    const struct dj_option_env_report* _report
+)
+{
+    const bool shared = (*(const int*)_context != 0);
+    char       why[D_INTERNAL_CLI_SETTINGS_ROOM * 2u];
+    char       said[D_INTERNAL_CLI_SETTINGS_ROOM];
+
+    // a variable set empty is taken as one not set, as `NAME= program`
+    // means, and is not said
+    if ( (_report->value == NULL) ||
+         (_report->value[0] == '\0') )
+    {
+        return;
+    }
+
+    if (_report->reason == (int32_t)D_OPTION_ENV_REASON_SOURCE)
+    {
+        (void)snprintf(why, sizeof(why),
+                       "%s: '%s' is not taken from the environment",
+                       _report->variable, _report->setting);
+        d_internal_cli_settings_hold(
+            (shared) ? (int)D_INTERNAL_CLI_HELD_SHARED
+                     : (int)D_INTERNAL_CLI_HELD_OWN,
+            0L, why);
+
+        return;
+    }
+
+    // the words a file's statement is said with, after the variable's name
+    d_cli_settings_why(d_option_result_status(&_report->result),
+                       _report->setting, strlen(_report->setting),
+                       _report->value, said, sizeof(said));
+    (void)snprintf(why, sizeof(why), "%s: %s", _report->variable, said);
+    d_internal_cli_settings_hold((int)D_INTERNAL_CLI_HELD_VALUE, 0L, why);
+
+    return;
+}
+
 /*
 d_cli_settings_start
   Once: the djin and the program's own variable, the environment under the
-shared prefix and then the program's own, and the user's file.
+shared prefix and then the program's own, and the user's file, each failure
+held for d_cli_settings_report.
 */
 int d_cli_settings_start(
     const struct dj_cli_program* _program
@@ -528,12 +738,16 @@ int d_cli_settings_start(
     d_internal_cli_settings_prefix((_program != NULL) ? _program->name
                                                       : NULL,
                                    prefix, sizeof(prefix));
-    (void)d_option_env_registry_import(registry, "DJINTERP_");
+    (void)d_option_env_registry_import_each(
+              registry, "DJINTERP_", d_internal_cli_settings_reported,
+              (void*)&d_internal_cli_settings_shared);
 
     if ( (prefix[0] != '\0') &&
          (strcmp(prefix, "DJINTERP_") != 0) )
     {
-        (void)d_option_env_registry_import(registry, prefix);
+        (void)d_option_env_registry_import_each(
+                  registry, prefix, d_internal_cli_settings_reported,
+                  (void*)&d_internal_cli_settings_own);
     }
 
     return d_internal_cli_settings_read_file(_program);
@@ -848,6 +1062,133 @@ bool d_cli_settings_plugin_strict_version(
              : (D_INTERNAL_CLI_PLUGIN_STRICT_VERSION == 1);
 }
 
+/*
+d_internal_cli_settings_choice
+  A choice of the kit's djin, by name: `_fallback`, its knob, before the
+settings are started.
+*/
+static int64_t
+d_internal_cli_settings_choice(
+    const char* _name,
+    int64_t     _fallback
+)
+{
+    struct dj_option_env* const djin = d_cli_settings_djin();
+    struct dj_option_result     found;
+
+    if ( (!d_internal_cli_settings_started) ||
+         (djin == NULL) )
+    {
+        return _fallback;
+    }
+
+    found = d_option_env_find(djin, _name, strlen(_name));
+
+    return (found.is_ok) ? d_option_env_int(djin, D_OPTION_ENV_GLOBAL,
+                                            (uint32_t)found.payload.value)
+                         : _fallback;
+}
+
+/*
+d_internal_cli_settings_severity
+  How a held note is said, by its kind and the two settings: a severity, or
+-1 for not at all.
+*/
+static int
+d_internal_cli_settings_severity(
+    int     _kind,
+    int64_t _unknown,
+    int64_t _refusals,
+    bool    _verbose
+)
+{
+    switch (_kind)
+    {
+        case D_INTERNAL_CLI_HELD_FOREIGN:
+            return (_unknown == D_CLI_UNKNOWN_SETTINGS_ERROR)
+                   ? (int)D_CLI_SEVERITY_ERROR
+                   : (_unknown == D_CLI_UNKNOWN_SETTINGS_ALL)
+                     ? (int)D_CLI_SEVERITY_WARNING
+                     : -1;
+        case D_INTERNAL_CLI_HELD_UNKNOWN:
+            return (_unknown == D_CLI_UNKNOWN_SETTINGS_ERROR)
+                   ? (int)D_CLI_SEVERITY_ERROR
+                   : (_unknown == D_CLI_UNKNOWN_SETTINGS_NONE)
+                     ? -1
+                     : (int)D_CLI_SEVERITY_WARNING;
+        case D_INTERNAL_CLI_HELD_SHARED:
+            return (_refusals == D_CLI_SHARED_REFUSALS_ERROR)
+                   ? (int)D_CLI_SEVERITY_ERROR
+                   : (_refusals == D_CLI_SHARED_REFUSALS_WARN)
+                     ? (int)D_CLI_SEVERITY_WARNING
+                     : ( (_refusals == D_CLI_SHARED_REFUSALS_VERBOSE) &&
+                         (_verbose) )
+                       ? (int)D_CLI_SEVERITY_NOTE
+                       : -1;
+        default:
+            return (int)D_CLI_SEVERITY_WARNING;
+    }
+}
+
+/*
+d_cli_settings_report
+  Each held note, as the two settings now say -- the command line's among
+them -- once; an error among them makes the run's trouble.
+*/
+int d_cli_settings_report(
+    const struct dj_cli_program* _program
+)
+{
+    const int64_t unknown  = d_internal_cli_settings_choice(
+                                 "unknown_settings",
+                                 D_CFG_CLI_UNKNOWN_SETTINGS);
+    const int64_t refusals = d_internal_cli_settings_choice(
+                                 "shared_refusals",
+                                 D_CFG_CLI_SHARED_REFUSALS);
+    const bool    verbose  = (d_cli_program_verbosity(_program) > 0);
+    int           status   = D_CLI_EXIT_OK;
+
+    for (size_t i = 0u; i < d_internal_cli_settings_count; ++i)
+    {
+        const struct dj_internal_cli_settings_note* const note =
+            &d_internal_cli_settings_notes[i];
+        const int severity = d_internal_cli_settings_severity(note->kind,
+                                                              unknown,
+                                                              refusals,
+                                                              verbose);
+
+        status = (severity == (int)D_CLI_SEVERITY_ERROR) ? D_CLI_EXIT_TROUBLE
+                                                        : status;
+
+        if (severity < 0)
+        {
+            continue;
+        }
+
+        if (note->line > 0L)
+        {
+            d_cli_report_at(_program, severity, d_internal_cli_settings_path,
+                            note->line, 0L, "%s", note->text);
+        }
+        else
+        {
+            d_cli_report(_program, severity, "%s", note->text);
+        }
+    }
+
+    if (d_internal_cli_settings_past > 0u)
+    {
+        d_cli_report(_program, (int)D_CLI_SEVERITY_NOTE,
+                     "%lu more failures in the settings were not kept",
+                     (unsigned long)d_internal_cli_settings_past);
+    }
+
+    d_internal_cli_settings_count = 0u;
+    d_internal_cli_settings_past  = 0u;
+
+    return status;
+}
+
 #if defined(D_TESTING)
 #if (D_TESTING == 1)
 
@@ -868,6 +1209,8 @@ void d_cli_settings_reset(void)
 
     d_option_env_clear(d_option_env_registry_frame(registry));
     d_internal_cli_settings_started = false;
+    d_internal_cli_settings_count   = 0u;
+    d_internal_cli_settings_past    = 0u;
 
     return;
 }
@@ -965,6 +1308,15 @@ bool d_cli_settings_plugin_strict_version(
            : (_program_says == (int)D_CLI_PLUGIN_VERSIONS_WARN)
              ? false
              : (D_INTERNAL_CLI_PLUGIN_STRICT_VERSION == 1);
+}
+
+int d_cli_settings_report(
+    const struct dj_cli_program* _program
+)
+{
+    (void)_program;
+
+    return D_CLI_EXIT_OK;
 }
 
 #if defined(D_TESTING)

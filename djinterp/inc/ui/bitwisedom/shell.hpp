@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                      shell.hpp
+* djinterp [cpp][tools]                                                shell.hpp
 *
 * The window around the documents: its workspaces, its tool windows, the
 * zoom of each window, and the user's own preferences.
@@ -20,14 +20,30 @@
 * window offers to add a row, what colour a new row takes, whether the
 * window opens where it was left, and the settings files the user keeps.
 *
+* HOW TO USE
+* ----------
+*   The app keeps one shell: its workspaces, each with its documents and
+* docked tool windows, each window's zoom, and the user's preferences, which
+* the preferences file keeps between runs.
+*
+* OPTIONS
+* -------
+*   The user's preferences: the tool windows shown, how new documents are
+* added and coloured, the tab row, and the rest of its enums.
+*
+* CONFIGURATION
+* -------------
+*   None.
+*
+*
 * path:      /inc/ui/bitwisedom/shell.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.18
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
-#ifndef UI_BITWISEDOM_SHELL_HPP
-#define UI_BITWISEDOM_SHELL_HPP 1
+#ifndef DJINTERP_UI_BITWISEDOM_SHELL_HPP
+#define DJINTERP_UI_BITWISEDOM_SHELL_HPP 1
 
 // std
 #include <array>    // std::array
@@ -304,4 +320,4 @@ D_NODISCARD float zoom_of(
 }  // namespace bitwisedom
 
 
-#endif  // UI_BITWISEDOM_SHELL_HPP
+#endif  // DJINTERP_UI_BITWISEDOM_SHELL_HPP

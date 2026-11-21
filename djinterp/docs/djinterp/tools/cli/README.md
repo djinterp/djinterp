@@ -43,7 +43,7 @@ own: a `kit::program` *is* the parser and holds the kit's C record.
 | `c/cli_format.h` | help's layout, as the parser's formatter |
 | `c/cli_io.h` | the standard streams, terminals, colour, and files read and written whole |
 | `c/cli_plugin.h` | the plugin interface, finding and loading a command's module, both sides of a plugin |
-| `c/cli_settings.h` | the run's settings on the knob-and-option pattern: the kit's own, the user's file, the environment, those the command line gives *(added 11-13)* |
+| `c/cli_settings.h` | the run's settings on the knob-and-option pattern: the kit's own, the user's file, the environment, those the command line gives *(added 11-13)*. *(added 11-20)* What the file and the environment could not set is held, and said once the parse ends, as `cli.unknown_settings` and `cli.shared_refusals` say; a variable set empty is taken as not set |
 | `c/cli.h` | every C header of the kit, and the parser's |
 | `cli_program.hpp`, `cli_io.hpp`, `cli_plugin.hpp` | the C++ face of each |
 | `cli.hpp` | every C++ header of the kit, and the parser's face |
@@ -323,6 +323,8 @@ different settings still agree on every layout.
 | `D_CFG_CLI_PLUGIN_SEARCH` | `"$ORIGIN:$ORIGIN/../lib/$PROGRAM"` (`;` on Windows) | the build's directories for a module, after those a run is given and `PROGRAM_PLUGIN_PATH`'s; `$ORIGIN` is the program's directory and `$PROGRAM` its name *(added 11-04: cli-taken 14)* |
 | `D_CFG_CLI_PLUGIN_VARIABLE` | 1 | whether `PROGRAM_PLUGIN_PATH` is read; 0 for a program that must not let its environment choose the code it loads *(added 11-04: cli-taken 14)*. *(added 11-20)* At 0, `plugin_path` and `cli.plugin_search` refuse the user's file, the environment and the command line, and only the program and an override bind them |
 | `D_CFG_CLI_PLUGIN_STRICT_VERSION` | 1 | a module of another program version refused; 0 loads it with a warning naming both versions; a program sets it per run with `d_cli_program_set_plugin_versions`, and a module of another interface version is always refused *(added 11-04: cli-taken 15)* |
+| `D_CFG_CLI_UNKNOWN_SETTINGS` | `D_CLI_UNKNOWN_SETTINGS_TYPOS` | *(added 11-20)* the default of `cli.unknown_settings`: what is said of a line of the user's file -- which every program shares -- that names no setting here. `none`; `typos`, a warning for a near miss and for a djin's setting that djin lacks, nothing for a djin the program does not register; `all`, a warning for each; `error`, an error for each, and exit 2 |
+| `D_CFG_CLI_SHARED_REFUSALS` | `D_CLI_SHARED_REFUSALS_VERBOSE` | *(added 11-20)* the default of `cli.shared_refusals`: what is said when the user's file or `DJINTERP_` sets a setting that refuses that source. `none`; `verbose`, a note at `-v`; `warn`; `error`, and exit 2. The program's own prefix is always warned of, and the command line refused |
 
 ---
 

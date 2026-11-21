@@ -50,6 +50,7 @@ bool d_tests_cli_settings_file(void);
 // 4.  THE ENVIRONMENT
 bool d_tests_cli_settings_environment(void);
 // 5.  WHAT THE KIT READS
+bool d_tests_cli_settings_shared(void);
 bool d_tests_cli_settings_reads(void);
 
 // the suite's sections, in the order they run, and the block they make;

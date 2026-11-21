@@ -22,11 +22,11 @@
 #                                                            revised: 2026.11.18
 
 # the C suites: streams and files 8, help 5, the program 18, commands that
-# change a file 4, operands that name no file 2, plugins 9, settings 5
-c99 51
-c11 51
-c17 51
-c23 51
+# change a file 4, operands that name no file 2, plugins 9, settings 6
+c99 52
+c11 52
+c17 52
+c23 52
 
 # the allocation sweep, at the C floor: making, endings, work, files,
 # plugins

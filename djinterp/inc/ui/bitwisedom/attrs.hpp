@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                      attrs.hpp
+* djinterp [cpp][tools]                                                attrs.hpp
 *
 * Attribute records in one expression: attrs({ { "width", 0.5 }, ... }).
 *   An option_value is a variant of bool, long, double and string, and a
@@ -7,14 +7,29 @@
 * attr_value takes each kind of argument explicitly, so a literal is text, an
 * int is a long and a float a double, whatever the library.
 *
+* HOW TO USE
+* ----------
+*   attrs({ { "width", 0.5 }, { "label", "Name" } }) gives an element's
+* option set in one expression; each value is an attr_value, which keeps a
+* string literal a string at every library level.
+*
+* OPTIONS
+* -------
+*   None.
+*
+* CONFIGURATION
+* -------------
+*   None.
+*
+*
 * path:      /inc/ui/bitwisedom/attrs.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.04
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
-#ifndef UI_BITWISEDOM_ATTRS_HPP
-#define UI_BITWISEDOM_ATTRS_HPP 1
+#ifndef DJINTERP_UI_BITWISEDOM_ATTRS_HPP
+#define DJINTERP_UI_BITWISEDOM_ATTRS_HPP 1
 
 // std
 #include <initializer_list>  // std::initializer_list
@@ -67,4 +82,4 @@ uxoxo::option_set attrs(
 }  // namespace bitwisedom
 
 
-#endif  // UI_BITWISEDOM_ATTRS_HPP
+#endif  // DJINTERP_UI_BITWISEDOM_ATTRS_HPP

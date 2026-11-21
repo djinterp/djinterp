@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                      theme.hpp
+* djinterp [cpp][tools]                                                theme.hpp
 *
 * Dear ImGui's look, by theme -- dark or light -- and colour scheme.
 *   The theme and the scheme are the window's, not the sheet's: the scheme
@@ -14,14 +14,30 @@
 * the panel it is drawn on. A row with no fill has no colour to read in, and
 * its text is the theme's.
 *
+* HOW TO USE
+* ----------
+*   apply_style() sets ImGui's look from the theme and scheme the shell
+* names; is_light() and contrast() read a colour; font_base(), dpi_scale(),
+* zoom_now() and ui_scale() give the sizes the window draws at.
+*
+* OPTIONS
+* -------
+*   The theme, dark or light, and the colour scheme: the window's
+* preferences (shell.hpp).
+*
+* CONFIGURATION
+* -------------
+*   None.
+*
+*
 * path:      /inc/ui/bitwisedom/theme.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
-#ifndef UI_BITWISEDOM_THEME_HPP
-#define UI_BITWISEDOM_THEME_HPP 1
+#ifndef DJINTERP_UI_BITWISEDOM_THEME_HPP
+#define DJINTERP_UI_BITWISEDOM_THEME_HPP 1
 
 // imgui
 #include <imgui.h>  // ImU32, ImVec4, ImFont
@@ -105,4 +121,4 @@ float ui_scale();
 }  // namespace bitwisedom
 
 
-#endif  // UI_BITWISEDOM_THEME_HPP
+#endif  // DJINTERP_UI_BITWISEDOM_THEME_HPP

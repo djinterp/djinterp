@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                   elements.hpp
+* djinterp [cpp][tools]                                             elements.hpp
 *
 * The application's own uxoxo elements: the bit grid, the flow view, the
 * code view, the docking, and three small controls.
@@ -21,14 +21,30 @@
 * the menus that sit at the bar's right end, which the items before them
 * are cut short of.
 *
+* HOW TO USE
+* ----------
+*   Each function gives an element template -- bit_grid(), flow_view(),
+* code_view(), definition_view(), dock_space() and the small controls -- to
+* place in a view, its attributes as an option set (attrs.hpp); the ImGui
+* renderers registered for their archetypes draw them.
+*
+* OPTIONS
+* -------
+*   Each element's attributes, as its function's comment lists them.
+*
+* CONFIGURATION
+* -------------
+*   None of its own.
+*
+*
 * path:      /inc/ui/bitwisedom/elements.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
-#ifndef UI_BITWISEDOM_ELEMENTS_HPP
-#define UI_BITWISEDOM_ELEMENTS_HPP 1
+#ifndef DJINTERP_UI_BITWISEDOM_ELEMENTS_HPP
+#define DJINTERP_UI_BITWISEDOM_ELEMENTS_HPP 1
 
 // std
 #include <functional>  // std::function
@@ -367,4 +383,4 @@ void draw_code(
 }  // namespace bitwisedom
 
 
-#endif  // UI_BITWISEDOM_ELEMENTS_HPP
+#endif  // DJINTERP_UI_BITWISEDOM_ELEMENTS_HPP

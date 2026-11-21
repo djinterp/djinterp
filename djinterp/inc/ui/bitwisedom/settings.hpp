@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                   settings.hpp
+* djinterp [cpp][tools]                                             settings.hpp
 *
 * The settings registries: every sheet-wide setting, and every one of the
 * window's own, by path.
@@ -22,14 +22,30 @@
 * choice as a long, a real as a double, text as a string, and a colour as
 * the four reals "r", "g", "b", "a" a color_field reports.
 *
+* HOW TO USE
+* ----------
+*   settings() lists every sheet-wide setting and environment_settings()
+* the window's own, each by path, with its label, kind, range or choices
+* and help, and how it is read from and written to a sheet; the settings
+* dialog and the session file go through them.
+*
+* OPTIONS
+* -------
+*   Every setting the two registries list, by its path.
+*
+* CONFIGURATION
+* -------------
+*   None.
+*
+*
 * path:      /inc/ui/bitwisedom/settings.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.22
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
-#ifndef UI_BITWISEDOM_SETTINGS_HPP
-#define UI_BITWISEDOM_SETTINGS_HPP 1
+#ifndef DJINTERP_UI_BITWISEDOM_SETTINGS_HPP
+#define DJINTERP_UI_BITWISEDOM_SETTINGS_HPP 1
 
 // std
 #include <functional>  // std::function
@@ -184,4 +200,4 @@ D_NODISCARD bool read_settings(
 }  // namespace bitwisedom
 
 
-#endif  // UI_BITWISEDOM_SETTINGS_HPP
+#endif  // DJINTERP_UI_BITWISEDOM_SETTINGS_HPP

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                        app.hpp
+* djinterp [cpp][tools]                                                  app.hpp
 *
 * The bitwisedom window: sheets, each in a window of its own, edited through
 * uxoxo over Dear ImGui.
@@ -33,14 +33,32 @@
 * with changes, naming a workspace, and Help's keyboard shortcuts and about
 * box -- are the window's own ImGui popups, drawn after the interface.
 *
+* HOW TO USE
+* ----------
+*   A host makes one app, calls load_fonts() once, then frame() between
+* ImGui's NewFrame and Render each frame; post() queues an event, applied
+* after the frame. The app reads its preferences and its session as it is
+* made, and writes them as they change; preferences_path() and
+* session_path() name those two files.
+*
+* OPTIONS
+* -------
+*   The user's preferences (shell.hpp) and each sheet's settings
+* (settings.hpp), kept in the preferences file beside ImGui's own layout.
+*
+* CONFIGURATION
+* -------------
+*   None of its own: it builds where uxoxo and Dear ImGui do.
+*
+*
 * path:      /inc/ui/bitwisedom/app.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.20
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
-#ifndef UI_BITWISEDOM_APP_HPP
-#define UI_BITWISEDOM_APP_HPP 1
+#ifndef DJINTERP_UI_BITWISEDOM_APP_HPP
+#define DJINTERP_UI_BITWISEDOM_APP_HPP 1
 
 // std
 #include <memory>  // std::unique_ptr
@@ -431,4 +449,4 @@ std::vector<int> op_targets(
 }  // namespace bitwisedom
 
 
-#endif  // UI_BITWISEDOM_APP_HPP
+#endif  // DJINTERP_UI_BITWISEDOM_APP_HPP

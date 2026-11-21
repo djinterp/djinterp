@@ -30,6 +30,7 @@
 #include "../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_command.h"  // commands
 #include "../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_option.h"  // options
 #include "../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_parser.h"  // the parser
+#include "../../../../../inc/djinterp/c/option/option_env_registry.h"  // a djin
 #include "../../../../../inc/djinterp/config/tools/cli/cfg_cli.h"  // the knobs
 #include "../../../../../inc/djinterp/tools/cli/c/cli_plugin.h"  // dj_cli_plugin_versions
 #include "../../../../../inc/djinterp/tools/cli/c/cli_program.h"  // the program
@@ -218,7 +219,9 @@ void d_tests_cli_settings_unset(void)
         "PROG_CLI_PLUGIN_STRICT_VERSION",
         "DJINTERP_CLI_PLUGIN_SEARCH",
         "PROG_CLI_PLUGIN_SEARCH",
-        "PROG_PLUGIN_PATH"
+        "PROG_PLUGIN_PATH",
+        "DJINTERP_PROBE_SECRET",
+        "PROG_PROBE_SECRET"
     };
 
     for (size_t i = 0u; i < D_TESTS_CLI_SETTINGS_COUNT(NAMES); ++i)
@@ -567,6 +570,219 @@ bool d_tests_cli_settings_environment(void)
 
 
 //==============================================================================
+// 4a. THE SHARED FILE
+//==============================================================================
+
+// dj_tests_cli_settings_probe_storage, the probe's frame
+//   a djin of the cases' own, `probe`, with one bool that refuses the user's
+// file and the environment, as a setting that decides what code runs does.
+D_OPTION_ENV_DECLARE(dj_tests_cli_settings_probe_storage, 4u, 2u, 256u);
+
+static const struct dj_option_env_var D_TESTS_CLI_SETTINGS_SECRET[] =
+{
+    D_OPTION_ENV_ROW_REFUSING(D_OPTION_ENV_KIND_BOOL, "secret", NULL, 0u,
+                              NULL, 0u, NULL, 0, 0, 1, 0.0, NULL, NULL,
+                              "a bool the shared sources cannot set",
+                              D_OPTION_ENV_REFUSES(D_OPTION_ENV_SOURCE_FILE) |
+                              D_OPTION_ENV_REFUSES(
+                                  D_OPTION_ENV_SOURCE_ENVIRONMENT))
+};
+
+static struct dj_option_env                        d_tests_cli_settings_probe;
+static struct dj_tests_cli_settings_probe_storage d_tests_cli_settings_room;
+
+/*
+d_tests_cli_settings_make_probe
+  The cases' program, with the probe's djin registered before it runs.
+*/
+static bool
+d_tests_cli_settings_make_probe(
+    struct dj_cli_program* _program,
+    struct dj_arg_parser*  _parser
+)
+{
+    struct dj_option_env_registry* const registry = d_option_env_registry();
+
+    if (d_option_env_registry_find(registry, "probe", 5u) != NULL)
+    {
+        (void)d_option_env_registry_remove(registry,
+                                           &d_tests_cli_settings_probe);
+    }
+
+    return ( (d_tests_cli_settings_make(_program, _parser)) &&
+             (D_OPTION_ENV_VIEW(&d_tests_cli_settings_probe,
+                                d_tests_cli_settings_room).is_ok) &&
+             (d_option_env_set_name(&d_tests_cli_settings_probe,
+                                    "probe").is_ok) &&
+             (d_option_env_declare_all(&d_tests_cli_settings_probe,
+                                       D_TESTS_CLI_SETTINGS_SECRET,
+                                       1u).is_ok) &&
+             (d_option_env_registry_add(registry,
+                                        &d_tests_cli_settings_probe).is_ok) );
+}
+
+// SHARED_TEXT
+//   constant: a shared file's lines: a djin's not registered here, a near
+// miss, a known djin's unknown setting, and a setting that refuses the file.
+static const char SHARED_TEXT[] =
+    "nosuch.depth = 3\n"
+    "cli.plugin_serch = /x\n"
+    "cli.nosuch = 1\n"
+    "probe.secret = true\n";
+
+// D_TESTS_CLI_SETTINGS_SHOW
+//   constant: what `show` says with nothing bound.
+#define D_TESTS_CLI_SETTINGS_SHOW                                              \
+    "strict=1 search=default path=- level=- output=- mode=- words=-\n"
+
+/*
+d_tests_cli_settings_said
+  The text of the shared file's notes, chosen by mask: bit 0 the foreign
+line, 1 the near miss, 2 the known djin's, 3 the refusal; and the words
+each is said with.
+*/
+static void
+d_tests_cli_settings_said(
+    char*       _buffer,
+    size_t      _capacity,
+    const char* _path,
+    unsigned    _mask,
+    const char* _unknown,
+    const char* _refused
+)
+{
+    size_t used = 0u;
+
+    _buffer[0] = '\0';
+    used += (_mask & 1u) ? (size_t)snprintf(_buffer + used, _capacity - used,
+        "%s:1: %s: no setting is named 'nosuch.depth'\n", _path, _unknown)
+        : 0u;
+    used += (_mask & 2u) ? (size_t)snprintf(_buffer + used, _capacity - used,
+        "%s:2: %s: no setting is named 'cli.plugin_serch'; did you mean "
+        "'cli.plugin_search'?\n", _path, _unknown) : 0u;
+    used += (_mask & 4u) ? (size_t)snprintf(_buffer + used, _capacity - used,
+        "%s:3: %s: no setting is named 'cli.nosuch'\n", _path, _unknown)
+        : 0u;
+    (void)((_mask & 8u) ? snprintf(_buffer + used, _capacity - used,
+        "%s:4: %s: 'probe.secret' is not taken from the user's settings "
+        "file\n", _path, _refused) : 0);
+
+    return;
+}
+
+/*
+d_tests_cli_settings_shared_environment
+  The environment's cases of d_tests_cli_settings_shared, with no file: each
+variable set alone, then unset again.
+*/
+static bool
+d_tests_cli_settings_shared_environment(
+    bool _held
+)
+{
+    static const struct
+    {
+        const char*              name;
+        const char*              value;
+        struct dj_tests_cli_case run;
+    } CASES[] =
+    {
+        { "DJINTERP_PROBE_SECRET", "true",
+          { "V01", "prog --cli.shared_refusals=warn show", 0,
+            D_TESTS_CLI_SETTINGS_SHOW,
+            "prog: warning: DJINTERP_PROBE_SECRET: 'probe.secret' is not "
+            "taken from the environment\n" } },
+        { "DJINTERP_PROBE_SECRET", "true",
+          { "V02", "prog show", 0, D_TESTS_CLI_SETTINGS_SHOW, "" } },
+        { "PROG_PROBE_SECRET", "true",
+          { "V03", "prog show", 0, D_TESTS_CLI_SETTINGS_SHOW,
+            "prog: warning: PROG_PROBE_SECRET: 'probe.secret' is not taken "
+            "from the environment\n" } },
+        { "DJINTERP_CLI_PLUGIN_STRICT_VERSION", "maybe",
+          { "V04", "prog show", 0, D_TESTS_CLI_SETTINGS_SHOW,
+            "prog: warning: DJINTERP_CLI_PLUGIN_STRICT_VERSION: 'maybe' is "
+            "not a value 'cli.plugin_strict_version' takes\n" } },
+        { "DJINTERP_CLI_PLUGIN_STRICT_VERSION", "",
+          { "V05", "prog show", 0, D_TESTS_CLI_SETTINGS_SHOW, "" } }
+    };
+    char path[D_TESTS_CLI_SETTINGS_ROOM];
+    bool held = (d_tests_cli_settings_home(path, sizeof(path), NULL)) &&
+                (_held);
+
+    for (size_t i = 0u; i < sizeof(CASES) / sizeof(CASES[0]); ++i)
+    {
+        d_tests_cli_settings_unset();
+        (void)d_tests_cli_setenv(CASES[i].name, CASES[i].value);
+        held = (d_tests_cli_case_run(&CASES[i].run,
+                                     d_tests_cli_settings_make_probe)) &&
+               (held);
+    }
+
+    d_tests_cli_settings_unset();
+
+    return held;
+}
+
+/*
+d_tests_cli_settings_shared
+  Tests the following:
+  - by default a djin not registered here is quiet, and a near miss and a
+    known djin's unknown setting warn (cli.unknown_settings typos)
+  - all warns of every unknown line, none of none, error makes them errors
+  - a setting that refuses the shared file is a note only at -v by default
+    (cli.shared_refusals verbose), and a warning or an error as set
+  - the command line's setting governs what the file's start held
+  - from the environment: a refusal under DJINTERP_ is shared, one under
+    the program's own prefix a warning; a value not taken, a warning; a
+    variable set empty, nothing
+*/
+bool d_tests_cli_settings_shared(void)
+{
+    struct dj_tests_cli_case cases[7];
+    char                     said[7][D_TESTS_CLI_SETTINGS_ROOM * 4u];
+    char                     path[D_TESTS_CLI_SETTINGS_ROOM];
+    static const char* const lines[7] =
+    {
+        "prog show",
+        "prog --cli.unknown_settings=all show",
+        "prog --cli.unknown_settings=none show",
+        "prog --cli.unknown_settings=error show",
+        "prog -v show",
+        "prog --cli.shared_refusals=warn show",
+        "prog --cli.shared_refusals=error show"
+    };
+    static const unsigned masks[7] = { 6u, 7u, 0u, 7u, 14u, 14u, 14u };
+    static const char* const tags[7] =
+        { "S01", "S02", "S03", "S04", "S05", "S06", "S07" };
+    bool held;
+
+    d_tests_cli_settings_unset();
+    held = D_TESTS_CLI_CHECK(d_tests_cli_settings_home(path, sizeof(path),
+                                                       SHARED_TEXT),
+                             "S00",
+                             "a scratch home holding the shared file");
+
+    for (size_t i = 0u; i < 7u; ++i)
+    {
+        d_tests_cli_settings_said(said[i], sizeof(said[i]), path, masks[i],
+                                  (i == 3u) ? "error" : "warning",
+                                  (i == 4u) ? "note"
+                                  : (i == 6u) ? "error" : "warning");
+        cases[i].tag    = tags[i];
+        cases[i].line   = lines[i];
+        cases[i].status = ( (i == 3u) || (i == 6u) ) ? 2 : 0;
+        cases[i].out    = ( (i == 3u) || (i == 6u) )
+                          ? "" : D_TESTS_CLI_SETTINGS_SHOW;
+        cases[i].err    = said[i];
+    }
+
+    held = (d_tests_cli_cases_run(cases, 7u,
+                                  d_tests_cli_settings_make_probe)) && (held);
+
+    return d_tests_cli_settings_shared_environment(held);
+}
+
+//==============================================================================
 // 5.  WHAT THE KIT READS
 //==============================================================================
 
@@ -648,6 +864,9 @@ const struct dj_test_case_spec d_tests_cli_settings[] =
     { "cli_settings_environment",
       "the environment binds; the command line wins",
       d_tests_cli_settings_environment },
+    { "cli_settings_shared",
+      "what the shared file and environment are said for",
+      d_tests_cli_settings_shared },
     { "cli_settings_reads",
       "each setting's knob, the program's say, the sources",
       d_tests_cli_settings_reads }

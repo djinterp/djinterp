@@ -32,14 +32,16 @@
 * -------
 *   None: this header holds build-time knobs alone. The run-time settings
 * whose defaults they are -- `cli.plugin_strict_version`,
-* `cli.plugin_search` and `plugin_path` -- are cli_settings.h's.
+* `cli.plugin_search`, `plugin_path`, `cli.unknown_settings` and
+* `cli.shared_refusals` -- are cli_settings.h's.
 *
 * CONFIGURATION
 * -------------
 *   Section 1's knobs: the parts compiled (D_CFG_CLI_PLUGINS, colour, the
-* kit's help layout, a Windows console's wide writes), help's widths, and
-* the plugin defaults of 1.4. Each is checked where it is resolved, and a
-* value it does not take is an #error.
+* kit's help layout, a Windows console's wide writes), help's widths, the
+* plugin defaults of 1.4, and what 1.5 says of the shared settings file.
+* Each is checked where it is resolved, and a value it does not take is an
+* #error.
 *
 *
 * path:      /inc/djinterp/config/tools/cli/cfg_cli.h
@@ -68,7 +70,10 @@ TABLE OF CONTENTS
          1.  D_CFG_CLI_PLUGIN_SEARCH
          2.  D_CFG_CLI_PLUGIN_VARIABLE
          3.  D_CFG_CLI_PLUGIN_STRICT_VERSION
-    5.  Validation
+    5.  The shared settings file
+         1.  D_CFG_CLI_UNKNOWN_SETTINGS
+         2.  D_CFG_CLI_SHARED_REFUSALS
+    6.  Validation
 2.  RESOLVED VALUES
     ---------------
     1.  Features
@@ -256,7 +261,55 @@ TABLE OF CONTENTS
     #define D_CFG_CLI_PLUGIN_STRICT_VERSION 1
 #endif  // D_CFG_CLI_PLUGIN_STRICT_VERSION
 
-// 1.5    Validation
+// 1.5    The shared settings file
+//------------------------------------------------------------------------------
+// 1.5.1
+// D_CLI_UNKNOWN_SETTINGS_*, D_CFG_CLI_UNKNOWN_SETTINGS
+//   knob: the default of `cli.unknown_settings`, what a program says of a
+// line in the user's settings file -- which every program shares -- that
+// names no setting it has:
+//     D_CLI_UNKNOWN_SETTINGS_NONE   nothing;
+//     D_CLI_UNKNOWN_SETTINGS_TYPOS  a warning for a near miss ("did you
+//                                   mean") and for a djin's setting that
+//                                   djin does not have; nothing for a djin
+//                                   the program does not register, whose
+//                                   lines are another program's;
+//     D_CLI_UNKNOWN_SETTINGS_ALL    a warning for every such line;
+//     D_CLI_UNKNOWN_SETTINGS_ERROR  an error for every such line, and the
+//                                   run ends with 2.
+// Default D_CLI_UNKNOWN_SETTINGS_TYPOS.
+#define D_CLI_UNKNOWN_SETTINGS_NONE   0
+#define D_CLI_UNKNOWN_SETTINGS_TYPOS  1
+#define D_CLI_UNKNOWN_SETTINGS_ALL    2
+#define D_CLI_UNKNOWN_SETTINGS_ERROR  3
+
+#ifndef D_CFG_CLI_UNKNOWN_SETTINGS
+    #define D_CFG_CLI_UNKNOWN_SETTINGS   D_CLI_UNKNOWN_SETTINGS_TYPOS
+#endif  // D_CFG_CLI_UNKNOWN_SETTINGS
+
+// 1.5.2
+// D_CLI_SHARED_REFUSALS_*, D_CFG_CLI_SHARED_REFUSALS
+//   knob: the default of `cli.shared_refusals`, what a program says when a
+// shared source -- the user's settings file, or the environment under
+// `DJINTERP_` -- sets one of its settings that refuses that source (a row's
+// refused sources):
+//     D_CLI_SHARED_REFUSALS_NONE     nothing;
+//     D_CLI_SHARED_REFUSALS_VERBOSE  a note, only at -v;
+//     D_CLI_SHARED_REFUSALS_WARN     a warning;
+//     D_CLI_SHARED_REFUSALS_ERROR    an error, and the run ends with 2.
+// The program's own prefix in the environment is always warned of, and the
+// command line always refused as an error. Default
+// D_CLI_SHARED_REFUSALS_VERBOSE.
+#define D_CLI_SHARED_REFUSALS_NONE     0
+#define D_CLI_SHARED_REFUSALS_VERBOSE  1
+#define D_CLI_SHARED_REFUSALS_WARN     2
+#define D_CLI_SHARED_REFUSALS_ERROR    3
+
+#ifndef D_CFG_CLI_SHARED_REFUSALS
+    #define D_CFG_CLI_SHARED_REFUSALS    D_CLI_SHARED_REFUSALS_VERBOSE
+#endif  // D_CFG_CLI_SHARED_REFUSALS
+
+// 1.6    Validation
 //------------------------------------------------------------------------------
 #if !D_CFG_IS_BOOL(D_CFG_CLI_PLUGINS)
     #error "cfg_cli: D_CFG_CLI_PLUGINS must be 0 or 1"
@@ -280,6 +333,16 @@ TABLE OF CONTENTS
 
 #if !D_CFG_IS_BOOL(D_CFG_CLI_PLUGIN_STRICT_VERSION)
     #error "cfg_cli: D_CFG_CLI_PLUGIN_STRICT_VERSION must be 0 or 1"
+#endif
+
+#if ( (D_CFG_NORM(D_CFG_CLI_UNKNOWN_SETTINGS) < 0) ||                         \
+      (D_CFG_NORM(D_CFG_CLI_UNKNOWN_SETTINGS) > 3) )
+    #error "cfg_cli: D_CFG_CLI_UNKNOWN_SETTINGS must lie in [0, 3]"
+#endif
+
+#if ( (D_CFG_NORM(D_CFG_CLI_SHARED_REFUSALS) < 0) ||                          \
+      (D_CFG_NORM(D_CFG_CLI_SHARED_REFUSALS) > 3) )
+    #error "cfg_cli: D_CFG_CLI_SHARED_REFUSALS must lie in [0, 3]"
 #endif
 
 #if ( (D_CFG_NORM(D_CFG_CLI_HELP_WIDTH) < 40) ||                              \

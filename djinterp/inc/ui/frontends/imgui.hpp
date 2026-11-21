@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [ui]                                                        imgui.hpp
+* djinterp [cpp][tools]                                                imgui.hpp
 *
 *   The Dear ImGui binding: the interactive frontend.  It translates the
 * framework-agnostic draw_list (draw.hpp) into ImGui draw-list calls and offers
@@ -21,15 +21,30 @@
 *     draw_scene(s, view, cfg);            // or show_scene("title", ...)
 *     field_hit hit = draw_field(s, scale_of(s.field.value()));
 *
+* HOW TO USE
+* ----------
+*   A viewer holds the camera; draw_scene() draws a draw_list (draw.hpp)
+* on its canvas and moves the camera from the mouse, and the two panels show
+* what the scene holds and what lies under the cursor.
+*
+* OPTIONS
+* -------
+*   The viewer's members: its camera and what the panels show.
+*
+* CONFIGURATION
+* -------------
+*   Built only at C++17 or later (D_ENV_LANG_IS_CPP17_OR_HIGHER), with Dear
+* ImGui on the include path.
+*
 *
 * path:      /inc/ui/frontends/imgui.hpp
 * link(s):   TBA
 * author(s): TBA                                             created: 2026.06.18
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
-#ifndef UI_FRONTENDS_IMGUI_HPP
-#define UI_FRONTENDS_IMGUI_HPP 1
+#ifndef DJINTERP_UI_FRONTENDS_IMGUI_HPP
+#define DJINTERP_UI_FRONTENDS_IMGUI_HPP 1
 
 // djinterp
 #include "../../djinterp/env/env.h"  // D_ENV_LANG_*
@@ -559,4 +574,4 @@ NS_END  // djinterp
 
 #endif  // djinterp::ui's floor
 
-#endif  // UI_FRONTENDS_IMGUI_HPP
+#endif  // DJINTERP_UI_FRONTENDS_IMGUI_HPP

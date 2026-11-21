@@ -1,17 +1,32 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                       view.hpp
+* djinterp [cpp][tools]                                                 view.hpp
 *
 * The interface, as a uxoxo template built from the window's state: the
 * workspace in front, its documents, and the document in front of it.
 *
+* HOW TO USE
+* ----------
+*   Build the interface from a shell_view of the window's state, and hand
+* the template to uxoxo to realize; the app does this whenever the document
+* in front or the window around it has changed.
+*
+* OPTIONS
+* -------
+*   None.
+*
+* CONFIGURATION
+* -------------
+*   None.
+*
+*
 * path:      /inc/ui/bitwisedom/view.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.10.18
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
-#ifndef UI_BITWISEDOM_VIEW_HPP
-#define UI_BITWISEDOM_VIEW_HPP 1
+#ifndef DJINTERP_UI_BITWISEDOM_VIEW_HPP
+#define DJINTERP_UI_BITWISEDOM_VIEW_HPP 1
 
 // std
 #include <vector>  // std::vector
@@ -54,4 +69,4 @@ uxoxo::element_template build_ui(
 }  // namespace bitwisedom
 
 
-#endif  // UI_BITWISEDOM_VIEW_HPP
+#endif  // DJINTERP_UI_BITWISEDOM_VIEW_HPP

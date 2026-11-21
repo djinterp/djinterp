@@ -45,8 +45,11 @@
 *
 * OPTIONS
 * -------
-*   `cli.plugin_strict_version` (bool), `cli.plugin_search` (text) and the
-* root's `plugin_path` (text): each set from the user's file
+*   `cli.plugin_strict_version` (bool), `cli.plugin_search` (text), the
+* root's `plugin_path` (text), and what the user's file is said for:
+* `cli.unknown_settings` (none, typos, all or error; typos by default) and
+* `cli.shared_refusals` (none, verbose, warn or error; verbose by default).
+* Each is set from the user's file
 * ($XDG_CONFIG_HOME/djinterp/settings), the environment (`DJINTERP_` and the
 * program's own prefix) and the command line (`--NAME=VALUE`, `--NAME`,
 * `--no-NAME`, `--set NAME=VALUE`), in that order of standing, the command
@@ -55,7 +58,8 @@
 * CONFIGURATION
 * -------------
 *   Each setting's default is its knob in cfg_cli.h:
-* D_CFG_CLI_PLUGIN_STRICT_VERSION and D_CFG_CLI_PLUGIN_SEARCH.
+* D_CFG_CLI_PLUGIN_STRICT_VERSION, D_CFG_CLI_PLUGIN_SEARCH,
+* D_CFG_CLI_UNKNOWN_SETTINGS and D_CFG_CLI_SHARED_REFUSALS.
 * D_CFG_CLI_PLUGIN_VARIABLE 0 makes the two plugin settings refuse every
 * source the caller controls.
 *
@@ -78,6 +82,7 @@ TABLE OF CONTENTS
          2.  d_cli_settings_take
          3.  d_cli_settings_file
          4.  d_cli_settings_why
+         5.  d_cli_settings_report
     3.  What the kit reads
          1.  d_cli_settings_plugin_search
          2.  d_cli_settings_plugin_path
@@ -207,6 +212,28 @@ void d_cli_settings_why(
     size_t      _capacity
 );
 
+
+// 1.2.5
+// d_cli_settings_report
+/**
+ * @brief Says what the run's start held: each statement of the user's file
+ *        and each value of the environment a setting could not take, once
+ *        the parse has ended, so that -q, -v and the command line's own
+ *        settings govern them. `cli.unknown_settings` decides what is said
+ *        of a name no setting here has -- nothing for a djin the program
+ *        does not register, by default -- and `cli.shared_refusals` of a
+ *        setting that refuses the user's file or `DJINTERP_`; a refusal
+ *        under the program's own prefix, and a value a setting does not
+ *        take, are warnings; an environment variable set empty is taken as
+ *        one not set, and is not said. Each is said once.
+ *
+ * @param[in] _program  the program, for its reports and its verbosity.
+ * @return D_CLI_EXIT_OK; D_CLI_EXIT_TROUBLE when a setting made one an
+ *         error.
+ */
+int d_cli_settings_report(
+    const struct dj_cli_program* _program
+);
 
 // 1.3    What the kit reads
 //------------------------------------------------------------------------------
