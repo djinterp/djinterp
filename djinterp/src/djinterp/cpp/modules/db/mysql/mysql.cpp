@@ -32,6 +32,8 @@
 
 
 NS_DJINTERP
+NS_DB
+namespace mysql {
 
 //==============================================================================
 // FILE-LOCAL DEFINITIONS
@@ -215,8 +217,9 @@ void mysql_connection::set_query_attribute(
     this->run_guarded(
         [this, &_name, &_value]() -> void
         {
-            internal::refuse_nul(_name, "set_query_attribute", "the name");
-            internal::refuse_nul(_value, "set_query_attribute", "the value");
+            db::internal::refuse_nul(_name, "set_query_attribute", "the name");
+            db::internal::refuse_nul(_value, "set_query_attribute",
+                                     "the value");
             this->m_check(this->get_face().set_query_attribute(_name, _value),
                           failure_kind::query,
                           "set_query_attribute");
@@ -341,6 +344,8 @@ void mysql_connection::on_connected_impl(
     return;
 }
 
+}  // namespace mysql
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

@@ -28,6 +28,8 @@
 
 
 NS_DJINTERP
+NS_DB
+namespace mysql {
 
 //==============================================================================
 // FILE-LOCAL DEFINITIONS
@@ -212,9 +214,15 @@ void mariadb_layer::cancel(
     return;
 }
 
-template class prepared_statement<mariadb_layer>;
-template class streaming_result_set<mariadb_layer>;
+}  // namespace mysql
 
+template class prepared_statement<mysql::mariadb_layer>;
+template class streaming_result_set<mysql::mariadb_layer>;
+
+namespace mysql {
+
+}  // namespace mysql
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

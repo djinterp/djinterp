@@ -136,6 +136,8 @@ TABLE OF CONTENTS
 
 
 NS_DJINTERP
+NS_DB
+namespace mysql {
 
 
 //==============================================================================
@@ -397,16 +399,20 @@ struct mariadb_layer
     );
 };
 
+}  // namespace mysql
+
 // 3.1.2
 // prepared_statement<mariadb_layer>
 //   class: MariaDB's and MySQL's prepared statements, instantiated once, in
 // mysql_common.cpp.
-extern template class prepared_statement<mariadb_layer>;
+extern template class prepared_statement<mysql::mariadb_layer>;
 
 // 3.1.3
 // streaming_result_set<mariadb_layer>
 //   class: its streams, instantiated with them.
-extern template class streaming_result_set<mariadb_layer>;
+extern template class streaming_result_set<mysql::mariadb_layer>;
+
+namespace mysql {
 
 // 3.2    Settings for a connect
 //------------------------------------------------------------------------------
@@ -452,7 +458,7 @@ NS_INTERNAL
             const std::string&          _text
         )
         {
-            internal::refuse_nul_setting(_text, "connect", "a setting");
+            db::internal::refuse_nul_setting(_text, "connect", "a setting");
             m_texts.push_back(_text);
             m_settings.push_back(
                 dj_mariadb_setting{ _name, 0ul, m_texts.back().c_str(),
@@ -466,10 +472,10 @@ NS_INTERNAL
             const std::string& _value
         )
         {
-            internal::refuse_nul_setting(_name,
+            db::internal::refuse_nul_setting(_name,
                                          "connect",
                                          "a connect attribute's name");
-            internal::refuse_nul_setting(_value, "connect", _name.c_str());
+            db::internal::refuse_nul_setting(_value, "connect", _name.c_str());
             m_texts.push_back(_name);
 
             const char* const name = m_texts.back().c_str();
@@ -942,7 +948,7 @@ public:
     // hooks -- database_connection calls these, programs the operations
     // they implement, whose contracts they keep; connect_start_impl to
     // connect_abandon_impl are connect_async's (database_connection.hpp,
-    // internal::connect_steps), into a face of their own until connected
+    // db::internal::connect_steps), into a face of their own until connected
     void connect_impl();
     int connect_start_impl(
         dj_db_pending& _pending
@@ -1241,7 +1247,7 @@ void mysql_common_connection<Derived, DbType>::set_charset(
     this->run_guarded(
         [this, &_charset]() -> void
         {
-            internal::refuse_nul(_charset, "set_charset", "the name");
+            db::internal::refuse_nul(_charset, "set_charset", "the name");
             m_check(m_db.set_charset(_charset),
                     failure_kind::query,
                     "set_charset");
@@ -1297,7 +1303,7 @@ void mysql_common_connection<Derived, DbType>::execute_script(
     this->run_guarded(
         [this, &_sql]() -> void
         {
-            internal::refuse_nul(_sql, "execute_script", "the SQL");
+            db::internal::refuse_nul(_sql, "execute_script", "the SQL");
             m_check(m_db.exec_script(_sql),
                     failure_kind::query,
                     "execute_script");
@@ -1361,7 +1367,7 @@ void mysql_common_connection<Derived, DbType>::use_database(
     this->run_guarded(
         [this, &_database]() -> void
         {
-            internal::refuse_nul(_database, "use_database", "the name");
+            db::internal::refuse_nul(_database, "use_database", "the name");
             m_check(m_db.use_database(_database),
                     failure_kind::query,
                     "use_database");
@@ -1392,9 +1398,9 @@ void mysql_common_connection<Derived, DbType>::change_user(
     this->run_guarded(
         [this, &_user, &_password, &_database]() -> void
         {
-            internal::refuse_nul(_user, "change_user", "the user");
-            internal::refuse_nul(_password, "change_user", "the password");
-            internal::refuse_nul(_database, "change_user", "the database");
+            db::internal::refuse_nul(_user, "change_user", "the user");
+            db::internal::refuse_nul(_password, "change_user", "the password");
+            db::internal::refuse_nul(_database, "change_user", "the database");
 
             const int result = m_db.change_user(
                 _user,
@@ -1747,7 +1753,7 @@ bool mysql_common_connection<Derived, DbType>::has_table(
         {
             bool exists = false;
 
-            internal::refuse_nul(_table_name, "has_table", "the name");
+            db::internal::refuse_nul(_table_name, "has_table", "the name");
             m_check(m_db.has_table_s(face::string_arg(), _table_name, exists),
                     failure_kind::query,
                     "has_table");
@@ -1958,10 +1964,10 @@ struct dj_mariadb_options mysql_common_connection<Derived, DbType>::m_prepare_co
         }
     }
 
-    internal::refuse_nul_setting(m_mysql_config.unix_socket,
+    db::internal::refuse_nul_setting(m_mysql_config.unix_socket,
                                  "connect",
                                  "unix_socket");
-    internal::refuse_nul_setting(m_mysql_config.default_charset,
+    db::internal::refuse_nul_setting(m_mysql_config.default_charset,
                                  "connect",
                                  "default_charset");
 
@@ -2968,8 +2974,8 @@ using enable_if_has_mysql_diagnostics =
 // 9.  C++20 CONCEPTS
 //==============================================================================
 // Each concept forwards to a trait or a tagless capability above. They live
-// in djinterp::concepts (2026.10.21), where a concept may take the name of
-// the class it constrains; each former name in djinterp forwards to its
+// in db::mysql::concepts (2026.10.21), where a concept may take the name of
+// the class it constrains; each former name in db::mysql forwards to its
 // concept for one release. They exist where the compiler has concepts; the
 // traits serve at C++17 without them, as in functor.hpp and monoid.hpp.
 
@@ -3449,6 +3455,8 @@ concept mysql_full_connection =
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
+}  // namespace mysql
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

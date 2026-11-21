@@ -45,6 +45,7 @@
 
 
 NS_DJINTERP
+NS_DB
 
 //==============================================================================
 // FILE-LOCAL DEFINITIONS
@@ -2179,6 +2180,7 @@ std::string get_field_type_name(
     }
 }
 
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

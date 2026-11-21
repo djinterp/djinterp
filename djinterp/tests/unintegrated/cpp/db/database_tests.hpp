@@ -19,7 +19,7 @@
 *     - database_tests_pool.cpp         (connection_pool / pooled_connection)
 *
 *   Every test function is `bool tests_<entity>()`, declared flat in
-* `djinterp::testing`, returning true on success. The runner
+* `djinterp::db::testing`, returning true on success. The runner
 * (build/cmake/config/.../database_tests_runner.cpp) drives them.
 *
 *   TESTING STRATEGY FOR THE CRTP BASES
@@ -93,6 +93,7 @@
 #include "../../../../inc/re_std/cpp/cstdint/cstdint.hpp"  // re_std::int64_t
 
 NS_DJINTERP
+NS_DB
 namespace testing
 {
     // =======================================================================
@@ -1223,7 +1224,7 @@ namespace testing
 
 
     // =======================================================================
-    // test declarations (flat in djinterp::testing)
+    // test declarations (flat in djinterp::db::testing)
     // =======================================================================
 
     // enumerations + type aliases (database_tests_enums.cpp)
@@ -1320,6 +1321,7 @@ namespace testing
     bool tests_pooled_connection_release_idempotent();
 
 }   // namespace testing
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

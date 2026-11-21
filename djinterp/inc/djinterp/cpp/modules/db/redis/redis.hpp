@@ -77,6 +77,8 @@
 
 
 NS_DJINTERP
+NS_DB
+namespace redis {
 
 
 // =============================================================================
@@ -3460,6 +3462,8 @@ concept redis_full_connection =
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
+}  // namespace redis
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

@@ -80,6 +80,7 @@ TABLE OF CONTENTS
 #include <utility>      // std::move
 // djinterp
 #include "../../djinterp.hpp"      // framework root
+#include "db_common.hpp"           // NS_DB
 #include "../../../c/modules/db/db_common.h"  // dj_db_pending, dj_db_wait, D_DB_*
 
 // 2.1.1
@@ -107,6 +108,7 @@ TABLE OF CONTENTS
 
 
 NS_DJINTERP
+NS_DB
 
 
 //==============================================================================
@@ -870,6 +872,7 @@ void async_awaitable<Result, Loop>::m_woken(
 #endif  // D_INTERNAL_DB_ASYNC_AWAIT
 
 
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

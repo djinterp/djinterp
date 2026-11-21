@@ -37,6 +37,7 @@
 
 
 NS_DJINTERP
+NS_DB
 
 //==============================================================================
 // FILE-LOCAL DEFINITIONS
@@ -803,6 +804,7 @@ const struct dj_db_value& buffered_result_set::m_value(
     return *m_rows.value(static_cast<std::size_t>(m_cursor), _index);
 }
 
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

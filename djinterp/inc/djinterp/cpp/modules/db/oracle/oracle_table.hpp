@@ -49,6 +49,8 @@
 
 
 NS_DJINTERP
+NS_DB
+namespace oracle {
 
 
     // =========================================================================
@@ -426,6 +428,8 @@ NS_DJINTERP
     };
 
 
+}  // namespace oracle
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

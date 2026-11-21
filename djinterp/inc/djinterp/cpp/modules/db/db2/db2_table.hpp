@@ -64,6 +64,8 @@
 
 
 NS_DJINTERP
+NS_DB
+namespace db2 {
 
 
     // =========================================================================
@@ -388,6 +390,8 @@ NS_DJINTERP
     };
 
 
+}  // namespace db2
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

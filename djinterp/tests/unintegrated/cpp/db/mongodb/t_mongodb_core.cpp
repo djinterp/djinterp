@@ -64,10 +64,11 @@
 namespace
 {
 
-namespace db   = djinterp;
-namespace core = d_tests_db_core;
+namespace db      = djinterp::db;
+namespace mongodb = djinterp::db::mongodb;
+namespace core    = d_tests_db_core;
 
-using db::mongo_connection;
+using mongodb::mongo_connection;
 
 
 //==============================================================================
@@ -165,7 +166,8 @@ static_assert(has_transactions<mongo_connection>::value);
 static_assert(
     db::internal::has_transaction_state<mongo_connection>::value);
 static_assert(
-    !db::is_detected<db::internal::prepare_hook_t, mongo_connection>::value);
+    !djinterp::is_detected<
+        db::internal::prepare_hook_t, mongo_connection>::value);
 
 // the operations that do not block exist, and refuse (ruling 11.26.6)
 static_assert(db::has_async_operations<mongo_connection>::value);
@@ -176,102 +178,114 @@ static_assert(std::is_same_v<mongo_connection::native_handle_type,
                              struct ::dj_mongodb*>);
 
 // the traits, against the class, and refused for int
-static_assert(db::is_mongo_connection<mongo_connection>::value);
-static_assert(db::is_mongo_connection_v<mongo_connection&>);
-static_assert(!db::is_mongo_connection<int>::value);
-static_assert(db::has_mongo_document_crud<mongo_connection>::value);
-static_assert(db::has_mongo_collections<mongo_connection>::value);
-static_assert(db::has_mongo_change_streams<mongo_connection>::value);
-static_assert(db::has_mongo_gridfs<mongo_connection>::value);
-static_assert(db::has_mongo_transactions<mongo_connection>::value);
-static_assert(db::has_mongo_indexes<mongo_connection>::value);
-static_assert(db::mongo_can_insert<mongo_connection>);
-static_assert(db::mongo_can_find<mongo_connection>);
-static_assert(db::mongo_can_aggregate<mongo_connection>);
-static_assert(db::mongo_can_watch<mongo_connection>);
-static_assert(db::mongo_can_bulk_write<mongo_connection>);
-static_assert(db::mongo_can_gridfs<mongo_connection>);
-static_assert(db::mongo_can_transact<mongo_connection>);
-static_assert(db::mongo_can_create_collection<mongo_connection>);
-static_assert(db::mongo_does_document_crud<mongo_connection>);
-static_assert(db::mongo_does_change_streams<mongo_connection>);
-static_assert(db::mongo_does_transactions<mongo_connection>);
-static_assert(db::mongo_is_full_connection<mongo_connection>);
-static_assert(!db::mongo_is_full_connection<int>);
+static_assert(mongodb::is_mongo_connection<mongo_connection>::value);
+static_assert(mongodb::is_mongo_connection_v<mongo_connection&>);
+static_assert(!mongodb::is_mongo_connection<int>::value);
+static_assert(mongodb::has_mongo_document_crud<mongo_connection>::value);
+static_assert(mongodb::has_mongo_collections<mongo_connection>::value);
+static_assert(mongodb::has_mongo_change_streams<mongo_connection>::value);
+static_assert(mongodb::has_mongo_gridfs<mongo_connection>::value);
+static_assert(mongodb::has_mongo_transactions<mongo_connection>::value);
+static_assert(mongodb::has_mongo_indexes<mongo_connection>::value);
+static_assert(mongodb::mongo_can_insert<mongo_connection>);
+static_assert(mongodb::mongo_can_find<mongo_connection>);
+static_assert(mongodb::mongo_can_aggregate<mongo_connection>);
+static_assert(mongodb::mongo_can_watch<mongo_connection>);
+static_assert(mongodb::mongo_can_bulk_write<mongo_connection>);
+static_assert(mongodb::mongo_can_gridfs<mongo_connection>);
+static_assert(mongodb::mongo_can_transact<mongo_connection>);
+static_assert(mongodb::mongo_can_create_collection<mongo_connection>);
+static_assert(mongodb::mongo_does_document_crud<mongo_connection>);
+static_assert(mongodb::mongo_does_change_streams<mongo_connection>);
+static_assert(mongodb::mongo_does_transactions<mongo_connection>);
+static_assert(mongodb::mongo_is_full_connection<mongo_connection>);
+static_assert(!mongodb::mongo_is_full_connection<int>);
 static_assert(
-    std::is_void_v<db::enable_if_mongo_connection<mongo_connection>>);
+    std::is_void_v<mongodb::enable_if_mongo_connection<mongo_connection>>);
 
-// the concepts (C++20) -- djinterp::concepts' own, the class's name among
+// the concepts (C++20) -- mongodb::concepts' own, the class's name among
 // them, and the former names, which forward for one release
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 static_assert(db::concepts::async_connection<mongo_connection>);
-static_assert(db::concepts::mongo_connection<mongo_connection>);
-static_assert(db::concepts::mongo_connection<mongo_connection&>);
-static_assert(db::concepts::mongodb_connection<mongo_connection>);
-static_assert(!db::concepts::mongo_connection<int>);
-static_assert(db::concepts::non_mongo_connection<int>);
-static_assert(!db::concepts::non_mongo_connection<mongo_connection>);
-static_assert(db::concepts::mongo_document_connection<mongo_connection>);
-static_assert(db::concepts::mongo_collection_connection<mongo_connection>);
-static_assert(db::concepts::mongo_aggregation_connection<mongo_connection>);
-static_assert(db::concepts::mongo_change_stream_connection<mongo_connection>);
-static_assert(db::concepts::mongo_gridfs_connection<mongo_connection>);
-static_assert(db::concepts::mongo_transaction_connection<mongo_connection>);
-static_assert(db::concepts::mongo_index_connection<mongo_connection>);
-static_assert(db::concepts::mongo_insert_connection<mongo_connection>);
-static_assert(db::concepts::mongo_find_one_connection<mongo_connection>);
-static_assert(db::concepts::mongo_update_one_connection<mongo_connection>);
-static_assert(db::concepts::mongo_delete_one_connection<mongo_connection>);
-static_assert(db::concepts::mongo_replace_one_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_connection<mongo_connection&>);
+static_assert(mongodb::concepts::mongodb_connection<mongo_connection>);
+static_assert(!mongodb::concepts::mongo_connection<int>);
+static_assert(mongodb::concepts::non_mongo_connection<int>);
+static_assert(!mongodb::concepts::non_mongo_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_document_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_collection_connection<mongo_connection>);
 static_assert(
-    db::concepts::mongo_create_collection_connection<mongo_connection>);
+    mongodb::concepts::mongo_aggregation_connection<mongo_connection>);
 static_assert(
-    db::concepts::mongo_drop_collection_connection<mongo_connection>);
+    mongodb::concepts::mongo_change_stream_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_gridfs_connection<mongo_connection>);
 static_assert(
-    db::concepts::mongo_collection_query_connection<mongo_connection>);
+    mongodb::concepts::mongo_transaction_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_index_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_insert_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_find_one_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_update_one_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_delete_one_connection<mongo_connection>);
 static_assert(
-    db::concepts::mongo_collection_list_connection<mongo_connection>);
+    mongodb::concepts::mongo_replace_one_connection<mongo_connection>);
 static_assert(
-    db::concepts::mongo_watch_collection_connection<mongo_connection>);
+    mongodb::concepts::mongo_create_collection_connection<mongo_connection>);
 static_assert(
-    db::concepts::mongo_watch_database_connection<mongo_connection>);
-static_assert(db::concepts::mongo_cursor_connection<mongo_connection>);
-static_assert(db::concepts::mongo_bulk_write_connection<mongo_connection>);
+    mongodb::concepts::mongo_drop_collection_connection<mongo_connection>);
 static_assert(
-    db::concepts::mongo_gridfs_upload_connection<mongo_connection>);
+    mongodb::concepts::mongo_collection_query_connection<mongo_connection>);
 static_assert(
-    db::concepts::mongo_gridfs_download_connection<mongo_connection>);
-static_assert(db::concepts::mongo_create_index_connection<mongo_connection>);
-static_assert(db::concepts::mongo_list_indexes_connection<mongo_connection>);
+    mongodb::concepts::mongo_collection_list_connection<mongo_connection>);
 static_assert(
-    db::concepts::mongo_begin_transaction_connection<mongo_connection>);
-static_assert(db::concepts::mongo_commit_connection<mongo_connection>);
-static_assert(db::concepts::mongo_rollback_connection<mongo_connection>);
-static_assert(db::concepts::mongo_read_concern_connection<mongo_connection>);
-static_assert(db::concepts::mongo_write_concern_connection<mongo_connection>);
-static_assert(db::concepts::mongo_find_connection<mongo_connection>);
+    mongodb::concepts::mongo_watch_collection_connection<mongo_connection>);
 static_assert(
-    db::concepts::mongo_count_documents_connection<mongo_connection>);
-static_assert(db::concepts::mongo_insertable_connection<mongo_connection>);
-static_assert(db::concepts::mongo_findable_connection<mongo_connection>);
-static_assert(db::concepts::mongo_aggregating_connection<mongo_connection>);
-static_assert(db::concepts::mongo_watchable_connection<mongo_connection>);
-static_assert(db::concepts::mongo_bulk_writable_connection<mongo_connection>);
+    mongodb::concepts::mongo_watch_database_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_cursor_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_bulk_write_connection<mongo_connection>);
 static_assert(
-    db::concepts::mongo_gridfs_capable_connection<mongo_connection>);
-static_assert(db::concepts::mongo_transactable_connection<mongo_connection>);
+    mongodb::concepts::mongo_gridfs_upload_connection<mongo_connection>);
 static_assert(
-    db::concepts::mongo_collection_creating_connection<mongo_connection>);
-static_assert(db::concepts::mongo_crud_connection<mongo_connection>);
-static_assert(db::concepts::mongo_streaming_connection<mongo_connection>);
-static_assert(db::concepts::mongo_transactional_connection<mongo_connection>);
-static_assert(db::concepts::mongo_full_connection<mongo_connection>);
-static_assert(db::Mongo_connection<mongo_connection>);
-static_assert(!db::Mongo_connection<int>);
-static_assert(db::mongo_start_transaction_connection<mongo_connection>);
-static_assert(db::mongo_commit_transaction_connection<mongo_connection>);
-static_assert(db::mongo_abort_transaction_connection<mongo_connection>);
-static_assert(db::mongo_full_connection<mongo_connection>);
+    mongodb::concepts::mongo_gridfs_download_connection<mongo_connection>);
+static_assert(
+    mongodb::concepts::mongo_create_index_connection<mongo_connection>);
+static_assert(
+    mongodb::concepts::mongo_list_indexes_connection<mongo_connection>);
+static_assert(
+    mongodb::concepts::mongo_begin_transaction_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_commit_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_rollback_connection<mongo_connection>);
+static_assert(
+    mongodb::concepts::mongo_read_concern_connection<mongo_connection>);
+static_assert(
+    mongodb::concepts::mongo_write_concern_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_find_connection<mongo_connection>);
+static_assert(
+    mongodb::concepts::mongo_count_documents_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_insertable_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_findable_connection<mongo_connection>);
+static_assert(
+    mongodb::concepts::mongo_aggregating_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_watchable_connection<mongo_connection>);
+static_assert(
+    mongodb::concepts::mongo_bulk_writable_connection<mongo_connection>);
+static_assert(
+    mongodb::concepts::mongo_gridfs_capable_connection<mongo_connection>);
+static_assert(
+    mongodb::concepts::mongo_transactable_connection<mongo_connection>);
+static_assert(
+    mongodb::concepts::mongo_collection_creating_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_crud_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_streaming_connection<mongo_connection>);
+static_assert(
+    mongodb::concepts::mongo_transactional_connection<mongo_connection>);
+static_assert(mongodb::concepts::mongo_full_connection<mongo_connection>);
+static_assert(mongodb::Mongo_connection<mongo_connection>);
+static_assert(!mongodb::Mongo_connection<int>);
+static_assert(mongodb::mongo_start_transaction_connection<mongo_connection>);
+static_assert(mongodb::mongo_commit_transaction_connection<mongo_connection>);
+static_assert(mongodb::mongo_abort_transaction_connection<mongo_connection>);
+static_assert(mongodb::mongo_full_connection<mongo_connection>);
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
@@ -333,11 +347,11 @@ config
   The deployment's configuration, in a database of the run's: the one given,
 or the run's own.
 */
-db::mongo_connect_config config(
+mongodb::mongo_connect_config config(
     const std::string& _database = ""
 )
 {
-    db::mongo_connect_config made(g_uri);
+    mongodb::mongo_connect_config made(g_uri);
 
     made.base.database = (_database.empty()) ? g_database
                                              : _database;
@@ -424,7 +438,7 @@ void d_tests_mongodb_core_connecting(void)
 
     // failures: a wrong password, a server not there
     {
-        db::mongo_connect_config wrong = config();
+        mongodb::mongo_connect_config wrong = config();
 
         wrong.base.username                = "dtm_no_such_user";
         wrong.base.password                = "certainly not the password";
@@ -440,7 +454,7 @@ void d_tests_mongodb_core_connecting(void)
     }
 
     {
-        db::mongo_connect_config nowhere("mongodb://127.0.0.1:1/");
+        mongodb::mongo_connect_config nowhere("mongodb://127.0.0.1:1/");
 
         nowhere.server_selection_timeout_ms = 300;
 
@@ -456,14 +470,14 @@ void d_tests_mongodb_core_connecting(void)
             code = e.error_code();
         }
 
-        D_TESTS_DB_CORE_CHECK(db::mongodb_layer::connection_lost(code));
+        D_TESTS_DB_CORE_CHECK(mongodb::mongodb_layer::connection_lost(code));
         D_TESTS_DB_CORE_CHECK(contains(absent.get_last_error(),
                                        "MongoDB connect"));
     }
 
     // a host and a port, no string: refused for the wrong port alike
     {
-        db::mongo_connect_config parts;
+        mongodb::mongo_connect_config parts;
 
         parts.base.host                   = "127.0.0.1";
         parts.base.port                   = 1;
@@ -477,7 +491,7 @@ void d_tests_mongodb_core_connecting(void)
 
     // refusals before the layer: a key apart, a NUL
     {
-        db::mongo_connect_config keyed = config();
+        mongodb::mongo_connect_config keyed = config();
 
         keyed.base.ssl_cert = "client.pem";
         keyed.base.ssl_key  = "client.key";
@@ -490,7 +504,7 @@ void d_tests_mongodb_core_connecting(void)
     }
 
     {
-        db::mongo_connect_config nul = config();
+        mongodb::mongo_connect_config nul = config();
 
         nul.app_name = std::string("dt\0m", 4);
 
@@ -691,7 +705,7 @@ void d_tests_mongodb_core_documents(
                                                ": \"42\" } }")) );
 
     // changing
-    db::mongo_write_result written =
+    mongodb::mongo_write_result written =
         _db.update_one("docs", "{\"_id\": 42}", "{\"$set\": {\"n\": 20}}");
 
     D_TESTS_DB_CORE_CHECK( (written.matched == 1) &&
@@ -823,7 +837,7 @@ void d_tests_mongodb_core_cursors(
     documents += "]";
     (void)_db.insert_many("cur", documents);
 
-    std::unique_ptr<db::mongo_cursor> cursor =
+    std::unique_ptr<mongodb::mongo_cursor> cursor =
         _db.find_cursor("cur", "", "{\"sort\": {\"_id\": 1}, "
                                    "\"batchSize\": 2}");
 
@@ -917,7 +931,7 @@ void d_tests_mongodb_core_streams(
 
     _db.create_collection("events");
 
-    std::unique_ptr<db::mongo_change_stream> stream =
+    std::unique_ptr<mongodb::mongo_change_stream> stream =
         _db.watch_collection("events", "", "{\"maxAwaitTimeMS\": 200}");
 
     (void)_db.insert_one("events", "{\"_id\": 1}");
@@ -940,7 +954,7 @@ void d_tests_mongodb_core_streams(
 
     (void)_db.insert_one("events", "{\"_id\": 2}");
 
-    std::unique_ptr<db::mongo_change_stream> after =
+    std::unique_ptr<mongodb::mongo_change_stream> after =
         _db.watch_collection("events", "",
                              "{\"maxAwaitTimeMS\": 200, \"resumeAfter\": " +
                                  token.value_or("{}") + "}");
@@ -1254,7 +1268,7 @@ void d_tests_mongodb_core_upkeep(
     D_TESTS_DB_CORE_CHECK(_db.get_database_size() > 0);
     _db.compact("kept");
 
-    const db::mongo_validation checked = _db.validate("kept");
+    const mongodb::mongo_validation checked = _db.validate("kept");
 
     D_TESTS_DB_CORE_CHECK( (checked.valid) &&
                            (contains(checked.report, "\"valid\" : true")) );
@@ -1281,11 +1295,11 @@ void d_tests_mongodb_core_settings(
 {
     std::printf("settings\n");
 
-    _db.set_read_concern(db::mongo_read_concern::majority);
+    _db.set_read_concern(mongodb::mongo_read_concern::majority);
     D_TESTS_DB_CORE_CHECK(contains(_db.get_read_concern(), "majority"));
     _db.set_read_concern("");
     D_TESTS_DB_CORE_CHECK(_db.get_read_concern() == "{ }");
-    _db.set_write_concern(db::mongo_write_concern::majority);
+    _db.set_write_concern(mongodb::mongo_write_concern::majority);
     D_TESTS_DB_CORE_CHECK(contains(_db.get_write_concern(), "majority"));
     _db.set_write_concern("{\"w\": 1, \"j\": true}");
     D_TESTS_DB_CORE_CHECK(contains(_db.get_write_concern(), "\"j\" : true"));
@@ -1293,7 +1307,7 @@ void d_tests_mongodb_core_settings(
                            db::query_exception,
                            D_DB_INVALID_ARGUMENT);
     _db.set_write_concern("");
-    _db.set_read_preference(db::mongo_read_preference::primary_preferred);
+    _db.set_read_preference(mongodb::mongo_read_preference::primary_preferred);
     D_TESTS_DB_CORE_CHECK(contains(_db.get_read_preference(),
                                    "primaryPreferred"));
     _db.set_read_preference("");
@@ -1302,20 +1316,20 @@ void d_tests_mongodb_core_settings(
     (void)_db.insert_one("fmt", "{\"_id\": 1, \"n\": {\"$numberLong\": "
                                 "\"5\"}}");
     D_TESTS_DB_CORE_CHECK(_db.get_document_format() ==
-                          db::mongo_document_format::canonical);
+                          mongodb::mongo_document_format::canonical);
     D_TESTS_DB_CORE_CHECK(contains(_db.find_one("fmt").value_or(""),
                                    "$numberLong"));
-    _db.set_document_format(db::mongo_document_format::relaxed);
+    _db.set_document_format(mongodb::mongo_document_format::relaxed);
     D_TESTS_DB_CORE_CHECK(_db.find_one("fmt").value_or("").find("$number") ==
                           std::string::npos);
-    _db.set_document_format(db::mongo_document_format::bson);
+    _db.set_document_format(mongodb::mongo_document_format::bson);
 
     std::unique_ptr<db::buffered_result_set> bson = _db.find("fmt");
 
     D_TESTS_DB_CORE_CHECK( (bson->next()) &&
                            (bson->get_binary(static_cast<std::size_t>(0))
                                 .has_value()) );
-    _db.set_document_format(db::mongo_document_format::canonical);
+    _db.set_document_format(mongodb::mongo_document_format::canonical);
 
     // the time limit
     _db.set_max_time_ms(5000);
@@ -1356,7 +1370,7 @@ void d_tests_mongodb_core_server(
                            (!_db.server_at_least(99u, 0u)) );
     D_TESTS_DB_CORE_CHECK(_db.server_wire_version() >= 8);
     D_TESTS_DB_CORE_CHECK(_db.get_server_topology() ==
-                          db::mongo_topology::replica_set);
+                          mongodb::mongo_topology::replica_set);
     D_TESTS_DB_CORE_CHECK(!_db.get_replica_set_name().empty());
     D_TESTS_DB_CORE_CHECK( (_db.supports_transactions()) &&
                            (_db.supports_change_streams()) &&
@@ -1499,12 +1513,12 @@ void d_tests_mongodb_core_closed(void)
                            (!closed.supports_transactions()) &&
                            (closed.server_version_number() == 0ul) &&
                            (closed.get_server_topology() ==
-                            db::mongo_topology::unknown) &&
+                            mongodb::mongo_topology::unknown) &&
                            (closed.get_replica_set_name().empty()) &&
                            (closed.get_error_name().empty()) &&
                            (!closed.get_error_reply().has_value()) &&
                            (closed.get_document_format() ==
-                            db::mongo_document_format::canonical) &&
+                            mongodb::mongo_document_format::canonical) &&
                            (closed.get_max_time_ms() == 0) &&
                            (closed.get_native_client() == nullptr) &&
                            (closed.get_auto_commit()) );
@@ -1535,7 +1549,7 @@ void d_tests_mongodb_core_table(
 {
     std::printf("mongo_table\n");
 
-    db::mongo_table<> table(_db, "tbl");
+    mongodb::mongo_table<> table(_db, "tbl");
 
     table.create_table();
     D_TESTS_DB_CORE_CHECK(table.exists());
@@ -1573,7 +1587,7 @@ void d_tests_mongodb_core_table(
 
     // a new document whose _id is taken: the server's 11000, and the
     // replacement before it rolled back with it
-    db::mongo_table<> dup(_db, "tbl");
+    mongodb::mongo_table<> dup(_db, "tbl");
 
     dup.set_sort("{\"_id\": 1}");
     dup.refresh();
@@ -1588,7 +1602,7 @@ void d_tests_mongodb_core_table(
                            (dup.is_dirty()) );
 
     // a document another session deleted
-    db::mongo_table<> stale(_db, "tbl");
+    mongodb::mongo_table<> stale(_db, "tbl");
 
     stale.set_filter("{\"_id\": 4}");
     stale.refresh();
@@ -1600,7 +1614,7 @@ void d_tests_mongodb_core_table(
     D_TESTS_DB_CORE_CHECK(_db.count_documents("tbl") == 2);
 
     // inside the program's transaction
-    db::mongo_table<> inner(_db, "tbl");
+    mongodb::mongo_table<> inner(_db, "tbl");
 
     inner.refresh();
     _db.begin_transaction();
@@ -1631,7 +1645,7 @@ void d_tests_mongodb_core_table(
     D_TESTS_DB_CORE_CHECK(!inner.exists());
 
     // moved, and unbound
-    db::mongo_table<> moved(std::move(inner));
+    mongodb::mongo_table<> moved(std::move(inner));
 
     D_TESTS_DB_CORE_CHECK( (inner.get_connection() == nullptr) &&
                            (inner.empty()) &&
@@ -1663,7 +1677,7 @@ void d_tests_mongodb_core_standalone(void)
         return;
     }
 
-    db::mongo_connect_config alone(g_standalone);
+    mongodb::mongo_connect_config alone(g_standalone);
 
     alone.base.database = g_database;
 
@@ -1671,7 +1685,7 @@ void d_tests_mongodb_core_standalone(void)
 
     db_alone.connect();
     D_TESTS_DB_CORE_CHECK(db_alone.get_server_topology() ==
-                          db::mongo_topology::standalone);
+                          mongodb::mongo_topology::standalone);
     D_TESTS_DB_CORE_THROWS(db_alone.begin_transaction(),
                            db::transaction_exception,
                            D_DB_UNSUPPORTED);
@@ -1679,7 +1693,7 @@ void d_tests_mongodb_core_standalone(void)
                            db::query_exception,
                            D_DB_UNSUPPORTED);
 
-    db::mongo_table<> table(db_alone, "c");
+    mongodb::mongo_table<> table(db_alone, "c");
 
     table.refresh();
     (void)table.add_document("{\"_id\": 1}");

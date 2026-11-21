@@ -20,8 +20,8 @@
 * family's members for it. The header needs C++17 and includes no client
 * header: env includes mysql.h only where a program asks for env's
 * detection (D_CFG_ENV_USING_MARIADB), which the client's capabilities read.
-* Such a program, under `using namespace djinterp`, names the
-* class djinterp::mariadb_connection, since Connector/C declares a function
+* Such a program, under `using namespace djinterp::db::mariadb`, names the
+* class mariadb::mariadb_connection, since Connector/C declares a function
 * of that name. Its trailing sections carry MariaDB's capability-detection
 * traits and C++20 concepts.
 *
@@ -67,7 +67,7 @@ TABLE OF CONTENTS
     ------------------
     1.  The class
          1.  mariadb_connection
-         2.  mysql_common_connection<mariadb_connection, ...>
+         2.  mysql::mysql_common_connection<mariadb_connection, ...>
 8.  EXPRESSION DETECTORS
     --------------------
     1.  Connection reset
@@ -116,6 +116,8 @@ TABLE OF CONTENTS
 
 
 NS_DJINTERP
+NS_DB
+namespace mariadb {
 
 
 //==============================================================================
@@ -931,7 +933,7 @@ struct mariadb_version_info
 // reset runs again.
 struct mariadb_connect_config
 {
-    mysql_connect_config mysql_config;
+    mysql::mysql_connect_config mysql_config;
 
     // Galera-aware options
     bool galera_wsrep_sync_wait;     // false
@@ -983,11 +985,11 @@ struct mariadb_connect_config
 //   conn.connect();
 //   auto rs = conn.execute_query("SELECT 1");
 class mariadb_connection
-    : public mysql_common_connection<mariadb_connection,
+    : public mysql::mysql_common_connection<mariadb_connection,
                                      database_type::mariadb>
 {
 public:
-    using base_type = mysql_common_connection<mariadb_connection,
+    using base_type = mysql::mysql_common_connection<mariadb_connection,
                                               database_type::mariadb>;
 
     using client_capabilities = mariadb_client_capabilities;
@@ -1009,7 +1011,7 @@ public:
     );
     explicit
     mariadb_connection(
-        const mysql_connect_config& _config
+        const mysql::mysql_connect_config& _config
     );
     explicit
     mariadb_connection(
@@ -1139,7 +1141,7 @@ public:
     // connection_exception, as does an engine's name that is no identifier --
     // and has nothing to run once connected
     void add_settings_impl(
-        internal::mariadb_settings& _settings
+        mysql::internal::mariadb_settings& _settings
     ) const;
     void on_connected_impl(
         face::mariadb& _db
@@ -1149,12 +1151,16 @@ private:
     mariadb_connect_config m_mariadb_config;
 };
 
+}  // namespace mariadb
+
 // 7.1.2
 // mysql_common_connection<mariadb_connection, ...>
 //   class: the family's members for MariaDB, instantiated once, in
 // mariadb.cpp.
-extern template class mysql_common_connection<mariadb_connection,
-                                              database_type::mariadb>;
+extern template class mysql::mysql_common_connection<
+    mariadb::mariadb_connection, database_type::mariadb>;
+
+namespace mariadb {
 
 
 
@@ -1245,7 +1251,7 @@ struct has_mariadb_schema_query : djinterp::conjunction<
 // family's, with schema queries, which every mariadb_connection has.
 template<typename Type>
 struct is_mariadb_connection : djinterp::conjunction<
-    is_mysql_connection<clean_t<Type>>,
+    mysql::is_mysql_connection<clean_t<Type>>,
     has_mariadb_schema_query<clean_t<Type>>>
 {};
 
@@ -1305,7 +1311,7 @@ constexpr bool mariadb_does_schema_query<Type, std::void_t<
 // connection interface (full MySQL-family connection + schema query).
 template<typename Type>
 constexpr bool mariadb_is_full_connection =
-    ( mysql_is_full_connection<clean_t<Type>>  &&
+    ( mysql::mysql_is_full_connection<clean_t<Type>>  &&
       mariadb_can_query_schema<clean_t<Type>> );
 
 
@@ -1340,8 +1346,8 @@ using enable_if_has_mariadb_schema_query =
 // 12.  C++20 CONCEPTS
 //==============================================================================
 // Each concept forwards to a trait or a tagless capability above. They live
-// in djinterp::concepts (2026.10.21), where a concept may take the name of
-// the class it constrains; each former name in djinterp forwards to its
+// in db::mariadb::concepts (2026.10.21), where a concept may take the name of
+// the class it constrains; each former name in db::mariadb forwards to its
 // concept for one release. They exist where the compiler has concepts; the
 // traits serve at C++17 without them, as in functor.hpp and monoid.hpp.
 // Every name is prefixed mariadb_, apart from the family's concepts, which
@@ -1488,6 +1494,8 @@ concept mariadb_full_connection =
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
+}  // namespace mariadb
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

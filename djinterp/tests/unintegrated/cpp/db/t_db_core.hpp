@@ -63,7 +63,7 @@
 namespace d_tests_db_core
 {
 
-namespace db = djinterp;
+namespace db = djinterp::db;
 
 // g_checks, g_failures
 //   the harness's counts, one pair for the whole program.

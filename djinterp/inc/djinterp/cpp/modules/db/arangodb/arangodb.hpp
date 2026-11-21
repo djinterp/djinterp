@@ -79,6 +79,8 @@
 
 
 NS_DJINTERP
+NS_DB
+namespace arangodb {
 
 
 // =============================================================================
@@ -2216,6 +2218,8 @@ concept full_arango_connection =
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
+}  // namespace arangodb
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

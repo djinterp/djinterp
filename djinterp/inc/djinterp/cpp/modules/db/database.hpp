@@ -135,6 +135,7 @@ TABLE OF CONTENTS
 #include <vector>       // std::vector
 // djinterp
 #include "../../djinterp.hpp"       // framework root
+#include "db_common.hpp"            // NS_DB
 #include "../../../c/modules/db/db_common.h"   // D_DB_INVALID_ARGUMENT, the D_DB_* codes
 #include "../../meta/type_traits.hpp"  // is_detected, conjunction,
                                     // disjunction
@@ -144,6 +145,7 @@ TABLE OF CONTENTS
 
 
 NS_DJINTERP
+NS_DB
 
 
 //==============================================================================
@@ -3625,6 +3627,7 @@ void load_table(
 );
 
 
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

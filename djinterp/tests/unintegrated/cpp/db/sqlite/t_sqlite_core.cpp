@@ -45,97 +45,107 @@
 namespace
 {
 
-namespace db = djinterp;
+namespace db     = djinterp::db;
+namespace sqlite = djinterp::db::sqlite;
+
+using sqlite::sqlite_connection;
 
 // the operations that do not block, as a trait from C++17 (database_
 // connection.hpp, section 2): SQLite's, done as they start
-static_assert(db::has_async_operations<db::sqlite_connection>::value);
+static_assert(db::has_async_operations<sqlite::sqlite_connection>::value);
 static_assert(!db::has_async_operations<int>::value);
 
-// the concepts (C++20) -- djinterp::concepts' own, every one of which the
+// the concepts (C++20) -- sqlite::concepts' own, every one of which the
 // class satisfies, none of which int does; and a former name, which
 // forwards to its concept for one release
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-using concepts_tested = db::sqlite_connection;
+using concepts_tested = sqlite::sqlite_connection;
 
-static_assert(db::concepts::sqlite_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_connection<int>);
+static_assert(sqlite::concepts::sqlite_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_connection<int>);
 static_assert(db::concepts::async_connection<concepts_tested>);
 static_assert(!db::concepts::async_connection<int>);
-static_assert(db::concepts::sqlite_openable_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_openable_connection<int>);
-static_assert(db::concepts::sqlite_flag_openable_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_flag_openable_connection<int>);
-static_assert(db::concepts::sqlite_closable_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_closable_connection<int>);
-static_assert(db::concepts::sqlite_basic_file_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_basic_file_connection<int>);
-static_assert(db::concepts::sqlite_journal_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_journal_connection<int>);
-static_assert(db::concepts::sqlite_pragma_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_pragma_connection<int>);
-static_assert(db::concepts::sqlite_backup_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_backup_connection<int>);
-static_assert(db::concepts::sqlite_attach_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_attach_connection<int>);
-static_assert(db::concepts::sqlite_schema_query_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_schema_query_connection<int>);
+static_assert(sqlite::concepts::sqlite_openable_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_openable_connection<int>);
 static_assert(
-    db::concepts::sqlite_extension_loading_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_extension_loading_connection<int>);
-static_assert(db::concepts::sqlite_serialization_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_serialization_connection<int>);
-static_assert(db::concepts::sqlite_busy_timeout_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_busy_timeout_connection<int>);
-static_assert(db::concepts::sqlite_checkpoint_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_checkpoint_connection<int>);
-static_assert(db::concepts::sqlite_attachable_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_attachable_connection<int>);
-static_assert(db::concepts::sqlite_detachable_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_detachable_connection<int>);
+    sqlite::concepts::sqlite_flag_openable_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_flag_openable_connection<int>);
+static_assert(sqlite::concepts::sqlite_closable_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_closable_connection<int>);
+static_assert(sqlite::concepts::sqlite_basic_file_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_basic_file_connection<int>);
+static_assert(sqlite::concepts::sqlite_journal_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_journal_connection<int>);
+static_assert(sqlite::concepts::sqlite_pragma_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_pragma_connection<int>);
+static_assert(sqlite::concepts::sqlite_backup_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_backup_connection<int>);
+static_assert(sqlite::concepts::sqlite_attach_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_attach_connection<int>);
 static_assert(
-    db::concepts::sqlite_schema_table_query_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_schema_table_query_connection<int>);
+    sqlite::concepts::sqlite_schema_query_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_schema_query_connection<int>);
 static_assert(
-    db::concepts::sqlite_table_name_query_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_table_name_query_connection<int>);
+    sqlite::concepts::sqlite_extension_loading_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_extension_loading_connection<int>);
 static_assert(
-    db::concepts::sqlite_extension_loadable_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_extension_loadable_connection<int>);
+    sqlite::concepts::sqlite_serialization_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_serialization_connection<int>);
 static_assert(
-    db::concepts::sqlite_extension_toggle_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_extension_toggle_connection<int>);
-static_assert(db::concepts::sqlite_serializable_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_serializable_connection<int>);
-static_assert(db::concepts::sqlite_deserializable_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_deserializable_connection<int>);
+    sqlite::concepts::sqlite_busy_timeout_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_busy_timeout_connection<int>);
+static_assert(sqlite::concepts::sqlite_checkpoint_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_checkpoint_connection<int>);
+static_assert(sqlite::concepts::sqlite_attachable_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_attachable_connection<int>);
+static_assert(sqlite::concepts::sqlite_detachable_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_detachable_connection<int>);
 static_assert(
-    db::concepts::sqlite_transaction_modes_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_transaction_modes_connection<int>);
+    sqlite::concepts::sqlite_schema_table_query_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_schema_table_query_connection<int>);
 static_assert(
-    db::concepts::sqlite_deferred_transaction_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_deferred_transaction_connection<int>);
+    sqlite::concepts::sqlite_table_name_query_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_table_name_query_connection<int>);
 static_assert(
-    db::concepts::sqlite_immediate_transaction_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_immediate_transaction_connection<int>);
+    sqlite::concepts::sqlite_extension_loadable_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_extension_loadable_connection<int>);
 static_assert(
-    db::concepts::sqlite_exclusive_transaction_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_exclusive_transaction_connection<int>);
-static_assert(db::concepts::sqlite_journaling_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_journaling_connection<int>);
-static_assert(db::concepts::sqlite_pragmatic_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_pragmatic_connection<int>);
-static_assert(db::concepts::sqlite_backup_capable_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_backup_capable_connection<int>);
-static_assert(db::concepts::sqlite_attached_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_attached_connection<int>);
-static_assert(db::concepts::sqlite_full_connection<concepts_tested>);
-static_assert(!db::concepts::sqlite_full_connection<int>);
-static_assert(db::concepts::sqlite_connection<const concepts_tested&>);
-static_assert(db::concepts::non_sqlite_connection<int>);
-static_assert(!db::concepts::non_sqlite_connection<concepts_tested>);
-static_assert(db::Sqlite_connection<concepts_tested>);
-static_assert(!db::Sqlite_connection<int>);
+    sqlite::concepts::sqlite_extension_toggle_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_extension_toggle_connection<int>);
+static_assert(
+    sqlite::concepts::sqlite_serializable_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_serializable_connection<int>);
+static_assert(
+    sqlite::concepts::sqlite_deserializable_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_deserializable_connection<int>);
+static_assert(
+    sqlite::concepts::sqlite_transaction_modes_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_transaction_modes_connection<int>);
+static_assert(
+    sqlite::concepts::sqlite_deferred_transaction_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_deferred_transaction_connection<int>);
+static_assert(
+    sqlite::concepts::sqlite_immediate_transaction_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_immediate_transaction_connection<int>);
+static_assert(
+    sqlite::concepts::sqlite_exclusive_transaction_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_exclusive_transaction_connection<int>);
+static_assert(sqlite::concepts::sqlite_journaling_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_journaling_connection<int>);
+static_assert(sqlite::concepts::sqlite_pragmatic_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_pragmatic_connection<int>);
+static_assert(
+    sqlite::concepts::sqlite_backup_capable_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_backup_capable_connection<int>);
+static_assert(sqlite::concepts::sqlite_attached_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_attached_connection<int>);
+static_assert(sqlite::concepts::sqlite_full_connection<concepts_tested>);
+static_assert(!sqlite::concepts::sqlite_full_connection<int>);
+static_assert(sqlite::concepts::sqlite_connection<const concepts_tested&>);
+static_assert(sqlite::concepts::non_sqlite_connection<int>);
+static_assert(!sqlite::concepts::non_sqlite_connection<concepts_tested>);
+static_assert(sqlite::Sqlite_connection<concepts_tested>);
+static_assert(!sqlite::Sqlite_connection<int>);
 #endif
 
 // RESULT_ERROR, RESULT_READONLY, RESULT_CANTOPEN, RESULT_CONSTRAINT
@@ -206,7 +216,7 @@ void d_tests_sqlite_core_opening(
     std::printf("opening\n");
 
     const std::string path = _directory + "/t_sqlite_core.db";
-    db::sqlite_connection memory(":memory:");
+    sqlite::sqlite_connection memory(":memory:");
 
     (void)std::remove(path.c_str());
     D_TESTS_DB_CORE_CHECK(memory.get_state() ==
@@ -229,7 +239,7 @@ void d_tests_sqlite_core_opening(
     D_TESTS_DB_CORE_CHECK(memory.is_connected());
 
     // the file connect(config) names, and whether it is in memory
-    db::sqlite_connection renamed(path);
+    sqlite::sqlite_connection renamed(path);
     db::connection_config in_memory;
 
     in_memory.database = ":memory:";
@@ -239,11 +249,11 @@ void d_tests_sqlite_core_opening(
                             ":memory:") );
     renamed.close();
 
-    db::sqlite_connect_config uri;
+    sqlite::sqlite_connect_config uri;
 
-    uri.open_flags = db::sqlite_open_flag::read_write |
-                     db::sqlite_open_flag::create     |
-                     db::sqlite_open_flag::uri;
+    uri.open_flags = sqlite::sqlite_open_flag::read_write |
+                     sqlite::sqlite_open_flag::create     |
+                     sqlite::sqlite_open_flag::uri;
 
     for (const char* name : { "file::memory:",
                               "file:shared?cache=shared&mode=memory",
@@ -259,14 +269,14 @@ void d_tests_sqlite_core_opening(
     D_TESTS_DB_CORE_CHECK(!renamed.is_in_memory());
 
     // a file, made, written, and opened read only
-    db::sqlite_connection file;
+    sqlite::sqlite_connection file;
 
     file.open(path);
     D_TESTS_DB_CORE_CHECK( (file.is_connected()) &&
                            (!file.is_in_memory()) &&
                            (file.get_database_name() == path) );
     file.execute("CREATE TABLE kept (x INTEGER)");
-    file.open(path, db::sqlite_open_flag::read_only);
+    file.open(path, sqlite::sqlite_open_flag::read_only);
     D_TESTS_DB_CORE_CHECK(file.has_table("kept"));
     D_TESTS_DB_CORE_THROWS_ANY(file.execute("INSERT INTO kept VALUES (1)"),
                                db::query_exception);
@@ -276,24 +286,24 @@ void d_tests_sqlite_core_opening(
 
     generic.database = path;
 
-    db::sqlite_connection from_generic(generic);
+    sqlite::sqlite_connection from_generic(generic);
 
     from_generic.connect();
     D_TESTS_DB_CORE_CHECK(from_generic.has_table("kept"));
 
-    db::sqlite_connect_config configured(path);
+    sqlite::sqlite_connect_config configured(path);
 
-    configured.journal_mode = db::sqlite_journal_mode::mode_truncate;
+    configured.journal_mode = sqlite::sqlite_journal_mode::mode_truncate;
     configured.pragmas["user_version"] = "7";
 
-    db::sqlite_connection from_config(configured);
+    sqlite::sqlite_connection from_config(configured);
 
     from_config.connect();
     D_TESTS_DB_CORE_CHECK( (from_config.get_journal_mode() == "truncate") &&
                            (from_config.get_pragma("user_version") == "7") );
 
     // what cannot open
-    db::sqlite_connection nowhere(_directory + "/no/such/dir/x.db");
+    sqlite::sqlite_connection nowhere(_directory + "/no/such/dir/x.db");
 
     try
     {
@@ -312,13 +322,13 @@ void d_tests_sqlite_core_opening(
     generic.database                 = ":memory:";
     generic.custom_options["scheme"] = "sqlite";
 
-    db::sqlite_connection schemed(generic);
+    sqlite::sqlite_connection schemed(generic);
 
     schemed.connect();
     D_TESTS_DB_CORE_CHECK(schemed.is_connected());
     generic.custom_options["mode"] = "ro";
 
-    db::sqlite_connection optioned(generic);
+    sqlite::sqlite_connection optioned(generic);
 
     D_TESTS_DB_CORE_THROWS(optioned.connect(),
                            db::connection_exception,
@@ -350,7 +360,7 @@ void d_tests_sqlite_core_settings(
     std::printf("settings\n");
 
     const std::string     path = _directory + "/t_sqlite_core_wal.db";
-    db::sqlite_connection memory(":memory:");
+    sqlite::sqlite_connection memory(":memory:");
 
     memory.connect();
     D_TESTS_DB_CORE_CHECK(memory.get_journal_mode() == "memory");
@@ -382,7 +392,7 @@ void d_tests_sqlite_core_settings(
     D_TESTS_DB_CORE_CHECK(memory.get_pragma("busy_timeout") == "250");
 
     // WAL, on a file
-    db::sqlite_connection file(path);
+    sqlite::sqlite_connection file(path);
 
     (void)std::remove(path.c_str());
     file.connect();
@@ -437,7 +447,7 @@ void d_tests_sqlite_core_schema(
 
     const std::string     other  = _directory + "/t_sqlite_core_other.db";
     const std::string     backup = _directory + "/t_sqlite_core_backup.db";
-    db::sqlite_connection memory(":memory:");
+    sqlite::sqlite_connection memory(":memory:");
 
     (void)std::remove(other.c_str());
     (void)std::remove(backup.c_str());
@@ -505,7 +515,7 @@ void d_tests_sqlite_core_tables(void)
     std::printf("sqlite_table\n");
 
     const int             library = db::face::sqlite::library_version_number();
-    db::sqlite_connection memory(":memory:");
+    sqlite::sqlite_connection memory(":memory:");
     db::table_schema      schema;
 
     memory.connect();
@@ -519,7 +529,7 @@ void d_tests_sqlite_core_tables(void)
                                           db::field_type::string,
                                           false) };
 
-    db::sqlite_table<> notes(memory, schema);
+    sqlite::sqlite_table<> notes(memory, schema);
 
     notes.set_attach_alias("aux");
     D_TESTS_DB_CORE_CHECK( (notes.get_attach_alias() == "aux") &&
@@ -556,7 +566,7 @@ void d_tests_sqlite_core_tables(void)
     strict_schema.columns    = { db::column_info("n",
                                                  db::field_type::integer) };
 
-    db::sqlite_table<> strict(memory, strict_schema);
+    sqlite::sqlite_table<> strict(memory, strict_schema);
 
     strict.set_strict(true);
     D_TESTS_DB_CORE_CHECK(strict.is_strict());
@@ -575,7 +585,7 @@ void d_tests_sqlite_core_tables(void)
     }
 
     // WITHOUT ROWID, from 3.8.2
-    db::sqlite_table<> keyed(memory, schema);
+    sqlite::sqlite_table<> keyed(memory, schema);
 
     keyed.set_without_rowid(true);
 
@@ -596,7 +606,7 @@ void d_tests_sqlite_core_tables(void)
     }
 
     // moved, with its options
-    db::sqlite_table<> moved(std::move(keyed));
+    sqlite::sqlite_table<> moved(std::move(keyed));
 
     D_TESTS_DB_CORE_CHECK( (moved.is_without_rowid()) &&
                            (!moved.is_strict()) &&
@@ -620,26 +630,26 @@ d_tests_sqlite_core_support
   - the compile-time struct by its name, and by its former name
 */
 void d_tests_sqlite_core_support(
-    db::sqlite_connection& _db
+    sqlite::sqlite_connection& _db
 )
 {
     std::printf("support\n");
 
     const int library = db::face::sqlite::library_version_number();
 
-    D_TESTS_DB_CORE_CHECK( (db::sqlite_connection::supports_cte() ==
+    D_TESTS_DB_CORE_CHECK( (sqlite::sqlite_connection::supports_cte() ==
                             (library >= 3008003)) &&
-                           (db::sqlite_connection::supports_upsert() ==
+                           (sqlite::sqlite_connection::supports_upsert() ==
                             (library >= 3024000)) &&
-                           (db::sqlite_connection::supports_window_functions()
+                           (sqlite_connection::supports_window_functions()
                             == (library >= 3025000)) &&
-                           (db::sqlite_connection::supports_generated_columns()
+                           (sqlite_connection::supports_generated_columns()
                             == (library >= 3031000)) &&
-                           (db::sqlite_connection::supports_returning() ==
+                           (sqlite::sqlite_connection::supports_returning() ==
                             (library >= 3035000)) &&
-                           (db::sqlite_connection::supports_strict_tables() ==
+                           (sqlite_connection::supports_strict_tables() ==
                             (library >= 3037000)) &&
-                           (db::sqlite_connection::supports_modern_sql() ==
+                           (sqlite::sqlite_connection::supports_modern_sql() ==
                             (library >= 3035000)) );
 
     // the build's options, as the library lists them
@@ -669,24 +679,24 @@ void d_tests_sqlite_core_support(
                                            : built_with("ENABLE_JSON1");
 
     D_TESTS_DB_CORE_CHECK( (!options.empty()) &&
-                           (db::sqlite_connection::supports_json() == json) &&
-                           (db::sqlite_connection::supports_fts5() ==
+                           (sqlite_connection::supports_json() == json) &&
+                           (sqlite::sqlite_connection::supports_fts5() ==
                             built_with("ENABLE_FTS5")) &&
-                           (db::sqlite_connection::supports_wal()) &&
-                           (!db::sqlite_connection::supports_encryption()) &&
-                           (db::sqlite_connection::is_thread_safe()) );
+                           (sqlite::sqlite_connection::supports_wal()) &&
+                           (!sqlite_connection::supports_encryption()) &&
+                           (sqlite::sqlite_connection::is_thread_safe()) );
 
     // the compile-time struct, and its former name
     static_assert(std::is_same_v<
-                      db::sqlite_connection::client_capabilities,
-                      db::sqlite_client_capabilities>,
+                      sqlite::sqlite_connection::client_capabilities,
+                      sqlite::sqlite_client_capabilities>,
                   "client_capabilities is the compile-time struct");
 #if defined(__GNUC__)
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
-    static_assert(std::is_same_v<db::sqlite_type_support,
-                                 db::sqlite_client_capabilities>,
+    static_assert(std::is_same_v<sqlite::sqlite_type_support,
+                                 sqlite::sqlite_client_capabilities>,
                   "sqlite_type_support is the struct's former name");
 #if defined(__GNUC__)
     #pragma GCC diagnostic pop
@@ -726,10 +736,10 @@ void d_tests_sqlite_core_bytes(
     const std::string extension =
         d_tests_db_core::setting("DJINTERP_TEST_SQLITE_EXTENSION", "");
 
-    db::sqlite_connection memory(":memory:");
-    db::sqlite_connection file(path);
+    sqlite::sqlite_connection memory(":memory:");
+    sqlite::sqlite_connection file(path);
 
-    D_TESTS_DB_CORE_CHECK(db::sqlite_connection::supports_serialization() ==
+    D_TESTS_DB_CORE_CHECK(sqlite::sqlite_connection::supports_serialization() ==
                           (library >= 3036000));
     D_TESTS_DB_CORE_THROWS_ANY((void)memory.serialize(),
                                db::connection_exception);
@@ -741,7 +751,7 @@ void d_tests_sqlite_core_bytes(
     file.execute("CREATE TABLE f (x)");
 
     // a library without it
-    if (!db::sqlite_connection::supports_serialization())
+    if (!sqlite::sqlite_connection::supports_serialization())
     {
         D_TESTS_DB_CORE_THROWS((void)memory.serialize(),
                                db::query_exception,
@@ -791,7 +801,7 @@ void d_tests_sqlite_core_bytes(
     (void)std::remove(path.c_str());
 
     // extensions: a library that is not there
-    D_TESTS_DB_CORE_CHECK(db::sqlite_connection::supports_extension_loading());
+    D_TESTS_DB_CORE_CHECK(sqlite_connection::supports_extension_loading());
 
     // before 3.13.0 the C API needs loading on
     if (library < 3013000)
@@ -838,7 +848,7 @@ void d_tests_sqlite_core_bytes(
     // SQL's own switch, from 3.13.0
     if (library >= 3013000)
     {
-        db::sqlite_connection other(":memory:");
+        sqlite::sqlite_connection other(":memory:");
         const std::string     sql = "SELECT load_extension('" + extension +
                                     "')";
 
@@ -869,7 +879,7 @@ void d_tests_sqlite_core_stubs(void)
 {
     std::printf("over the stubs\n");
 
-    db::sqlite_connection memory(":memory:");
+    sqlite::sqlite_connection memory(":memory:");
 
     D_TESTS_DB_CORE_THROWS(memory.connect(),
                            db::connection_exception,
@@ -881,13 +891,13 @@ void d_tests_sqlite_core_stubs(void)
                                db::connection_exception);
     D_TESTS_DB_CORE_THROWS_ANY((void)memory.prepare("SELECT 1"),
                                db::connection_exception);
-    D_TESTS_DB_CORE_CHECK( (!db::sqlite_connection::supports_wal()) &&
-                           (!db::sqlite_connection::supports_cte()) &&
-                           (!db::sqlite_connection::supports_modern_sql()) &&
-                           (!db::sqlite_connection::is_thread_safe()) );
+    D_TESTS_DB_CORE_CHECK( (!sqlite::sqlite_connection::supports_wal()) &&
+                           (!sqlite::sqlite_connection::supports_cte()) &&
+                           (!sqlite_connection::supports_modern_sql()) &&
+                           (!sqlite::sqlite_connection::is_thread_safe()) );
 
     // a table on it
-    db::sqlite_table<> notes(memory, std::string("notes"));
+    sqlite::sqlite_table<> notes(memory, std::string("notes"));
 
     D_TESTS_DB_CORE_CHECK(!notes.is_connected());
     D_TESTS_DB_CORE_THROWS_ANY(notes.refresh(), db::connection_exception);
@@ -922,7 +932,7 @@ int main(
         return d_tests_db_core::summary("built without SQLite");
     }
 
-    db::sqlite_connection memory(":memory:");
+    sqlite::sqlite_connection memory(":memory:");
 
     memory.connect();
     d_tests_db_core::queries(memory, g_dialect);
@@ -933,18 +943,18 @@ int main(
     d_tests_db_core::async_operations(
         memory,
         g_dialect,
-        []() -> db::sqlite_connection
+        []() -> sqlite::sqlite_connection
         {
-            return db::sqlite_connection(":memory:");
+            return sqlite::sqlite_connection(":memory:");
         },
-        []() -> db::sqlite_connection
+        []() -> sqlite::sqlite_connection
         {
-            return db::sqlite_connection("/d_tests_no_such_directory/x.db");
+            return sqlite::sqlite_connection("/d_tests_no_such_directory/x.db");
         },
         true);
-    d_tests_db_core::lifetimes<db::sqlite_connection>(
-        []() { return db::sqlite_connection(":memory:"); });
-    d_tests_db_core::tables<db::database_table<db::sqlite_connection>>(
+    d_tests_db_core::lifetimes<sqlite::sqlite_connection>(
+        []() { return sqlite::sqlite_connection(":memory:"); });
+    d_tests_db_core::tables<db::database_table<sqlite::sqlite_connection>>(
         memory,
         g_dialect,
         d_tests_db_core::table_abilities

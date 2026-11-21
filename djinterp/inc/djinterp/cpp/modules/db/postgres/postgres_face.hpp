@@ -124,6 +124,8 @@ TABLE OF CONTENTS
 
 namespace djinterp
 {
+namespace db
+{
 namespace face
 {
 
@@ -4557,6 +4559,7 @@ D_STATIC_ASSERT( ( (std::is_nothrow_move_constructible<postgres>::value) &&
 
 
 }  // namespace face
+}  // namespace db
 }  // namespace djinterp
 
 

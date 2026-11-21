@@ -161,6 +161,8 @@ TABLE OF CONTENTS
 
 
 NS_DJINTERP
+NS_DB
+namespace mongodb {
 
 
 //==============================================================================
@@ -2678,8 +2680,8 @@ using enable_if_has_mongo_gridfs =
 // 11. C++20 CONCEPTS
 //==============================================================================
 // Each concept forwards to a trait or a tagless capability above. They live
-// in djinterp::concepts, where a concept may take the name of the class it
-// constrains; each former name in djinterp forwards to its concept for one
+// in db::mongodb::concepts, where a concept may take the name of the class it
+// constrains; each former name in db::mongodb forwards to its concept for one
 // release (2026.10.28, as PostgreSQL's did on 2026.10.21). They exist where
 // the compiler has concepts; the traits serve at C++17 without them.
 
@@ -3286,6 +3288,8 @@ concept mongo_full_connection =
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
+}  // namespace mongodb
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

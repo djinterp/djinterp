@@ -147,6 +147,8 @@ TABLE OF CONTENTS
 
 
 NS_DJINTERP
+NS_DB
+namespace sqlite {
 
 
 //==============================================================================
@@ -1109,15 +1111,19 @@ struct sqlite_layer
     );
 };
 
+}  // namespace sqlite
+
 // 8.1.2
 // prepared_statement<sqlite_layer>
 //   class: SQLite's prepared statements, instantiated once, in sqlite.cpp.
-extern template class prepared_statement<sqlite_layer>;
+extern template class prepared_statement<sqlite::sqlite_layer>;
 
 // 8.1.3
 // streaming_result_set<sqlite_layer>
 //   class: its streams, instantiated with them.
-extern template class streaming_result_set<sqlite_layer>;
+extern template class streaming_result_set<sqlite::sqlite_layer>;
+
+namespace sqlite {
 
 // 8.2    The class
 //------------------------------------------------------------------------------
@@ -2264,8 +2270,8 @@ using enable_if_has_sqlite_backup =
 // 13.  C++20 CONCEPTS
 //==============================================================================
 // Each concept forwards to a trait or a tagless capability above. They live
-// in djinterp::concepts (2026.10.21), where a concept may take the name of
-// the class it constrains; each former name in djinterp forwards to its
+// in db::sqlite::concepts (2026.10.21), where a concept may take the name of
+// the class it constrains; each former name in db::sqlite forwards to its
 // concept for one release. They exist where the compiler has concepts; the
 // traits serve at C++17 without them, as in functor.hpp and monoid.hpp.
 
@@ -2714,6 +2720,8 @@ concept sqlite_full_connection =
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
+}  // namespace sqlite
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

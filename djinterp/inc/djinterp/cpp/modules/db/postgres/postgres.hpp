@@ -144,6 +144,8 @@ TABLE OF CONTENTS
 
 
 NS_DJINTERP
+NS_DB
+namespace postgres {
 
 
 //==============================================================================
@@ -1204,16 +1206,20 @@ struct postgres_layer
     );
 };
 
+}  // namespace postgres
+
 // 7.3.2
 // prepared_statement<postgres_layer>
 //   class: PostgreSQL's prepared statements, instantiated once, in
 // postgres.cpp.
-extern template class prepared_statement<postgres_layer>;
+extern template class prepared_statement<postgres::postgres_layer>;
 
 // 7.3.3
 // streaming_result_set<postgres_layer>
 //   class: its streams, instantiated with them.
-extern template class streaming_result_set<postgres_layer>;
+extern template class streaming_result_set<postgres::postgres_layer>;
+
+namespace postgres {
 
 // 7.4    The class
 //------------------------------------------------------------------------------
@@ -2415,8 +2421,8 @@ using enable_if_has_pg_listen_notify =
 // 12.  C++20 CONCEPTS
 //==============================================================================
 // Each concept forwards to a trait or a tagless capability above. They live
-// in djinterp::concepts (2026.10.21), where a concept may take the name of
-// the class it constrains; each former name in djinterp forwards to its
+// in db::postgres::concepts (2026.10.21), where a concept may take the name of
+// the class it constrains; each former name in db::postgres forwards to its
 // concept for one release. They exist where the compiler has concepts; the
 // traits serve at C++17 without them, as in functor.hpp and monoid.hpp.
 
@@ -2980,6 +2986,8 @@ concept pg_full_connection =
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
+}  // namespace postgres
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

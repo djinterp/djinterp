@@ -37,7 +37,7 @@ namespace
 
 // D_DB_ prefix is unique to the database suite so co-compiled suites never
 // collide on the macro name.
-#define D_DB_RUN(_fn)   run(#_fn, &::djinterp::testing::_fn)
+#define D_DB_RUN(_fn)   run(#_fn, &::djinterp::db::testing::_fn)
 
 int main()
 {

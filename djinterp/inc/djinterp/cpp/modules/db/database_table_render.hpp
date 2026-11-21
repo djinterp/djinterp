@@ -89,6 +89,7 @@ TABLE OF CONTENTS
 
 
 NS_DJINTERP
+NS_DB
 
 
 //==============================================================================
@@ -537,6 +538,7 @@ struct table_traits<Table,
 #endif  // DJINTERP_HAVE_CONTAINER_TABLE_RENDER
 
 
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

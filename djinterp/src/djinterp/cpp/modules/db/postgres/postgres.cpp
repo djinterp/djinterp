@@ -42,6 +42,8 @@
 
 
 NS_DJINTERP
+NS_DB
+namespace postgres {
 
 //==============================================================================
 // FILE-LOCAL DEFINITIONS
@@ -687,8 +689,12 @@ void postgres_layer::cancel(
     return;
 }
 
-template class prepared_statement<postgres_layer>;
-template class streaming_result_set<postgres_layer>;
+}  // namespace postgres
+
+template class prepared_statement<postgres::postgres_layer>;
+template class streaming_result_set<postgres::postgres_layer>;
+
+namespace postgres {
 
 pg_connection::pg_connection()
     : base_type(pg_connect_config().base),
@@ -1991,6 +1997,8 @@ std::unique_ptr<buffered_result_set> pg_connection::m_exec_params(
         });
 }
 
+}  // namespace postgres
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

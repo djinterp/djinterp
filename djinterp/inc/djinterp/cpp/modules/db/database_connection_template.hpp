@@ -71,6 +71,7 @@ struct dj_mongodb;
 
 
 NS_DJINTERP
+NS_DB
 
 
 //==============================================================================
@@ -507,6 +508,7 @@ protected:
 };
 
 
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

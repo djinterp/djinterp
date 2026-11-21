@@ -23,8 +23,8 @@
 * family's members for it. The header needs C++17 and includes no client
 * header: env includes mysql.h only where a program asks for env's
 * detection (D_CFG_ENV_USING_MYSQL), which the client's capabilities read.
-* Such a program, under `using namespace djinterp`, names the enum
-* djinterp::mysql_ssl_mode, since libmysqlclient declares one of that name.
+* Such a program, under `using namespace djinterp::db::mysql`, names the
+* enum mysql::mysql_ssl_mode, since libmysqlclient declares one of that name.
 * Its trailing sections carry MySQL's capability-detection traits and C++20
 * concepts.
 *
@@ -113,6 +113,8 @@ TABLE OF CONTENTS
 
 
 NS_DJINTERP
+NS_DB
+namespace mysql {
 
 
 //==============================================================================
@@ -1082,8 +1084,8 @@ using enable_if_has_mysql_ora_query_attributes =
 // 9.  C++20 CONCEPTS
 //==============================================================================
 // Each concept forwards to a trait or a tagless capability above. They live
-// in djinterp::concepts (2026.10.21), where a concept may take the name of
-// the class it constrains; each former name in djinterp forwards to its
+// in db::mysql::concepts (2026.10.21), where a concept may take the name of
+// the class it constrains; each former name in db::mysql forwards to its
 // concept for one release. They exist where the compiler has concepts; the
 // traits serve at C++17 without them, as in functor.hpp and monoid.hpp. The
 // family's concepts are mysql_common.hpp's (mysql_family_connection,
@@ -1301,6 +1303,8 @@ concept mysql_ora_full_connection =
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
+}  // namespace mysql
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

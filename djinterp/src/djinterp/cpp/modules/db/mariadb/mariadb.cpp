@@ -28,13 +28,19 @@
 
 
 NS_DJINTERP
+NS_DB
+namespace mariadb {
 
 //==============================================================================
 // 7.  MARIADB CONNECTION
 //==============================================================================
 
-template class mysql_common_connection<mariadb_connection,
-                                       database_type::mariadb>;
+}  // namespace mariadb
+
+template class mysql::mysql_common_connection<
+    mariadb::mariadb_connection, database_type::mariadb>;
+
+namespace mariadb {
 
 mariadb_connection::mariadb_connection()
     : base_type(),
@@ -53,7 +59,7 @@ mariadb_connection::mariadb_connection(
 }
 
 mariadb_connection::mariadb_connection(
-    const mysql_connect_config& _config
+    const mysql::mysql_connect_config& _config
 )
     : base_type(_config),
       m_mariadb_config()
@@ -106,7 +112,7 @@ engine's name is an identifier, refused otherwise, since no connection is
 there yet to quote it.
 */
 void mariadb_connection::add_settings_impl(
-    internal::mariadb_settings& _settings
+    mysql::internal::mariadb_settings& _settings
 ) const
 {
     const std::string& engine = m_mariadb_config.default_storage_engine;
@@ -160,6 +166,8 @@ void mariadb_connection::on_connected_impl(
     return;
 }
 
+}  // namespace mariadb
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

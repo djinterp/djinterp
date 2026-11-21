@@ -51,6 +51,8 @@ TABLE OF CONTENTS
 
 
 NS_DJINTERP
+NS_DB
+namespace mariadb {
 
 
 //==============================================================================
@@ -75,10 +77,11 @@ NS_DJINTERP
 //     prices.refresh_as_of(yesterday);   // the rows as they stood then
 template<typename Config = void>
 class mariadb_table
-    : public mysql_common_table<mariadb_connection, value, Config>
+    : public mysql::mysql_common_table<mariadb_connection, value, Config>
 {
 private:
-    using base_type = mysql_common_table<mariadb_connection, value, Config>;
+    using base_type =
+        mysql::mysql_common_table<mariadb_connection, value, Config>;
 
 public:
     using typename base_type::size_type;
@@ -609,7 +612,8 @@ private:
         for (size_type c = 0; c < this->cols(); ++c)
         {
             columns += (c > 0) ? ", " : "";
-            columns += backtick_quote(this->get_schema().columns[c].name);
+            columns +=
+                mysql::backtick_quote(this->get_schema().columns[c].name);
         }
 
         return columns;
@@ -688,6 +692,8 @@ private:
 };
 
 
+}  // namespace mariadb
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

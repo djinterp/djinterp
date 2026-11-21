@@ -78,159 +78,217 @@
 namespace
 {
 
-namespace db   = djinterp;
-namespace core = d_tests_db_core;
+namespace db      = djinterp::db;
+namespace mariadb = djinterp::db::mariadb;
+namespace mysql   = djinterp::db::mysql;
+namespace core    = d_tests_db_core;
 
 // the operations that do not block, as a trait from C++17 (database_
 // connection.hpp, section 2)
-static_assert(db::has_async_operations<db::mariadb_connection>::value);
-static_assert(db::has_async_operations<db::mysql_connection>::value);
+static_assert(db::has_async_operations<mariadb::mariadb_connection>::value);
+static_assert(db::has_async_operations<mysql::mysql_connection>::value);
 static_assert(!db::has_async_operations<int>::value);
 
-// the concepts (C++20) -- djinterp::concepts' own: the family's, which both
-// leaves satisfy, and each leaf's; and the former names, which forward to
-// their concepts for one release
+// the concepts (C++20) -- the family's, in mysql::concepts, which both
+// leaves satisfy, and each leaf's, in its own namespace's; and the former
+// names, which forward to their concepts for one release
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-static_assert(db::concepts::mysql_family_connection<db::mariadb_connection>);
-static_assert(db::has_mysql_result_modes_v<db::mariadb_connection>);
-static_assert(db::has_mysql_result_modes_v<db::mysql_connection>);
-static_assert(db::mysql_can_use_result<db::mysql_connection>);
-static_assert(db::has_mysql_options_v<db::mariadb_connection>);
-static_assert(db::concepts::mysql_family_connection<db::mysql_connection>);
-static_assert(!db::concepts::mysql_family_connection<int>);
-static_assert(db::concepts::non_mysql_connection<int>);
-static_assert(db::concepts::mysql_full_connection<db::mariadb_connection>);
-static_assert(db::concepts::mysql_full_connection<db::mysql_connection>);
-static_assert(db::concepts::mariadb_connection<db::mariadb_connection>);
-static_assert(!db::concepts::mariadb_connection<int>);
-static_assert(db::concepts::mysql_ora_connection<db::mysql_connection>);
-static_assert(!db::concepts::mysql_ora_connection<int>);
-static_assert(db::Mysql_connection<db::mysql_connection>);
-static_assert(db::Mariadb_connection<db::mariadb_connection>);
-static_assert(db::mysql_ora_connection<db::mysql_connection>);
-static_assert(!db::Mysql_connection<int>);
+static_assert(
+    mysql::concepts::mysql_family_connection<mariadb::mariadb_connection>);
+static_assert(mysql::has_mysql_result_modes_v<mariadb::mariadb_connection>);
+static_assert(mysql::has_mysql_result_modes_v<mysql::mysql_connection>);
+static_assert(mysql::mysql_can_use_result<mysql::mysql_connection>);
+static_assert(mysql::has_mysql_options_v<mariadb::mariadb_connection>);
+static_assert(
+    mysql::concepts::mysql_family_connection<mysql::mysql_connection>);
+static_assert(!mysql::concepts::mysql_family_connection<int>);
+static_assert(mysql::concepts::non_mysql_connection<int>);
+static_assert(
+    mysql::concepts::mysql_full_connection<mariadb::mariadb_connection>);
+static_assert(mysql::concepts::mysql_full_connection<mysql::mysql_connection>);
+static_assert(
+    mariadb::concepts::mariadb_connection<mariadb::mariadb_connection>);
+static_assert(!mariadb::concepts::mariadb_connection<int>);
+static_assert(mysql::concepts::mysql_ora_connection<mysql::mysql_connection>);
+static_assert(!mysql::concepts::mysql_ora_connection<int>);
+static_assert(mysql::Mysql_connection<mysql::mysql_connection>);
+static_assert(mariadb::Mariadb_connection<mariadb::mariadb_connection>);
+static_assert(mysql::mysql_ora_connection<mysql::mysql_connection>);
+static_assert(!mysql::Mysql_connection<int>);
 
 // the reset, which both leaves have, the family's; session tracking, which
 // MySQL's concepts name and both leaves have; query attributes, MySQL's
 // alone
 static_assert(
-    db::concepts::mariadb_resettable_connection<db::mariadb_connection>);
+    mariadb::concepts::mariadb_resettable_connection<
+        mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mariadb_reset_connection_capable<db::mariadb_connection>);
+    mariadb::concepts::mariadb_reset_connection_capable<
+        mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_ora_resettable_connection<db::mysql_connection>);
+    mysql::concepts::mysql_ora_resettable_connection<mysql::mysql_connection>);
 static_assert(
-    db::concepts::mysql_ora_reset_connection_capable<db::mysql_connection>);
+    mysql::concepts::mysql_ora_reset_connection_capable<
+        mysql::mysql_connection>);
 static_assert(
-    db::concepts::mysql_ora_session_tracking_connection<db::mysql_connection>);
+    mysql::concepts::mysql_ora_session_tracking_connection<
+        mysql::mysql_connection>);
 static_assert(
-    db::concepts::mysql_ora_session_trackable<db::mariadb_connection>);
+    mysql::concepts::mysql_ora_session_trackable<mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_ora_query_attributes_connection<db::mysql_connection>);
+    mysql::concepts::mysql_ora_query_attributes_connection<
+        mysql::mysql_connection>);
 static_assert(
-    db::concepts::mysql_ora_query_attribute_settable<db::mysql_connection>);
+    mysql::concepts::mysql_ora_query_attribute_settable<
+        mysql::mysql_connection>);
 static_assert(
-    !db::concepts::mysql_ora_query_attribute_settable<db::mariadb_connection>);
-static_assert(!db::concepts::mariadb_resettable_connection<int>);
+    !mysql::concepts::mysql_ora_query_attribute_settable<
+        mariadb::mariadb_connection>);
+static_assert(!mariadb::concepts::mariadb_resettable_connection<int>);
 
 // the operations that do not block, on both leaves
-static_assert(db::concepts::async_connection<db::mariadb_connection>);
-static_assert(db::concepts::async_connection<db::mysql_connection>);
+static_assert(db::concepts::async_connection<mariadb::mariadb_connection>);
+static_assert(db::concepts::async_connection<mysql::mysql_connection>);
 static_assert(!db::concepts::async_connection<int>);
 
 // every concept of the family, against the class (C8): one the class
 // failed would name a member it does not have; the non_ concepts fail it
 // by design
-static_assert(db::concepts::mysql_family_connection<db::mariadb_connection>);
-static_assert(!db::concepts::non_mysql_connection<db::mariadb_connection>);
-static_assert(db::concepts::mysql_charset_connection<db::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_multi_result_connection<db::mariadb_connection>);
+    mysql::concepts::mysql_family_connection<mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_diagnostics_connection<db::mariadb_connection>);
+    !mysql::concepts::non_mysql_connection<mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_result_modes_connection<db::mariadb_connection>);
-static_assert(db::concepts::mysql_escape_connection<db::mariadb_connection>);
-static_assert(db::concepts::mysql_options_connection<db::mariadb_connection>);
-static_assert(db::concepts::mysql_engine_connection<db::mariadb_connection>);
+    mysql::concepts::mysql_charset_connection<mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_use_database_connection<db::mariadb_connection>);
+    mysql::concepts::mysql_multi_result_connection<
+        mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_autocommit_connection<db::mariadb_connection>);
+    mysql::concepts::mysql_diagnostics_connection<mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_set_option_connection<db::mariadb_connection>);
+    mysql::concepts::mysql_result_modes_connection<
+        mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_get_option_connection<db::mariadb_connection>);
-static_assert(db::concepts::mysql_stat_connection<db::mariadb_connection>);
-static_assert(db::concepts::mysql_thread_id_connection<db::mariadb_connection>);
+    mysql::concepts::mysql_escape_connection<mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_warning_count_connection<db::mariadb_connection>);
-static_assert(db::concepts::mysql_sqlstate_connection<db::mariadb_connection>);
+    mysql::concepts::mysql_options_connection<mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_store_result_connection<db::mariadb_connection>);
+    mysql::concepts::mysql_engine_connection<mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_use_result_connection<db::mariadb_connection>);
+    mysql::concepts::mysql_use_database_connection<
+        mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_change_user_connection<db::mariadb_connection>);
+    mysql::concepts::mysql_autocommit_connection<mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_set_engine_connection<db::mariadb_connection>);
+    mysql::concepts::mysql_set_option_connection<mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_get_engine_connection<db::mariadb_connection>);
-static_assert(db::concepts::mysql_charset_manageable<db::mariadb_connection>);
+    mysql::concepts::mysql_get_option_connection<mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_multi_result_iterable<db::mariadb_connection>);
+    mysql::concepts::mysql_stat_connection<mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_result_mode_selectable<db::mariadb_connection>);
+    mysql::concepts::mysql_thread_id_connection<mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_diagnostic_connection_tagless<db::mariadb_connection>);
-static_assert(db::concepts::mysql_charset_settable<db::mariadb_connection>);
-static_assert(db::concepts::mysql_charset_gettable<db::mariadb_connection>);
-static_assert(db::concepts::mysql_result_iterable<db::mariadb_connection>);
-static_assert(db::concepts::mysql_more_results_query<db::mariadb_connection>);
-static_assert(db::concepts::mysql_string_escapable<db::mariadb_connection>);
-static_assert(db::concepts::mysql_database_selectable<db::mariadb_connection>);
-static_assert(db::concepts::mysql_user_switchable<db::mariadb_connection>);
-static_assert(db::concepts::mysql_full_connection<db::mariadb_connection>);
-static_assert(db::concepts::mysql_family_connection<db::mysql_connection>);
-static_assert(!db::concepts::non_mysql_connection<db::mysql_connection>);
-static_assert(db::concepts::mysql_charset_connection<db::mysql_connection>);
+    mysql::concepts::mysql_warning_count_connection<
+        mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_multi_result_connection<db::mysql_connection>);
-static_assert(db::concepts::mysql_diagnostics_connection<db::mysql_connection>);
+    mysql::concepts::mysql_sqlstate_connection<mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_result_modes_connection<db::mysql_connection>);
-static_assert(db::concepts::mysql_escape_connection<db::mysql_connection>);
-static_assert(db::concepts::mysql_options_connection<db::mysql_connection>);
-static_assert(db::concepts::mysql_engine_connection<db::mysql_connection>);
+    mysql::concepts::mysql_store_result_connection<
+        mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_use_database_connection<db::mysql_connection>);
-static_assert(db::concepts::mysql_autocommit_connection<db::mysql_connection>);
-static_assert(db::concepts::mysql_set_option_connection<db::mysql_connection>);
-static_assert(db::concepts::mysql_get_option_connection<db::mysql_connection>);
-static_assert(db::concepts::mysql_stat_connection<db::mysql_connection>);
-static_assert(db::concepts::mysql_thread_id_connection<db::mysql_connection>);
+    mysql::concepts::mysql_use_result_connection<mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_warning_count_connection<db::mysql_connection>);
-static_assert(db::concepts::mysql_sqlstate_connection<db::mysql_connection>);
+    mysql::concepts::mysql_change_user_connection<mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_store_result_connection<db::mysql_connection>);
-static_assert(db::concepts::mysql_use_result_connection<db::mysql_connection>);
-static_assert(db::concepts::mysql_change_user_connection<db::mysql_connection>);
-static_assert(db::concepts::mysql_set_engine_connection<db::mysql_connection>);
-static_assert(db::concepts::mysql_get_engine_connection<db::mysql_connection>);
-static_assert(db::concepts::mysql_charset_manageable<db::mysql_connection>);
-static_assert(db::concepts::mysql_multi_result_iterable<db::mysql_connection>);
-static_assert(db::concepts::mysql_result_mode_selectable<db::mysql_connection>);
+    mysql::concepts::mysql_set_engine_connection<mariadb::mariadb_connection>);
 static_assert(
-    db::concepts::mysql_diagnostic_connection_tagless<db::mysql_connection>);
-static_assert(db::concepts::mysql_charset_settable<db::mysql_connection>);
-static_assert(db::concepts::mysql_charset_gettable<db::mysql_connection>);
-static_assert(db::concepts::mysql_result_iterable<db::mysql_connection>);
-static_assert(db::concepts::mysql_more_results_query<db::mysql_connection>);
-static_assert(db::concepts::mysql_string_escapable<db::mysql_connection>);
-static_assert(db::concepts::mysql_database_selectable<db::mysql_connection>);
-static_assert(db::concepts::mysql_user_switchable<db::mysql_connection>);
-static_assert(db::concepts::mysql_full_connection<db::mysql_connection>);
+    mysql::concepts::mysql_get_engine_connection<mariadb::mariadb_connection>);
+static_assert(
+    mysql::concepts::mysql_charset_manageable<mariadb::mariadb_connection>);
+static_assert(
+    mysql::concepts::mysql_multi_result_iterable<mariadb::mariadb_connection>);
+static_assert(
+    mysql::concepts::mysql_result_mode_selectable<mariadb::mariadb_connection>);
+static_assert(
+    mysql::concepts::mysql_diagnostic_connection_tagless<
+        mariadb::mariadb_connection>);
+static_assert(
+    mysql::concepts::mysql_charset_settable<mariadb::mariadb_connection>);
+static_assert(
+    mysql::concepts::mysql_charset_gettable<mariadb::mariadb_connection>);
+static_assert(
+    mysql::concepts::mysql_result_iterable<mariadb::mariadb_connection>);
+static_assert(
+    mysql::concepts::mysql_more_results_query<mariadb::mariadb_connection>);
+static_assert(
+    mysql::concepts::mysql_string_escapable<mariadb::mariadb_connection>);
+static_assert(
+    mysql::concepts::mysql_database_selectable<mariadb::mariadb_connection>);
+static_assert(
+    mysql::concepts::mysql_user_switchable<mariadb::mariadb_connection>);
+static_assert(
+    mysql::concepts::mysql_full_connection<mariadb::mariadb_connection>);
+static_assert(
+    mysql::concepts::mysql_family_connection<mysql::mysql_connection>);
+static_assert(!mysql::concepts::non_mysql_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_charset_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_multi_result_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_diagnostics_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_result_modes_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_escape_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_options_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_engine_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_use_database_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_autocommit_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_set_option_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_get_option_connection<mysql::mysql_connection>);
+static_assert(mysql::concepts::mysql_stat_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_thread_id_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_warning_count_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_sqlstate_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_store_result_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_use_result_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_change_user_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_set_engine_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_get_engine_connection<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_charset_manageable<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_multi_result_iterable<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_result_mode_selectable<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_diagnostic_connection_tagless<
+        mysql::mysql_connection>);
+static_assert(mysql::concepts::mysql_charset_settable<mysql::mysql_connection>);
+static_assert(mysql::concepts::mysql_charset_gettable<mysql::mysql_connection>);
+static_assert(mysql::concepts::mysql_result_iterable<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_more_results_query<mysql::mysql_connection>);
+static_assert(mysql::concepts::mysql_string_escapable<mysql::mysql_connection>);
+static_assert(
+    mysql::concepts::mysql_database_selectable<mysql::mysql_connection>);
+static_assert(mysql::concepts::mysql_user_switchable<mysql::mysql_connection>);
+static_assert(mysql::concepts::mysql_full_connection<mysql::mysql_connection>);
 #endif
 
 // ER_* -- the server errors the checks compare with, as both servers number
@@ -324,11 +382,11 @@ db::connection_config server_config(
 family_config
   The run's server, as the family's configuration: the socket too.
 */
-db::mysql_connect_config family_config(
+mysql::mysql_connect_config family_config(
     const std::string& _database
 )
 {
-    db::mysql_connect_config config(server_config(_database));
+    mysql::mysql_connect_config config(server_config(_database));
 
     config.unix_socket = core::setting("DJINTERP_TEST_MARIADB_SOCKET", "");
 
@@ -534,7 +592,7 @@ void d_tests_mariadb_core_session(
 {
     std::printf("the session: reset and tracking\n");
 
-    db::mysql_connect_config config = family_config(_database);
+    mysql::mysql_connect_config config = family_config(_database);
 
     config.init_command = "SET @core_init = 42";
 
@@ -590,18 +648,18 @@ void d_tests_mariadb_core_session(
         session.execute("SET SESSION time_zone = '+02:00'");
         D_TESTS_DB_CORE_CHECK(
             session.get_session_track_info(
-                db::mysql_session_track::system_variables) ==
+                mysql::mysql_session_track::system_variables) ==
             (std::vector<std::string>{ "time_zone", "+02:00" }));
         (void)session.execute_query("SELECT 1");
         D_TESTS_DB_CORE_CHECK(
             session.get_session_track_info(
-                db::mysql_session_track::system_variables).empty());
+                mysql::mysql_session_track::system_variables).empty());
     }
     else
     {
         D_TESTS_DB_CORE_THROWS(
             (void)session.get_session_track_info(
-                db::mysql_session_track::schema),
+                mysql::mysql_session_track::schema),
             db::query_exception,
             D_DB_UNSUPPORTED);
     }
@@ -647,7 +705,7 @@ void d_tests_mariadb_core_connecting(
                                     "Access denied") != std::string::npos) );
     }
 
-    db::mysql_connect_config several = family_config(_database);
+    mysql::mysql_connect_config several = family_config(_database);
 
     several.multi_statements = true;
     D_TESTS_DB_CORE_THROWS(Connection(several).connect(),
@@ -670,9 +728,9 @@ void d_tests_mariadb_core_connecting(
     // found rows
     Connection counting(family_config(_database));
 
-    counting.add_client_flag(db::mysql_client_flag::found_rows);
+    counting.add_client_flag(mysql::mysql_client_flag::found_rows);
     D_TESTS_DB_CORE_CHECK(counting.has_client_flag(
-                              db::mysql_client_flag::found_rows));
+                              mysql::mysql_client_flag::found_rows));
     counting.connect();
     D_TESTS_DB_CORE_CHECK(counting.execute_update(
                               "UPDATE core_t SET small = small") > 0);
@@ -727,7 +785,7 @@ void d_tests_mariadb_core_lost(
 
     // the largest packet the client takes
     {
-        db::mysql_connect_config limited = family_config(_database);
+        mysql::mysql_connect_config limited = family_config(_database);
         const std::string        big(2097152u, 'z');
         const bool               refuses =
             (!db::face::mariadb::client_is_mariadb());
@@ -844,11 +902,11 @@ void d_tests_mariadb_core_leaf_mariadb(
 {
     std::printf("mariadb_connection's configuration\n");
 
-    db::mariadb_connect_config config(server_config(_database));
+    mariadb::mariadb_connect_config config(server_config(_database));
 
     config.default_storage_engine = "MyISAM";
 
-    db::mariadb_connection engined(config);
+    mariadb::mariadb_connection engined(config);
 
     engined.connect();
     D_TESTS_DB_CORE_CHECK(engined.get_engine() == "MyISAM");
@@ -857,21 +915,22 @@ void d_tests_mariadb_core_leaf_mariadb(
     // connected without waiting, a character set other than the layer's
     // with it
     {
-        db::mariadb_connect_config latin1 = config;
+        mariadb::mariadb_connect_config latin1 = config;
 
         latin1.mysql_config.default_charset = "latin1";
 
-        db::mariadb_connection blocking(latin1);
-        db::mariadb_connection waiting =
+        mariadb::mariadb_connection blocking(latin1);
+        mariadb::mariadb_connection waiting =
             (d_tests_mariadb_core_carried())
-                ? db::mariadb_connection(latin1)
-                : d_tests_mariadb_core_untls(db::mariadb_connection(latin1));
+                ? mariadb::mariadb_connection(latin1)
+                : d_tests_mariadb_core_untls(
+                      mariadb::mariadb_connection(latin1));
         auto                   opening = waiting.connect_async();
 
         blocking.connect();
         core::drive(opening);
 
-        for (db::mariadb_connection* each : { &blocking, &waiting })
+        for (mariadb::mariadb_connection* each : { &blocking, &waiting })
         {
             D_TESTS_DB_CORE_CHECK( (each->is_connected()) &&
                                    (each->get_engine() == "MyISAM") );
@@ -884,11 +943,11 @@ void d_tests_mariadb_core_leaf_mariadb(
 
     config.default_storage_engine = "NoSuchEngine";
 
-    db::mariadb_connection refused(config);
-    db::mariadb_connection refused_async =
+    mariadb::mariadb_connection refused(config);
+    mariadb::mariadb_connection refused_async =
         (d_tests_mariadb_core_carried())
-            ? db::mariadb_connection(config)
-            : d_tests_mariadb_core_untls(db::mariadb_connection(config));
+            ? mariadb::mariadb_connection(config)
+            : d_tests_mariadb_core_untls(mariadb::mariadb_connection(config));
     auto                   refusing = refused_async.connect_async();
 
     D_TESTS_DB_CORE_THROWS_ANY(refused.connect(), db::connection_exception);
@@ -901,7 +960,7 @@ void d_tests_mariadb_core_leaf_mariadb(
 
     config.default_storage_engine = "No'Such";
 
-    db::mariadb_connection unnamed(config);
+    mariadb::mariadb_connection unnamed(config);
 
     D_TESTS_DB_CORE_THROWS(unnamed.connect(),
                            db::connection_exception,
@@ -916,7 +975,7 @@ void d_tests_mariadb_core_leaf_mariadb(
         config.default_storage_engine.clear();
         config.galera_wsrep_sync_wait = true;
 
-        db::mariadb_connection causal(config);
+        mariadb::mariadb_connection causal(config);
 
         causal.connect();
         D_TESTS_DB_CORE_CHECK(std::get<re_std::int64_t>(*causal.execute_scalar(
@@ -959,12 +1018,12 @@ void d_tests_mariadb_core_leaf_mysql(
 {
     std::printf("mysql_connection's configuration\n");
 
-    db::oracle_mysql_connect_config config(server_config(_database));
+    mysql::oracle_mysql_connect_config config(server_config(_database));
 
-    config.ssl_mode = db::mysql_ssl_mode::disabled;
+    config.ssl_mode = mysql::mysql_ssl_mode::disabled;
     config.connect_attributes["program_role"] = "core";
 
-    db::mysql_connection plain(config);
+    mysql::mysql_connection plain(config);
 
     plain.connect();
 
@@ -1005,9 +1064,9 @@ void d_tests_mariadb_core_leaf_mysql(
     if ( (have->next()) &&
          (have->get_string(1u).value_or("") == "YES") )
     {
-        config.ssl_mode = db::mysql_ssl_mode::required;
+        config.ssl_mode = mysql::mysql_ssl_mode::required;
 
-        db::mysql_connection secured(config);
+        mysql::mysql_connection secured(config);
 
         secured.connect();
         cipher = secured.execute_query("SHOW SESSION STATUS LIKE 'Ssl_cipher'");
@@ -1016,7 +1075,7 @@ void d_tests_mariadb_core_leaf_mysql(
 
         config.tls_version = "TLSv1.2";
 
-        db::mysql_connection versioned(config);
+        mysql::mysql_connection versioned(config);
 
         versioned.connect();
         cipher = versioned.execute_query(
@@ -1030,7 +1089,7 @@ void d_tests_mariadb_core_leaf_mysql(
 
         if (suites)
         {
-            db::mysql_connection suited(config);
+            mysql::mysql_connection suited(config);
 
             suited.connect();
             cipher = suited.execute_query(
@@ -1045,12 +1104,12 @@ void d_tests_mariadb_core_leaf_mysql(
     }
 
     // TLS 1.3's cipher suites, which only libmysqlclient has an option for
-    config.ssl_mode         = db::mysql_ssl_mode::preferred;
+    config.ssl_mode         = mysql::mysql_ssl_mode::preferred;
     config.tls_ciphersuites = "TLS_AES_128_GCM_SHA256";
 
     if (!suites)
     {
-        D_TESTS_DB_CORE_THROWS(db::mysql_connection(config).connect(),
+        D_TESTS_DB_CORE_THROWS(mysql::mysql_connection(config).connect(),
                                db::connection_exception,
                                D_DB_UNSUPPORTED);
     }
@@ -1062,7 +1121,7 @@ void d_tests_mariadb_core_leaf_mysql(
     config.auth_plugin             = "caching_sha2_password";
     config.enable_cleartext_plugin = true;
 
-    db::mysql_connection authenticated(config);
+    mysql::mysql_connection authenticated(config);
 
     authenticated.connect();
     D_TESTS_DB_CORE_CHECK(authenticated.is_connected());
@@ -1075,13 +1134,13 @@ void d_tests_mariadb_core_leaf_mysql(
 
     if (_mariadb)
     {
-        D_TESTS_DB_CORE_THROWS(db::mysql_connection(config).connect(),
+        D_TESTS_DB_CORE_THROWS(mysql::mysql_connection(config).connect(),
                                db::connection_exception,
                                ER_UNKNOWN_SYSTEM_VARIABLE);
     }
     else
     {
-        db::mysql_connection tracking(config);
+        mysql::mysql_connection tracking(config);
 
         tracking.connect();
         D_TESTS_DB_CORE_CHECK(std::get<std::string>(*tracking.execute_scalar(
@@ -1093,7 +1152,7 @@ void d_tests_mariadb_core_leaf_mysql(
         // changes (statement_id)
         const std::vector<std::string> changed =
             tracking.get_session_track_info(
-                db::mysql_session_track::system_variables);
+                mysql::mysql_session_track::system_variables);
         bool                           found   = false;
 
         for (std::size_t i = 0u; (i + 1u) < changed.size(); i += 2u)
@@ -1120,18 +1179,18 @@ void d_tests_mariadb_core_leaf_mysql(
 
     // what no client has
     config.use_x_protocol = true;
-    D_TESTS_DB_CORE_THROWS(db::mysql_connection(config).connect(),
+    D_TESTS_DB_CORE_THROWS(mysql::mysql_connection(config).connect(),
                            db::connection_exception,
                            D_DB_UNSUPPORTED);
     config.use_x_protocol       = false;
     config.statement_cache_size = 16u;
-    D_TESTS_DB_CORE_THROWS(db::mysql_connection(config).connect(),
+    D_TESTS_DB_CORE_THROWS(mysql::mysql_connection(config).connect(),
                            db::connection_exception,
                            D_DB_UNSUPPORTED);
     config.statement_cache_size = 0u;
 
     // query attributes
-    db::mysql_connection tagged(family_config(_database));
+    mysql::mysql_connection tagged(family_config(_database));
 
     D_TESTS_DB_CORE_CHECK(!tagged.supports_query_attributes());
     tagged.connect();
@@ -1226,8 +1285,8 @@ void d_tests_mariadb_core_support(
 {
     std::printf("support\n");
 
-    db::mariadb_connection maria(family_config(_database));
-    db::mysql_connection   oracle(family_config(_database));
+    mariadb::mariadb_connection maria(family_config(_database));
+    mysql::mysql_connection   oracle(family_config(_database));
 
     D_TESTS_DB_CORE_CHECK( (!maria.supports_json()) &&
                            (!maria.supports_modern_sql()) &&
@@ -1310,24 +1369,25 @@ void d_tests_mariadb_core_support(
     D_TESTS_DB_CORE_CHECK(!maria.supports_json());
 
     // the compile-time struct, and its former names
-    static_assert(std::is_same_v<db::mysql_connection::client_capabilities,
-                                 db::mysql_client_capabilities>,
+    static_assert(std::is_same_v<mysql::mysql_connection::client_capabilities,
+                                 mysql::mysql_client_capabilities>,
                   "client_capabilities is the compile-time struct");
-    static_assert(std::is_same_v<db::mariadb_connection::client_capabilities,
-                                 db::mariadb_client_capabilities>,
+    static_assert(
+        std::is_same_v<mariadb::mariadb_connection::client_capabilities,
+                                 mariadb::mariadb_client_capabilities>,
                   "client_capabilities is the compile-time struct");
 #if defined(__GNUC__)
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
-    static_assert( (std::is_same_v<db::mysql_type_support,
-                                   db::mysql_client_capabilities>) &&
-                   (std::is_same_v<db::mysql_feature_support,
-                                   db::mysql_client_capabilities>) &&
-                   (std::is_same_v<db::mariadb_type_support,
-                                   db::mariadb_client_capabilities>) &&
-                   (std::is_same_v<db::mariadb_feature_support,
-                                   db::mariadb_client_capabilities>),
+    static_assert( (std::is_same_v<mysql::mysql_type_support,
+                                   mysql::mysql_client_capabilities>) &&
+                   (std::is_same_v<mysql::mysql_feature_support,
+                                   mysql::mysql_client_capabilities>) &&
+                   (std::is_same_v<mariadb::mariadb_type_support,
+                                   mariadb::mariadb_client_capabilities>) &&
+                   (std::is_same_v<mariadb::mariadb_feature_support,
+                                   mariadb::mariadb_client_capabilities>),
                   "the former names are the struct's");
 #if defined(__GNUC__)
     #pragma GCC diagnostic pop
@@ -1434,20 +1494,20 @@ void d_tests_mariadb_core_mysql_table(
 {
     std::printf("mysql_table\n");
 
-    db::mysql_connection db(family_config(_database));
+    mysql::mysql_connection db(family_config(_database));
 
     db.connect();
     db.execute("CREATE TABLE core_json (id INT PRIMARY KEY, doc JSON)");
     db.execute("INSERT INTO core_json VALUES (1, '{\"a\": 1}')");
 
-    db::mysql_table<> documents(db, std::string("core_json"));
+    mysql::mysql_table<> documents(db, std::string("core_json"));
 
     documents.fetch_schema();
     D_TESTS_DB_CORE_CHECK( (documents.is_json_column(1u) == !_mariadb) &&
                            (documents.is_json_column("doc") == !_mariadb) &&
                            (!documents.is_json_column(0u)) &&
                            (!documents.is_json_column(9u)) &&
-                           (db::mysql_table<>::json_is_native()) );
+                           (mysql::mysql_table<>::json_is_native()) );
     documents.set_optimizer_hint("MAX_EXECUTION_TIME(10000)");
     D_TESTS_DB_CORE_CHECK( (documents.is_stale()) &&
                            (documents.get_optimizer_hint() ==
@@ -1464,7 +1524,7 @@ void d_tests_mariadb_core_mysql_table(
     documents.analyze_table();
     documents.optimize_table();
     D_TESTS_DB_CORE_CHECK(documents.check_table());
-    d_tests_mariadb_core_common_table<db::mysql_table<>>(db);
+    d_tests_mariadb_core_common_table<mysql::mysql_table<>>(db);
 
     return;
 }
@@ -1493,7 +1553,7 @@ void d_tests_mariadb_core_mariadb_table(
 
     std::printf("mariadb_table\n");
 
-    db::mariadb_connection db(family_config(_database));
+    mariadb::mariadb_connection db(family_config(_database));
 
     db.connect();
 
@@ -1503,7 +1563,7 @@ void d_tests_mariadb_core_mariadb_table(
 
     db.execute("CREATE TABLE core_plainv (id INT PRIMARY KEY, v INT)");
 
-    db::mariadb_table<> plain(db, std::string("core_plainv"));
+    mariadb::mariadb_table<> plain(db, std::string("core_plainv"));
 
     plain.fetch_schema();
     D_TESTS_DB_CORE_CHECK( (plain.has_returning_support() == returning) &&
@@ -1526,7 +1586,7 @@ void d_tests_mariadb_core_mariadb_table(
         db.execute("INSERT INTO core_ver VALUES (1, 10)");
         db.execute("UPDATE core_ver SET v = 11 WHERE id = 1");
 
-        db::mariadb_table<> history(db, std::string("core_ver"));
+        mariadb::mariadb_table<> history(db, std::string("core_ver"));
 
         history.fetch_schema();
         D_TESTS_DB_CORE_CHECK(history.is_system_versioned());
@@ -1562,7 +1622,7 @@ void d_tests_mariadb_core_mariadb_table(
         plain.insert_row({ core::int_value(1), core::int_value(5) });
         plain.commit();
 
-        const db::database_table<db::mariadb_connection>::row_type made =
+        const db::database_table<mariadb::mariadb_connection>::row_type made =
             plain.insert_row_returning({ core::int_value(2),
                                          core::int_value(6) });
 
@@ -1571,7 +1631,7 @@ void d_tests_mariadb_core_mariadb_table(
                                (plain.rows() == 2u) &&
                                (!plain.is_dirty()) );
 
-        const std::vector<db::database_table<db::mariadb_connection>::
+        const std::vector<db::database_table<mariadb::mariadb_connection>::
                               row_type> gone = plain.delete_returning("v = 5");
 
         D_TESTS_DB_CORE_CHECK( (gone.size() == 1u) &&
@@ -1605,7 +1665,7 @@ void d_tests_mariadb_core_mariadb_table(
     plain.commit();
     D_TESTS_DB_CORE_CHECK(core::scalar(db, "SELECT COUNT(*) FROM core_plainv "
                                            "WHERE id = 9") == 1);
-    d_tests_mariadb_core_common_table<db::mariadb_table<>>(db);
+    d_tests_mariadb_core_common_table<mariadb::mariadb_table<>>(db);
 
     return;
 }
@@ -1706,7 +1766,7 @@ void d_tests_mariadb_core_leaf(
         },
         [&_database, carried]() -> Connection
         {
-            db::mysql_connect_config wrong = family_config(_database);
+            mysql::mysql_connect_config wrong = family_config(_database);
 
             wrong.base.password = "certainly not the password";
 
@@ -1734,7 +1794,7 @@ void d_tests_mariadb_core_leaf(
         // MYSQL_OPT_CONNECT_TIMEOUT: mysql.h's first option in both
         // clients, which the core leaves out of view
         const int                CONNECT_TIMEOUT = 0;
-        db::mysql_connect_config timed           = family_config(_database);
+        mysql::mysql_connect_config timed           = family_config(_database);
         unsigned int             seconds         = 0u;
 
         timed.base.connect_timeout = std::chrono::seconds(9);
@@ -1781,8 +1841,8 @@ void d_tests_mariadb_core_stubs(void)
 {
     std::printf("over the stubs\n");
 
-    db::mariadb_connection mariadb(server_config(""));
-    db::mysql_connection   mysql(server_config(""));
+    mariadb::mariadb_connection mariadb(server_config(""));
+    mysql::mysql_connection   mysql(server_config(""));
 
     D_TESTS_DB_CORE_THROWS(mariadb.connect(),
                            db::connection_exception,
@@ -1820,7 +1880,7 @@ int main(void)
         return core::summary("built without a client");
     }
 
-    db::mariadb_connection setup(family_config(""));
+    mariadb::mariadb_connection setup(family_config(""));
 
     // a server to reach, or nothing to run against
     try
@@ -1845,8 +1905,8 @@ int main(void)
 
     fresh_database(setup, first);
     fresh_database(setup, second);
-    d_tests_mariadb_core_leaf<db::mariadb_connection>(first, mariadb);
-    d_tests_mariadb_core_leaf<db::mysql_connection>(second, mariadb);
+    d_tests_mariadb_core_leaf<mariadb::mariadb_connection>(first, mariadb);
+    d_tests_mariadb_core_leaf<mysql::mysql_connection>(second, mariadb);
     d_tests_mariadb_core_leaf_mariadb(first, mariadb);
     d_tests_mariadb_core_leaf_mysql(second, mariadb);
     d_tests_mariadb_core_support(first, mariadb);

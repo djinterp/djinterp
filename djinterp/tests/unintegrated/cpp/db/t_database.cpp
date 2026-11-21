@@ -41,7 +41,7 @@
 #include "../../../../inc/djinterp/cpp/modules/db/database.hpp"  // under test
 
 
-namespace db = djinterp;
+namespace db = djinterp::db;
 
 namespace
 {

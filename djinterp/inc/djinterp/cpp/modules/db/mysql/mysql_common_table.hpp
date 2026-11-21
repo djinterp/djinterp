@@ -52,6 +52,8 @@ TABLE OF CONTENTS
 
 
 NS_DJINTERP
+NS_DB
+namespace mysql {
 
 
 //==============================================================================
@@ -209,7 +211,7 @@ public:
         }
 
         this->validate_connected("create_table");
-        internal::refuse_nul(m_engine,
+        db::internal::refuse_nul(m_engine,
                              "mysql_common_table::create_table",
                              "the engine");
 
@@ -275,7 +277,7 @@ public:
         const bool                   key  =
             (std::find(keys.begin(), keys.end(), col) != keys.end());
         const dj_db_column            described =
-            internal::to_layer_column(_column,
+            db::internal::to_layer_column(_column,
                                       key,
                                       "mysql_common_table::"
                                       "alter_modify_column");
@@ -360,6 +362,8 @@ private:
 };
 
 
+}  // namespace mysql
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

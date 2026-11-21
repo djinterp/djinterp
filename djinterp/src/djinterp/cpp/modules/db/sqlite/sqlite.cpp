@@ -38,6 +38,8 @@
 
 
 NS_DJINTERP
+NS_DB
+namespace sqlite {
 
 //==============================================================================
 // FILE-LOCAL DEFINITIONS
@@ -240,8 +242,12 @@ void sqlite_layer::raise(
     }
 }
 
-template class prepared_statement<sqlite_layer>;
-template class streaming_result_set<sqlite_layer>;
+}  // namespace sqlite
+
+template class prepared_statement<sqlite::sqlite_layer>;
+template class streaming_result_set<sqlite::sqlite_layer>;
+
+namespace sqlite {
 
 sqlite_connection::sqlite_connection()
     : base_type(),
@@ -1171,6 +1177,8 @@ void sqlite_connection::m_check(
     return;
 }
 
+}  // namespace sqlite
+NS_END  // db
 NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER

@@ -74,7 +74,7 @@
 
 #if defined(INT64_MAX)
 
-namespace face = djinterp::face;
+namespace face = djinterp::db::face;
 
 namespace
 {
