@@ -1,0 +1,122 @@
+# djinterp - .github/workflows/ci.yml
+#
+#   On every push to main and every pull request: the merge window's gates
+# over what the push or the request changed (the ladder and the style over
+# the changed files, the fixed-width includes, the roots' growth, the
+# version, and no lane named in an added line or a commit message), then a
+# build and the tests that need no server, with GCC, Clang and MSVC.
+#   The Windows job doesn't fail the run until it has passed once.
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+    working-directory: djinterp
+
+jobs:
+  gates:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: the base
+        id: base
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          if [ "$EVENT" = "pull_request" ]; then
+            base="$PR_BASE"
+          elif [ -n "$BEFORE" ] && \
+               [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
+            base="$BEFORE"
+          else
+            base="$(git rev-parse HEAD~1)"
+          fi
+          echo "rev=$base" >> "$GITHUB_OUTPUT"
+          git log --format='%B' "$base..HEAD" > "$RUNNER_TEMP/messages.txt"
+
+      - name: the ladder over the changed units
+        run: >
+          python3 -I scripts/ci/ladder.py
+          --changed "${{ steps.base.outputs.rev }}"
+          --known scripts/ci/ladder_known.txt
+
+      - name: the style of the changed files
+        run: >
+          python3 -I scripts/ci/check_style.py
+          --changed "${{ steps.base.outputs.rev }}"
+          --known scripts/ci/style_known.txt
+
+      - name: the fixed-width includes
+        run: >
+          python3 -I scripts/ci/check_stdint_includes.py
+          --known scripts/ci/stdint_known.txt
+
+      - name: the roots only grow
+        run: >
+          python3 -I scripts/ci/check_root_growth.py
+          --base "${{ steps.base.outputs.rev }}"
+
+      - name: the version
+        run: python3 -I scripts/ci/check_version.py
+
+      - name: no lane named
+        run: >
+          python3 -I scripts/ci/check_lane_names.py
+          --base "${{ steps.base.outputs.rev }}"
+          --message "$RUNNER_TEMP/messages.txt"
+
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: gcc,   os: ubuntu-24.04, cc: gcc,   cxx: g++ }
+          - { name: clang, os: ubuntu-24.04, cc: clang, cxx: clang++ }
+          - { name: msvc,  os: windows-2022, cc: cl,    cxx: cl }
+    name: build (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.name == 'msvc' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: the outside libraries
+        if: runner.os == 'Linux'
+        working-directory: .
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev libcurl4-openssl-dev \
+                                  libssh2-1-dev zlib1g-dev
+
+      - name: configure
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        run: >
+          cmake -S build/cmake/config -B "$RUNNER_TEMP/build"
+          -DCMAKE_BUILD_TYPE=Debug
+
+      - name: build
+        run: cmake --build "$RUNNER_TEMP/build" --config Debug --parallel 4
+
+      - name: test
+        run: >
+          ctest --test-dir "$RUNNER_TEMP/build" -C Debug
+          --label-exclude needs-server --output-on-failure --parallel 4

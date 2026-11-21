@@ -1,0 +1,54 @@
+# djinterp - .github/workflows/nightly.yml
+#
+#   Every night, over the whole tree: the full ladder, every rung with GCC
+# and Clang, held to its punch list; the style of every file, held to its
+# punch list; and a report of the lane names the tree still holds, which
+# fails nothing until that count is 0. A run can also be started by hand.
+
+name: nightly
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+    working-directory: djinterp
+
+jobs:
+  ladder:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: the full ladder
+        run: >
+          python3 -I scripts/ci/ladder.py
+          --known scripts/ci/ladder_known.txt
+          --json "$RUNNER_TEMP/ladder.json"
+
+      - name: keep the results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ladder
+          path: ${{ runner.temp }}/ladder.json
+
+  style:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: the style of every file
+        run: >
+          python3 -I scripts/ci/check_style.py
+          --known scripts/ci/style_known.txt
+
+      - name: the lane names the tree still holds
+        run: python3 -I scripts/ci/check_lane_names.py --all | tail -n 1
