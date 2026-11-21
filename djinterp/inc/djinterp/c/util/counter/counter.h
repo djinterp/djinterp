@@ -2,7 +2,7 @@
 * djinterp [c][utility]                                                counter.h
 *
 * The generic counter: a signed 64-bit value, optionally held within a range,
-* and the five operations every counter in djinterp shares -- increment,
+* and the five operations every counter in djinterp shares - increment,
 * decrement, compare, merge and reset.
 *   A counter knows nothing about what it counts, nor about events: every
 * counter is used by calling its functions. Its thread-safe forms are
@@ -14,8 +14,8 @@
 *   A struct dj_counter_ref is any of the three kinds: a table of the kind's
 * operations and a pointer to the counter. d_counter_ref, d_counter_atomic_ref
 * and d_counter_mutex_ref make one, and the d_counter_ref_* functions work on it
-* whatever the kind, so code written once -- counter_event.h's handler, which
-* moves a counter when an event fires, for one -- serves every counter.
+* whatever the kind, so code written once - counter_event.h's handler, which
+* moves a counter when an event fires, for one - serves every counter.
 *
 * BOUNDS ARE MATH'S INTERVALS
 * ---------------------------
@@ -137,8 +137,8 @@ struct dj_counter
 //------------------------------------------------------------------------------
 // 1.2.1
 // dj_counter_vtable
-//   struct: the operations of one kind of counter -- plain, atomic or guarded
-// -- over an untyped pointer to it. Each kind keeps one constant table, shared
+//   struct: the operations of one kind of counter - plain, atomic or guarded
+// - over an untyped pointer to it. Each kind keeps one constant table, shared
 // by every counter of that kind; every slot is set. A slot does what the
 // kind's function of the same name does.
 struct dj_counter_vtable
@@ -200,7 +200,7 @@ struct dj_counter_ref
 // 2.1    Bounded arithmetic
 //------------------------------------------------------------------------------
 // The arithmetic every counter and timer in djinterp shares. A bound is taken
-// inclusively -- an open end one integer inward -- and the interval's stride
+// inclusively - an open end one integer inward - and the interval's stride
 // is ignored.
 /**
  * @brief Adds `_amount` to `_value` within `_bounds`, saturating.
@@ -219,9 +219,9 @@ struct dj_counter_ref
 int64_t
 d_counter_bounds_add(
     const struct dj_interval_imax* _bounds,
-    int64_t                       _value,
-    int64_t                       _amount,
-    bool*                         _is_exact
+    int64_t                        _value,
+    int64_t                        _amount,
+    bool*                          _is_exact
 );
 
 /**
@@ -240,9 +240,9 @@ d_counter_bounds_add(
 int64_t
 d_counter_bounds_sub(
     const struct dj_interval_imax* _bounds,
-    int64_t                       _value,
-    int64_t                       _amount,
-    bool*                         _is_exact
+    int64_t                        _value,
+    int64_t                        _amount,
+    bool*                          _is_exact
 );
 
 // 2.2    Initialization
