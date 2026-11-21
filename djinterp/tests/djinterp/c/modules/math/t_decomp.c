@@ -44,6 +44,12 @@
 * the driver of a 3-by-3 matrix with a complex pair, and sym_eigen at a
 * threshold of 0, as constant expressions with the run time's bits.
 *
+*   Where the build fuses a multiply and an add written apart -- gcc in its GNU
+* modes on a target with the instruction, clang under -ffp-contract=fast
+* (self_test.h's d_math_formulas_fuse) -- the plain formulas' bits follow the
+* build (S415), and the checks against lu's algorithm written out, and of
+* mat.h's solve against LU's, are left out; the harness says so.
+*
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
 *        tests/djinterp/c/modules/math/t_decomp.c -o t_decomp -lm
@@ -52,7 +58,7 @@
 * path:      /tests/djinterp/c/modules/math/t_decomp.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.07
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_EPSILON, DBL_EPSILON, LDBL_EPSILON, FLT_MIN, ...
@@ -63,12 +69,17 @@
 #include "../../../../../inc/djinterp/c/modules/math/decimal.h"  // d_math_decimal_to_ld
 #include "../../../../../inc/djinterp/c/modules/math/decomp.h"   // unit under test
 #include "../../../../../inc/djinterp/c/modules/math/mat.h"      // d_mat_*_solve
+#include "../../../../../inc/djinterp/c/modules/math/self_test.h" // d_math_formulas_fuse
 #include "./math_tests_eig_refs.h"                               // the references
 
 
 static long          g_checks   = 0;
 static long          g_failures = 0;
 static unsigned long g_state    = 2236067u;
+// whether this build fuses a multiply and an add written apart: then the
+// plain formulas' bits follow the build (S415), and the checks that a
+// function's bits are another computation's are left out
+static bool          g_fuses    = false;
 
 static void
 d_tests_expect(
@@ -210,8 +221,10 @@ d_tests_decomp_##S(void)                                                       \
         rsing = d_tests_lu_##S(ref, n, rperm, &rsign);                         \
         for (i = 0; i < n * n; ++i) same = same && (lu[i] == ref[i]);          \
         for (i = 0; i < n; ++i) same = same && (perm[i] == rperm[i]);          \
-        D_TESTS_EXPECT(same && (sing == rsing) && (sign == rsign),             \
-                       #S " lu is the header's algorithm");                    \
+        /* the algorithm's bits follow a build that fuses (S415) */           \
+        D_TESTS_EXPECT( g_fuses ||                                             \
+                        (same && (sing == rsing) && (sign == rsign)),          \
+                        #S " lu is the header's algorithm");                   \
         if ((trial % 37) == 0 && n > 1)                                        \
         {                                                                      \
             D_TESTS_EXPECT(sing && (d_decomp_##S##_lu_det(lu, n, sign) ==      \
@@ -1112,9 +1125,12 @@ d_tests_schur_case_##S(const struct dj_tests_eig_case* _c)                     \
         {                                                                      \
             for (i = 0; i < n; ++i) col[i] = bb[i * 2 + j];                    \
             if (!singular) d_decomp_##S##_lu_solve(lu, pv, n, col, xc);        \
+            /* LU's bits, which follow a build that fuses (S415) */           \
             for (i = 0; i < n; ++i)                                            \
-                ok = ok && d_tests_same_##S(xx[i * 2 + j],                     \
-                                            singular ? (T)0 : xc[i]);          \
+                ok = ok && ( singular                                          \
+                             ? d_tests_same_##S(xx[i * 2 + j], (T)0)           \
+                             : ( g_fuses ||                                    \
+                                 d_tests_same_##S(xx[i * 2 + j], xc[i]) ) );   \
         }                                                                      \
         D_TESTS_EXPECT(ok, #S " mat solve: LU's, bit for bit, column by "      \
                            "column");                                          \
@@ -2225,7 +2241,7 @@ d_tests_schur_constant_##S(void)                                               \
     for (k = 6; k < 12; ++k)                                                   \
         ok = ok && d_tests_same_##S(g_constant_##S[k],                         \
                                     x[((k - 6) / 2) * 3].part[(k - 6) % 2]);   \
-    D_TESTS_EXPECT(ok && (v[1].part[1] != (T)0),                               \
+    D_TESTS_EXPECT((g_fuses || ok) && (v[1].part[1] != (T)0),                  \
                    #S " eigen_c: a constant expression, the run time's bits"); \
     D_TESTS_EXPECT((g_constant_jacobi_##S[0] == (T)1) &&                       \
                    (g_constant_jacobi_##S[1] == (T)2) &&                       \
@@ -2244,6 +2260,15 @@ D_TESTS_SCHUR_CONSTANT(long double, ld, LDBL_MAX_EXP)
 int
 main(void)
 {
+    g_fuses = d_math_formulas_fuse();
+
+    if (g_fuses)
+    {
+        printf("t_decomp: this build fuses multiplies and adds: the checks "
+               "that bits are another computation's are left out "
+               "(S415)\n");
+    }
+
     d_tests_decomp_f();
     d_tests_decomp_d();
     d_tests_decomp_ld();

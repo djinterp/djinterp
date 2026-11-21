@@ -83,7 +83,7 @@
 * path:      /inc/djinterp/c/modules/math/quat.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 
 /*
@@ -142,6 +142,14 @@ TABLE OF CONTENTS
 #include "./power.h"         // d_internal_math_ld_pair_sum, _pair_product
 #include "./tangent.h"       // d_math_*_atan2 and its _c form
 #include "./vec.h"           // d_vec_*_cross, _dot, _norm, _scale, _add
+
+// no multiply and add fused by the compiler in this header, where it can be
+// told; the including file's state is restored at the end (math_common.h,
+// section 5.3)
+#if D_MATH_PRAGMA_NO_CONTRACT
+    #pragma float_control(push)
+    #pragma STDC FP_CONTRACT OFF
+#endif  // D_MATH_PRAGMA_NO_CONTRACT
 
 
 //==============================================================================
@@ -8792,5 +8800,10 @@ d_quat_pow(
 }
 
 #endif  // __cplusplus
+
+// the including file's own fusing again
+#if D_MATH_PRAGMA_NO_CONTRACT
+    #pragma float_control(pop)
+#endif  // D_MATH_PRAGMA_NO_CONTRACT
 
 #endif  // DJINTERP_C_MATH_QUAT_H

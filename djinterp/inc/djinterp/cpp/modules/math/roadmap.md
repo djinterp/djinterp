@@ -98,9 +98,11 @@ eigenvector as complex numbers; and in the language `im`, `jm` and `km`
 answer `not_yet` and the stubs name their new steps (S312 to S323). 3d is
 done.
 
-From chunk 28 the lane works on the owner's tree of 2026.10.23, and from
-chunk 37 on his tree of 2026.10.27, with the lane's files laid over it (the
-README's section 8).
+From chunk 28 the lane works on the owner's tree of 2026.10.23, from
+chunk 37 on his tree of 2026.10.27, from chunk 45b on his tree of
+2026.11.07, and from chunk 51 on his tree of 2026.11.16, which holds
+chunks 44 to 50 as he committed them (S423), with the lane's files laid
+over it (the README's section 8).
 
 ---
 
@@ -143,10 +145,17 @@ These are the owner's rulings. Each item below follows them.
 3. **Expression, function and calculus start at C++11.** A runtime
    expression for C++98 comes later, if users need it. (N1)
 4. **One answer.** A call gives the same result at every language level, and
-   the same result in constant evaluation as at run time. That result is the
-   correctly rounded one or the C library's. Domain errors give the library's
-   answers (NaN, plus or minus infinity). Whether transcendental functions
-   must be bit-identical or only within an ulp is gate G6.
+   the same result in constant evaluation as at run time. For the double
+   family, rewritten function by function from 2026.11.16, that result is
+   one result, the correctly rounded one, on every platform (ruling 2,
+   2026.11.16; G6), under eight rules: no `long double` inside; no C library
+   calls; no fused multiply-add made by the compiler that changes a result,
+   with a start-up self-test that says if one did; plain double arithmetic,
+   so no x87; no dependence on a C library at all; correctly rounded; within
+   2 to 3 times st_math's speed; and C's standard answers outside the domain
+   (NaN, plus or minus infinity). Until each other family's turn, the result
+   is the correctly rounded one or the C library's. The plain formulas, the
+   `_fast` forms among them, follow the build where it fuses (S415).
 5. **Chaining.** Wherever it is appropriate, an operation returns a value
    that the next operation can be applied to. Steps that can fail chain
    through `result<T, E>` with `and_then`. (decision 3)
@@ -178,7 +187,7 @@ The lane takes each recommendation unless the owner says otherwise.
 | G3 | How decimal literals are read | Exactly: `0.1` is the rational 1/10. Each result type rounds once, correctly | 1c, 2b |
 | G4 | Where the runtime expression language lives | In a new directory, `math/expr/`, built on `parse/expression/`'s term, folds and renderer. A math-local parser layer adds calls, lists and matrices. This lane fixes `parse/expression/`'s two defects as its own small commit (Phase 0, P0) | Phase 2 |
 | G5 | The surface syntax | The defaults in Phase 2's table. Implied multiplication (`2x`) and `\|x\|` are options, off by default | 2b |
-| G6 | What "one answer" means for transcendental functions | Correctly rounded functions are bit-identical everywhere (as now). For the others, `_c` is the reference and the run-time library is within an ulp of it; `_c` can be called at run time when bits must match. Bit-identity everywhere follows once Phase 6 makes those `_c` forms correctly rounded | Phase 5, Phase 6 |
+| G6 | What "one answer" means for transcendental functions | Decided 2026.11.16 (ruling 2): one result, the correctly rounded one, on every platform, for the double family as each function is rewritten (S415); float follows from the double kernels; what the plain double forms become is ruling 12's, due in early December | Phase 6 |
 | G7 | Order of the small items | M1 and M2, then C4a, then C2, then Phase 1. P0 opens Phase 2; C4b and C6 come when ready. Each is one short chunk; any can move after Phase 1 | Phase 0 |
 | G8 | Running on Windows | WSL 2 now (README section 5); a CMake and CTest runner that includes MSVC in C4c | C4 |
 | G9 | The 09.29 lane | Mine it for what 1a's rationals lack, and for its D13 pattern. This needs `djinterp_math_modified_files.zip`, which is in no repository and not in this session | C6 |
@@ -938,15 +947,24 @@ of a term, `str()` writes as the renderer does, `x ^ 2 * sin(x)`.
 
 ## Phase 6 — Precision
 
-- [ ] **6a** (step 36) Correctly rounded `_c` forms for exp, log, sin, cos,
-  tan, atan, pow and the hyperbolic functions, so that one answer becomes
-  bit-identity everywhere (G6). The model is CORE-MATH and LLVM libc.
+- [~] **6a** (step 36, brought forward) The double family rewritten on pairs
+  of doubles, each function correctly rounded in three phases with proven
+  bounds, by the lane's own algorithms, proven with Gappa and Sollya rather
+  than CORE-MATH's (rulings 1, 2 and 5 of 2026.11.16), so that one answer
+  is bit-identity everywhere (row G6): exp in chunk 51 (S416), on `dd.h`'s pairs
+  (S417), its exact products immune to fusing (S414), with a start-up
+  self-test (S419); log in chunk 52; then, after 0.8's items and core v2,
+  sin, cos, tan, atan, pow and the hyperbolic functions. Float follows from
+  the double kernels; long double keeps its own.
 - [ ] **6b** (step 37) The speed of `sqrt_c` in 32-bit builds (chunk 10's
   options), and `binade_of`'s table.
 - [ ] **6c** (step 38) The generator's 189 misaligned parameter lists
   (whitespace only).
 - [ ] **6d** (step 39) Clang on the 32-bit x87 (S37). MSVC, where `long
-  double` is `double`. PowerPC's double-double `long double`.
+  double` is `double`. PowerPC's double-double `long double`. For the
+  double family the x87 is decided: a build that uses it where double is
+  evaluated wider is refused at compile time, the message naming the flags
+  (ruling 4, S418); the rest stays for the other families.
 - [ ] **6e** (step 40) `_fast` variants where measured demand exists: rsqrt and
   normalize, sincos, exp.
 
@@ -1060,10 +1078,23 @@ of terms compensated by default and `solve` refined with extra precision,
 each with a `_fast` form as written (S404 to S407); chunk 50 the second,
 the complex dense kernels compensated and refined in the C core, the
 generic path and the language's products (S410 to S412), and `project`
-and `reject` scaled as ruled (S409); the float and double `_c` forms
-correctly rounded, provably, at today's speed, are next, the long double
-family's and the plain forms' left for step 36. Step 29, 5a, follows, as lane A
-asks, before 0.8 on 2026.11.30.
+and `reject` scaled as ruled (S409); on 2026.11.16 the owner
+ruled on the decisions of 11-15: the double family rewritten on pairs of
+doubles, one result, the correctly rounded one, on every platform, under
+eight rules (principle 4, G6), by the lane's own algorithms proven with
+Gappa and Sollya; exp and log first, then 0.8's items, core v2 in
+December, then the rest of the family. Chunk 51 made the first: every
+exact product immune to a compiler that fuses (S414), the family's
+contract (S415), `exp_c` correctly rounded in double arithmetic alone
+(S416), the public pair type `dd.h` (S417), the x87 refused (S418) and
+`self_test.h` (S419), with the table's storage, the harnesses where a build
+fuses and the exponential's references (S420 to S422); its delivery is over
+the owner's tree of 2026.11.16 (S423). Log is chunk 52. Step 29, 5a,
+follows, as asked, with 0.8's items the owner ruled on 2026.11.16
+(S413, S391, S403), before 0.8 on 2026.11.30. The owner's question of
+2026.11.19, whether to split math into modules, goes to the owner's decisions
+page; the lane recommends one chunk after 0.8, before the rest of the
+double family lands.
 The outstanding decisions of `decisions.md`, its section 1, by group and
 urgency, and the suggestions of `comparison.md`'s section 9 are the owner's
 to take or leave before then.

@@ -1,22 +1,25 @@
-# djinterp math: the lane's decisions, S1 to S413
+# djinterp math: the lane's decisions, S1 to S423
 
 Every decision the math lane has taken, in the words of the record that took
 it, with the alternative it set aside. The numbers run across the lane's
 records from S1 (slice 3, 2026.10.08); each record's section of decisions is
 here as its README has it, its own first lines among it. A decision was the
 lane's to take within the owner's rulings, and stands once his next word on
-its delivery, his "continue", has accepted it: S1 to S408 stand, his own
+its delivery, his "continue", has accepted it: S1 to S413 stand, his own
 rulings of 2026.10.27 on complex numbers and quaternions, S265 to S278, the
 design of steps 22 to 24, and his choice of 2026.11.07, S383, among them.
 His rulings of 2026.11.03 and 2026.11.04 on the flagged decisions are in the
 reviews they rule, each "Ruled 2026.11.04", two of them, S336 and S340, his
 own choice of an alternative the review had set aside, made in chunk 46
-(S384, S385). S409 to S413 are chunk 50's, open until his word on it: the
-second part of the last of the groups of fixes he chose on 2026.11.12,
-accuracy, as he scoped it on 2026.11.14 -- the complex dense kernels
-compensated and refined and `project` and `reject` scaled in this chunk, the
-float and double `_c` forms correctly rounded in the next. His word of
-2026.11.14 on the language's names, which kept them flat in
+(S384, S385). His rulings of 2026.11.16 on the decisions of 2026.11.15 are
+in chunk 51's opening lines and, for S391, S403 and S413, in their reviews,
+each "Ruled 2026.11.16". S414 to S423 are chunk 51's, open until his word on
+it: the first of the double family's rewrite as he ruled it -- every exact
+product immune to a compiler that fuses, the family's contract of one
+result, the correctly rounded one, on every platform, `exp_c` so in double
+arithmetic alone, the public pair type `dd.h`, the x87 refused and the
+start-up self-test -- and the delivery over his tree of 2026.11.16. His word
+of 2026.11.14 on the language's names, which kept them flat in
 `djinterp::math`, is S397's. Where a later decision changes an earlier one,
 the later one says so; the earlier one stays here as it was taken.
 
@@ -47,7 +50,7 @@ C6 and N1 to N6, are in the consolidation's record
 followed it; his rulings on them are the roadmap's principles and items
 (`roadmap.md`). From chunk 34 on, each chunk's delivery brings this file,
 its own decisions added at the end. This file is made by
-`_handoffs/math98_chunk50_2026.11.15/tools/decisions_c50.py`.
+`_handoffs/math98_chunk51_2026.11.16/tools/decisions_c51.py`.
 
 ## 1. Outstanding decisions
 
@@ -55,7 +58,7 @@ The 23 flagged decisions: those whose review recommends what is not yet
 done, or names a significant drawback of what was. Each gives when it is
 due, by the roadmap's steps, its flag and its review's recommendation; the
 decision itself and its whole review are in its record's part of section 2.
-The groups and the steps are `decisions_outstanding_c50.md`'s, in chunk 50's
+The groups and the steps are `decisions_outstanding_c51.md`'s, in chunk 51's
 record.
 
 ### 1.1 The expression language
@@ -80,11 +83,17 @@ record.
   core v2's design: core v2 if its parser holds postfix operators and calls,
   S209 and S252 then following it; otherwise the language's own precedence
   parser, as S190's review recommends.
-- S391. When: before 0.8, 2026.11.30, fixes the language's names: the
-  owner's word on `rotmat` and `rotquat`; minor. Minor: the names `rotmat`
-  and `rotquat` are the lane's choice, for the owner's word; `rotquat` takes
-  its matrix for a rotation's untested. Recommended: as taken, the names for
-  the owner's word before 0.8 fixes them.
+- S391. When: before 0.8, 2026.11.30, which fixes the language's names: the
+  docs' equivalents and `rotquat`'s nearest rotation, as ruled 2026.11.16;
+  minor. Minor: until it is done before 0.8, the docs name neither MATLAB's
+  nor SciPy's equivalents, and `rotquat` takes its matrix for a rotation's
+  untested. Recommended: as taken, the names for the owner's word before 0.8
+  fixes them. Ruled 2026.11.16: `rotmat` and `rotquat` kept, the docs
+  listing MATLAB's and SciPy's equivalents, as recommended (9a, A);
+  `rotquat` the quaternion of the nearest true rotation, Bar-Itzhack's, an
+  error for a reflection or a matrix far from any rotation, an exact matrix
+  that is exactly a rotation keeping its exact answer (9b, C); both before
+  0.8.
 - S203. When: step 36 (6a): `gamma`, `lgamma`, `erf` and `erfc` with their
   kernels and the correctly rounded forms (S379). Functionality gap, now
   `gamma`, `erf` and the rest alone. Recommended: those five in the table in
@@ -131,12 +140,14 @@ record.
 ### 1.3 Linear algebra and eigenvalues
 
 - S413. When: before 0.8, 2026.11.30: the language's float, double and long
-  double solves refined, with step 29 (5a) or the next chunk that touches
-  the language's matrices. Significant: the language's dense solves
-  unrefined while the faces' are refined. Recommended: the alternative, the
-  real solves by `d_mat_solve` and the complex by `d_cmat_solve`, with step
-  29 (5a) or the next chunk that touches the language's matrices, before
-  0.8.
+  double solves refined, real and complex, with step 29 (5a), as ruled
+  2026.11.16. Significant: the language's dense solves unrefined while the
+  faces' are refined. Recommended: the alternative, the real solves by
+  `d_mat_solve` and the complex by `d_cmat_solve`, with step 29 (5a) or the
+  next chunk that touches the language's matrices, before 0.8. Ruled
+  2026.11.16: as recommended (decision 8, B): the language's float, double
+  and long double solves refined, real and complex, before 0.8, with step
+  29.
 - S392. When: step 40 (6e), or sooner on demand: `math::quaternion<T>` a
   number type, both faces' matrices taking it. Not the earlier review's
   recommendation in full: neither face's matrix holds quaternions; the
@@ -168,10 +179,11 @@ record.
 ### 1.4 The compile-time core
 
 - S403. When: step 29 (5a): `expression.hpp`'s variables `x` to `phi` in a
-  namespace of their own; minor. Minor: `math.hpp` is not clean under
-  `-Wshadow` until step 29. Recommended: as taken; at step 29 (5a),
-  `expression.hpp`'s variables in a namespace of their own, which ends every
-  such warning at once.
+  namespace of their own, as ruled 2026.11.16; minor. Minor: `math.hpp` is
+  not clean under `-Wshadow` until step 29. Recommended: as taken; at step
+  29 (5a), `expression.hpp`'s variables in a namespace of their own, which
+  ends every such warning at once. Ruled 2026.11.16: as recommended
+  (decision 10, A), at step 29.
 
 ### 1.5 Precision and one answer
 
@@ -7765,9 +7777,14 @@ matrix is, a domain error; in a typed fold each is a NaN, as `parts` is.**
 > `quat.h`'s kernel does; `slerp` is never exact. The alternatives:
 > `quat2rotm` and `rotm2quat`; `rotquat` refusing within a tolerance;
 > `slerp` exact at three special points. Recommended: as taken, the names
-> for the owner's word before 0.8 fixes them. **Flag:** minor: the names
-> `rotmat` and `rotquat` are the lane's choice, for the owner's word;
-> `rotquat` takes its matrix for a rotation's untested.
+> for the owner's word before 0.8 fixes them. Ruled 2026.11.16: `rotmat` and
+> `rotquat` kept, the docs listing MATLAB's and SciPy's equivalents, as
+> recommended (9a, A); `rotquat` the quaternion of the nearest true
+> rotation, Bar-Itzhack's, an error for a reflection or a matrix far from
+> any rotation, an exact matrix that is exactly a rotation keeping its exact
+> answer (9b, C); both before 0.8. **Flag:** minor: until it is done before
+> 0.8, the docs name neither MATLAB's nor SciPy's equivalents, and `rotquat`
+> takes its matrix for a rotation's untested.
 
 **S392. `linalg::dynamic_matrix<T>` takes every element type the fixed-size
 matrix takes, each that `number_traits` specializes (S354): float, double
@@ -8252,8 +8269,9 @@ them.
 > `djinterp::math` named as the commonest locals, stands until step 29. The
 > alternatives: the 26 renamed now too. Recommended: as taken; at step 29
 > (5a), `expression.hpp`'s variables in a namespace of their own, which ends
-> every such warning at once. **Flag:** minor: `math.hpp` is not clean under
-> `-Wshadow` until step 29.
+> every such warning at once. Ruled 2026.11.16: as recommended (decision 10,
+> A), at step 29. **Flag:** minor: `math.hpp` is not clean under `-Wshadow`
+> until step 29.
 
 ### S404 to S408: chunk 49, 2026.11.14
 
@@ -8587,5 +8605,420 @@ elimination (S406).** This chunk changes no solve of the language.
 > float, double and long double solves refined. Recommended: the
 > alternative, the real solves by `d_mat_solve` and the complex by
 > `d_cmat_solve`, with step 29 (5a) or the next chunk that touches the
-> language's matrices, before 0.8. **Flag:** significant: the language's
-> dense solves unrefined while the faces' are refined.
+> language's matrices, before 0.8. Ruled 2026.11.16: as recommended
+> (decision 8, B): the language's float, double and long double solves
+> refined, real and complex, before 0.8, with step 29. **Flag:**
+> significant: the language's dense solves unrefined while the faces' are
+> refined.
+
+### S414 to S423: chunk 51, 2026.11.16
+
+The record: `_handoffs/math98_chunk51_2026.11.16/README.md`.
+
+Chunk 51's decisions, S414 to S423: the first of the double family's
+rewrite, under the owner's rulings of 2026.11.16 at 09:26 on the
+decisions of 2026.11.15 -- the double family on pairs of doubles, exp and
+log first, each in three phases with proven bounds (1, B); the eight rules
+(2, A); exp and log now, then 0.8's items, core v2 in December, then the
+rest of the family (3, B); the x87 refused for the family's functions
+(4, B); the lane's own algorithms, proven with Gappa and Sollya, where the
+lane had recommended CORE-MATH's (5, B); a public pair type (6, A); and
+kernels immune to fusing (7, B). His rulings on 0.8's items are in the
+reviews they rule: S413 (8, B), S391 (9a, A; 9b, C) and S403 (10, A), each
+"Ruled 2026.11.16", each outstanding until done before 0.8. Parse's M3
+(11, A) is no decision of the lane's: math reads the opener's position from
+the note in the next diagnostic record, as its note of 11-13c answered,
+and its note of 11-16 says so. Chunk 50's decisions, S409 to S413,
+stand: his rulings of 11-16 followed its delivery.
+
+**S414. Every exact product is immune to a compiler that fuses a multiply
+and an add (ruling 7, B): wherever the target has a fused multiply-add for
+the family, an exact product takes its low part with an explicit one,
+`fma(a, b, -high)`, exact, so the bits Dekker's product gives; where it has
+none, Dekker's product, which no compiler can fuse there; and in a C++
+constant evaluation Dekker's product too, an explicit fused multiply-add
+being no constant expression for every compiler, the same bits.** Found
+while preparing the decisions of 11-15: gcc fuses by default in its GNU
+modes wherever the target has the instruction, every ARM64 and x86 with a
+`-march` that has it, and a fused `split * a - a` breaks Veltkamp's split;
+built with `gcc -std=gnu11 -O2 -march=x86-64-v3`, chunk 50's compensated
+double dot was correctly rounded on 2,403 of 20,000 cancelling dots, its
+worst error 6.4e13 ulps. `math_common.h`'s new section 5 says when the
+builtin may be called -- `D_MATH_{FLT,DBL,LDBL}_FMA` and `_FMA_OF`, from
+gcc's `__FP_FAST_FMA` macros and x86's and ARM's own; in C, in C++ before
+C++14, where no kernel is a constant expression, and from C++14 where
+`D_MATH_CONSTANT_EVALUATED` keeps it out of a constant evaluation -- and
+`D_MATH_RUN_TIME()` guards each call. The four exact products the
+generator writes take it -- `vec.h`'s, `cplx.h`'s for each family,
+`elementary.h`'s long double product and float square, and `dd.h`'s (S417)
+-- and no error-free transform anywhere takes a product that is not exact.
+Every generated header opens with clang's `#pragma float_control(push)` and
+`#pragma STDC FP_CONTRACT OFF` and closes with the pop
+(`D_MATH_PRAGMA_NO_CONTRACT`, clang from 11), so that clang fuses nothing in
+them but under `-ffp-contract=fast`; gcc ignores the pragma, and there the
+exact products are safe by the above and the plain formulas, the `_fast`
+forms among them, follow the build (S415). `check_math_tests.sh` gains a
+third tier, `fused`, which builds every test as gcc and clang fuse: GNU C11,
+GNU C++14 and C++20 for the harnesses with a C++14 section, GNU C++17 for
+the faces, with the host's fused multiply-add (`-march=x86-64-v3`).
+- Alternative: fusing forbidden in the headers, by the standard pragma and
+  gcc's `#pragma GCC optimize("fp-contract=off")`: gcc ignores the
+  standard pragma, documents its own as not for production code, and stops
+  inlining a function it marks, in every build.
+- Alternative: the needs list's X3 as written, `-ffp-contract=off` asked of
+  every user and a self-test to report fusing: a build that misses the note
+  is silently wrong, and the flag stops harmless fusing in the user's own
+  code.
+- Alternative: Dekker's product everywhere, the build refused where it
+  fuses: no macro says that gcc fuses -- `__FP_FAST_FMA` says that the
+  target can, which an ISO build with the instruction does not use -- so
+  the refusal would take every ARM64 build with the ones it must.
+
+> **Review.** Taken: for, every compensated kernel's exact products exact in
+> every build, fused or not, with nothing asked of a user's flags; where the
+> target has the instruction, an exact product two operations instead of
+> some seventeen; clang told not to fuse in the headers, so that its plain
+> formulas keep their ISO bits but under -ffp-contract=fast. Against: two
+> forms of every exact product, both to be tested -- the fused tier tests
+> the explicit one, every other tier and every constant evaluation Dekker's
+> -- and, where gcc fuses, the plain formulas' and the `_fast` forms' last
+> bits following the build (S415). The alternatives: fusing forbidden in the
+> headers, which gcc does not honour in a header without losing inlining;
+> `-ffp-contract=off` asked of every user, silently wrong where missed;
+> Dekker's everywhere with a refusal where the build fuses, which would
+> refuse every ARM64 build. Recommended: as taken. Ruled 2026.11.16: as
+> recommended (decision 7, B).
+
+**S415. The double family's contract (ruling 2, A): one result, the
+correctly rounded one, on every platform, under the ruling's eight rules --
+no long double inside; no C library calls; no fused multiply-add made by
+the compiler that changes a result, with a start-up self-test that says if
+one did; plain double arithmetic, so no x87; no dependence on a C library
+at all (wasm32); correctly rounded; within 2 to 3 times st_math's speed;
+and C's standard answers outside the domain. The roadmap's principle 4 and
+gate G6 say so.** It holds for each of the family's functions as its
+rewrite lands, `exp_c` in this chunk (S416), and for `dd.h`'s exact sums and
+products, exact in every build, its other results within their proven
+bounds, fused or not (S417). The plain formulas -- every kernel written
+as its formula, the `_fast` forms among them -- follow the build: where it
+fuses, their last bits may differ from an ISO build's, as ruling 7 has it,
+and `d_math_formulas_fuse()` says whether the translation unit's build
+fuses (S419). The float and long double families keep their contract until
+their turn, float from the double kernels (ruling 1); the plain double
+forms, `d_math_d_exp` among them, call the C library until ruling 12, due
+in early December.
+- Alternative: correct rounding alone, without the speed and no-long-double
+  rules (the ruling's B): the same bits eventually, at 10 to 100 times the
+  speed simterp needs each tick, so that the terps keep st_math beside it.
+- Alternative: the terps keep st_math (the ruling's C): two math libraries
+  in one project, one whose pow is 120 ulps off.
+- Alternative: the plain formulas held to one result too, fusing forbidden:
+  not possible for gcc in a header (S414).
+
+> **Review.** Taken: for, one answer on every platform and compiler, the
+> best one, each function meeting the eight rules as its rewrite lands, so
+> that the terps can retire st_math and share one library. Against: the
+> largest block of work left, by the decisions' estimate 15 to 20 chunks; a
+> 32-bit x87 build without SSE2 refused (S418); the plain formulas outside
+> the contract where the build fuses; and until ruling 12 the plain double
+> forms the C library's, a second answer beside each `_c` form wherever the
+> library's is not correctly rounded. The alternatives: correct rounding
+> without the speed and no-long-double rules; the terps keeping st_math.
+> Recommended: as taken, and each plain double form the correctly rounded
+> function once it is within about twice the C library's speed, as decision
+> 12 recommends. Ruled 2026.11.16: as recommended (decision 2, A).
+
+**S416. `d_math_d_exp_c` is the exponential correctly rounded, in double
+arithmetic alone, by three phases each with a proven bound, the lane's own
+algorithm (rulings 1, B, and 5, B): x reduced to (128 e + j) ln2/128 + r,
+the integer nearest x 128/ln2 found by the shift 1.5 2^52, |k| < 2^18,
+ln2/128 in three parts L1 + L2 + L3, L1 and L2 of 35 bits so that k L1
+and k L2 are exact, r1 + r2 exact but for 2^-113.9 and |r1| < 0.00271;
+then e^x = 2^e 2^(j/128) e^r, 2^(j/128) from a table of 128 pairs of
+doubles, each within 2^-107 of its value. Phase 1, in doubles, q of degree
+3 by Sollya and T r1 split so that its high product is exact: within
+2^-63.5 relatively, tested against 2^-63, k = 0 by its own bound; phase 2,
+in `dd.h`'s pairs, P of degree 6, its first two coefficients pairs:
+within 2^-101.2 absolutely of a result below 2.01, tested against 2^-100;
+phase 3, in fixed point, 16 limbs of 16 bits in `unsigned long`, so that
+no 64-bit integer is needed: x exact, k ln2/128 from 240-bit digits, e^r by
+its series, times 2^(j/128) from 224-bit digits, within 51.4 units of
+2^-224, 2^-218.3 relatively, then rounded at 53 bits or at the least
+subnormal. Each phase gives its result where the interval its bound allows
+rounds one way, as Ziv's method has it.** The bounds are proven in the
+record's `proofs/`: Sollya's `supnorm` for the polynomials, Gappa for each
+phase's rounding errors from the code's own operations, every product a
+compiler may fuse modelled both ways, and exact rational arithmetic for
+phase 3. The hardest case known, Lefevre and Muller's
+0x1.9e9cbbfd6080bp-31, lies 2^-110.6 relatively from a rounding boundary,
+far outside phase 3's bound. NaN gives NaN, x past 6243314768165359/2^43
+(709.78) +inf, x below -6554261109157969/2^43 (-745.13) +0, and
+-2^-53 <= x < 2^-53 gives 1 + x; a result below the least normal is rounded
+to the subnormals at each phase's test, from the pair with its error. A
+constant expression from C++14 through all three phases. Measured
+(`raw/timing.txt`, gcc -O2): 9.9 ns a call over [-745, 709.7] against the C
+library's 6.7, 9.0 over [-1, 1] against 3.8; 57.8 ns where phase 2 decides;
+3,950 ns at the hardest known argument, where phase 3 does; 22 to 27 times
+faster than chunk 50's `exp_c` on the long double kernel; phase 1 decides
+99.86% of arguments over each range and phase 2 the rest, of ten million
+each, phase 3 none. The plain `d_math_d_exp` stays the C library's
+(S415).
+- Alternative: CORE-MATH's exp, ported with its proofs (decision 5's A, the
+  lane's recommendation): proofs reviewed by specialists and the hard cases
+  searched, and the licence notice in each ported file; the owner ruled
+  the lane's own.
+- Alternative: chunk 50's long double kernel with a rounding test and an
+  exact fallback (decision 1's A): correctly rounded too, at 149 to 597
+  ns a call, and slower where long double is 64 bits or 128 in software.
+- Alternative: phase 3 straight after phase 1: one bound fewer to prove,
+  and the 0.14% that phase 1 leaves would pay phase 3's 3.95 us, some 5.5
+  ns a call on average, where phase 2's 57.8 ns costs some 0.08.
+- Alternative: phase 3 in triple doubles: a third floating-point bound to
+  prove, where fixed point's is counted exactly and needs no 64-bit
+  integer.
+- Alternative: a table of 256 pairs, or 64: a shorter phase 1 polynomial
+  for twice the memory, or a longer one for half.
+
+> **Review.** Taken: for, exp correctly rounded on every platform in double
+> arithmetic alone, each phase's bound proven from the code's own
+> operations, fused or not, the hardest case known far inside phase 3's
+> bound; 9.9 ns a call, 1.5 times the C library's over the range and 2.4
+> times over [-1, 1], and 22 to 27 times faster than chunk 50's `exp_c`; a
+> constant expression from C++14 through all three phases; no 64-bit integer
+> needed. Against: phase 3's 3.95 us at the arguments that need it, none of
+> ten million random ones; a 2 KB table; proofs the lane wrote, which no
+> specialist has reviewed, their risk held by Gappa's and Sollya's
+> certificates, run again in this session (`raw/proofs.txt`), and by 2,398
+> references with every phase checked alone; st_math's own speed not
+> measured here, where the needs list puts its functions at 9 to 36 ns a
+> call; the plain form the C library's until ruling 12. The alternatives:
+> CORE-MATH's exp, ported; chunk 50's kernel with a rounding test; no phase
+> 2; phase 3 in triple doubles; a table of another size. Recommended: as
+> taken, now that its proofs are made and checked; an outside review of
+> them, when one can be had. Ruled 2026.11.16 (the owner's): the lane's own
+> algorithms, decision 5's B, where the lane had recommended CORE-MATH's, A.
+
+**S417. `dd.h` is a public pair type (ruling 6, A): `struct dj_math_dd
+{high, low}`, normalized, with `d_math_dd_of`, `_value`, `_neg`, the exact
+`_two_sum`, `_fast_two_sum` and `_two_product`, and `_add_d` 2u^2, `_add`
+3u^2, `_sub_d`, `_sub`, `_mul_d` 3u^2 (2u^2 fused) and `_mul` 7u^2 (5u^2
+fused) by Joldes, Muller and Popescu (ACM TOMS 44(2), 2017) with their
+proven bounds, and `_div_d` 12u^2, `_div` 38u^2 and `_sqrt` 32u^2, the
+lane's, proven with Gappa; u^2 = 2^-106, relatively, where no operation
+overflows or underflows.** The products become the paper's fused variants
+where the compiler fuses, the bits following the build and the bounds
+holding either way; the quotients and the square root are written so that
+no inexact product reaches an error-free transform (S414). Every function
+is pure double arithmetic, a constant expression from C++14; where double
+is evaluated wider, it refuses to compile (S418). `t_dd.c`, new, checks
+every result exactly in integers of 768 bits, 200,000 random arguments per
+operation, edges and normalization: the largest errors, in u^2, `add_d`
+1.571, `add` 1.743, `mul_d` 2.375 (fused 1.702), `mul` 3.605 (3.500),
+`div_d` 2.333, `div` 6.118 (5.046), `sqrt` 2.808. Measured: `two_product`
+2.1 ns, `add` 2.7, `mul` 2.3, `div` 6.3, `sqrt` 72.0, its square root
+`elementary.h`'s correctly rounded `d_math_d_sqrt_c`.
+- Alternative: the pairs kept internal (decision 6's B): no names to
+  freeze, and every user who needs them writes their own.
+- Alternative: every operation correctly rounded to the pair (decision 6's
+  C): several times slower, for little a user gains.
+- Alternative: the paper's own quotients with their published bounds:
+  tighter on paper, with products whose errors an error-free transform
+  takes, which a compiler that fuses breaks.
+
+> **Review.** Taken: for, one tested pair type for every user, each
+> operation within a bound proven for the code as written, fused or not, the
+> exact sums and product exact in every build, constant expressions from
+> C++14; `t_dd.c`'s exact checks found every error within its bound.
+> Against: names frozen once 0.8 ships them; the quotients' bounds, 12 and
+> 38 u^2, and the root's, 32, proven but loose -- the worst errors found are
+> 2.3, 6.1 and 2.8 u^2 -- which a function that leans on them must budget
+> for; `sqrt` 72 ns, its first step `d_math_d_sqrt_c`, the correctly rounded
+> root in pure arithmetic. The alternatives: the pairs internal; every
+> operation correctly rounded to the pair; the paper's quotients.
+> Recommended: as taken; tighter quotients, and the root by the instruction
+> at run time, where a function needs them. Ruled 2026.11.16: as recommended
+> (decision 6, A).
+
+**S418. The double family refuses, at compile time, a build whose double
+arithmetic is not plain double (ruling 4, B): where `D_MATH_DBL_EVAL_WIDE`
+and the compiler has the `error` attribute, each of the family's functions
+begins with `D_MATH_DBL_REFUSE(x)`, a call, under `if (x == x)`, to a
+function whose attribute stops the build with "double is evaluated wider
+than double: build with -msse2 -mfpmath=sse for the double family's
+correctly rounded functions"; so a translation unit that never calls one
+builds, and the float and long double families build as before.** The
+condition keeps a constant evaluation of a NaN from reaching the call and
+clang from taking the function to have no constant value. `exp_c`, `dd.h`
+and `d_math_self_test` refuse; `expm1_c`'s far path, which calls `exp_c`
+elsewhere, takes the long double kernel there, chunk 50's, with its bound,
+so that +inf and arguments past the overflow never reach the split, whose
+k would not fit an int (found by the handoff's zip check, `t_exponential`
+at `-O0` on the x87: `expm1(+inf)`); the harnesses leave the family out
+with a note, and `t_constants_face.cpp` guards its double `exp_c`. Where the
+compiler has no such attribute, the functions document the bound they lose.
+S37 and S39 (step 39) stay, for the other families.
+- Alternative: the x87 supported as now, the drift documented (decision
+  4's A): silently wrong bits on those builds.
+- Alternative: a slow path through memory for the x87 (decision 4's C):
+  several times slower, and fragile where clang keeps extra bits through a
+  store (S37).
+- Alternative: `#error` in the headers where double is evaluated wider:
+  every translation unit that includes `exponential.h` refused, its float
+  users with the rest.
+
+> **Review.** Taken: for, no silently wrong answer from the double family on
+> any build: an x87 build that uses it stops, the fix in the message, and
+> one that does not builds as before, the float and long double families
+> with it. Against: a 32-bit x86 build must add two flags to use the double
+> family, and a processor without SSE2 cannot; a compiler without the
+> `error` attribute gets documentation, not a refusal; `expm1_c`'s far path
+> keeps chunk 50's long double bound on the x87, not the family's. The
+> alternatives: the drift documented; a slow path through memory; `#error`
+> in the headers. Recommended: as taken. Ruled 2026.11.16: as recommended
+> (decision 4, B).
+
+**S419. `self_test.h`, new: `d_math_self_test()` gives 0 where the double
+family's guarantees hold in the translation unit's build, as known results
+show, and otherwise `D_MATH_SELF_TEST_PRODUCTS` (1u), an exact product or
+sum that was not, `D_MATH_SELF_TEST_EXP` (2u), an exponential not
+correctly rounded, or both: three exact products and their sums against
+their parts, and `exp_c` at four arguments, one each phase decides, the
+hardest known among them, each read through a volatile; and
+`d_math_formulas_fuse()` says whether the build fuses a multiply and an add
+written as two statements: (1 + 2^-30)(1 - 2^-30) - 1, its factors
+volatile, is 0 unless fused.** A header library cannot see its build:
+`-ffast-math`, a compiler that fuses where it should not, a target that
+rounds otherwise. So a program that needs the same bits calls the self-test
+once at start-up, in each translation unit whose build may differ, and
+stops where it is not 0. `t_exponential.c` holds it to 0 in every build
+of the tiers; it gives 3 under `-ffast-math`, by gcc and clang alike; and
+`d_math_formulas_fuse` is true for gcc in its GNU modes with the
+instruction and for clang under `-ffp-contract=fast`, false in ISO modes
+and in clang's GNU modes, which the headers' pragma governs.
+- Alternative: a test run on its own at start-up: C has no static
+  constructor, and a header cannot run code no caller calls.
+- Alternative: every function tested at many points: a longer start-up for
+  little more, as an exact product or sum that fails shows the build, and
+  exp's four points take each phase.
+- Alternative: fusing told at compile time: no macro says that gcc fuses
+  (S414).
+
+> **Review.** Taken: for, a program that needs the same bits learns at
+> start-up, in each translation unit, whether its build keeps them,
+> `-ffast-math` among the builds caught; and whether the plain formulas
+> fuse, which the harnesses read (S421). Against: the program must call it,
+> as a header cannot run code by itself; and known results show only what
+> they test, so that a build that breaks a path its three products and four
+> exponentials do not take passes. The alternatives: a test run by itself,
+> impossible in C; more points, a longer start-up; fusing told at compile
+> time, which no macro says. Recommended: as taken, its points widened as
+> each function lands, log's in chunk 52. Ruled 2026.11.16: as decisions 2
+> and 7 have it, a start-up self-test, kept as a check.
+
+**S420. `exp_c`'s table, 128 pairs, is one object, not a copy per call: in
+C++ a class template's static constexpr member, in C a function-local
+static; each entry an exact literal, an odd integer over a power of two, as
+every level from C99 and C++98 reads it.** gcc copies a local constexpr
+array onto the stack at each call; a template's static member has one
+definition however many translation units include the header, at every
+level from C++98 -- constexpr from C++11, a const defined after the class
+before it -- without C++17's inline variables.
+- Alternative: hexadecimal literals: C99's and C++17's, not C++98's to
+  C++14's.
+- Alternative: a namespace-scope constexpr array: one copy per translation
+  unit before C++17's inline variables.
+
+> **Review.** Taken: for, one table however many translation units include
+> the header, read by a constant evaluation, exact as written at every
+> language level. Against: a template written for one table, and literals as
+> fractions where hexadecimal would read shorter. The alternatives:
+> hexadecimal literals, not before C++17; a namespace-scope array, one per
+> translation unit before C++17. Recommended: as taken. Taken.
+
+**S421. Where a build fuses, the harnesses leave out the checks that a
+function's bits are another computation's -- a kernel against its formula
+written out, the same formula in two orders, a constant evaluation against
+the run time for an operation that is not exact -- and say so, by
+`d_math_formulas_fuse()`: the fusing switch of `t_mat.c`, `t_plane.c`,
+`t_decomp.c`, `t_vec.c`, `t_cmat.c` and `t_compensated.c`, and `t_dd.c`'s
+parity of its non-exact operations; every check against exact arithmetic,
+or of an exact result, stays.** Such bits follow the build (S415): the last
+fused tier before the switch, at `b4cdb4e`, failed 9 of 282 builds on
+those checks alone; the optimization levels found one more in
+`t_compensated.c`, that the formula overflows on MAX + MAX - MAX, which gcc
+at `-O3` with the fused multiply-add, inlining the check, gives `dot_fast`
+as MAX: it and its complex twin are left out where the build fuses; and the
+fused tier found two in `t_decomp.c`'s C++14 section, the float and double
+`eigen_c`'s constant evaluation against the run time, which the switch had
+not reached.
+- Alternative: closeness in place of identity there: a check every small
+  error passes tests less than the checks against exact arithmetic beside
+  it.
+- Alternative: those harnesses built with `-ffp-contract=off` in the fused
+  tier: the tier would then not test fusing in them at all.
+
+> **Review.** Taken: for, the fused tier tests what a fusing build must keep
+> -- every exact result, and every result against exact arithmetic -- and
+> leaves out only what ruling 7 says follows the build, each harness saying
+> so in its output. Against: a fusing build's plain formulas held to no
+> bits, only to the checks against exact arithmetic where a harness has
+> them. The alternatives: closeness checks; the fused tier unfused for those
+> harnesses. Recommended: as taken. Taken.
+
+**S422. `exp_c` is checked against references made by mpmath at 400 bits,
+`math_tests_exp_refs.h`, made by `tools/refs_exp_c51.py` with its
+`--check`: 2,398 arguments in four groups -- 2,048 random over the range;
+256 within 2^-66 of a midpoint; 37 within 2^-102 of one, found by
+`tools/hard_exp_c51.c`'s window search in five binades, 2^-27, 2^-30,
+2^-33, 2^-36 and 2^-39, of 49 it screened, and checked at 400 bits, the
+known 0x1.9e9cbbfd6080bp-31 first; 57 at the
+edges -- each phase checked alone at every argument where it is defined,
+its result within its bound of the reference, and phases 2 and 3 each
+required to be reached.** On the references phase 1 decides 1,887 of the
+1,888 random arguments it reduces, phase 2 252 of the 256 near a midpoint,
+phase 3 all 37 hard ones and two of the edges, 2^-53 and the next double.
+- Alternative: random arguments alone: none of ten million reached phase 3.
+- Alternative: the published hard cases alone (Lefevre and Muller's
+  lists): not in the workspace, where the window search found 37 in
+  minutes.
+- Alternative: every double: 2^64 arguments, out of reach; float's turn
+  will be exhaustive.
+
+> **Review.** Taken: for, every phase reached and checked alone at every
+> argument, phase 3 on 37 arguments within 2^-102 of a midpoint, which
+> random arguments never reach; the references made at 400 bits by mpmath,
+> not by the code's method, and kept in step by `--check`. Against: 2,398
+> arguments of 2^64, the hard ones from five binades near 2^-30 alone; the
+> proofs, not the references, carry the guarantee. The alternatives: random
+> arguments alone; the published lists; every double. Recommended: as taken,
+> the window search widened to more binades as time allows. Taken.
+
+**S423. The delivery is over the owner's tree of 2026.11.16 16:00, his
+repository's `7de55b67`: the 33 files chunk 51 changed or made, and the
+records, with `NOTE.md`, `MANIFEST.md` and `HANDOFF.md` beside the
+`djinterp/` folder and `decisions.md` and `zip_check.txt` apart, as S394's
+rule has it, "every file of the lane's working tree that his tree has not
+or holds otherwise". It supersedes the cumulative zip over his tree of
+2026.11.07: his tree now holds chunks 44 to 50 as he committed them, the
+lane's files byte for byte as chunk 50 delivered them, and nothing is to be
+deleted.** He gave the session his repository in place of the 11-07 zip and
+chunk 50's, so the lane's scratch repository was made from it
+(`tools/rebuild_scratch_c51b.sh`): chunk 51's commits rebased onto his 11-16
+tree, the rebased change chunk 51's own blob for blob; and his
+`dconfig.h`, `ladder_known.txt` and `style_known.txt`, which he merged with
+other lanes' work, are his.
+- Alternative: the cumulative zip over 2026.11.07, as chunks 46 to 50's:
+  copied over his tree, it would put back the 11-07 forms of those three
+  files, dropping cfg_sort, ostream, option_env and bitwisedom from
+  `dconfig.h` and his 11-14 ladder lines.
+- Alternative: every lane file, those his tree holds byte for byte among
+  them: a larger zip, and nothing it changes.
+
+> **Review.** Taken: for, a zip the owner copies over the tree he has, which
+> changes the lane's 33 files and nothing of his or other lanes'; the
+> scratch repository made from his repository, each base checked by its
+> tree's hash and the rebased change chunk 51's own, blob for blob. Against:
+> the zip is not enough over the 11-07 tree, should that tree be wanted
+> again; the scratch repository keeps it as a tag, from which the cumulative
+> zip can be made. The alternatives: cumulative over 11-07, which would put
+> back three shared files; every lane file. Recommended: as taken. Taken.

@@ -102,6 +102,7 @@ def instantiate(template, suffix, ctype, prefix, prose):
         ("@S@", suffix),
         ("@NAME@", prose),
         ("@P@", prefix + "_MANT_DIG"),
+        ("@PFX@", prefix),
         ("@EMIN@", prefix + "_MIN_EXP"),
         ("@EMAX@", prefix + "_MAX_EXP"),
         ("@MIN@", prefix + "_MIN"),
@@ -930,7 +931,7 @@ def float_order():
         "neighbour. Subnormals are assumed (IEEE 754): a build that flushes them",
         "to zero sees gaps the order does not know about.",
     ]
-    text = banner("float_order.h", lines, DATE, "2026.11.07")
+    text = banner("float_order.h", lines, DATE, "2026.11.16")
     text += "\n" + FLOAT_ORDER_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -1791,7 +1792,7 @@ def interval_float():
         "is in no interval.",
         "Every kernel but formatting is pure arithmetic, so constexpr from C++14.",
     ]
-    text = banner("interval_float.h", lines, DATE, "2026.11.07")
+    text = banner("interval_float.h", lines, DATE, "2026.11.16")
     text += "\n" + INTERVAL_FLOAT_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -1914,10 +1915,12 @@ d_internal_math_ld_two_sum(
 }
 
 // d_internal_math_ld_product_exact
-//   _a * _b exactly, as high + low: Dekker's product, each factor split by
-// Veltkamp's constant 2^ceil(P/2) + 1, P long double's precision
-// (float_order.h). The factors must be normal (or zero) and their product far
-// from overflow.
+//   _a * _b exactly, as high + low: the low part by a fused multiply-add
+// where the target has one for long double, and otherwise by Dekker's
+// product, each factor split by Veltkamp's constant 2^ceil(P/2) + 1, P long
+// double's precision (float_order.h); both exact, so both give the same bits
+// (math_common.h, section 5). The factors must be normal (or zero) and their
+// product far from overflow.
 D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_product_exact(
     long double _a,
@@ -1925,6 +1928,17 @@ d_internal_math_ld_product_exact(
 )
 {
     struct dj_internal_math_ld_pair result = { 0.0L, 0.0L };
+
+#if D_MATH_LDBL_FMA
+    if (D_MATH_RUN_TIME())
+    {
+        result.high = _a * _b;
+        result.low  = D_MATH_LDBL_FMA_OF(_a, _b, -result.high);
+
+        return result;
+    }
+#endif  // D_MATH_LDBL_FMA
+
     const long double split = d_internal_math_ld_veltkamp();
     const long double ta    = split * _a;
     const long double a_hi  = ta - (ta - _a);
@@ -2721,15 +2735,28 @@ d_internal_math_@S@_abs(
 }
 
 // d_internal_math_@S@_square_exact
-//   _c * _c exactly, as high + low: Dekker's product, the factors split by
-// Veltkamp's constant 2^ceil(P/2) + 1 (float_order.h). _c must be normal and
-// its square finite.
+//   _c * _c exactly, as high + low: the low part by a fused multiply-add
+// where the target has one for @NAME@, and otherwise by Dekker's product,
+// the factors split by Veltkamp's constant 2^ceil(P/2) + 1 (float_order.h);
+// both exact, so both give the same bits (math_common.h, section 5). _c must
+// be normal and its square finite.
 D_MATH_FN struct dj_internal_math_@S@_pair
 d_internal_math_@S@_square_exact(
     @T@ _c
 )
 {
     struct dj_internal_math_@S@_pair result = { (@T@)0, (@T@)0 };
+
+#if D_MATH_@PFX@_FMA
+    if (D_MATH_RUN_TIME())
+    {
+        result.high = _c * _c;
+        result.low  = D_MATH_@PFX@_FMA_OF(_c, _c, -result.high);
+
+        return result;
+    }
+#endif  // D_MATH_@PFX@_FMA
+
     const @T@ split = d_internal_math_@S@_veltkamp();
     const @T@ t     = split * _c;
     const @T@ hi    = t - (t - _c);
@@ -3580,7 +3607,7 @@ def elementary():
         "std::is_constant_evaluated -- and, for the square root, cannot be seen to",
         "have picked.",
     ]
-    text = banner("elementary.h", lines, DATE, "2026.11.07")
+    text = banner("elementary.h", lines, DATE, "2026.11.16")
     text += "\n" + ELEMENTARY_HEAD
     text += ELEMENTARY_KERNELS.replace("@TWO_OVER_PI@", two_over_pi_literal()) \
                               .replace("@DIGITS@", str(TWO_OVER_PI_DIGITS)) \
@@ -4686,6 +4713,7 @@ TABLE OF CONTENTS
 #include <float.h>           // LDBL_MANT_DIG
 #include <math.h>            // expf ... expm1l, HUGE_VAL
 // djinterp
+#include "./dd.h"            // dj_math_dd, d_math_dd_two_sum, ...
 #include "./elementary.h"    // d_internal_math_ld_two_sum, *_round_pair
 #include "./float_order.h"   // d_internal_math_*_pow2, *_binade_of
 #include "./math_common.h"   // D_MATH_FN
@@ -4724,18 +4752,20 @@ def exponential():
         "",
         "  Each function comes twice, as in elementary.h. The _c form is pure",
         "arithmetic, so the same text is a constant expression from C++14; the",
-        "plain form calls the C library (std:: in C++), fast at run time. The _c",
-        "forms are computed once, in long double, by kernels that carry their",
-        "reduced argument and last sum as exact pairs, and rounded once to the",
-        "family: a long double result is within an ulp of the exact one, exp's,",
-        "log1p's and expm1's within 0.53 of one, a float or double result",
-        "correctly rounded but where the exact value lies within the kernel's",
-        "error of a midpoint. C++ before C++11 has no exp2, log2,",
+        "plain form calls the C library (std:: in C++), fast at run time. The",
+        "double family's exp_c is correctly rounded, in double arithmetic",
+        "alone, by three phases each with a proven bound (section 3.2). The",
+        "other _c forms are computed once, in long double, by kernels that",
+        "carry their reduced argument and last sum as exact pairs, and rounded",
+        "once to the family: a long double result is within an ulp of the",
+        "exact one, exp's, log1p's and expm1's within 0.53 of one, a float or",
+        "double result correctly rounded but where the exact value lies within",
+        "the kernel's error of a midpoint. C++ before C++11 has no exp2, log2,",
         "log1p or expm1, and there the plain forms are the _c ones. No overflow",
         "is evaluated, as a constant expression forbids: an infinity is",
         "HUGE_VAL, a NaN NAN.",
     ]
-    text = banner("exponential.h", lines, "2026.10.08", "2026.11.07")
+    text = banner("exponential.h", lines, "2026.10.08", "2026.11.16")
     text += "\n" + EXPONENTIAL_HEAD
     text += EXPONENTIAL_KERNELS
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
@@ -4748,7 +4778,10 @@ def exponential():
         body = body.replace("@CLOG10@", {"float": "log10f", "double": "log10", "long double": "log10l"}[ctype])
         body = body.replace("@CLOG1P@", {"float": "log1pf", "double": "log1p", "long double": "log1pl"}[ctype])
         body = body.replace("@CEXPM1@", {"float": "expm1f", "double": "expm1", "long double": "expm1l"}[ctype])
-        text += instantiate(body, suffix, ctype, prefix, prose)
+        family = instantiate(body, suffix, ctype, prefix, prose)
+        if suffix == "d":
+            family = exp_d_swap(family)
+        text += family
     text += overload_section("5.  ONE NAME FOR EVERY FAMILY (C++)", EXPONENTIAL_OVERLOADS)
     text += EXPONENTIAL_TAIL
     return text
@@ -5203,7 +5236,7 @@ def tangent():
         "library's. tan_c reduces its argument by pi/2 exactly at every finite",
         "value, as elementary.h's sine and cosine do.",
     ]
-    text = banner("tangent.h", lines, "2026.10.09", "2026.11.07")
+    text = banner("tangent.h", lines, "2026.10.09", "2026.11.16")
     text += "\n" + TANGENT_HEAD
     text += TANGENT_KERNELS
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
@@ -6054,7 +6087,7 @@ def hyperbolic():
         "bits. C++ before C++11 has no asinh, acosh or atanh, and there the",
         "plain forms are the _c ones.",
     ]
-    text = banner("hyperbolic.h", lines, "2026.10.09", "2026.11.07")
+    text = banner("hyperbolic.h", lines, "2026.10.09", "2026.11.16")
     text += "\n" + HYPERBOLIC_HEAD
     text += HYPERBOLIC_KERNELS
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
@@ -7544,7 +7577,7 @@ def power():
         "double, its last bit settled by an exact sum, with no overflow or",
         "underflow on the way; C++ before C++11 has no hypot either.",
     ]
-    text = banner("power.h", lines, "2026.10.10", "2026.11.07")
+    text = banner("power.h", lines, "2026.10.10", "2026.11.16")
     text += "\n" + POWER_HEAD
     text += POWER_KERNELS
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
@@ -8005,7 +8038,7 @@ def remainder():
         "C++11 has neither remainder nor remquo, so that there they are the _c",
         "forms.",
     ]
-    text = banner("remainder.h", lines, "2026.10.10", "2026.11.07")
+    text = banner("remainder.h", lines, "2026.10.10", "2026.11.16")
     text += "\n" + REMAINDER_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -8329,7 +8362,7 @@ def nearest_integer():
         "either and not know which ran. C++ before C++11 has no trunc or round,",
         "so that there those are the _c forms.",
     ]
-    text = banner("nearest_integer.h", lines, "2026.10.11", "2026.11.07")
+    text = banner("nearest_integer.h", lines, "2026.10.11", "2026.11.16")
     text += "\n" + NEAREST_INTEGER_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -8393,10 +8426,13 @@ d_internal_vec_d2_two_sum(
 }
 
 // d_internal_vec_d2_product
-//   _a * _b exactly, as high + low: Dekker's product, each factor split by
-// Veltkamp's constant 2^ceil(P/2) + 1 (float_order.h). Each factor is 0 or
-// within 2^(EMIN/2 + P) to 2^(EMAX/2 - P) in magnitude, as the kernels
-// scale them, so that nothing overflows and the low part is exact.
+//   _a * _b exactly, as high + low: the low part by a fused multiply-add
+// where the target has one for double, and otherwise by Dekker's product,
+// each factor split by Veltkamp's constant 2^ceil(P/2) + 1 (float_order.h);
+// both exact, so both give the same bits (math_common.h, section 5). Each
+// factor is 0 or within 2^(EMIN/2 + P) to 2^(EMAX/2 - P) in magnitude, as
+// the kernels scale them, so that nothing overflows and the low part is
+// exact.
 D_MATH_FN struct dj_internal_math_d_pair
 d_internal_vec_d2_product(
     double _a,
@@ -8404,6 +8440,17 @@ d_internal_vec_d2_product(
 )
 {
     struct dj_internal_math_d_pair result = { 0.0, 0.0 };
+
+#if D_MATH_DBL_FMA
+    if (D_MATH_RUN_TIME())
+    {
+        result.high = _a * _b;
+        result.low  = D_MATH_DBL_FMA_OF(_a, _b, -result.high);
+
+        return result;
+    }
+#endif  // D_MATH_DBL_FMA
+
     const double                   split  = d_internal_math_d_veltkamp();
     const double                   ta     = split * _a;
     const double                   a_hi   = ta - (ta - _a);
@@ -10760,7 +10807,7 @@ def vec():
         "whose terms are not arrays of one family, cmat.h's and linalg's complex",
         "sums (S410, S411).",
     ]
-    text = banner("vec.h", lines, DATE, "2026.11.15")
+    text = banner("vec.h", lines, DATE, "2026.11.16")
     text += "\n" + VEC_HEAD + VEC_SHARED
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -12215,7 +12262,7 @@ def mat():
         "refines its solution with extra precision; their _fast forms are the",
         "formulas as written (S404, S406).",
     ]
-    text = banner("mat.h", lines, revised_on="2026.11.14")
+    text = banner("mat.h", lines, revised_on="2026.11.16")
     text += "\n" + MAT_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -15782,7 +15829,7 @@ def quat():
         lines += ([""] if blank else []) + textwrap.wrap(
             lead + paragraph, 72, break_long_words=False,
             break_on_hyphens=False)
-    text = banner("quat.h", lines, "2026.10.04", "2026.11.14")
+    text = banner("quat.h", lines, "2026.10.04", "2026.11.16")
     text += "\n" + QUAT_HEAD
     text += QUAT_KERNELS_PURE
     for sub, ks, kq, root, title, prose in QUAT_ROOT_FORMS:
@@ -16598,7 +16645,7 @@ def coord():
         "constant expression from C++14, the plain one on the C library's. The",
         "angles' canonical forms are exact, so one form serves.",
     ]
-    text = banner("coord.h", lines, DATE, "2026.11.07")
+    text = banner("coord.h", lines, DATE, "2026.11.16")
     text += "\n" + COORD_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -16842,7 +16889,7 @@ def isect():
         "  Points and directions are a caller's 3-arrays, the faces' vectors'",
         "storage. Each test is a constant expression from C++14.",
     ]
-    text = banner("isect.h", lines, DATE, "2026.11.14")
+    text = banner("isect.h", lines, DATE, "2026.11.16")
     text += "\n" + ISECT_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -17077,7 +17124,7 @@ def plane():
         "interleaved, the faces' vectors' storage converted to Cartesian. Each",
         "kernel is a constant expression from C++14.",
     ]
-    text = banner("plane.h", lines, DATE, "2026.11.07")
+    text = banner("plane.h", lines, DATE, "2026.11.16")
     text += "\n" + PLANE_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -21858,7 +21905,7 @@ def decomp():
         "as the elementary functions do: the _c form a constant expression from",
         "C++14, the plain one on the C library's root.",
     ]
-    text = banner("decomp.h", lines, DATE, "2026.11.07")
+    text = banner("decomp.h", lines, DATE, "2026.11.16")
     text += "\n" + DECOMP_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         upper = prose.upper()
@@ -22011,11 +22058,13 @@ d_internal_cplx_@S@_two_sum(
 }
 
 // d_internal_cplx_@S@_product
-//   _a * _b exactly, as high + low: Dekker's product, each factor split by
-// Veltkamp's constant (float_order.h). The factors are within 2^(EMAX/2 - P)
-// in magnitude and their product, where it is not 0, at least 2^(EMIN + 2P),
-// as the scalings below keep them, so that nothing overflows and the low
-// part is exact.
+//   _a * _b exactly, as high + low: the low part by a fused multiply-add
+// where the target has one for @NAME@, and otherwise by Dekker's product,
+// each factor split by Veltkamp's constant (float_order.h); both exact, so
+// both give the same bits (math_common.h, section 5). The factors are within
+// 2^(EMAX/2 - P) in magnitude and their product, where it is not 0, at least
+// 2^(EMIN + 2P), as the scalings below keep them, so that nothing overflows
+// and the low part is exact.
 D_MATH_FN struct dj_internal_math_@S@_pair
 d_internal_cplx_@S@_product(
     @T@ _a,
@@ -22023,6 +22072,17 @@ d_internal_cplx_@S@_product(
 )
 {
     struct dj_internal_math_@S@_pair result = { (@T@)0, (@T@)0 };
+
+#if D_MATH_@PFX@_FMA
+    if (D_MATH_RUN_TIME())
+    {
+        result.high = _a * _b;
+        result.low  = D_MATH_@PFX@_FMA_OF(_a, _b, -result.high);
+
+        return result;
+    }
+#endif  // D_MATH_@PFX@_FMA
+
     const @T@ split = d_internal_math_@S@_veltkamp();
     const @T@ ta    = split * _a;
     const @T@ a_hi  = ta - (ta - _a);
@@ -26278,7 +26338,7 @@ def cplx():
         "carry, within |n| 2^(3 - 2P) of the larger part (measured 0.031 of it).",
         "The plain form's whole power is the _c form's, bit for bit.",
     ]
-    text = banner("cplx.h", lines, "2026.10.27", "2026.11.07")
+    text = banner("cplx.h", lines, "2026.10.27", "2026.11.16")
     text += "\n" + CPLX_HEAD
     structs = []
     for n, (suffix, ctype, prefix, prose) in enumerate(FAMILIES, 1):
@@ -29560,7 +29620,7 @@ def cmat():
         "product is compensated and the solve refined with extra precision, each",
         "with a _fast form as written (S410).",
     ]
-    text = banner("cmat.h", lines, "2026.10.29", "2026.11.15")
+    text = banner("cmat.h", lines, "2026.10.29", "2026.11.16")
     text += "\n" + CMAT_HEAD
     for i, (suffix, ctype, prefix, prose) in enumerate(FAMILIES):
         body = CMAT_FAMILY_HEAD + CMAT_LU + CMAT_HERMITIAN_HEAD
@@ -29580,7 +29640,1682 @@ def cmat():
     return text
 
 
+
+
+# -----------------------------------------------------------------------------
+# dd.h: pairs of doubles (chunk 51, S417)
+# -----------------------------------------------------------------------------
+
+DD_HEAD = r"""
+/*
+TABLE OF CONTENTS
+=================
+1.  THE PAIR
+    --------
+    1.  The type
+    2.  Making and reading a pair
+2.  EXACT SUMS AND PRODUCTS
+    -----------------------
+    1.  Sums
+    2.  The product
+3.  ARITHMETIC ON PAIRS
+    -------------------
+    1.  Sums and differences
+    2.  Products
+    3.  Quotients
+    4.  The square root
+*/
+
+#ifndef DJINTERP_C_MATH_DD_H
+#define DJINTERP_C_MATH_DD_H 1
+
+// djinterp
+#include "./elementary.h"    // d_math_d_sqrt_c
+#include "./float_order.h"   // d_internal_math_d_veltkamp
+#include "./math_common.h"   // D_MATH_FN, D_MATH_DBL_FMA
+"""
+
+DD_BODY = r"""
+
+//==============================================================================
+// 1.  THE PAIR
+//==============================================================================
+// A pair holds high + low, unevaluated, |low| at most half an ulp of high:
+// some 106 significant bits, twice double's. Every function here takes and
+// gives such a normalized pair, as a correctly rounded high leaves it; a pair
+// made by hand is normalized by d_math_dd_fast_two_sum.
+//   No error-free transform here takes a product that is not exact, so that
+// a compiler fusing a multiply and an add cannot break one: it would put the
+// exact product in place of its rounding at each use, and the transform's
+// low part would no longer be its error (math_common.h, section 5).
+
+
+// 1.1    The type
+//------------------------------------------------------------------------------
+
+// dj_math_dd
+//   struct: a pair of doubles, high + low, |low| <= ulp(high) / 2.
+struct dj_math_dd
+{
+    double high;  // the value, rounded to double
+    double low;   // the rest
+};
+
+
+// 1.2    Making and reading a pair
+//------------------------------------------------------------------------------
+
+// d_math_dd_of
+//   _x as a pair, { _x, 0 }.
+D_MATH_FN struct dj_math_dd
+d_math_dd_of(
+    double _x
+)
+{
+    struct dj_math_dd result = { 0.0, 0.0 };
+
+    result.high = _x;
+
+    return result;
+}
+
+// d_math_dd_value
+//   _x rounded to double: high + low, which is high for a normalized pair but
+// where low is exactly half an ulp.
+D_MATH_FN double
+d_math_dd_value(
+    struct dj_math_dd _x
+)
+{
+    return _x.high + _x.low;
+}
+
+// d_math_dd_neg
+//   -_x, exactly.
+D_MATH_FN struct dj_math_dd
+d_math_dd_neg(
+    struct dj_math_dd _x
+)
+{
+    struct dj_math_dd result = { 0.0, 0.0 };
+
+    result.high = -_x.high;
+    result.low  = -_x.low;
+
+    return result;
+}
+
+
+//==============================================================================
+// 2.  EXACT SUMS AND PRODUCTS
+//==============================================================================
+
+
+// 2.1    Sums
+//------------------------------------------------------------------------------
+
+// d_math_dd_two_sum
+//   _a + _b exactly, as high + low, high its rounding: Knuth's 2Sum, six
+// operations, for any doubles whose sum is finite.
+D_MATH_FN struct dj_math_dd
+d_math_dd_two_sum(
+    double _a,
+    double _b
+)
+{
+    struct dj_math_dd result = { 0.0, 0.0 };
+    const double      high   = _a + _b;
+    const double      a_part = high - _b;
+    const double      b_part = high - a_part;
+
+    D_MATH_DBL_REFUSE(_a)
+
+    result.high = high;
+    result.low  = (_a - a_part) + (_b - b_part);
+
+    return result;
+}
+
+// d_math_dd_fast_two_sum
+//   _a + _b exactly, as high + low, high its rounding: Dekker's Fast2Sum,
+// three operations, exact where _a is 0 or its exponent is at least _b's, as
+// it is where |_a| >= |_b|.
+D_MATH_FN struct dj_math_dd
+d_math_dd_fast_two_sum(
+    double _a,
+    double _b
+)
+{
+    struct dj_math_dd result = { 0.0, 0.0 };
+    const double      high   = _a + _b;
+
+    D_MATH_DBL_REFUSE(_a)
+
+    result.high = high;
+    result.low  = _b - (high - _a);
+
+    return result;
+}
+
+
+// 2.2    The product
+//------------------------------------------------------------------------------
+
+// d_math_dd_two_product
+//   _a * _b exactly, as high + low, high its rounding: the low part by a
+// fused multiply-add where the target has one, and otherwise by Dekker's
+// product, each factor split by Veltkamp's constant 2^27 + 1; both exact, so
+// both give the same bits (math_common.h, section 5). Exact where the product
+// is 0 or of magnitude 2^-969 to 2^1023, and each factor below 2^995.
+D_MATH_FN struct dj_math_dd
+d_math_dd_two_product(
+    double _a,
+    double _b
+)
+{
+    struct dj_math_dd result = { 0.0, 0.0 };
+
+    D_MATH_DBL_REFUSE(_a)
+
+#if D_MATH_DBL_FMA
+    if (D_MATH_RUN_TIME())
+    {
+        result.high = _a * _b;
+        result.low  = D_MATH_DBL_FMA_OF(_a, _b, -result.high);
+
+        return result;
+    }
+#endif  // D_MATH_DBL_FMA
+
+    const double split = d_internal_math_d_veltkamp();
+    const double ta    = split * _a;
+    const double a_hi  = ta - (ta - _a);
+    const double a_lo  = _a - a_hi;
+    const double tb    = split * _b;
+    const double b_hi  = tb - (tb - _b);
+    const double b_lo  = _b - b_hi;
+    const double high  = _a * _b;
+
+    result.high = high;
+    result.low  = ( (((a_hi * b_hi) - high) + (a_hi * b_lo)) +
+                    (a_lo * b_hi) ) +
+                  (a_lo * b_lo);
+
+    return result;
+}
+
+
+//==============================================================================
+// 3.  ARITHMETIC ON PAIRS
+//==============================================================================
+// Each result is within the bound stated of the exact one, relatively, in
+// units of u^2 = 2^-106, where no operation overflows or underflows, and
+// is a normalized pair. The sums and products are Joldes, Muller and
+// Popescu's (ACM TOMS 44(2), 2017), with their proven bounds; where a
+// compiler fuses a product into the add that follows, each becomes the
+// paper's fused variant, whose bound is no larger. The quotients and the
+// square root are written so that no inexact product reaches an error-free
+// transform, and their bounds are proven with Gappa (chunk 51's record,
+// proofs/), fused or not.
+
+
+// 3.1    Sums and differences
+//------------------------------------------------------------------------------
+
+// d_math_dd_add_d
+//   _x + _y: DWPlusFP, within 2u^2 / (1 - 2u) (< 2u^2 + 5u^3).
+D_MATH_FN struct dj_math_dd
+d_math_dd_add_d(
+    struct dj_math_dd _x,
+    double            _y
+)
+{
+    const struct dj_math_dd s = d_math_dd_two_sum(_x.high, _y);
+
+    return d_math_dd_fast_two_sum(s.high, _x.low + s.low);
+}
+
+// d_math_dd_add
+//   _x + _y: AccurateDWPlusDW, within 3u^2 / (1 - 4u) (< 3u^2 + 13u^3).
+D_MATH_FN struct dj_math_dd
+d_math_dd_add(
+    struct dj_math_dd _x,
+    struct dj_math_dd _y
+)
+{
+    const struct dj_math_dd s = d_math_dd_two_sum(_x.high, _y.high);
+    const struct dj_math_dd t = d_math_dd_two_sum(_x.low, _y.low);
+    const struct dj_math_dd v = d_math_dd_fast_two_sum(s.high, s.low + t.high);
+
+    return d_math_dd_fast_two_sum(v.high, t.low + v.low);
+}
+
+// d_math_dd_sub_d
+//   _x - _y, as d_math_dd_add_d of -_y.
+D_MATH_FN struct dj_math_dd
+d_math_dd_sub_d(
+    struct dj_math_dd _x,
+    double            _y
+)
+{
+    return d_math_dd_add_d(_x, -_y);
+}
+
+// d_math_dd_sub
+//   _x - _y, as d_math_dd_add of -_y.
+D_MATH_FN struct dj_math_dd
+d_math_dd_sub(
+    struct dj_math_dd _x,
+    struct dj_math_dd _y
+)
+{
+    return d_math_dd_add(_x, d_math_dd_neg(_y));
+}
+
+
+// 3.2    Products
+//------------------------------------------------------------------------------
+
+// d_math_dd_mul_d
+//   _x * _y: DWTimesFP2, within 3u^2; fused, DWTimesFP3, within 2u^2.
+D_MATH_FN struct dj_math_dd
+d_math_dd_mul_d(
+    struct dj_math_dd _x,
+    double            _y
+)
+{
+    const struct dj_math_dd c   = d_math_dd_two_product(_x.high, _y);
+    const double            cl2 = _x.low * _y;
+
+    return d_math_dd_fast_two_sum(c.high, c.low + cl2);
+}
+
+// d_math_dd_mul
+//   _x * _y: DWTimesDW1, within 7u^2; fused, DWTimesDW2, within 5u^2.
+D_MATH_FN struct dj_math_dd
+d_math_dd_mul(
+    struct dj_math_dd _x,
+    struct dj_math_dd _y
+)
+{
+    const struct dj_math_dd c   = d_math_dd_two_product(_x.high, _y.high);
+    const double            tl1 = _x.high * _y.low;
+    const double            tl2 = _x.low * _y.high;
+
+    return d_math_dd_fast_two_sum(c.high, c.low + (tl1 + tl2));
+}
+
+
+// 3.3    Quotients
+//------------------------------------------------------------------------------
+
+// d_math_dd_div_d
+//   _x / _y: Joldes, Muller and Popescu's DWDivFP, th = xh / y and the
+// remainder x - th y taken exactly, then divided by y; within @DIVD@u^2
+// (Gappa).
+D_MATH_FN struct dj_math_dd
+d_math_dd_div_d(
+    struct dj_math_dd _x,
+    double            _y
+)
+{
+    const double            th = _x.high / _y;
+    const struct dj_math_dd p  = d_math_dd_two_product(th, _y);
+    // xh - th y's high part is exact, and so is the difference of its rest
+    const double            dh = _x.high - p.high;
+    const double            dt = dh - p.low;
+
+    return d_math_dd_fast_two_sum(th, (dt + _x.low) / _y);
+}
+
+// d_math_dd_div
+//   _x / _y: th = xh / yh, the remainder x - th y as a pair, by
+// d_math_dd_mul_d and d_math_dd_sub, then divided by yh; within @DIV@u^2
+// (Gappa).
+D_MATH_FN struct dj_math_dd
+d_math_dd_div(
+    struct dj_math_dd _x,
+    struct dj_math_dd _y
+)
+{
+    const double            th = _x.high / _y.high;
+    const struct dj_math_dd r  = d_math_dd_sub(_x, d_math_dd_mul_d(_y, th));
+
+    return d_math_dd_fast_two_sum(th, r.high / _y.high);
+}
+
+
+// 3.4    The square root
+//------------------------------------------------------------------------------
+
+// d_math_dd_sqrt
+//   the square root of _x >= 0: s = sqrt(xh), correctly rounded
+// (elementary.h), then one Newton step, (x - s^2) / (2s), with s^2 taken
+// exactly; within @SQRT@u^2 (Gappa). sqrt of 0 is 0, of a negative or NaN
+// high part NaN.
+D_MATH_FN struct dj_math_dd
+d_math_dd_sqrt(
+    struct dj_math_dd _x
+)
+{
+    struct dj_math_dd result = { 0.0, 0.0 };
+
+    if (!(_x.high > 0.0))
+    {
+        result.high = (_x.high == 0.0) ? _x.high : d_math_d_sqrt_c(-1.0);
+
+        return result;
+    }
+
+    {
+        const double            s  = d_math_d_sqrt_c(_x.high);
+        const struct dj_math_dd sq = d_math_dd_two_product(s, s);
+        // xh - s^2's high part is exact
+        const double            e  = ((_x.high - sq.high) - sq.low) + _x.low;
+
+        return d_math_dd_fast_two_sum(s, e / (2.0 * s));
+    }
+}
+"""
+
+DD_TAIL = r"""
+#endif  // DJINTERP_C_MATH_DD_H
+"""
+
+
+def dd():
+    lines = [
+        "Pairs of doubles: a value held as high + low, unevaluated, |low| at",
+        "most half an ulp of high: some 106 significant bits, twice double's,",
+        "the double-double arithmetic that the double family's correctly",
+        "rounded functions are built on.",
+        "  GENERATED by scripts/gen_c_math_float.py: edit the generator, not",
+        "this file.",
+        "",
+        "  Every function is pure double arithmetic, a constant expression from",
+        "C++14: the exact sum and product of two doubles, and the sum,",
+        "difference, product, quotient and square root of pairs, each within a",
+        "stated bound of the exact result, relatively, in units of u^2 =",
+        "2^-106, where no operation overflows or underflows. The sums and",
+        "products are Joldes, Muller and Popescu's (ACM TOMS 44(2), 2017),",
+        "with their proven bounds; the quotients and the square root have",
+        "bounds proven with Gappa in chunk 51's record. Each holds whether or",
+        "not the compiler fuses a multiply and an add: an exact product takes",
+        "its error with an explicit fused multiply-add wherever the target has",
+        "one, and no error-free transform takes a product that is not exact",
+        "(math_common.h, section 5). On a target that evaluates double wider",
+        "than double, a 32-bit x87, no bound holds: build with -msse2",
+        "-mfpmath=sse.",
+    ]
+    text = banner("dd.h", lines, "2026.11.16", "2026.11.16")
+    text += "\n" + DD_HEAD + DD_BODY.replace("@DIVD@", DD_BOUNDS["div_d"]).replace(
+        "@DIV@", DD_BOUNDS["div"]).replace("@SQRT@", DD_BOUNDS["sqrt"])
+    text += DD_TAIL
+    return text
+
+
+# -----------------------------------------------------------------------------
+# exponential.h: the double family's exponential, correctly rounded on doubles
+# and pairs of doubles (chunk 51, S416)
+# -----------------------------------------------------------------------------
+# The constants are computed here with integers alone; the polynomials'
+# coefficients are Sollya's (chunk 51's record, proofs/exp_poly.sollya), and
+# their error bounds and the three phases' are proven there (proofs/).
+
+EXP_D_BITS = 400
+
+
+def exp_d_ln2_fixed():
+    """ln 2 times 2^EXP_D_BITS, rounded down: the sum of 1/(k 2^k)."""
+    one = 1 << EXP_D_BITS
+    total, k, term = 0, 1, one // 2
+    while term:
+        total += term // k
+        k += 1
+        term //= 2
+    return total
+
+
+def exp_d_pow2_fixed(j):
+    """2^(j/128) times 2^EXP_D_BITS, from below: 2's seventh square root by
+    repeated integer square roots, then its j-th power."""
+    import math
+    one = 1 << EXP_D_BITS
+    root = 2 * one
+    for _ in range(7):
+        root = math.isqrt(root << EXP_D_BITS)
+    value = one
+    for _ in range(j):
+        value = (value * root) >> EXP_D_BITS
+    return value
+
+
+def exp_d_round(num, den, bits=53):
+    """num / den (den > 0) rounded to bits significant bits, ties to even,
+    as (m, e) with value m 2^e, m odd or 0."""
+    from fractions import Fraction
+    q = Fraction(num, den)
+    if q == 0:
+        return 0, 0
+    sign = -1 if q < 0 else 1
+    a = abs(q)
+    e = a.numerator.bit_length() - a.denominator.bit_length()
+    if Fraction(2) ** e > a:
+        e -= 1
+    if Fraction(2) ** (e + 1) <= a:
+        e += 1
+    scale = bits - 1 - e
+    m = a * Fraction(2) ** scale
+    n = m.numerator // m.denominator
+    rest = m - n
+    if rest > Fraction(1, 2) or (rest == Fraction(1, 2) and n % 2 == 1):
+        n += 1
+    while n and n % 2 == 0:
+        n //= 2
+        scale -= 1
+    return sign * n, -scale
+
+
+def exp_d_literal(m, e):
+    """m 2^e, exact as written: an integer, or an integer over a power of 2,
+    each a double exactly."""
+    if m == 0:
+        return "0.0"
+    if e >= 0:
+        return "%d.0" % (m << e)
+    return "(%d.0 / %d.0)" % (m, 1 << -e)
+
+
+def exp_d_hex_literal(h):
+    """a C99 hexadecimal literal's value (Sollya's), as exp_d_literal."""
+    from fractions import Fraction
+    q = Fraction(float.fromhex(h))
+    m, e = exp_d_round(q.numerator, q.denominator)
+    assert Fraction(m) * Fraction(2) ** e == q
+    return exp_d_literal(m, e)
+
+
+def exp_d_constants():
+    """the reduction's constants and the table, as literals."""
+    from fractions import Fraction
+    one = 1 << EXP_D_BITS
+    ln2 = exp_d_ln2_fixed()
+    # 128/ln2 rounded; ln2/128 as L1 + L2 + L3, L1 and L2 of 35 bits
+    invl = exp_d_round(128 * one, ln2)
+    L = Fraction(ln2, 128 * one)
+    m1, e1 = exp_d_round(L.numerator, L.denominator, 35)
+    L1 = Fraction(m1) * Fraction(2) ** e1
+    m2, e2 = exp_d_round((L - L1).numerator, (L - L1).denominator, 35)
+    L2 = Fraction(m2) * Fraction(2) ** e2
+    m3, e3 = exp_d_round((L - L1 - L2).numerator, (L - L1 - L2).denominator)
+    consts = {
+        "INVL": exp_d_literal(*invl),
+        "L1": exp_d_literal(m1, e1),
+        "L2": exp_d_literal(m2, e2),
+        "L3": exp_d_literal(m3, e3),
+    }
+    rows = []
+    for j in range(128):
+        t = Fraction(exp_d_pow2_fixed(j), one)
+        mh, eh = exp_d_round(t.numerator, t.denominator)
+        hi = Fraction(mh) * Fraction(2) ** eh
+        ml, el = exp_d_round((t - hi).numerator, (t - hi).denominator)
+        rows.append((exp_d_literal(mh, eh), exp_d_literal(ml, el)))
+    return consts, rows
+
+
+def exp_d_phase3_digits():
+    """ln2/128 times 2^240 and 2^(j/128) times 2^224, rounded down, as hex
+    digit strings of 60 and 57 digits."""
+    ln2 = exp_d_ln2_fixed()
+    l240 = (ln2 >> 7) >> (EXP_D_BITS - 240)
+    t224 = "".join("%057x" % (exp_d_pow2_fixed(j) >> (EXP_D_BITS - 224))
+                   for j in range(128))
+    return "%060x" % l240, t224
+
+
+# Sollya's coefficients (proofs/exp_poly.out)
+EXP_D_P1 = ["0x1.fffffffffff57p-2", "0x1.55555555555e5p-3",
+            "0x1.55555acfaad08p-5", "0x1.1111121e834dp-7"]
+EXP_D_P2 = [("0x1.5555555555555p-3", "0x1.5555557ae255ep-57"),
+            ("0x1.5555555555555p-5", "0x1.5555c7d4cefc4p-59"),
+            ("0x1.1111111111111p-7", None), ("0x1.6c16c16c16bdbp-10", None),
+            ("0x1.a01a01a169c75p-13", None), ("0x1.a01a0583a101dp-16", None),
+            ("0x1.7171fb5e0981ep-19", None)]
+
+
+def exp_d_table_macro(rows):
+    """the table of 2^(j/128) as a macro's initializer, one value a line."""
+    out = ["#define D_INTERNAL_MATH_D_EXP_TABLE" + " " * 44 + "\\",
+           "    {" + " " * 74 + "\\"]
+    for j, (hi, lo) in enumerate(rows):
+        for k, v in enumerate((hi, lo)):
+            last = (j == 127 and k == 1)
+            text = "        " + v + ("" if last else ",")
+            out.append(text + " " * (79 - len(text)) + "\\")
+    out.append("    }")
+    return "\n".join(out)
+
+
+def exp_d_digits_literal(name, digits, per=64):
+    """a digit string as a C string literal over lines."""
+    lines = []
+    for i in range(0, len(digits), per):
+        lines.append('    "' + digits[i:i + per] + '"')
+    return lines
+
+EXP_D_SECTION = r"""// 3.2    Exponential
+//------------------------------------------------------------------------------
+// exp_c is the exponential correctly rounded, in double arithmetic alone --
+// no long double and no C library -- and a constant expression from C++14
+// (S416). x is reduced to (128 e + j) ln2/128 + r, 128 e + j the integer
+// nearest x 128/ln2 and |r| < 0.00271, ln2/128 in three parts whose first two
+// products by that integer are exact; then exp(x) = 2^e 2^(j/128) e^r, with
+// 2^(j/128) from a table of 128 pairs of doubles. Three phases follow, each
+// with a bound proven in chunk 51's record (proofs/), each giving its result
+// where the interval its bound allows rounds one way, as Ziv's method has
+// it: phase 1, in doubles, within 2^-63.5 of the exponential, relatively,
+// answers some 99.8% of arguments; phase 2, in pairs of doubles (dd.h),
+// within 2^-101.2; phase 3, in fixed point of 256 bits, within 2^-218.3,
+// far closer than a double's exponential is known to come to a rounding
+// boundary -- the hardest case known, Lefevre and Muller's x =
+// 0x1.9e9cbbfd6080bp-31, lies 2^-58.6 of an ulp from one. A result below
+// the least normal is rounded to the subnormals at each phase's test. The
+// bounds hold whether or not the compiler fuses a multiply and an add
+// (math_common.h, section 5). NaN is its own exponential; past the last
+// finite result, 709.78, the result is +inf, and below -745.13, +0. Where
+// double is evaluated wider than double, a 32-bit x87, exp_c refuses to
+// compile: build with -msse2 -mfpmath=sse (math_common.h,
+// D_MATH_DBL_REFUSE). exp is the C library's.
+
+@TABLE@
+
+#ifdef __cplusplus
+// dj_internal_math_d_exp_table
+//   struct: the table as a template's static member, so that every
+// translation unit shares one copy and a constant evaluation can read it.
+template <int Unused>
+struct dj_internal_math_d_exp_table
+{
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    static constexpr double value[256] = D_INTERNAL_MATH_D_EXP_TABLE;
+#else
+    static const double value[256];
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+};
+
+#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
+template <int Unused>
+const double dj_internal_math_d_exp_table<Unused>::value[256] =
+    D_INTERNAL_MATH_D_EXP_TABLE;
+#elif !D_ENV_LANG_IS_CPP17_OR_HIGHER
+template <int Unused>
+constexpr double dj_internal_math_d_exp_table<Unused>::value[256];
+#endif
+#endif  // __cplusplus
+
+// d_internal_math_d_exp_t
+//   the table's _index-th value: 2^(j/128)'s high part at 2 j, its low part
+// at 2 j + 1, each exact as written. In C a function's own table, so that a
+// translation unit that never reaches it holds none.
+D_MATH_FN double
+d_internal_math_d_exp_t(
+    int _index
+)
+{
+#ifdef __cplusplus
+    return dj_internal_math_d_exp_table<0>::value[_index];
+#else
+    static const double table[256] = D_INTERNAL_MATH_D_EXP_TABLE;
+
+    return table[_index];
+#endif  // __cplusplus
+}
+
+// d_internal_math_d_exp_pow2
+//   2^_e for _e from -1022 to 1023, exact: from its bits where the language
+// can read a double's -- a union in C, gcc's and clang's __builtin_bit_cast
+// in C++, a constant expression there -- and by float_order.h's squarings
+// elsewhere.
+D_MATH_FN double
+d_internal_math_d_exp_pow2(
+    int _e
+)
+{
+#if ( !defined(__cplusplus) && defined(UINT64_MAX) )
+    union
+    {
+        uint64_t bits;
+        double   value;
+    } v = { 0 };
+
+    v.bits = ((uint64_t)(_e + 1023)) << 52;
+
+    return v.value;
+#elif ( defined(__cplusplus) && defined(UINT64_MAX) &&                         \
+        defined(D_INTERNAL_MATH_HAS_BIT_CAST) )
+    return __builtin_bit_cast(double, ((uint64_t)(_e + 1023)) << 52);
+#else
+    return d_internal_math_d_pow2(_e);
+#endif
+}
+
+// dj_internal_math_d_exp_arg
+//   struct: x reduced: x = (128 e + j) ln2/128 + r1 + r2, but for less than
+// 2^-113.9; |r1| < 0.00271, |r2| < 2^-61.
+struct dj_internal_math_d_exp_arg
+{
+    double k;   // 128 e + j
+    int    e;
+    int    j;   // 0 to 127
+    double r1;
+    double r2;
+};
+
+// dj_internal_math_d_exp_result
+//   struct: a phase's answer: decided, and the correctly rounded value, or
+// not decided.
+struct dj_internal_math_d_exp_result
+{
+    bool   decided;
+    double value;
+};
+
+// d_internal_math_d_exp_arg_of
+//   _x, |_x| at most 745.14, reduced. k is the integer nearest t = x 128/ln2,
+// t rounded or not (fused), so |k| < 2^18; x - k L1 is exact, a multiple of
+// x's ulp below 2^-8 where k is not 0, and x where it is; k L1 and k L2 are
+// exact, L1 and L2 of 35 bits; so x - k L1 - k L2 is exactly r1 + r2's first
+// form, and k L3 adds below 2^-114.
+D_MATH_FN struct dj_internal_math_d_exp_arg
+d_internal_math_d_exp_arg_of(
+    double _x
+)
+{
+    // 128/ln2; ln2/128 = L1 + L2 + L3 but for 2^-137
+    const double invl  = @INVL@;
+    const double l1    = @L1@;
+    const double l2    = @L2@;
+    const double l3    =
+        @L3@;
+    // 1.5 2^52: added and taken away, it rounds |t| < 2^51 to an integer
+    const double shift = 6755399441055744.0;
+    const double t     = _x * invl;
+    const double k     = (t + shift) - shift;
+    const int    ki    = (int)k;
+    const struct dj_math_dd r = d_math_dd_two_sum(_x - (k * l1), -(k * l2));
+    struct dj_internal_math_d_exp_arg result = { 0.0, 0, 0, 0.0, 0.0 };
+
+    result.k  = k;
+    result.j  = ((ki % 128) + 128) % 128;
+    result.e  = (ki - result.j) / 128;
+    result.r1 = r.high;
+    result.r2 = r.low - (k * l3);
+
+    return result;
+}
+
+// d_internal_math_d_exp_times_pow2
+//   _y 2^_e, exact, where the result is normal: _e from -1022 to 1024, 1024
+// only where _y < 1.
+D_MATH_FN double
+d_internal_math_d_exp_times_pow2(
+    double _y,
+    int    _e
+)
+{
+    return (_e > 1023)
+        ? ((_y * 2.0) * d_internal_math_d_exp_pow2(_e - 1))
+        : (_y * d_internal_math_d_exp_pow2(_e));
+}
+
+// d_internal_math_d_exp_side
+//   where _d lies against -1/2 and 1/2: -1 below, 1 above, 0 between, 2 at
+// either.
+D_MATH_FN int
+d_internal_math_d_exp_side(
+    double _d
+)
+{
+    if ( (_d == 0.5) || (_d == -0.5) )
+    {
+        return 2;
+    }
+
+    return (_d > 0.5) ? 1 : ((_d < -0.5) ? -1 : 0);
+}
+
+// d_internal_math_d_exp_subnormal
+//   (_yh + _yl) 2^_e rounded to a multiple of the least subnormal, 2^-1074,
+// where that is the rounding -- the result below 2^-1021 -- and the exact
+// value is within _err of _yh + _yl, |_yl| < |_yh|: decided where both ends
+// of the interval round alike. The pair is first normalized, exactly, by
+// Fast2Sum; z = y 2^(e + 1074), below 2^52, is scaled exactly; n0, the
+// integer nearest zh, is exact by the shift, and zh - n0 by Sterbenz's
+// lemma.
+D_MATH_FN struct dj_internal_math_d_exp_result
+d_internal_math_d_exp_subnormal(
+    double _yh,
+    double _yl,
+    double _err,
+    int    _e
+)
+{
+    // 2^52
+    const double shift = 4503599627370496.0;
+    // 2^-1074, the least subnormal, as 2^-1022 2^-52
+    const double least = d_internal_math_d_exp_pow2(-1022) *
+                         (1.0 / 4503599627370496.0);
+    const double scale = d_internal_math_d_exp_pow2(_e + 1074);
+    const struct dj_math_dd y = d_math_dd_fast_two_sum(_yh, _yl);
+    const double zh    = y.high * scale;
+    const double zl    = y.low * scale;
+    const double ez    = _err * scale;
+    const double n0    = (zh + shift) - shift;
+    const double d0    = zh - n0;
+    const int    lo    = d_internal_math_d_exp_side(d0 + (zl - ez));
+    const int    hi    = d_internal_math_d_exp_side(d0 + (zl + ez));
+    struct dj_internal_math_d_exp_result result = { false, 0.0 };
+
+    if ( (lo == hi) && (lo != 2) )
+    {
+        result.decided = true;
+        result.value   = (n0 + (double)lo) * least;
+    }
+
+    return result;
+}
+
+// d_internal_math_d_exp_decide
+//   (_yh + _yl) 2^_e rounded once, where the exact value is within _err of
+// _yh + _yl, _yh in [0.99, 2.01]: decided where both ends of the interval
+// round alike, in the normal range directly and below it by
+// d_internal_math_d_exp_sub.
+D_MATH_FN struct dj_internal_math_d_exp_result
+d_internal_math_d_exp_decide(
+    double _yh,
+    double _yl,
+    double _err,
+    int    _e
+)
+{
+    struct dj_internal_math_d_exp_result result = { false, 0.0 };
+    const double low  = _yh + (_yl - _err);
+    const double high = _yh + (_yl + _err);
+
+    // below 2^-1022, or within an ulp of it: the subnormals' rounding
+    if ( (_e < -1022) || ( (_e == -1022) && (low < 1.0) ) )
+    {
+        return d_internal_math_d_exp_subnormal(_yh, _yl, _err, _e);
+    }
+
+    if (low == high)
+    {
+        result.decided = true;
+        result.value   = d_internal_math_d_exp_times_pow2(low, _e);
+    }
+
+    return result;
+}
+
+// d_internal_math_d_exp_phase1
+//   exp(x) from _a in doubles: e^r1 - 1 - r1 = r1^2 q(r1), q of degree 3
+// (Sollya's), within 2^-63.66; T r1 split so that its high product, 26 bits
+// by 27, is exact; T + T r1 taken exactly by Fast2Sum. Within 2^-63.5 of
+// exp(x), relatively (proofs/exp_phase1.g): tested against 2^-63 times the
+// result's high part. Where k is 0, T is 1 and the bound shrinks with x^2:
+// 2^-46 z + 2^-52 (|lo| + |b|) (proofs/exp_phase1_n0.g).
+D_MATH_FN struct dj_internal_math_d_exp_result
+d_internal_math_d_exp_phase1(
+    struct dj_internal_math_d_exp_arg _a
+)
+{
+    const double c2  = @C2@;
+    const double c3  = @C3@;
+    const double c4  = @C4@;
+    const double c5  = @C5@;
+    // 1.5 2^17 and 1.5 2^27: they round r1 to a multiple of 2^-35, and a
+    // table value in [1, 2) to one of 2^-25
+    const double s35 = 196608.0;
+    const double s25 = 201326592.0;
+    const double thi = d_internal_math_d_exp_t(2 * _a.j);
+    const double tlo = d_internal_math_d_exp_t((2 * _a.j) + 1);
+    const double r1  = _a.r1;
+    const double z   = r1 * r1;
+    const double q   = c2 + (r1 * (c3 + (r1 * (c4 + (r1 * c5)))));
+    const double pq  = z * q;
+    const double rh  = (r1 + s35) - s35;
+    const double rl  = r1 - rh;
+    const double t1  = (thi + s25) - s25;
+    const double t2  = thi - t1;
+    const double b   = ( (t2 * rh) + (thi * ((rl + _a.r2) + pq)) ) +
+                       (tlo * (1.0 + r1));
+    const struct dj_math_dd h = d_math_dd_fast_two_sum(thi, t1 * rh);
+    const double lo  = h.low + b;
+    const double err = (_a.k != 0.0)
+        ? (h.high * (1.0 / 9223372036854775808.0))
+        : ( (z * (1.0 / 70368744177664.0)) +
+            ( (((lo < 0.0) ? -lo : lo) + ((b < 0.0) ? -b : b)) *
+              (1.0 / 4503599627370496.0) ) );
+
+    return d_internal_math_d_exp_decide(h.high, lo, err, _a.e);
+}
+
+// d_internal_math_d_exp_phase2
+//   exp(x) from _a in pairs of doubles: r = rH + rL exactly; e^rH - 1 by the
+// polynomial rH + rH^2/2 + rH^3 P(rH), P of degree 6 (Sollya's), within
+// 2^-110.3, its tail in doubles and its first coefficients as pairs; then
+// rL (1 + E) and T (1 + E). Within 2^-101.2 of exp(x), absolutely, the
+// result below 2.01 (proofs/exp_phase2.g): tested against 2^-100.
+D_MATH_FN struct dj_internal_math_d_exp_result
+d_internal_math_d_exp_phase2(
+    struct dj_internal_math_d_exp_arg _a
+)
+{
+    const struct dj_math_dd a3 = {
+        @A3H@,
+        @A3L@
+    };
+    const struct dj_math_dd a4 = {
+        @A4H@,
+        @A4L@
+    };
+    const double a5 = @A5@;
+    const double a6 = @A6@;
+    const double a7 = @A7@;
+    const double a8 = @A8@;
+    const double a9 = @A9@;
+    const struct dj_math_dd t  = { d_internal_math_d_exp_t(2 * _a.j),
+                                   d_internal_math_d_exp_t((2 * _a.j) + 1) };
+    const struct dj_math_dd r  = d_math_dd_two_sum(_a.r1, _a.r2);
+    const double            rh = r.high;
+    const double            tt =
+        a5 + (rh * (a6 + (rh * (a7 + (rh * (a8 + (rh * a9)))))));
+    // P = a3 + rH (a4 + rH tt), then Q = 1/2 + rH P, E = rH + rH^2 Q
+    const struct dj_math_dd w  =
+        d_math_dd_add(a4, d_math_dd_mul_d(d_math_dd_of(tt), rh));
+    const struct dj_math_dd p  = d_math_dd_add(a3, d_math_dd_mul_d(w, rh));
+    const struct dj_math_dd q  = d_math_dd_add_d(d_math_dd_mul_d(p, rh), 0.5);
+    const struct dj_math_dd e  =
+        d_math_dd_add_d(d_math_dd_mul(d_math_dd_two_product(rh, rh), q), rh);
+    // + rL (1 + E), then T (1 + E)
+    const struct dj_math_dd e2 = d_math_dd_add_d(e, r.low + (r.low * e.high));
+    const struct dj_math_dd y  = d_math_dd_add(t, d_math_dd_mul(t, e2));
+
+    return d_internal_math_d_exp_decide(y.high, y.low,
+                                        1.0 / 1267650600228229401496703205376.0,
+                                        _a.e);
+}
+"""
+
+EXP_D_SECTION_3 = r"""
+// The third phase computes in fixed point, exactly but for truncations it
+// counts: a value is the integer of 16 limbs of 16 bits, limb i of weight
+// 2^(16 i), times 2^-224 -- limbs of 16 bits, so that two multiply into an
+// unsigned long, which every language level has, and which holds a column's
+// sum. ln2/128 is held to 240 bits, 2^(j/128) to 224, as digits (below);
+// x - k ln2/128 is then within 3.1 units of 2^-224 of r, e^r's series is
+// summed until its terms vanish, each truncation counted, and the table
+// value multiplies it: within 51.4 units of 2^-224 of the exact value, on
+// either side, which is less than 2^-218.3 of it (proofs/exp_phase3.py).
+// That is far below the 2^-110.6 by which the hardest known argument's
+// exponential misses a rounding boundary, relatively, so the computed value
+// rounds as the exact one does.
+
+// D_INTERNAL_MATH_D_EXP_DIGITS_A, D_INTERNAL_MATH_D_EXP_DIGITS_B
+//   the third phase's digits, in hexadecimal: ln2/128 times 2^240, rounded
+// down, in 60 digits, then for j from 0 to 127 2^(j/128) times 2^224, rounded
+// down, in 57 digits each; the first 3,708 digits, to j = 63, in the first
+// literal, the rest in the second, each within C99's 4,095 characters. String
+// literals, as elementary.h's digits of 2/pi are, read only by the third
+// phase.
+#define D_INTERNAL_MATH_D_EXP_DIGITS_A                                         \
+@DIGITS_A@
+
+#define D_INTERNAL_MATH_D_EXP_DIGITS_B                                         \
+@DIGITS_B@
+
+// dj_internal_math_d_exp_fixed
+//   struct: a nonnegative value, the sum of limb[i] 2^(16 i - 224), each
+// limb below 2^16.
+struct dj_internal_math_d_exp_fixed
+{
+    unsigned long limb[16];
+};
+
+// d_internal_math_d_exp_digit
+//   the value of the hexadecimal digit at _at of the third phase's digits.
+D_MATH_FN unsigned long
+d_internal_math_d_exp_digit(
+    int _at
+)
+{
+    const char c = (_at < 3708) ? D_INTERNAL_MATH_D_EXP_DIGITS_A[_at]
+                                : D_INTERNAL_MATH_D_EXP_DIGITS_B[_at - 3708];
+
+    return (c <= '9') ? (unsigned long)(c - '0')
+                      : (unsigned long)((c - 'a') + 10);
+}
+
+// d_internal_math_d_exp_fixed_read
+//   the value of _count digits at _at, the last of weight 2^(16 _shift):
+// limbs from the last digit up, each of 4 digits.
+D_MATH_FN struct dj_internal_math_d_exp_fixed
+d_internal_math_d_exp_fixed_read(
+    int _at,
+    int _count,
+    int _shift
+)
+{
+    struct dj_internal_math_d_exp_fixed result = { { 0 } };
+    int i = 0;
+
+    for (i = 0; i < _count; ++i)
+    {
+        const int place = (_count - 1) - i;
+        const int limb  = _shift + (place / 4);
+
+        result.limb[limb] |= d_internal_math_d_exp_digit(_at + i)
+                             << (4 * (place % 4));
+    }
+
+    return result;
+}
+
+// d_internal_math_d_exp_fixed_carry
+//   _limbs carried, from the first, so that each but the last is below 2^16.
+D_MATH_FN void
+d_internal_math_d_exp_fixed_carry(
+    unsigned long* _limbs,
+    int            _count
+)
+{
+    unsigned long carry = 0;
+    int           i     = 0;
+
+    for (i = 0; i < _count; ++i)
+    {
+        const unsigned long v = _limbs[i] + carry;
+
+        _limbs[i] = v & 0xFFFFul;
+        carry     = v >> 16;
+    }
+
+    return;
+}
+
+// d_internal_math_d_exp_fixed_mul
+//   _a _b, the product's lowest 224 bits dropped: truncated, below the exact
+// product by less than 2^-224.
+D_MATH_FN struct dj_internal_math_d_exp_fixed
+d_internal_math_d_exp_fixed_mul(
+    struct dj_internal_math_d_exp_fixed _a,
+    struct dj_internal_math_d_exp_fixed _b
+)
+{
+    struct dj_internal_math_d_exp_fixed result = { { 0 } };
+    unsigned long column[33] = { 0 };
+    int i = 0;
+    int j = 0;
+
+    for (i = 0; i < 16; ++i)
+    {
+        for (j = 0; j < 16; ++j)
+        {
+            const unsigned long p = _a.limb[i] * _b.limb[j];
+
+            column[i + j]     += p & 0xFFFFul;
+            column[i + j + 1] += p >> 16;
+        }
+
+        d_internal_math_d_exp_fixed_carry(column, 33);
+    }
+
+    for (i = 0; i < 16; ++i)
+    {
+        result.limb[i] = column[i + 14];
+    }
+
+    return result;
+}
+
+// d_internal_math_d_exp_fixed_div
+//   _a / _k, truncated, _k small.
+D_MATH_FN struct dj_internal_math_d_exp_fixed
+d_internal_math_d_exp_fixed_div(
+    struct dj_internal_math_d_exp_fixed _a,
+    unsigned long                       _k
+)
+{
+    struct dj_internal_math_d_exp_fixed result = { { 0 } };
+    unsigned long rest = 0;
+    int           i    = 0;
+
+    for (i = 15; i >= 0; --i)
+    {
+        const unsigned long v = (rest << 16) | _a.limb[i];
+
+        result.limb[i] = v / _k;
+        rest           = v % _k;
+    }
+
+    return result;
+}
+
+// d_internal_math_d_exp_fixed_add
+//   _a + _b, exactly.
+D_MATH_FN struct dj_internal_math_d_exp_fixed
+d_internal_math_d_exp_fixed_add(
+    struct dj_internal_math_d_exp_fixed _a,
+    struct dj_internal_math_d_exp_fixed _b
+)
+{
+    int i = 0;
+
+    for (i = 0; i < 16; ++i)
+    {
+        _a.limb[i] += _b.limb[i];
+    }
+
+    d_internal_math_d_exp_fixed_carry(_a.limb, 16);
+
+    return _a;
+}
+
+// d_internal_math_d_exp_fixed_sub
+//   _a - _b, exactly, _a >= _b.
+D_MATH_FN struct dj_internal_math_d_exp_fixed
+d_internal_math_d_exp_fixed_sub(
+    struct dj_internal_math_d_exp_fixed _a,
+    struct dj_internal_math_d_exp_fixed _b
+)
+{
+    unsigned long borrow = 0;
+    int           i      = 0;
+
+    for (i = 0; i < 16; ++i)
+    {
+        const unsigned long need = _b.limb[i] + borrow;
+
+        borrow     = (_a.limb[i] < need) ? 1ul : 0ul;
+        _a.limb[i] = (_a.limb[i] + (borrow << 16)) - need;
+    }
+
+    return _a;
+}
+
+// d_internal_math_d_exp_fixed_less
+//   whether _a < _b.
+D_MATH_FN bool
+d_internal_math_d_exp_fixed_less(
+    struct dj_internal_math_d_exp_fixed _a,
+    struct dj_internal_math_d_exp_fixed _b
+)
+{
+    int i = 0;
+
+    for (i = 15; i >= 0; --i)
+    {
+        if (_a.limb[i] != _b.limb[i])
+        {
+            return _a.limb[i] < _b.limb[i];
+        }
+    }
+
+    return false;
+}
+
+// d_internal_math_d_exp_fixed_of
+//   |_x| times 2^224, exactly, for 2^-105 <= |_x| < 2^16, whose bits all
+// lie between 2^-224 and 2^16: peeled 16 at a time from the top, each
+// division by a power of 2 exact.
+D_MATH_FN struct dj_internal_math_d_exp_fixed
+d_internal_math_d_exp_fixed_of(
+    double _x
+)
+{
+    struct dj_internal_math_d_exp_fixed result = { { 0 } };
+    double rest = (_x < 0.0) ? -_x : _x;
+    int    i    = 0;
+
+    for (i = 15; i >= 0; --i)
+    {
+        // limb i's weight, 2^(16 i - 224), in two steps within the normal
+        // range
+        const double weight = d_internal_math_d_pow2((16 * i) - 112) *
+                              d_internal_math_d_pow2(-112);
+        const unsigned long digit = (unsigned long)(rest / weight);
+
+        result.limb[i] = digit;
+        rest          -= (double)digit * weight;
+    }
+
+    return result;
+}
+
+// d_internal_math_d_exp_fixed_bit
+//   bit _k of _a, 0 below bit 0.
+D_MATH_FN unsigned long
+d_internal_math_d_exp_fixed_bit(
+    struct dj_internal_math_d_exp_fixed _a,
+    int                                 _k
+)
+{
+    return (_k < 0) ? 0ul : ((_a.limb[_k / 16] >> (_k % 16)) & 1ul);
+}
+
+// d_internal_math_d_exp_fixed_bits
+//   the number of bits of _a.
+D_MATH_FN int
+d_internal_math_d_exp_fixed_bits(
+    struct dj_internal_math_d_exp_fixed _a
+)
+{
+    int i = 0;
+    int b = 0;
+
+    for (i = 15; i >= 0; --i)
+    {
+        if (_a.limb[i] != 0)
+        {
+            while ((_a.limb[i] >> b) != 0)
+            {
+                ++b;
+            }
+
+            return (16 * i) + b;
+        }
+    }
+
+    return 0;
+}
+
+// d_internal_math_d_exp_fixed_round
+//   _a rounded to the nearest multiple of 2^_s, ties to even, as that
+// multiple's integer, below 2^54: a double, exactly.
+D_MATH_FN double
+d_internal_math_d_exp_fixed_round(
+    struct dj_internal_math_d_exp_fixed _a,
+    int                                 _s
+)
+{
+    double m      = 0.0;
+    bool   sticky = false;
+    int    k      = 0;
+
+    for (k = d_internal_math_d_exp_fixed_bits(_a) - 1; k >= _s; --k)
+    {
+        m = (2.0 * m) + (double)d_internal_math_d_exp_fixed_bit(_a, k);
+    }
+
+    for (k = 0; k < (_s - 1); ++k)
+    {
+        sticky = sticky || (d_internal_math_d_exp_fixed_bit(_a, k) != 0);
+    }
+
+    if ( (_s > 0) &&
+         (d_internal_math_d_exp_fixed_bit(_a, _s - 1) != 0) &&
+         ( sticky || (d_internal_math_d_exp_fixed_bit(_a, _s) != 0) ) )
+    {
+        m += 1.0;
+    }
+
+    return m;
+}
+
+// d_internal_math_d_exp_series
+//   e^r times 2^224, r = _r 2^-224 of sign _negative, |r| < 2^-8: the series
+// summed until a term is 0, its positive and negative terms apart, each
+// term truncated, below its exact value by at most 1.5 units, and the terms
+// dropped below 1.007 units in all (proofs/exp_phase3.py).
+D_MATH_FN struct dj_internal_math_d_exp_fixed
+d_internal_math_d_exp_series(
+    struct dj_internal_math_d_exp_fixed _r,
+    bool                                _negative
+)
+{
+    struct dj_internal_math_d_exp_fixed term =
+        d_internal_math_d_exp_fixed_of(1.0);
+    struct dj_internal_math_d_exp_fixed up   = term;
+    struct dj_internal_math_d_exp_fixed down = { { 0 } };
+    unsigned long k = 1;
+
+    for (k = 1; k < 64; ++k)
+    {
+        term = d_internal_math_d_exp_fixed_div(
+            d_internal_math_d_exp_fixed_mul(term, _r), k);
+
+        if (d_internal_math_d_exp_fixed_bits(term) == 0)
+        {
+            break;
+        }
+
+        if (_negative && ((k % 2) == 1))
+        {
+            down = d_internal_math_d_exp_fixed_add(down, term);
+        }
+        else
+        {
+            up = d_internal_math_d_exp_fixed_add(up, term);
+        }
+    }
+
+    return d_internal_math_d_exp_fixed_sub(up, down);
+}
+
+// d_internal_math_d_exp_ln2_times
+//   |_k| ln2/128 times 2^224, |_k| < 2^18: ln2/128's 240-bit digits times
+// |_k|, in two 16-bit parts, then 16 bits dropped; below the exact value by
+// less than 2^18 2^-240 + 2^-224.
+D_MATH_FN struct dj_internal_math_d_exp_fixed
+d_internal_math_d_exp_ln2_times(
+    double _k
+)
+{
+    const struct dj_internal_math_d_exp_fixed l =
+        d_internal_math_d_exp_fixed_read(0, 60, 0);
+    const unsigned long n  = (unsigned long)((_k < 0.0) ? -_k : _k);
+    const unsigned long nl = n & 0xFFFFul;
+    const unsigned long nh = n >> 16;
+    struct dj_internal_math_d_exp_fixed result = { { 0 } };
+    unsigned long column[18] = { 0 };
+    int i = 0;
+
+    for (i = 0; i < 16; ++i)
+    {
+        const unsigned long p = l.limb[i] * nl;
+        const unsigned long q = l.limb[i] * nh;
+
+        column[i]     += p & 0xFFFFul;
+        column[i + 1] += (p >> 16) + (q & 0xFFFFul);
+        column[i + 2] += q >> 16;
+        d_internal_math_d_exp_fixed_carry(column, 18);
+    }
+
+    for (i = 0; i < 16; ++i)
+    {
+        result.limb[i] = column[i + 1];
+    }
+
+    return result;
+}
+
+// d_internal_math_d_exp_phase3
+//   exp(x) from _x and _a in fixed point, correctly rounded: r = x - k ln2/128
+// from x exactly and k ln2/128 truncated, both of x's sign; e^r by its
+// series; times the table value, within 51.4 units of 2^-224 of the exact
+// value; then rounded at 53 bits, or at the least subnormal, as the exact
+// value is: no rounding boundary is known to lie so close (section 3.2's
+// note).
+D_MATH_FN double
+d_internal_math_d_exp_phase3(
+    double                            _x,
+    struct dj_internal_math_d_exp_arg _a
+)
+{
+    const struct dj_internal_math_d_exp_fixed x =
+        d_internal_math_d_exp_fixed_of(_x);
+    const struct dj_internal_math_d_exp_fixed c =
+        d_internal_math_d_exp_ln2_times(_a.k);
+    const bool below = d_internal_math_d_exp_fixed_less(x, c);
+    const struct dj_internal_math_d_exp_fixed r =
+        below ? d_internal_math_d_exp_fixed_sub(c, x)
+              : d_internal_math_d_exp_fixed_sub(x, c);
+    const struct dj_internal_math_d_exp_fixed s =
+        d_internal_math_d_exp_series(r, (_x < 0.0) != below);
+    const struct dj_internal_math_d_exp_fixed y =
+        d_internal_math_d_exp_fixed_mul(
+            d_internal_math_d_exp_fixed_read(60 + (57 * _a.j), 57, 0), s);
+    int place = d_internal_math_d_exp_fixed_bits(y) - 53;
+
+    // the least subnormal's place, where the result is below 2^-1022
+    if ( (_a.e + ((d_internal_math_d_exp_fixed_bits(y) - 1) - 224)) < -1022 )
+    {
+        place = 224 - 1074 - _a.e;
+    }
+
+    {
+        const double m = d_internal_math_d_exp_fixed_round(y, place);
+        // m 2^(place - 224 + e), in two steps within the normal range
+        const int e = (place - 224) + _a.e;
+
+        return (e < -1022)
+            ? ((m * d_internal_math_d_exp_pow2(e + 1022)) *
+               d_internal_math_d_exp_pow2(-1022))
+            : d_internal_math_d_exp_times_pow2(m, e);
+    }
+}
+
+// d_math_d_exp_c
+//   e^_x, correctly rounded; see above.
+D_MATH_FN double
+d_math_d_exp_c(
+    double _x
+)
+{
+    // the last argument whose exponential is finite, and the first whose
+    // exponential rounds to more than 0
+    const double last  = (6243314768165359.0 / 8796093022208.0);
+    const double first = -(6554261109157969.0 / 8796093022208.0);
+    // 2^-53: below it, and down to -2^-53, 1 + x is the correct rounding
+    const double tiny  = 1.0 / 9007199254740992.0;
+
+    D_MATH_DBL_REFUSE(_x)
+
+    if (_x != _x)
+    {
+        return _x;
+    }
+
+    if (_x > last)
+    {
+        return d_internal_math_d_infinity();
+    }
+
+    if (_x < first)
+    {
+        return 0.0;
+    }
+
+    if ( (_x < tiny) && (_x >= -tiny) )
+    {
+        return 1.0 + _x;
+    }
+
+    {
+        const struct dj_internal_math_d_exp_arg a =
+            d_internal_math_d_exp_arg_of(_x);
+        const struct dj_internal_math_d_exp_result one =
+            d_internal_math_d_exp_phase1(a);
+        struct dj_internal_math_d_exp_result two = { false, 0.0 };
+
+        if (one.decided)
+        {
+            return one.value;
+        }
+
+        two = d_internal_math_d_exp_phase2(a);
+
+        return two.decided ? two.value : d_internal_math_d_exp_phase3(_x, a);
+    }
+}
+
+D_MATH_FN_RT double
+d_math_d_exp(
+    double _x
+)
+{
+#ifdef __cplusplus
+    return std::exp(_x);
+#else
+    return exp(_x);
+#endif
+}
+"""
+
+
+# -----------------------------------------------------------------------------
+# self_test.h: the double family's start-up self-test (chunk 51, S419)
+# -----------------------------------------------------------------------------
+
+SELF_TEST_HEAD = r"""
+/*
+TABLE OF CONTENTS
+=================
+1.  THE BUILD
+    ---------
+    1.  Whether formulas fuse
+    2.  The self-test
+*/
+
+#ifndef DJINTERP_C_MATH_SELF_TEST_H
+#define DJINTERP_C_MATH_SELF_TEST_H 1
+
+// djinterp
+#include "./dd.h"            // d_math_dd_two_product, d_math_dd_two_sum
+#include "./exponential.h"   // d_math_d_exp_c
+#include "./math_common.h"   // D_MATH_FN_RT
+"""
+
+SELF_TEST_BODY = r"""
+
+//==============================================================================
+// 1.  THE BUILD
+//==============================================================================
+// The double family's contract (S415) is the same bits on every platform:
+// each of its functions correctly rounded, in double arithmetic alone, its
+// exact sums and products exact whether or not the compiler fuses a
+// multiply and an add. What a header cannot see is the build: flags that
+// break IEEE arithmetic (-ffast-math), a compiler that fuses where it should
+// not, a target that rounds otherwise. So a program that depends on the same
+// bits calls d_math_self_test once, at start-up, in each translation unit
+// whose build may differ, and stops where it is not 0.
+
+
+// 1.1    Whether formulas fuse
+//------------------------------------------------------------------------------
+
+// d_math_formulas_fuse
+//   whether this translation unit's build fuses a multiply and an add written
+// as two statements, as the math headers' plain formulas are -- the _fast
+// forms among them: then their bits follow the build, and may differ from an
+// ISO build's, while the correctly rounded functions' and the exact sums' and
+// products' do not. gcc fuses so in its GNU modes where the target has the
+// instruction; clang, told not to by the headers' pragma, only under
+// -ffp-contract=fast (math_common.h, section 5).
+D_MATH_FN_RT bool
+d_math_formulas_fuse(void)
+{
+    // (1 + 2^-30)(1 - 2^-30) is 1 - 2^-60, which rounds to 1: less 1, 0, or,
+    // fused, -2^-60. volatile, so that nothing is known before run time
+    volatile double a = 1.000000000931322574615478515625;
+    volatile double b = 0.999999999068677425384521484375;
+    const double    p = a * b;
+    const double    d = p - 1.0;
+
+    return d != 0.0;
+}
+
+
+// 1.2    The self-test
+//------------------------------------------------------------------------------
+
+// D_MATH_SELF_TEST_PRODUCTS
+//   constant: d_math_self_test's bit for an exact product or sum that was not.
+#define D_MATH_SELF_TEST_PRODUCTS   1u
+
+// D_MATH_SELF_TEST_EXP
+//   constant: d_math_self_test's bit for an exponential not correctly rounded.
+#define D_MATH_SELF_TEST_EXP        2u
+
+// d_math_self_test
+//   0 where the double family's guarantees hold in this translation unit's
+// build, as far as known results show; otherwise D_MATH_SELF_TEST_PRODUCTS,
+// D_MATH_SELF_TEST_EXP or both: exact products and a sum against their known
+// parts, and the exponential at arguments each of its three phases decides,
+// the hardest known among them, against their correctly rounded values. Its
+// arguments are volatile, so that each is computed at run time. Where double
+// is evaluated wider than double, a 32-bit x87, it refuses to compile, as the
+// functions it tests do.
+D_MATH_FN_RT unsigned
+d_math_self_test(void)
+{
+    // a b = high + low, each exact as written
+    static const double products[3][4] = {
+@PRODUCTS@
+    };
+    // x and e^x, correctly rounded
+    static const double exps[4][2] = {
+@EXPS@
+    };
+    unsigned result = 0u;
+    int      i      = 0;
+
+    for (i = 0; i < 3; ++i)
+    {
+        volatile double         a = products[i][0];
+        volatile double         b = products[i][1];
+        const struct dj_math_dd p = d_math_dd_two_product(a, b);
+        // the product's parts again, summed: they come back as they are
+        const struct dj_math_dd s = d_math_dd_two_sum(products[i][3],
+                                                      products[i][2]);
+
+        if ( (p.high != products[i][2]) || (p.low != products[i][3]) ||
+             (s.high != products[i][2]) || (s.low != products[i][3]) )
+        {
+            result |= D_MATH_SELF_TEST_PRODUCTS;
+        }
+    }
+
+    for (i = 0; i < 4; ++i)
+    {
+        volatile double x = exps[i][0];
+
+        if (d_math_d_exp_c(x) != exps[i][1])
+        {
+            result |= D_MATH_SELF_TEST_EXP;
+        }
+    }
+
+    return result;
+}
+"""
+
+SELF_TEST_TAIL = r"""
+#endif  // DJINTERP_C_MATH_SELF_TEST_H
+"""
+
+SELF_TEST_PRODUCTS = [
+    ("(4503599644147713.0 / 4503599627370496.0)",
+     "(4503599644147713.0 / 4503599627370496.0)",
+     "(2251799830462465.0 / 2251799813685248.0)",
+     "(281475010265089.0 / 20282409603651670423947251286016.0)"),
+    ("(3602879701896397.0 / 36028797018963968.0)",
+     "(3152519739159347.0 / 4503599627370496.0)",
+     "(5044031582654955.0 / 72057594037927936.0)",
+     "(1080863910568919.0 / 162259276829213363391578010288128.0)"),
+    ("(9007199254740991.0 / 4503599627370496.0)",
+     "(4503599627370497.0 / 4503599627370496.0)",
+     "2.0",
+     "(4503599627370495.0 / 20282409603651670423947251286016.0)"),
+]
+
+SELF_TEST_EXPS = [
+    ("1.0", "(6121026514868073.0 / 2251799813685248.0)"),
+    ("(7293935723874315.0 / 9671406556917033397649408.0)",
+     "(562949953845875.0 / 562949953421312.0)"),
+    ("(1.0 / 9007199254740992.0)",
+     "(4503599627370497.0 / 4503599627370496.0)"),
+    ("-0.5", "(2731571253070597.0 / 4503599627370496.0)"),
+]
+
+
+def self_test():
+    lines = [
+        "The double family's start-up self-test: whether this translation",
+        "unit's build keeps the family's guarantees, and whether it fuses the",
+        "math headers' plain formulas.",
+        "  GENERATED by scripts/gen_c_math_float.py: edit the generator, not",
+        "this file.",
+        "",
+        "  The double family's functions are correctly rounded in double",
+        "arithmetic alone, the same bits on every platform (S415). A header",
+        "cannot see the build: flags that break IEEE arithmetic, such as",
+        "-ffast-math, or a target that rounds otherwise. d_math_self_test",
+        "checks exact products and sums and the exponential against known",
+        "results, at run time; d_math_formulas_fuse says whether the build",
+        "fuses a multiply and an add, which changes the plain formulas' bits,",
+        "the _fast forms' among them, but not the correctly rounded functions'.",
+    ]
+    text = banner("self_test.h", lines, "2026.11.16", "2026.11.16")
+    body = SELF_TEST_BODY
+    prods = []
+    for i, row in enumerate(SELF_TEST_PRODUCTS):
+        prods.append("        { " + ",\n          ".join(row) + " }" +
+                     ("," if i + 1 < len(SELF_TEST_PRODUCTS) else ""))
+    exps = []
+    for i, row in enumerate(SELF_TEST_EXPS):
+        exps.append("        { " + ",\n          ".join(row) + " }" +
+                    ("," if i + 1 < len(SELF_TEST_EXPS) else ""))
+    body = body.replace("@PRODUCTS@", "\n".join(prods))
+    body = body.replace("@EXPS@", "\n".join(exps))
+    text += "\n" + SELF_TEST_HEAD + body + SELF_TEST_TAIL
+    return text
+
+
+# the bounds Gappa proves for dd.h's quotients and square root, in u^2
+# (chunk 51's record, proofs/dd_div_d.g, dd_div.g, dd_sqrt.g)
+DD_BOUNDS = {"div_d": "12", "div": "38", "sqrt": "32"}
+
+
+def exp_d_section():
+    """the double family's section 3.2, its constants filled in."""
+    consts, rows = exp_d_constants()
+    l240, t224 = exp_d_phase3_digits()
+    text = EXP_D_SECTION.replace("@TABLE@", exp_d_table_macro(rows))
+    for key in ("INVL", "L1", "L2", "L3"):
+        text = text.replace("@" + key + "@", consts[key])
+    for i, h in enumerate(EXP_D_P1):
+        text = text.replace("@C%d@" % (i + 2), exp_d_hex_literal(h))
+    for i, (h, l) in enumerate(EXP_D_P2):
+        k = i + 3
+        if l is None:
+            text = text.replace("@A%d@" % k, exp_d_hex_literal(h))
+        else:
+            text = text.replace("@A%dH@" % k, exp_d_hex_literal(h))
+            text = text.replace("@A%dL@" % k, exp_d_hex_literal(l))
+    every = l240 + t224
+    third = EXP_D_SECTION_3
+    for key, part in (("@DIGITS_A@", every[:3708]), ("@DIGITS_B@", every[3708:])):
+        digits = exp_d_digits_literal("", part, 57)
+        lines = []
+        for i, line in enumerate(digits):
+            if i + 1 < len(digits):
+                lines.append(line + " " * (79 - len(line)) + "\\")
+            else:
+                lines.append(line)
+        third = third.replace(key, "\n".join(lines))
+    return text + third
+
+
+def exp_d_swap(text):
+    """the double family's text with its exponential replaced; expm1_c, which
+    takes exp_c's value far above 0, takes the long double kernel's where
+    double is evaluated wider, as exp_c refuses there."""
+    a = text.index("// 3.2    Exponential\n")
+    b = text.index("// 3.3    Natural logarithm\n")
+    text = text[:a] + exp_d_section() + "\n" + text[b:]
+    old = """    // far above 0: the 1 lies below half of e^x's last place
+    if (x > ((long double)(LDBL_MANT_DIG + 2) * 0.6931L))
+    {
+        return d_math_d_exp_c(_x);
+    }
+"""
+    new = """    // far above 0: the 1 lies below half of e^x's last place; where double
+    // is evaluated wider, the long double kernel's e^x, as exp_c refuses
+    // there (section 3.2): +inf well past the largest finite result, +inf
+    // among them, so that k fits an int, as chunk 50's exp_c had it
+    if (x > ((long double)(LDBL_MANT_DIG + 2) * 0.6931L))
+    {
+#if D_MATH_DBL_EVAL_WIDE
+        if (x > ((long double)(DBL_MAX_EXP + 1) * 0.6932L))
+        {
+            return d_internal_math_d_infinity();
+        }
+
+        return d_internal_math_d_exp_scale(d_internal_math_ld_exp_split_of(x));
+#else
+        return d_math_d_exp_c(_x);
+#endif  // D_MATH_DBL_EVAL_WIDE
+    }
+"""
+    assert text.count(old) == 1
+    return text.replace(old, new)
+
+
 OUTPUTS = {
+    "dd.h": dd,
+    "self_test.h": self_test,
     "float_order.h": float_order,
     "interval_float.h": interval_float,
     "elementary.h": elementary,
@@ -29602,13 +31337,42 @@ OUTPUTS = {
 }
 
 
+NO_CONTRACT_OPEN = """
+// no multiply and add fused by the compiler in this header, where it can be
+// told; the including file's state is restored at the end (math_common.h,
+// section 5.3)
+#if D_MATH_PRAGMA_NO_CONTRACT
+    #pragma float_control(push)
+    #pragma STDC FP_CONTRACT OFF
+#endif  // D_MATH_PRAGMA_NO_CONTRACT
+"""
+
+NO_CONTRACT_CLOSE = """
+// the including file's own fusing again
+#if D_MATH_PRAGMA_NO_CONTRACT
+    #pragma float_control(pop)
+#endif  // D_MATH_PRAGMA_NO_CONTRACT
+
+"""
+
+
+def no_contract(text):
+    """clang's no-fusing pragma, saved and restored, around a header's body:
+    after its includes, before its last #endif."""
+    first = text.index("\n//====")
+    last = text.rindex("\n#endif  // DJINTERP_C_MATH_")
+    body = text[first:last].rstrip("\n") + "\n"
+    return (text[:first].rstrip("\n") + "\n" + NO_CONTRACT_OPEN + "\n" +
+            body + NO_CONTRACT_CLOSE + text[last:].lstrip("\n"))
+
+
 def main(argv):
     check = "--check" in argv
     status = 0
     for name, make in OUTPUTS.items():
         rel = CORE + "/" + name
         path = os.path.join(ROOT, rel)
-        text = make()
+        text = no_contract(make())
         if check:
             try:
                 with open(path) as f:

@@ -9,13 +9,15 @@
 *
 *   Each function comes twice, as in elementary.h. The _c form is pure
 * arithmetic, so the same text is a constant expression from C++14; the
-* plain form calls the C library (std:: in C++), fast at run time. The _c
-* forms are computed once, in long double, by kernels that carry their
-* reduced argument and last sum as exact pairs, and rounded once to the
-* family: a long double result is within an ulp of the exact one, exp's,
-* log1p's and expm1's within 0.53 of one, a float or double result
-* correctly rounded but where the exact value lies within the kernel's
-* error of a midpoint. C++ before C++11 has no exp2, log2,
+* plain form calls the C library (std:: in C++), fast at run time. The
+* double family's exp_c is correctly rounded, in double arithmetic
+* alone, by three phases each with a proven bound (section 3.2). The
+* other _c forms are computed once, in long double, by kernels that
+* carry their reduced argument and last sum as exact pairs, and rounded
+* once to the family: a long double result is within an ulp of the
+* exact one, exp's, log1p's and expm1's within 0.53 of one, a float or
+* double result correctly rounded but where the exact value lies within
+* the kernel's error of a midpoint. C++ before C++11 has no exp2, log2,
 * log1p or expm1, and there the plain forms are the _c ones. No overflow
 * is evaluated, as a constant expression forbids: an infinity is
 * HUGE_VAL, a NaN NAN.
@@ -24,7 +26,7 @@
 * path:      /inc/djinterp/c/modules/math/exponential.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.08
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 
 /*
@@ -78,9 +80,19 @@ TABLE OF CONTENTS
 #include <float.h>           // LDBL_MANT_DIG
 #include <math.h>            // expf ... expm1l, HUGE_VAL
 // djinterp
+#include "./dd.h"            // dj_math_dd, d_math_dd_two_sum, ...
 #include "./elementary.h"    // d_internal_math_ld_two_sum, *_round_pair
 #include "./float_order.h"   // d_internal_math_*_pow2, *_binade_of
 #include "./math_common.h"   // D_MATH_FN
+
+// no multiply and add fused by the compiler in this header, where it can be
+// told; the including file's state is restored at the end (math_common.h,
+// section 5.3)
+#if D_MATH_PRAGMA_NO_CONTRACT
+    #pragma float_control(push)
+    #pragma STDC FP_CONTRACT OFF
+#endif  // D_MATH_PRAGMA_NO_CONTRACT
+
 
 //==============================================================================
 // 1.  THE KERNELS (long double)
@@ -1208,37 +1220,1222 @@ d_internal_math_d_log_arg_of(
 
 // 3.2    Exponential
 //------------------------------------------------------------------------------
-// exp_c is the exponential in pure arithmetic, a constant expression from
-// C++14: the kernel's (y + y_lo) 2^k (section 1.1), scaled by 2^k and rounded
-// once to the family. A result past the largest finite value is +inf, one
-// below half the least subnormal +0; NaN gives NaN. exp is the C library's.
+// exp_c is the exponential correctly rounded, in double arithmetic alone --
+// no long double and no C library -- and a constant expression from C++14
+// (S416). x is reduced to (128 e + j) ln2/128 + r, 128 e + j the integer
+// nearest x 128/ln2 and |r| < 0.00271, ln2/128 in three parts whose first two
+// products by that integer are exact; then exp(x) = 2^e 2^(j/128) e^r, with
+// 2^(j/128) from a table of 128 pairs of doubles. Three phases follow, each
+// with a bound proven in chunk 51's record (proofs/), each giving its result
+// where the interval its bound allows rounds one way, as Ziv's method has
+// it: phase 1, in doubles, within 2^-63.5 of the exponential, relatively,
+// answers some 99.8% of arguments; phase 2, in pairs of doubles (dd.h),
+// within 2^-101.2; phase 3, in fixed point of 256 bits, within 2^-218.3,
+// far closer than a double's exponential is known to come to a rounding
+// boundary -- the hardest case known, Lefevre and Muller's x =
+// 0x1.9e9cbbfd6080bp-31, lies 2^-58.6 of an ulp from one. A result below
+// the least normal is rounded to the subnormals at each phase's test. The
+// bounds hold whether or not the compiler fuses a multiply and an add
+// (math_common.h, section 5). NaN is its own exponential; past the last
+// finite result, 709.78, the result is +inf, and below -745.13, +0. Where
+// double is evaluated wider than double, a 32-bit x87, exp_c refuses to
+// compile: build with -msse2 -mfpmath=sse (math_common.h,
+// D_MATH_DBL_REFUSE). exp is the C library's.
 
+#define D_INTERNAL_MATH_D_EXP_TABLE                                            \
+    {                                                                          \
+        1.0,                                                                   \
+        0.0,                                                                   \
+        (4528053727998773.0 / 4503599627370496.0),                             \
+        (7706655688543671.0 / 81129638414606681695789005144064.0),             \
+        (4552640611975265.0 / 4503599627370496.0),                             \
+        (-4943968317671517.0 / 324518553658426726783156020576256.0),           \
+        (4577361000300421.0 / 4503599627370496.0),                             \
+        (-2341470354531511.0 / 40564819207303340847894502572032.0),            \
+        (1150553904472413.0 / 1125899906842624.0),                             \
+        (8290191583589477.0 / 162259276829213363391578010288128.0),            \
+        (2313602596797295.0 / 2251799813685248.0),                             \
+        (-8041690114898983.0 / 162259276829213363391578010288128.0),           \
+        (581541307528057.0 / 562949953421312.0),                               \
+        (4933226475980031.0 / 649037107316853453566312041152512.0),            \
+        (4677592154567555.0 / 4503599627370496.0),                             \
+        (2432377621622939.0 / 40564819207303340847894502572032.0),             \
+        (4702991017412879.0 / 4503599627370496.0),                             \
+        (6938117195718923.0 / 81129638414606681695789005144064.0),             \
+        (4728527793571831.0 / 4503599627370496.0),                             \
+        (4537530252939121.0 / 81129638414606681695789005144064.0),             \
+        (2377101615950033.0 / 2251799813685248.0),                             \
+        (4567470753282899.0 / 2596148429267413814265248164610048.0),           \
+        (4780018085319451.0 / 4503599627370496.0),                             \
+        (-7771269874236795.0 / 649037107316853453566312041152512.0),           \
+        (4805973110840145.0 / 4503599627370496.0),                             \
+        (-3204561479290269.0 / 40564819207303340847894502572032.0),            \
+        (1208017267395699.0 / 1125899906842624.0),                             \
+        (-4984175118296519.0 / 1298074214633706907132624082305024.0),          \
+        (151822085212527.0 / 140737488355328.0),                               \
+        (-2700262271130447.0 / 40564819207303340847894502572032.0),            \
+        (4884686851903057.0 / 4503599627370496.0),                             \
+        (2568688355464581.0 / 81129638414606681695789005144064.0),             \
+        (4911210218475899.0 / 4503599627370496.0),                             \
+        (-2471843284632891.0 / 81129638414606681695789005144064.0),            \
+        (2468938802153205.0 / 2251799813685248.0),                             \
+        (-1200705157579739.0 / 20282409603651670423947251286016.0),            \
+        (4964689791404917.0 / 4503599627370496.0),                             \
+        (2136158336342585.0 / 40564819207303340847894502572032.0),             \
+        (1247911891506997.0 / 1125899906842624.0),                             \
+        (-7128710300759559.0 / 81129638414606681695789005144064.0),            \
+        (2509375859350741.0 / 2251799813685248.0),                             \
+        (2111455317498127.0 / 20282409603651670423947251286016.0),             \
+        (5046003044243741.0 / 4503599627370496.0),                             \
+        (-1257729643441635.0 / 20282409603651670423947251286016.0),            \
+        (2536701170894443.0 / 2251799813685248.0),                             \
+        (8382081818854549.0 / 162259276829213363391578010288128.0),            \
+        (2550475207405131.0 / 2251799813685248.0),                             \
+        (2626455352267511.0 / 81129638414606681695789005144064.0),             \
+        (641081008892999.0 / 562949953421312.0),                               \
+        (7230932696630643.0 / 81129638414606681695789005144064.0),             \
+        (5156496123012671.0 / 4503599627370496.0),                             \
+        (1882730853645609.0 / 40564819207303340847894502572032.0),             \
+        (5184495387049181.0 / 4503599627370496.0),                             \
+        (5274578892941785.0 / 162259276829213363391578010288128.0),            \
+        (5212646684320641.0 / 4503599627370496.0),                             \
+        (-3701081869616831.0 / 40564819207303340847894502572032.0),            \
+        (5240950840352481.0 / 4503599627370496.0),                             \
+        (6213240076702293.0 / 162259276829213363391578010288128.0),            \
+        (329338042822041.0 / 281474976710656.0),                               \
+        (-1199254551791273.0 / 649037107316853453566312041152512.0),           \
+        (5298021053235979.0 / 4503599627370496.0),                             \
+        (4506105016959445.0 / 81129638414606681695789005144064.0),             \
+        (2663394391824299.0 / 2251799813685248.0),                             \
+        (5007241548997507.0 / 324518553658426726783156020576256.0),            \
+        (5355712719992597.0 / 4503599627370496.0),                             \
+        (1615297279451321.0 / 40564819207303340847894502572032.0),             \
+        (5384793710450737.0 / 4503599627370496.0),                             \
+        (1872716932448543.0 / 40564819207303340847894502572032.0),             \
+        (5414032607811327.0 / 4503599627370496.0),                             \
+        (2695524731530451.0 / 40564819207303340847894502572032.0),             \
+        (5443430269493233.0 / 4503599627370496.0),                             \
+        (-962750398974149.0 / 20282409603651670423947251286016.0),             \
+        (5472987557571019.0 / 4503599627370496.0),                             \
+        (-3128614696613233.0 / 40564819207303340847894502572032.0),            \
+        (2751352669400115.0 / 2251799813685248.0),                             \
+        (-8608683140908221.0 / 81129638414606681695789005144064.0),            \
+        (5532584484642807.0 / 4503599627370496.0),                             \
+        (-6161898687034851.0 / 324518553658426726783156020576256.0),           \
+        (5562625871292645.0 / 4503599627370496.0),                             \
+        (-8725690847144387.0 / 81129638414606681695789005144064.0),            \
+        (2796415189850641.0 / 2251799813685248.0),                             \
+        (1889520471254959.0 / 40564819207303340847894502572032.0),             \
+        (1405799723900935.0 / 1125899906842624.0),                             \
+        (-6702777390004723.0 / 81129638414606681695789005144064.0),            \
+        (2826866154772245.0 / 2251799813685248.0),                             \
+        (-1088985258922575.0 / 162259276829213363391578010288128.0),           \
+        (5684431516903575.0 / 4503599627370496.0),                             \
+        (-5004830420466073.0 / 162259276829213363391578010288128.0),           \
+        (5715297417922861.0 / 4503599627370496.0),                             \
+        (432896738261005.0 / 162259276829213363391578010288128.0),             \
+        (5746330917732439.0 / 4503599627370496.0),                             \
+        (4022176352191803.0 / 40564819207303340847894502572032.0),             \
+        (361095807898573.0 / 281474976710656.0),                               \
+        (347558340265519.0 / 20282409603651670423947251286016.0),              \
+        (2904452179421679.0 / 2251799813685248.0),                             \
+        (3630250137804587.0 / 40564819207303340847894502572032.0),             \
+        (5840446135085607.0 / 4503599627370496.0),                             \
+        (4118546547614065.0 / 162259276829213363391578010288128.0),            \
+        (5872159180053773.0 / 4503599627370496.0),                             \
+        (7015827944142899.0 / 81129638414606681695789005144064.0),             \
+        (5904044423720103.0 / 4503599627370496.0),                             \
+        (-5826354299361251.0 / 81129638414606681695789005144064.0),            \
+        (2968051400553249.0 / 2251799813685248.0),                             \
+        (-8856039654790127.0 / 162259276829213363391578010288128.0),           \
+        (2984167626155969.0 / 2251799813685248.0),                             \
+        (-4638556587900077.0 / 162259276829213363391578010288128.0),           \
+        (6000742722540047.0 / 4503599627370496.0),                             \
+        (-8277797574141339.0 / 162259276829213363391578010288128.0),           \
+        (3016663081063405.0 / 2251799813685248.0),                             \
+        (7242672089437101.0 / 81129638414606681695789005144064.0),             \
+        (6066086526568445.0 / 4503599627370496.0),                             \
+        (653918089724861.0 / 20282409603651670423947251286016.0),              \
+        (6099024776549417.0 / 4503599627370496.0),                             \
+        (6247751575029677.0 / 81129638414606681695789005144064.0),             \
+        (6132141877970615.0 / 4503599627370496.0),                             \
+        (3981940427637585.0 / 2596148429267413814265248164610048.0),           \
+        (770679850247209.0 / 562949953421312.0),                               \
+        (3891706781004591.0 / 40564819207303340847894502572032.0),             \
+        (6198916524989449.0 / 4503599627370496.0),                             \
+        (-5596800259382855.0 / 81129638414606681695789005144064.0),            \
+        (6232576028726661.0 / 4503599627370496.0),                             \
+        (-5492891627598999.0 / 81129638414606681695789005144064.0),            \
+        (195825571882521.0 / 140737488355328.0),                               \
+        (-7960723856394547.0 / 162259276829213363391578010288128.0),           \
+        (6300444331942437.0 / 4503599627370496.0),                             \
+        (-1949994103228173.0 / 20282409603651670423947251286016.0),            \
+        (6334655121631603.0 / 4503599627370496.0),                             \
+        (4565920759889509.0 / 649037107316853453566312041152512.0),            \
+        (6369051672525773.0 / 4503599627370496.0),                             \
+        (-3921520054841899.0 / 40564819207303340847894502572032.0),            \
+        (6403634993289919.0 / 4503599627370496.0),                             \
+        (-5217553785752333.0 / 324518553658426726783156020576256.0),           \
+        (6438406098065967.0 / 4503599627370496.0),                             \
+        (-7808982437365931.0 / 649037107316853453566312041152512.0),           \
+        (1618341501625633.0 / 1125899906842624.0),                             \
+        (-3410717596387195.0 / 81129638414606681695789005144064.0),            \
+        (1627128935946205.0 / 1125899906842624.0),                             \
+        (-4906328082905753.0 / 162259276829213363391578010288128.0),           \
+        (1635964085166173.0 / 1125899906842624.0),                             \
+        (-1172312851838287.0 / 20282409603651670423947251286016.0),            \
+        (6579388833490889.0 / 4503599627370496.0),                             \
+        (-4543565760916947.0 / 81129638414606681695789005144064.0),            \
+        (6615114264239423.0 / 4503599627370496.0),                             \
+        (6868340068980269.0 / 81129638414606681695789005144064.0),             \
+        (6651033680544135.0 / 4503599627370496.0),                             \
+        (-5653104372783407.0 / 162259276829213363391578010288128.0),           \
+        (3343574067863705.0 / 2251799813685248.0),                             \
+        (4372922706372331.0 / 40564819207303340847894502572032.0),             \
+        (3361729344415537.0 / 2251799813685248.0),                             \
+        (2302932960328895.0 / 162259276829213363391578010288128.0),            \
+        (3379983202323721.0 / 2251799813685248.0),                             \
+        (-5203466199602987.0 / 81129638414606681695789005144064.0),            \
+        (6796672353750547.0 / 4503599627370496.0),                             \
+        (-1030808165066331.0 / 10141204801825835211973625643008.0),            \
+        (6833577612527533.0 / 4503599627370496.0),                             \
+        (-6991264604081659.0 / 162259276829213363391578010288128.0),           \
+        (6870683263210221.0 / 4503599627370496.0),                             \
+        (-4472247673322333.0 / 40564819207303340847894502572032.0),            \
+        (6907990393906841.0 / 4503599627370496.0),                             \
+        (3600219723684509.0 / 40564819207303340847894502572032.0),             \
+        (6945500098633947.0 / 4503599627370496.0),                             \
+        (6449672235666215.0 / 81129638414606681695789005144064.0),             \
+        (1745803369337123.0 / 1125899906842624.0),                             \
+        (-2369100092600789.0 / 162259276829213363391578010288128.0),           \
+        (3510565817990043.0 / 2251799813685248.0),                             \
+        (1533839805048283.0 / 40564819207303340847894502572032.0),             \
+        (3529627843231715.0 / 2251799813685248.0),                             \
+        (-2099647570381129.0 / 20282409603651670423947251286016.0),            \
+        (7097586746770917.0 / 4503599627370496.0),                             \
+        (-1644808735907759.0 / 162259276829213363391578010288128.0),           \
+        (7136125940945423.0 / 4503599627370496.0),                             \
+        (-6275447963119673.0 / 324518553658426726783156020576256.0),           \
+        (448429649945829.0 / 281474976710656.0),                               \
+        (-8189555527878097.0 / 81129638414606681695789005144064.0),            \
+        (3606916628808669.0 / 2251799813685248.0),                             \
+        (-2456166318175001.0 / 40564819207303340847894502572032.0),            \
+        (453312728678153.0 / 281474976710656.0),                               \
+        (4008971198855519.0 / 162259276829213363391578010288128.0),            \
+        (7292386751488803.0 / 4503599627370496.0),                             \
+        (3397925735704119.0 / 162259276829213363391578010288128.0),            \
+        (7331983690425701.0 / 4503599627370496.0),                             \
+        (-5446196187157811.0 / 81129638414606681695789005144064.0),            \
+        (7371795636825395.0 / 4503599627370496.0),                             \
+        (6245623294342827.0 / 81129638414606681695789005144064.0),             \
+        (7411823758157149.0 / 4503599627370496.0),                             \
+        (-8214927500984801.0 / 81129638414606681695789005144064.0),            \
+        (931508653528683.0 / 562949953421312.0),                               \
+        (7823569799439303.0 / 81129638414606681695789005144064.0),             \
+        (7492533227224511.0 / 4503599627370496.0),                             \
+        (4779341073874225.0 / 81129638414606681695789005144064.0),             \
+        (3766608470866365.0 / 2251799813685248.0),                             \
+        (-555404982384333.0 / 10141204801825835211973625643008.0),             \
+        (7574121564787629.0 / 4503599627370496.0),                             \
+        (6651827183275137.0 / 81129638414606681695789005144064.0),             \
+        (3807624147950387.0 / 2251799813685248.0),                             \
+        (-7844969503056933.0 / 81129638414606681695789005144064.0),            \
+        (7656598341096955.0 / 4503599627370496.0),                             \
+        (-650961451260641.0 / 81129638414606681695789005144064.0),             \
+        (3849086456474781.0 / 2251799813685248.0),                             \
+        (-8006505089101283.0 / 81129638414606681695789005144064.0),            \
+        (7739973230616135.0 / 4503599627370496.0),                             \
+        (-6008072956062779.0 / 324518553658426726783156020576256.0),           \
+        (3891000259937061.0 / 2251799813685248.0),                             \
+        (-4361116355007639.0 / 40564819207303340847894502572032.0),            \
+        (3912128006578409.0 / 2251799813685248.0),                             \
+        (1283628798273441.0 / 40564819207303340847894502572032.0),             \
+        (7866740949589513.0 / 4503599627370496.0),                             \
+        (-8723294390557811.0 / 81129638414606681695789005144064.0),            \
+        (1977364143756455.0 / 1125899906842624.0),                             \
+        (4803102885562589.0 / 162259276829213363391578010288128.0),            \
+        (3976202071042109.0 / 2251799813685248.0),                             \
+        (3837965331718917.0 / 40564819207303340847894502572032.0),             \
+        (7995584910184779.0 / 4503599627370496.0),                             \
+        (5216418157575341.0 / 81129638414606681695789005144064.0),             \
+        (8039000145586101.0 / 4503599627370496.0),                             \
+        (1243749818570513.0 / 81129638414606681695789005144064.0),             \
+        (8082651121422441.0 / 4503599627370496.0),                             \
+        (5915148445895131.0 / 324518553658426726783156020576256.0),            \
+        (4063269558870525.0 / 2251799813685248.0),                             \
+        (-4200261820174009.0 / 81129638414606681695789005144064.0),            \
+        (2042666355384927.0 / 1125899906842624.0),                             \
+        (-2022061222289063.0 / 20282409603651670423947251286016.0),            \
+        (4107515663402233.0 / 2251799813685248.0),                             \
+        (-1030308668616879.0 / 10141204801825835211973625643008.0),            \
+        (8259638134547591.0 / 4503599627370496.0),                             \
+        (5327146039588615.0 / 162259276829213363391578010288128.0),            \
+        (1038060894105715.0 / 562949953421312.0),                              \
+        (-602361403653117.0 / 10141204801825835211973625643008.0),             \
+        (8349579696878213.0 / 4503599627370496.0),                             \
+        (3959892011834009.0 / 40564819207303340847894502572032.0),             \
+        (262341159030179.0 / 140737488355328.0),                               \
+        (5306618806802627.0 / 81129638414606681695789005144064.0),             \
+        (8440500658608991.0 / 4503599627370496.0),                             \
+        (-1241843954488023.0 / 20282409603651670423947251286016.0),            \
+        (8486331742527785.0 / 4503599627370496.0),                             \
+        (-3337102628293195.0 / 40564819207303340847894502572032.0),            \
+        (4266205842350075.0 / 2251799813685248.0),                             \
+        (5522337963822223.0 / 162259276829213363391578010288128.0),            \
+        (8578741836401795.0 / 4503599627370496.0),                             \
+        (2650447488108273.0 / 40564819207303340847894502572032.0),             \
+        (4312661778122861.0 / 2251799813685248.0),                             \
+        (-8615923835218067.0 / 81129638414606681695789005144064.0),            \
+        (8672158210222065.0 / 4503599627370496.0),                             \
+        (-2010993563822947.0 / 20282409603651670423947251286016.0),            \
+        (8719247171738151.0 / 4503599627370496.0),                             \
+        (523914210593643.0 / 5070602400912917605986812821504.0),               \
+        (8766591821658775.0 / 4503599627370496.0),                             \
+        (5525757804514883.0 / 81129638414606681695789005144064.0),             \
+        (137721774192917.0 / 70368744177664.0),                                \
+        (7269838508040587.0 / 81129638414606681695789005144064.0),             \
+        (2215513436925829.0 / 1125899906842624.0),                             \
+        (-4184231899241093.0 / 40564819207303340847894502572032.0),            \
+        (1113771727901211.0 / 562949953421312.0),                              \
+        (3276724935772559.0 / 81129638414606681695789005144064.0),             \
+        (8958555185967601.0 / 4503599627370496.0),                             \
+        (5325435552758247.0 / 649037107316853453566312041152512.0)             \
+    }
+
+#ifdef __cplusplus
+// dj_internal_math_d_exp_table
+//   struct: the table as a template's static member, so that every
+// translation unit shares one copy and a constant evaluation can read it.
+template <int Unused>
+struct dj_internal_math_d_exp_table
+{
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    static constexpr double value[256] = D_INTERNAL_MATH_D_EXP_TABLE;
+#else
+    static const double value[256];
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+};
+
+#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
+template <int Unused>
+const double dj_internal_math_d_exp_table<Unused>::value[256] =
+    D_INTERNAL_MATH_D_EXP_TABLE;
+#elif !D_ENV_LANG_IS_CPP17_OR_HIGHER
+template <int Unused>
+constexpr double dj_internal_math_d_exp_table<Unused>::value[256];
+#endif
+#endif  // __cplusplus
+
+// d_internal_math_d_exp_t
+//   the table's _index-th value: 2^(j/128)'s high part at 2 j, its low part
+// at 2 j + 1, each exact as written. In C a function's own table, so that a
+// translation unit that never reaches it holds none.
+D_MATH_FN double
+d_internal_math_d_exp_t(
+    int _index
+)
+{
+#ifdef __cplusplus
+    return dj_internal_math_d_exp_table<0>::value[_index];
+#else
+    static const double table[256] = D_INTERNAL_MATH_D_EXP_TABLE;
+
+    return table[_index];
+#endif  // __cplusplus
+}
+
+// d_internal_math_d_exp_pow2
+//   2^_e for _e from -1022 to 1023, exact: from its bits where the language
+// can read a double's -- a union in C, gcc's and clang's __builtin_bit_cast
+// in C++, a constant expression there -- and by float_order.h's squarings
+// elsewhere.
+D_MATH_FN double
+d_internal_math_d_exp_pow2(
+    int _e
+)
+{
+#if ( !defined(__cplusplus) && defined(UINT64_MAX) )
+    union
+    {
+        uint64_t bits;
+        double   value;
+    } v = { 0 };
+
+    v.bits = ((uint64_t)(_e + 1023)) << 52;
+
+    return v.value;
+#elif ( defined(__cplusplus) && defined(UINT64_MAX) &&                         \
+        defined(D_INTERNAL_MATH_HAS_BIT_CAST) )
+    return __builtin_bit_cast(double, ((uint64_t)(_e + 1023)) << 52);
+#else
+    return d_internal_math_d_pow2(_e);
+#endif
+}
+
+// dj_internal_math_d_exp_arg
+//   struct: x reduced: x = (128 e + j) ln2/128 + r1 + r2, but for less than
+// 2^-113.9; |r1| < 0.00271, |r2| < 2^-61.
+struct dj_internal_math_d_exp_arg
+{
+    double k;   // 128 e + j
+    int    e;
+    int    j;   // 0 to 127
+    double r1;
+    double r2;
+};
+
+// dj_internal_math_d_exp_result
+//   struct: a phase's answer: decided, and the correctly rounded value, or
+// not decided.
+struct dj_internal_math_d_exp_result
+{
+    bool   decided;
+    double value;
+};
+
+// d_internal_math_d_exp_arg_of
+//   _x, |_x| at most 745.14, reduced. k is the integer nearest t = x 128/ln2,
+// t rounded or not (fused), so |k| < 2^18; x - k L1 is exact, a multiple of
+// x's ulp below 2^-8 where k is not 0, and x where it is; k L1 and k L2 are
+// exact, L1 and L2 of 35 bits; so x - k L1 - k L2 is exactly r1 + r2's first
+// form, and k L3 adds below 2^-114.
+D_MATH_FN struct dj_internal_math_d_exp_arg
+d_internal_math_d_exp_arg_of(
+    double _x
+)
+{
+    // 128/ln2; ln2/128 = L1 + L2 + L3 but for 2^-137
+    const double invl  = (3248660424278399.0 / 17592186044416.0);
+    const double l1    = (23816355775.0 / 4398046511104.0);
+    const double l2    = (-30471825947.0 / 302231454903657293676544.0);
+    const double l3    =
+        (-7965308841953617.0 / 43556142965880123323311949751266331066368.0);
+    // 1.5 2^52: added and taken away, it rounds |t| < 2^51 to an integer
+    const double shift = 6755399441055744.0;
+    const double t     = _x * invl;
+    const double k     = (t + shift) - shift;
+    const int    ki    = (int)k;
+    const struct dj_math_dd r = d_math_dd_two_sum(_x - (k * l1), -(k * l2));
+    struct dj_internal_math_d_exp_arg result = { 0.0, 0, 0, 0.0, 0.0 };
+
+    result.k  = k;
+    result.j  = ((ki % 128) + 128) % 128;
+    result.e  = (ki - result.j) / 128;
+    result.r1 = r.high;
+    result.r2 = r.low - (k * l3);
+
+    return result;
+}
+
+// d_internal_math_d_exp_times_pow2
+//   _y 2^_e, exact, where the result is normal: _e from -1022 to 1024, 1024
+// only where _y < 1.
+D_MATH_FN double
+d_internal_math_d_exp_times_pow2(
+    double _y,
+    int    _e
+)
+{
+    return (_e > 1023)
+        ? ((_y * 2.0) * d_internal_math_d_exp_pow2(_e - 1))
+        : (_y * d_internal_math_d_exp_pow2(_e));
+}
+
+// d_internal_math_d_exp_side
+//   where _d lies against -1/2 and 1/2: -1 below, 1 above, 0 between, 2 at
+// either.
+D_MATH_FN int
+d_internal_math_d_exp_side(
+    double _d
+)
+{
+    if ( (_d == 0.5) || (_d == -0.5) )
+    {
+        return 2;
+    }
+
+    return (_d > 0.5) ? 1 : ((_d < -0.5) ? -1 : 0);
+}
+
+// d_internal_math_d_exp_subnormal
+//   (_yh + _yl) 2^_e rounded to a multiple of the least subnormal, 2^-1074,
+// where that is the rounding -- the result below 2^-1021 -- and the exact
+// value is within _err of _yh + _yl, |_yl| < |_yh|: decided where both ends
+// of the interval round alike. The pair is first normalized, exactly, by
+// Fast2Sum; z = y 2^(e + 1074), below 2^52, is scaled exactly; n0, the
+// integer nearest zh, is exact by the shift, and zh - n0 by Sterbenz's
+// lemma.
+D_MATH_FN struct dj_internal_math_d_exp_result
+d_internal_math_d_exp_subnormal(
+    double _yh,
+    double _yl,
+    double _err,
+    int    _e
+)
+{
+    // 2^52
+    const double shift = 4503599627370496.0;
+    // 2^-1074, the least subnormal, as 2^-1022 2^-52
+    const double least = d_internal_math_d_exp_pow2(-1022) *
+                         (1.0 / 4503599627370496.0);
+    const double scale = d_internal_math_d_exp_pow2(_e + 1074);
+    const struct dj_math_dd y = d_math_dd_fast_two_sum(_yh, _yl);
+    const double zh    = y.high * scale;
+    const double zl    = y.low * scale;
+    const double ez    = _err * scale;
+    const double n0    = (zh + shift) - shift;
+    const double d0    = zh - n0;
+    const int    lo    = d_internal_math_d_exp_side(d0 + (zl - ez));
+    const int    hi    = d_internal_math_d_exp_side(d0 + (zl + ez));
+    struct dj_internal_math_d_exp_result result = { false, 0.0 };
+
+    if ( (lo == hi) && (lo != 2) )
+    {
+        result.decided = true;
+        result.value   = (n0 + (double)lo) * least;
+    }
+
+    return result;
+}
+
+// d_internal_math_d_exp_decide
+//   (_yh + _yl) 2^_e rounded once, where the exact value is within _err of
+// _yh + _yl, _yh in [0.99, 2.01]: decided where both ends of the interval
+// round alike, in the normal range directly and below it by
+// d_internal_math_d_exp_sub.
+D_MATH_FN struct dj_internal_math_d_exp_result
+d_internal_math_d_exp_decide(
+    double _yh,
+    double _yl,
+    double _err,
+    int    _e
+)
+{
+    struct dj_internal_math_d_exp_result result = { false, 0.0 };
+    const double low  = _yh + (_yl - _err);
+    const double high = _yh + (_yl + _err);
+
+    // below 2^-1022, or within an ulp of it: the subnormals' rounding
+    if ( (_e < -1022) || ( (_e == -1022) && (low < 1.0) ) )
+    {
+        return d_internal_math_d_exp_subnormal(_yh, _yl, _err, _e);
+    }
+
+    if (low == high)
+    {
+        result.decided = true;
+        result.value   = d_internal_math_d_exp_times_pow2(low, _e);
+    }
+
+    return result;
+}
+
+// d_internal_math_d_exp_phase1
+//   exp(x) from _a in doubles: e^r1 - 1 - r1 = r1^2 q(r1), q of degree 3
+// (Sollya's), within 2^-63.66; T r1 split so that its high product, 26 bits
+// by 27, is exact; T + T r1 taken exactly by Fast2Sum. Within 2^-63.5 of
+// exp(x), relatively (proofs/exp_phase1.g): tested against 2^-63 times the
+// result's high part. Where k is 0, T is 1 and the bound shrinks with x^2:
+// 2^-46 z + 2^-52 (|lo| + |b|) (proofs/exp_phase1_n0.g).
+D_MATH_FN struct dj_internal_math_d_exp_result
+d_internal_math_d_exp_phase1(
+    struct dj_internal_math_d_exp_arg _a
+)
+{
+    const double c2  = (9007199254740823.0 / 18014398509481984.0);
+    const double c3  = (6004799503160805.0 / 36028797018963968.0);
+    const double c4  = (750600121701793.0 / 18014398509481984.0);
+    const double c5  = (300239992816461.0 / 36028797018963968.0);
+    // 1.5 2^17 and 1.5 2^27: they round r1 to a multiple of 2^-35, and a
+    // table value in [1, 2) to one of 2^-25
+    const double s35 = 196608.0;
+    const double s25 = 201326592.0;
+    const double thi = d_internal_math_d_exp_t(2 * _a.j);
+    const double tlo = d_internal_math_d_exp_t((2 * _a.j) + 1);
+    const double r1  = _a.r1;
+    const double z   = r1 * r1;
+    const double q   = c2 + (r1 * (c3 + (r1 * (c4 + (r1 * c5)))));
+    const double pq  = z * q;
+    const double rh  = (r1 + s35) - s35;
+    const double rl  = r1 - rh;
+    const double t1  = (thi + s25) - s25;
+    const double t2  = thi - t1;
+    const double b   = ( (t2 * rh) + (thi * ((rl + _a.r2) + pq)) ) +
+                       (tlo * (1.0 + r1));
+    const struct dj_math_dd h = d_math_dd_fast_two_sum(thi, t1 * rh);
+    const double lo  = h.low + b;
+    const double err = (_a.k != 0.0)
+        ? (h.high * (1.0 / 9223372036854775808.0))
+        : ( (z * (1.0 / 70368744177664.0)) +
+            ( (((lo < 0.0) ? -lo : lo) + ((b < 0.0) ? -b : b)) *
+              (1.0 / 4503599627370496.0) ) );
+
+    return d_internal_math_d_exp_decide(h.high, lo, err, _a.e);
+}
+
+// d_internal_math_d_exp_phase2
+//   exp(x) from _a in pairs of doubles: r = rH + rL exactly; e^rH - 1 by the
+// polynomial rH + rH^2/2 + rH^3 P(rH), P of degree 6 (Sollya's), within
+// 2^-110.3, its tail in doubles and its first coefficients as pairs; then
+// rL (1 + E) and T (1 + E). Within 2^-101.2 of exp(x), absolutely, the
+// result below 2.01 (proofs/exp_phase2.g): tested against 2^-100.
+D_MATH_FN struct dj_internal_math_d_exp_result
+d_internal_math_d_exp_phase2(
+    struct dj_internal_math_d_exp_arg _a
+)
+{
+    const struct dj_math_dd a3 = {
+        (6004799503160661.0 / 36028797018963968.0),
+        (3002399771267759.0 / 324518553658426726783156020576256.0)
+    };
+    const struct dj_math_dd a4 = {
+        (6004799503160661.0 / 144115188075855872.0),
+        (1501207559617521.0 / 649037107316853453566312041152512.0)
+    };
+    const double a5 = (4803839602528529.0 / 576460752303423488.0);
+    const double a6 = (6405119470037979.0 / 4611686018427387904.0);
+    const double a7 = (7320136538561653.0 / 36893488147419103232.0);
+    const double a8 = (7320137581072413.0 / 295147905179352825856.0);
+    const double a9 = (3249674713582607.0 / 1180591620717411303424.0);
+    const struct dj_math_dd t  = { d_internal_math_d_exp_t(2 * _a.j),
+                                   d_internal_math_d_exp_t((2 * _a.j) + 1) };
+    const struct dj_math_dd r  = d_math_dd_two_sum(_a.r1, _a.r2);
+    const double            rh = r.high;
+    const double            tt =
+        a5 + (rh * (a6 + (rh * (a7 + (rh * (a8 + (rh * a9)))))));
+    // P = a3 + rH (a4 + rH tt), then Q = 1/2 + rH P, E = rH + rH^2 Q
+    const struct dj_math_dd w  =
+        d_math_dd_add(a4, d_math_dd_mul_d(d_math_dd_of(tt), rh));
+    const struct dj_math_dd p  = d_math_dd_add(a3, d_math_dd_mul_d(w, rh));
+    const struct dj_math_dd q  = d_math_dd_add_d(d_math_dd_mul_d(p, rh), 0.5);
+    const struct dj_math_dd e  =
+        d_math_dd_add_d(d_math_dd_mul(d_math_dd_two_product(rh, rh), q), rh);
+    // + rL (1 + E), then T (1 + E)
+    const struct dj_math_dd e2 = d_math_dd_add_d(e, r.low + (r.low * e.high));
+    const struct dj_math_dd y  = d_math_dd_add(t, d_math_dd_mul(t, e2));
+
+    return d_internal_math_d_exp_decide(y.high, y.low,
+                                        1.0 / 1267650600228229401496703205376.0,
+                                        _a.e);
+}
+
+// The third phase computes in fixed point, exactly but for truncations it
+// counts: a value is the integer of 16 limbs of 16 bits, limb i of weight
+// 2^(16 i), times 2^-224 -- limbs of 16 bits, so that two multiply into an
+// unsigned long, which every language level has, and which holds a column's
+// sum. ln2/128 is held to 240 bits, 2^(j/128) to 224, as digits (below);
+// x - k ln2/128 is then within 3.1 units of 2^-224 of r, e^r's series is
+// summed until its terms vanish, each truncation counted, and the table
+// value multiplies it: within 51.4 units of 2^-224 of the exact value, on
+// either side, which is less than 2^-218.3 of it (proofs/exp_phase3.py).
+// That is far below the 2^-110.6 by which the hardest known argument's
+// exponential misses a rounding boundary, relatively, so the computed value
+// rounds as the exact one does.
+
+// D_INTERNAL_MATH_D_EXP_DIGITS_A, D_INTERNAL_MATH_D_EXP_DIGITS_B
+//   the third phase's digits, in hexadecimal: ln2/128 times 2^240, rounded
+// down, in 60 digits, then for j from 0 to 127 2^(j/128) times 2^224, rounded
+// down, in 57 digits each; the first 3,708 digits, to j = 63, in the first
+// literal, the rest in the second, each within C99's 4,095 characters. String
+// literals, as elementary.h's digits of 2/pi are, read only by the third
+// phase.
+#define D_INTERNAL_MATH_D_EXP_DIGITS_A                                         \
+    "0162e42fefa39ef35793c7673007e5ed5e81e6864ce5316c5b141a2eb"                \
+    "717100000000000000000000000000000000000000000000000000000"                \
+    "00010163da9fb33356d84a66ae336dcdfa4003ec04c360be24040786a"                \
+    "b59102c9a3e778060ee6f7caca4f7a29bde93d70a2cabc5cb89ba100e"                \
+    "b58104315e86e7f84bd738f9a20da47e6ed040bb4bfc05af6455e9ba4"                \
+    "4d61059b0d31585743ae7c548eb68ca417fe53e3495f7df4baf84a05e"                \
+    "2a010706b29ddf6ddc6dc403a9d87b27ed07cb8b092ac75e311752c6a"                \
+    "ee610874518759bc808c35f25d9427fa2b041b2d6829d8993a0d00d7b"                \
+    "b5a109e3ecac6f3834521e060c584d6b74ba2e023da730e7fccb756bc"                \
+    "2d810b5586cf9890f6298b92b71842a98364291408b3ceb0a2a2ba856"                \
+    "6c510cc922b7247f7407b705b893dc5e8aac564e6fe2ef1d431fd957e"                \
+    "92810e3ec32d3d1a2020742e4f8af6a552ac4b358b1129e9f966a4534"                \
+    "e6a10fb66affed31af232091dd8a1426514e0b627bda694a400a26981"                \
+    "d52111301d0125b50a4ebbf1aed9318ceac5cc47ab166ee574271786b"                \
+    "0ff112abdc06c31cbfb92bad324d68e2f7270bdf7cedf94eb1cb8183a"                \
+    "d1911429aaea92ddfb34101943b2586d01844b389bea7aedd221d3865"                \
+    "a45115a98c8a58e512480d573dd5613bf92a2b618ee31b376c2689289"                \
+    "4bd1172b83c7d517adcdf7c8c50eb14a792035509ff7d758693f23c26"                \
+    "bdd118af9388c8de9bbbf70b9a3c2505c97c0102e5f1211941d284089"                \
+    "71211a35beb6fcb753cb698f692d1c835a6c30724d5cfae31b84e4942"                \
+    "cc611bbe084045cd39ab1e72b4427e35f9acb57e473915519a1b448ba"                \
+    "60211d4873168b9aa7805b8028990f07a98b42206e46166cf051d7219"                \
+    "c6e11ed5022fcd91cb8819ff61121d1e504d36c47474c9b7de60669b4"                \
+    "4a612063b88628cd63b8eeb02950929d0fc487d21c2b84004264de731"                \
+    "bfc121f49917ddc962552fd29294bdb4b61ea62477caa1dce823b9c9e"                \
+    "3c612387a6e75623866c1fadb1c15cb593b0328566902df69e4de2407"                \
+    "95e1251ce4fb2a63f3582ab7de9e94811a9c8afdcf796934bc652d29e"                \
+    "966126b4565e27cdd257a673281d3b249dce4e9186ddd5ff44e6b07d5"                \
+    "6d01284dfe1f5638096cf15cf03ca0967fdaa2e52d7c8106f2e262ccf"                \
+    "b0d129e9df51fdee12c25d15f5a24aa3bca890ac08d203fed80a06bf6"                \
+    "c6912b87fd0dad98ffddea46538fcab88442fdc3cb6de4519165ed64a"                \
+    "96512d285a6e4030b40091d536d075384589c1cd1b3e4018a6b134456"                \
+    "2a412ecafa93e2f5611ca0f45d523833af611bdcda253c554cf277fdb"                \
+    "5741306fe0a31b7152de8d5a46305c85edecbc27343629f502f1af16c"                \
+    "b97132170fc4cd8313539cf1c3008f86dde3220ae17a005b6412be142"                \
+    "3ac133c08b26416ff4c9c8610d96696bf95d1593039539d94d662ac1c"                \
+    "a341356c55f929ff0c94623476373af38d6d8d6f9506c9bbc93cbbf33"                \
+    "a4b1371a7373aa9caa7145502f4547987e3e12516bf9c699be432ed3b"                \
+    "361138cae6d05d86585a9cb0d9bed0c853bd30a02790931eb2e8f0554"                \
+    "45113a7db34e59ff6ea1bc9299e0a1d336163fe2f852ceeb1340674df"                \
+    "c5a13c32dc313a8e484001f228b58f3775e06ab66353001fae9fc9ece"                \
+    "bce13dea64c12342235b41223e13d773fba2cb82b8244267c54443f2e"                \
+    "ffc13fa4504ac801ba0bf701aa41832fb8c1c8dbdff2c49909e6c60fc"                \
+    "67914160a21f72e29f84325b8f3db61fb352f0540e6ba05634413e67e"                \
+    "f781431f5d950a896dc704439410ccec81e24b0caff7581ef4127f719"                \
+    "28e144e086061892d03136f409df019fbd4f3b48709b78591d5cb4f4f"                \
+    "324146a41ed1d005772512f459229d97df404ff21f39c1b594d3a7cd7"                \
+    "1651486a2b5c13cd013c1a3b69062f03c3dd75ce8757f780e6ec98e48"                \
+    "30b14a32af0d7d3de672d8bcf46f9586461db1d878b1d148bd3ccb9ef"                \
+    "8aa14bfdad5362a271d4397afec42e20e0363ba2e159c579f82e4b139"                \
+    "31514dcb299fddd0d63b36ef1a9e0cc484b25a5566d0bd5f58ad23585"                \
+    "82c14f9b2769d2ca6ad33d8b69aa073ee55e028497a329a7333dba612"                \
+    "7341516daa2cf6641c112f52c84d822190e718226177d7608d2003889"                \
+    "ba115342b569d4f81df0a83c49d86a63f4e672a3e429805b049464b93"                \
+    "c441551a4ca5d920ec52ec6202434ca672645dc6c124d6619a8757394"                \
+    "d44156f4736b527da66ecb004764eb3c00f2f5ab3d801d7cc7272ce6a"                \
+    "fad158d12d497c7fd252bc2b7343bcf2ec936a970d9cc266f0072f541"                \
+    "24f15ab07dd48542958c93015191eb345d88d7c81280e069fbdb62cbe"                \
+    "28315c9268a5946b701c4b1b816986a203d84e6a4a92f179e718888a6"                \
+    "ae115e76f15ad21486e9be4c20399766a06548a05829e853bdb2b518e"                \
+    "77d1605e1b976dc08b076f592a486e3b34ead1b4769df867b9c89ccf2"                \
+    "b6716247eb03a5584b1f0fa06fd2da42bb1ceaf9f732275b8aef2f9db"                \
+    "12116434634ccc31fc76f8714c4ed9a4e41000307103a18cf7a6e07b2"                \
+    "ca5166238825522249127d9e29b8f314a337f4dc0a3adf1787ff743ca"                \
+    "99e168155d44ca973081c57227b9f32706bfe4e627d809a85dcc663c8"                \
+    "7fd"
+
+#define D_INTERNAL_MATH_D_EXP_DIGITS_B                                         \
+    "16a09e667f3bcc908b2fb1366ea957d3e3adec17512775099da2f590b"                \
+    "16c012750bdabeed76a99800f4f33fdeb8b0ecd831106f57b3cfe706b"                \
+    "16dfb23c651a2ef220e2cbe1bbaa834b3f11577ceefbe6c1c410a1cee"                \
+    "16ff7df9519483cf87e1b4f3e213bff9b702d5aa477c12523cdee9805"                \
+    "171f75e8ec5f73dd2370f2ef0acd6cb434b562d9e8a20adda645af127"                \
+    "173f9a48a58173bd5c9a4e68ab1182ae217f3a7681759553e8436dd3b"                \
+    "175feb564267c8bf6e9aa33a48b27071805e61a17b954a2dad86e74eb"                \
+    "1780694fde5d3f619ae0280858b2bb2bdcf86cd08e35fb04c0eea3366"                \
+    "17a11473eb0186d7d51023f6cda1f5ef42b66977960531e821b3497c0"                \
+    "17c1ed0130c1327c4933445937562b2dc933d44fc828efd4c9c212969"                \
+    "17e2f336cf4e62105d02ba15797e170a1427f8fcdf5f3906107d52aeb"                \
+    "180427543e1a11b60de67649a354ea706b8e4d8b718a672bf7c4a3ecb"                \
+    "182589994cce128acf88afab34a010f6ad65cbbac0f532d39bdfdfdce"                \
+    "18471a4623c7acce52f6b97c64095370f51f48817914dd7866483603e"                \
+    "1868d99b4492ec80e41d90ac251707484d73f136fb5779656b6e31ac2"                \
+    "188ac7d98a669966530bcdf2d4e9d61283ef385de170ab20f965a786b"                \
+    "18ace5422aa0db5ba7c55a192c9bb3e6ed61f2733304a346d8ed0c00d"                \
+    "18cf3216b5448bef2aa1cd161c55d84a9848f8c453b3ca8c946225dcb"                \
+    "18f1ae991577362b982745c72ed804efc9b4ae1458ae946099d4ca449"                \
+    "19145b0b91ffc588a61b469f6b70e01c2a90229a4c4309ea718f476ae"                \
+    "193737b0cdc5e4f4501c3f2540a22d2fc4af581b63e8326efe9ba047f"                \
+    "195a44cbc8520ee9b483695a0fc6f7c7d61b2b3a22a0eab2cad6acf9b"                \
+    "197d829fde4e4f8b9e920f91e8bd7edb9d7144b6f6818084cc7354df2"                \
+    "19a0f170ca07b9ba3109b8c46737beb19e1eada6825d3c557426b3367"                \
+    "19c49182a3f0901c7c46b071f2be58ddade50c217186c90b4577a7315"                \
+    "19e86319e323231824ca78e64c6e010f92c082bbadfaf605cfd38ba80"                \
+    "1a0c667b5de564b29ada8b8cab349aa0422a8da7d4512edac54664d35"                \
+    "1a309bec4a2d3358c171f770daad547fa22c26d168ea762d8547fbbf2"                \
+    "1a5503b23e255c8b424491caf87bc8050a405381703ef7caff4ecc606"                \
+    "1a799e1330b3586f2dfb2b158f1a98796ce8908ae852236ca93d3b82a"                \
+    "1a9e6b5579fdbf43eb243bdff4c4c58b571cf465caf07b4b9f4c50012"                \
+    "1ac36bbfd3f379c0db966a31265fc73e480712d20f8597a8e7aa74375"                \
+    "1ae89f995ad3ad5e8734d1773205a7fbc3ae675ea440b162d6b8275b4"                \
+    "1b0e07298db66590842acdfc6f6ca0e5dcae2aafffa7a0554cb594d4b"                \
+    "1b33a2b84f15faf6bfd0e7bd947c2575781dbb49b1237c87b6e19f763"                \
+    "1b59728de559398e388111164873c7171fefc410416be0a6525109582"                \
+    "1b7f76f2fb5e46eaa7b081ab53c5354c8903c356e4b625aacc2761a3b"                \
+    "1ba5b030a10649840cb3c6af5b47f297203757e1cc6eadc8bace973ba"                \
+    "1bcc1e904bc1d2247ba0f45b3d08cd0b20287092bd59be4ad98492190"                \
+    "1bf2c25bd71e088408d702518e3449fa073b356766dfb568ff3dfd50d"                \
+    "1c199bdd85529c2220cb12a091ba6679444964a366612400439733a7e"                \
+    "1c40ab5fffd07a6d14df820f1828a5366fd387a7bdd54cdf73027f93c"                \
+    "1c67f12e57d14b4a2137fd20f2b301dd9e6b151a6d1f9d5d5f51f9765"                \
+    "1c8f6d9406e7b511acbc48805c442ddb55820171f319d9e5076a8ecaa"                \
+    "1cb720dcef90691503cbd1e949db761d9559ac0cb6dd3ed599df9ab6c"                \
+    "1cdf0b555dc3f9c44f8958fac51be515f8c58bdfb6f5740a3a3855218"                \
+    "1d072d4a07897b8d0f22f21a158e18fbbfc625f09f4cca4087438c8e6"                \
+    "1d2f87080d89f18ade123989ea2025b4c56553f5cdee4c924728e9e8a"                \
+    "1d5818dcfba48725da05aeb66e0dca9f589f559c0876ff2382fb1a3d1"                \
+    "1d80e316c98397bb84f9d048805f84bec614de269900ddf98d2838d7c"                \
+    "1da9e603db3285708c01a5b6d4c97f6246f0ec614ec95c99391cf92b6"                \
+    "1dd321f301b4604b695de3c0630a393215299e30d4fb73503c348bac7"                \
+    "1dfc97337b9b5eb968cac39ed291b7225a944efd5bb5524b927250e10"                \
+    "1e264614f5a128a12761fa17ada6467e77f73bf65e04c95e29c875275"                \
+    "1e502ee78b3ff6273d130153991e8f49659e1693be17ae1d2f88761d4"                \
+    "1e7a51fbc74c834b548b28323786758a84f4956354634a416cd919f26"                \
+    "1ea4afa2a490d9858f73a18f5db301f86dea20610ceee13eb7bb00652"                \
+    "1ecf482d8e67f08db0312fb949cef462010bb4bc4ce72a900df40e8ec"                \
+    "1efa1bee615a27771fd21a92dac1f6dd5d229ff68e46f27e3decf2f6b"                \
+    "1f252b376bba974e8696fc36390d4c6ad5476b5162f40e1d9a8822326"                \
+    "1f50765b6e4540674f84b762862baff99000dfc4352ba29b890896537"                \
+    "1f7bfdad9cbe138913b4bfe72bd95c5ce7280fa4d2344a3f561603c19"                \
+    "1fa7c1819e90d82e90a7e74b263c1dc060c36f7650b4c0f233a450b6c"                \
+    "1fd3c22b8f71f10975ba4b32bcf3a5e12d269d8ad7c1a4a8874ea45db"
+
+// dj_internal_math_d_exp_fixed
+//   struct: a nonnegative value, the sum of limb[i] 2^(16 i - 224), each
+// limb below 2^16.
+struct dj_internal_math_d_exp_fixed
+{
+    unsigned long limb[16];
+};
+
+// d_internal_math_d_exp_digit
+//   the value of the hexadecimal digit at _at of the third phase's digits.
+D_MATH_FN unsigned long
+d_internal_math_d_exp_digit(
+    int _at
+)
+{
+    const char c = (_at < 3708) ? D_INTERNAL_MATH_D_EXP_DIGITS_A[_at]
+                                : D_INTERNAL_MATH_D_EXP_DIGITS_B[_at - 3708];
+
+    return (c <= '9') ? (unsigned long)(c - '0')
+                      : (unsigned long)((c - 'a') + 10);
+}
+
+// d_internal_math_d_exp_fixed_read
+//   the value of _count digits at _at, the last of weight 2^(16 _shift):
+// limbs from the last digit up, each of 4 digits.
+D_MATH_FN struct dj_internal_math_d_exp_fixed
+d_internal_math_d_exp_fixed_read(
+    int _at,
+    int _count,
+    int _shift
+)
+{
+    struct dj_internal_math_d_exp_fixed result = { { 0 } };
+    int i = 0;
+
+    for (i = 0; i < _count; ++i)
+    {
+        const int place = (_count - 1) - i;
+        const int limb  = _shift + (place / 4);
+
+        result.limb[limb] |= d_internal_math_d_exp_digit(_at + i)
+                             << (4 * (place % 4));
+    }
+
+    return result;
+}
+
+// d_internal_math_d_exp_fixed_carry
+//   _limbs carried, from the first, so that each but the last is below 2^16.
+D_MATH_FN void
+d_internal_math_d_exp_fixed_carry(
+    unsigned long* _limbs,
+    int            _count
+)
+{
+    unsigned long carry = 0;
+    int           i     = 0;
+
+    for (i = 0; i < _count; ++i)
+    {
+        const unsigned long v = _limbs[i] + carry;
+
+        _limbs[i] = v & 0xFFFFul;
+        carry     = v >> 16;
+    }
+
+    return;
+}
+
+// d_internal_math_d_exp_fixed_mul
+//   _a _b, the product's lowest 224 bits dropped: truncated, below the exact
+// product by less than 2^-224.
+D_MATH_FN struct dj_internal_math_d_exp_fixed
+d_internal_math_d_exp_fixed_mul(
+    struct dj_internal_math_d_exp_fixed _a,
+    struct dj_internal_math_d_exp_fixed _b
+)
+{
+    struct dj_internal_math_d_exp_fixed result = { { 0 } };
+    unsigned long column[33] = { 0 };
+    int i = 0;
+    int j = 0;
+
+    for (i = 0; i < 16; ++i)
+    {
+        for (j = 0; j < 16; ++j)
+        {
+            const unsigned long p = _a.limb[i] * _b.limb[j];
+
+            column[i + j]     += p & 0xFFFFul;
+            column[i + j + 1] += p >> 16;
+        }
+
+        d_internal_math_d_exp_fixed_carry(column, 33);
+    }
+
+    for (i = 0; i < 16; ++i)
+    {
+        result.limb[i] = column[i + 14];
+    }
+
+    return result;
+}
+
+// d_internal_math_d_exp_fixed_div
+//   _a / _k, truncated, _k small.
+D_MATH_FN struct dj_internal_math_d_exp_fixed
+d_internal_math_d_exp_fixed_div(
+    struct dj_internal_math_d_exp_fixed _a,
+    unsigned long                       _k
+)
+{
+    struct dj_internal_math_d_exp_fixed result = { { 0 } };
+    unsigned long rest = 0;
+    int           i    = 0;
+
+    for (i = 15; i >= 0; --i)
+    {
+        const unsigned long v = (rest << 16) | _a.limb[i];
+
+        result.limb[i] = v / _k;
+        rest           = v % _k;
+    }
+
+    return result;
+}
+
+// d_internal_math_d_exp_fixed_add
+//   _a + _b, exactly.
+D_MATH_FN struct dj_internal_math_d_exp_fixed
+d_internal_math_d_exp_fixed_add(
+    struct dj_internal_math_d_exp_fixed _a,
+    struct dj_internal_math_d_exp_fixed _b
+)
+{
+    int i = 0;
+
+    for (i = 0; i < 16; ++i)
+    {
+        _a.limb[i] += _b.limb[i];
+    }
+
+    d_internal_math_d_exp_fixed_carry(_a.limb, 16);
+
+    return _a;
+}
+
+// d_internal_math_d_exp_fixed_sub
+//   _a - _b, exactly, _a >= _b.
+D_MATH_FN struct dj_internal_math_d_exp_fixed
+d_internal_math_d_exp_fixed_sub(
+    struct dj_internal_math_d_exp_fixed _a,
+    struct dj_internal_math_d_exp_fixed _b
+)
+{
+    unsigned long borrow = 0;
+    int           i      = 0;
+
+    for (i = 0; i < 16; ++i)
+    {
+        const unsigned long need = _b.limb[i] + borrow;
+
+        borrow     = (_a.limb[i] < need) ? 1ul : 0ul;
+        _a.limb[i] = (_a.limb[i] + (borrow << 16)) - need;
+    }
+
+    return _a;
+}
+
+// d_internal_math_d_exp_fixed_less
+//   whether _a < _b.
+D_MATH_FN bool
+d_internal_math_d_exp_fixed_less(
+    struct dj_internal_math_d_exp_fixed _a,
+    struct dj_internal_math_d_exp_fixed _b
+)
+{
+    int i = 0;
+
+    for (i = 15; i >= 0; --i)
+    {
+        if (_a.limb[i] != _b.limb[i])
+        {
+            return _a.limb[i] < _b.limb[i];
+        }
+    }
+
+    return false;
+}
+
+// d_internal_math_d_exp_fixed_of
+//   |_x| times 2^224, exactly, for 2^-105 <= |_x| < 2^16, whose bits all
+// lie between 2^-224 and 2^16: peeled 16 at a time from the top, each
+// division by a power of 2 exact.
+D_MATH_FN struct dj_internal_math_d_exp_fixed
+d_internal_math_d_exp_fixed_of(
+    double _x
+)
+{
+    struct dj_internal_math_d_exp_fixed result = { { 0 } };
+    double rest = (_x < 0.0) ? -_x : _x;
+    int    i    = 0;
+
+    for (i = 15; i >= 0; --i)
+    {
+        // limb i's weight, 2^(16 i - 224), in two steps within the normal
+        // range
+        const double weight = d_internal_math_d_pow2((16 * i) - 112) *
+                              d_internal_math_d_pow2(-112);
+        const unsigned long digit = (unsigned long)(rest / weight);
+
+        result.limb[i] = digit;
+        rest          -= (double)digit * weight;
+    }
+
+    return result;
+}
+
+// d_internal_math_d_exp_fixed_bit
+//   bit _k of _a, 0 below bit 0.
+D_MATH_FN unsigned long
+d_internal_math_d_exp_fixed_bit(
+    struct dj_internal_math_d_exp_fixed _a,
+    int                                 _k
+)
+{
+    return (_k < 0) ? 0ul : ((_a.limb[_k / 16] >> (_k % 16)) & 1ul);
+}
+
+// d_internal_math_d_exp_fixed_bits
+//   the number of bits of _a.
+D_MATH_FN int
+d_internal_math_d_exp_fixed_bits(
+    struct dj_internal_math_d_exp_fixed _a
+)
+{
+    int i = 0;
+    int b = 0;
+
+    for (i = 15; i >= 0; --i)
+    {
+        if (_a.limb[i] != 0)
+        {
+            while ((_a.limb[i] >> b) != 0)
+            {
+                ++b;
+            }
+
+            return (16 * i) + b;
+        }
+    }
+
+    return 0;
+}
+
+// d_internal_math_d_exp_fixed_round
+//   _a rounded to the nearest multiple of 2^_s, ties to even, as that
+// multiple's integer, below 2^54: a double, exactly.
+D_MATH_FN double
+d_internal_math_d_exp_fixed_round(
+    struct dj_internal_math_d_exp_fixed _a,
+    int                                 _s
+)
+{
+    double m      = 0.0;
+    bool   sticky = false;
+    int    k      = 0;
+
+    for (k = d_internal_math_d_exp_fixed_bits(_a) - 1; k >= _s; --k)
+    {
+        m = (2.0 * m) + (double)d_internal_math_d_exp_fixed_bit(_a, k);
+    }
+
+    for (k = 0; k < (_s - 1); ++k)
+    {
+        sticky = sticky || (d_internal_math_d_exp_fixed_bit(_a, k) != 0);
+    }
+
+    if ( (_s > 0) &&
+         (d_internal_math_d_exp_fixed_bit(_a, _s - 1) != 0) &&
+         ( sticky || (d_internal_math_d_exp_fixed_bit(_a, _s) != 0) ) )
+    {
+        m += 1.0;
+    }
+
+    return m;
+}
+
+// d_internal_math_d_exp_series
+//   e^r times 2^224, r = _r 2^-224 of sign _negative, |r| < 2^-8: the series
+// summed until a term is 0, its positive and negative terms apart, each
+// term truncated, below its exact value by at most 1.5 units, and the terms
+// dropped below 1.007 units in all (proofs/exp_phase3.py).
+D_MATH_FN struct dj_internal_math_d_exp_fixed
+d_internal_math_d_exp_series(
+    struct dj_internal_math_d_exp_fixed _r,
+    bool                                _negative
+)
+{
+    struct dj_internal_math_d_exp_fixed term =
+        d_internal_math_d_exp_fixed_of(1.0);
+    struct dj_internal_math_d_exp_fixed up   = term;
+    struct dj_internal_math_d_exp_fixed down = { { 0 } };
+    unsigned long k = 1;
+
+    for (k = 1; k < 64; ++k)
+    {
+        term = d_internal_math_d_exp_fixed_div(
+            d_internal_math_d_exp_fixed_mul(term, _r), k);
+
+        if (d_internal_math_d_exp_fixed_bits(term) == 0)
+        {
+            break;
+        }
+
+        if (_negative && ((k % 2) == 1))
+        {
+            down = d_internal_math_d_exp_fixed_add(down, term);
+        }
+        else
+        {
+            up = d_internal_math_d_exp_fixed_add(up, term);
+        }
+    }
+
+    return d_internal_math_d_exp_fixed_sub(up, down);
+}
+
+// d_internal_math_d_exp_ln2_times
+//   |_k| ln2/128 times 2^224, |_k| < 2^18: ln2/128's 240-bit digits times
+// |_k|, in two 16-bit parts, then 16 bits dropped; below the exact value by
+// less than 2^18 2^-240 + 2^-224.
+D_MATH_FN struct dj_internal_math_d_exp_fixed
+d_internal_math_d_exp_ln2_times(
+    double _k
+)
+{
+    const struct dj_internal_math_d_exp_fixed l =
+        d_internal_math_d_exp_fixed_read(0, 60, 0);
+    const unsigned long n  = (unsigned long)((_k < 0.0) ? -_k : _k);
+    const unsigned long nl = n & 0xFFFFul;
+    const unsigned long nh = n >> 16;
+    struct dj_internal_math_d_exp_fixed result = { { 0 } };
+    unsigned long column[18] = { 0 };
+    int i = 0;
+
+    for (i = 0; i < 16; ++i)
+    {
+        const unsigned long p = l.limb[i] * nl;
+        const unsigned long q = l.limb[i] * nh;
+
+        column[i]     += p & 0xFFFFul;
+        column[i + 1] += (p >> 16) + (q & 0xFFFFul);
+        column[i + 2] += q >> 16;
+        d_internal_math_d_exp_fixed_carry(column, 18);
+    }
+
+    for (i = 0; i < 16; ++i)
+    {
+        result.limb[i] = column[i + 1];
+    }
+
+    return result;
+}
+
+// d_internal_math_d_exp_phase3
+//   exp(x) from _x and _a in fixed point, correctly rounded: r = x - k ln2/128
+// from x exactly and k ln2/128 truncated, both of x's sign; e^r by its
+// series; times the table value, within 51.4 units of 2^-224 of the exact
+// value; then rounded at 53 bits, or at the least subnormal, as the exact
+// value is: no rounding boundary is known to lie so close (section 3.2's
+// note).
+D_MATH_FN double
+d_internal_math_d_exp_phase3(
+    double                            _x,
+    struct dj_internal_math_d_exp_arg _a
+)
+{
+    const struct dj_internal_math_d_exp_fixed x =
+        d_internal_math_d_exp_fixed_of(_x);
+    const struct dj_internal_math_d_exp_fixed c =
+        d_internal_math_d_exp_ln2_times(_a.k);
+    const bool below = d_internal_math_d_exp_fixed_less(x, c);
+    const struct dj_internal_math_d_exp_fixed r =
+        below ? d_internal_math_d_exp_fixed_sub(c, x)
+              : d_internal_math_d_exp_fixed_sub(x, c);
+    const struct dj_internal_math_d_exp_fixed s =
+        d_internal_math_d_exp_series(r, (_x < 0.0) != below);
+    const struct dj_internal_math_d_exp_fixed y =
+        d_internal_math_d_exp_fixed_mul(
+            d_internal_math_d_exp_fixed_read(60 + (57 * _a.j), 57, 0), s);
+    int place = d_internal_math_d_exp_fixed_bits(y) - 53;
+
+    // the least subnormal's place, where the result is below 2^-1022
+    if ( (_a.e + ((d_internal_math_d_exp_fixed_bits(y) - 1) - 224)) < -1022 )
+    {
+        place = 224 - 1074 - _a.e;
+    }
+
+    {
+        const double m = d_internal_math_d_exp_fixed_round(y, place);
+        // m 2^(place - 224 + e), in two steps within the normal range
+        const int e = (place - 224) + _a.e;
+
+        return (e < -1022)
+            ? ((m * d_internal_math_d_exp_pow2(e + 1022)) *
+               d_internal_math_d_exp_pow2(-1022))
+            : d_internal_math_d_exp_times_pow2(m, e);
+    }
+}
+
+// d_math_d_exp_c
+//   e^_x, correctly rounded; see above.
 D_MATH_FN double
 d_math_d_exp_c(
     double _x
 )
 {
-    const long double x = (long double)_x;
+    // the last argument whose exponential is finite, and the first whose
+    // exponential rounds to more than 0
+    const double last  = (6243314768165359.0 / 8796093022208.0);
+    const double first = -(6554261109157969.0 / 8796093022208.0);
+    // 2^-53: below it, and down to -2^-53, 1 + x is the correct rounding
+    const double tiny  = 1.0 / 9007199254740992.0;
 
-    // NaN is its own exponential
+    D_MATH_DBL_REFUSE(_x)
+
     if (_x != _x)
     {
         return _x;
     }
 
-    // well past the largest finite result, +inf among them, and well below
-    // half the least subnormal, -inf among them: the bounds keep k an int
-    if (x > ((long double)(DBL_MAX_EXP + 1) * 0.6932L))
+    if (_x > last)
     {
         return d_internal_math_d_infinity();
     }
 
-    if (x < ((long double)(DBL_MIN_EXP - DBL_MANT_DIG - 2) * 0.6932L))
+    if (_x < first)
     {
-        return (double)0;
+        return 0.0;
     }
 
-    return d_internal_math_d_exp_scale(d_internal_math_ld_exp_split_of(x));
+    if ( (_x < tiny) && (_x >= -tiny) )
+    {
+        return 1.0 + _x;
+    }
+
+    {
+        const struct dj_internal_math_d_exp_arg a =
+            d_internal_math_d_exp_arg_of(_x);
+        const struct dj_internal_math_d_exp_result one =
+            d_internal_math_d_exp_phase1(a);
+        struct dj_internal_math_d_exp_result two = { false, 0.0 };
+
+        if (one.decided)
+        {
+            return one.value;
+        }
+
+        two = d_internal_math_d_exp_phase2(a);
+
+        return two.decided ? two.value : d_internal_math_d_exp_phase3(_x, a);
+    }
 }
 
 D_MATH_FN_RT double
@@ -1552,10 +2749,22 @@ d_math_d_expm1_c(
         return (double)-1;
     }
 
-    // far above 0: the 1 lies below half of e^x's last place
+    // far above 0: the 1 lies below half of e^x's last place; where double
+    // is evaluated wider, the long double kernel's e^x, as exp_c refuses
+    // there (section 3.2): +inf well past the largest finite result, +inf
+    // among them, so that k fits an int, as chunk 50's exp_c had it
     if (x > ((long double)(LDBL_MANT_DIG + 2) * 0.6931L))
     {
+#if D_MATH_DBL_EVAL_WIDE
+        if (x > ((long double)(DBL_MAX_EXP + 1) * 0.6932L))
+        {
+            return d_internal_math_d_infinity();
+        }
+
+        return d_internal_math_d_exp_scale(d_internal_math_ld_exp_split_of(x));
+#else
         return d_math_d_exp_c(_x);
+#endif  // D_MATH_DBL_EVAL_WIDE
     }
 
     {
@@ -2423,5 +3632,10 @@ d_math_expm1(
 }
 
 #endif  // __cplusplus
+
+// the including file's own fusing again
+#if D_MATH_PRAGMA_NO_CONTRACT
+    #pragma float_control(pop)
+#endif  // D_MATH_PRAGMA_NO_CONTRACT
 
 #endif  // DJINTERP_C_MATH_EXPONENTIAL_H

@@ -80,11 +80,11 @@ step chained after it.
 
 ---
 
-## 1. Status (2026.11.15)
+## 1. Status (2026.11.16)
 
 | Part | Headers | Compiles from | Notes |
 |---|---|---|---|
-| C core (`c/modules/math/`) | 26 | C99; ISO strict C++98 as C++ | `_c` forms, the rational kernels, the value layer, decimal reading, literals and wide integers are constant expressions from C++14; the value layer takes boxed kinds through a table each one fills in (chunk 22), asks a kind whether each of its values is exact, and counts every box's holders atomically (chunk 40); signed integers of 256 bits (chunk 23), a boxed kind of the value since chunk 24; complex numbers, `cplx.h`, with C99's 22 functions, 18 of them in both forms, and `log1p`, `expm1`, `asinh`, `acosh` and `atanh` (chunk 37); a general matrix's eigenvalues and eigenvectors by LAPACK's path, complex matrices in `cmat.h`, the norms scaled and the solution of [A \| B] (chunk 38); `exp2`, `log2`, `log10`, `log1p` and `expm1` of a complex number, each one long double kernel in pairs, both forms rounded once from it, `exp2`'s angle reduced exactly for every y (chunk 42); whole powers z^n carried in long double pairs and rounded once, each part within its bound, both forms (chunk 45); quaternions, `quat.h`, accurate by default: the product, inverse and quotients by Dot2 in pairs, the rotation q v q^-1 of any q not 0 and its matrices, the scaled norm and normalization, Shepperd's method, two vectors' quaternion, nlerp, a shorter-arc slerp accurate near 0, and exp, log, sqrt and real powers as the complex functions in q's plane, each part rounded once; the former formulas the `_fast` forms (chunk 44); two inline numbers' arithmetic sent to their kind's at once, before the checks that cannot hold for them, the same results, a sum or product of two doubles three times sooner (chunk 47, S396); `dot`, `cross`, `sum`, the matrix products and the trace compensated by default, each a sum rounded once from Dot2's or Sum2's pair, and `solve` refined with extra precision as LAPACK's `dgerfsx` refines, each with a `_fast` form as written (chunk 49, S404 to S406); `project` and `reject` scaled at the range's ends, and complex matrices' products compensated, each part rounded once from Dot2's pair, and their `solve` refined, each with a `_fast` form as written (chunk 50, S409, S410) |
+| C core (`c/modules/math/`) | 28 | C99; ISO strict C++98 as C++ | `_c` forms, the rational kernels, the value layer, decimal reading, literals and wide integers are constant expressions from C++14; the value layer takes boxed kinds through a table each one fills in (chunk 22), asks a kind whether each of its values is exact, and counts every box's holders atomically (chunk 40); signed integers of 256 bits (chunk 23), a boxed kind of the value since chunk 24; complex numbers, `cplx.h`, with C99's 22 functions, 18 of them in both forms, and `log1p`, `expm1`, `asinh`, `acosh` and `atanh` (chunk 37); a general matrix's eigenvalues and eigenvectors by LAPACK's path, complex matrices in `cmat.h`, the norms scaled and the solution of [A \| B] (chunk 38); `exp2`, `log2`, `log10`, `log1p` and `expm1` of a complex number, each one long double kernel in pairs, both forms rounded once from it, `exp2`'s angle reduced exactly for every y (chunk 42); whole powers z^n carried in long double pairs and rounded once, each part within its bound, both forms (chunk 45); quaternions, `quat.h`, accurate by default: the product, inverse and quotients by Dot2 in pairs, the rotation q v q^-1 of any q not 0 and its matrices, the scaled norm and normalization, Shepperd's method, two vectors' quaternion, nlerp, a shorter-arc slerp accurate near 0, and exp, log, sqrt and real powers as the complex functions in q's plane, each part rounded once; the former formulas the `_fast` forms (chunk 44); two inline numbers' arithmetic sent to their kind's at once, before the checks that cannot hold for them, the same results, a sum or product of two doubles three times sooner (chunk 47, S396); `dot`, `cross`, `sum`, the matrix products and the trace compensated by default, each a sum rounded once from Dot2's or Sum2's pair, and `solve` refined with extra precision as LAPACK's `dgerfsx` refines, each with a `_fast` form as written (chunk 49, S404 to S406); `project` and `reject` scaled at the range's ends, and complex matrices' products compensated, each part rounded once from Dot2's pair, and their `solve` refined, each with a `_fast` form as written (chunk 50, S409, S410); the double `exp_c` correctly rounded in double arithmetic alone, by three phases with proven bounds, at 9.9 ns a call; `dd.h`, a public pair of doubles with proven bounds; every exact product immune to a compiler that fuses; the double family refused where double is evaluated wider; and `self_test.h` (chunk 51, S414 to S419) |
 | interval | 5 | ISO strict C++98 | |
 | linear algebra | 12 | ISO strict C++98 | general eigenvalues by balancing, the Hessenberg form and Francis's double-shift QR, eigenvectors from the Schur form (chunk 38, after chunk 13's), every eigenvalue and eigenvector as `math::complex<T>` (chunk 39); vectors and matrices of any number type through `number_traits`, of `math::value` exactly (chunk 26); `solve` for any number type but an integer one, products in their order, so quaternion matrices too (chunk 38); of `math::complex<T>`, their determinant, inverse and solution `cmat.h`'s bit for bit, tolerances of the real type (chunk 39); `vdot`, the conjugating inner product, the norms of the moduli, `frobenius_norm` and `is_unitary` of them, and the generic norms of the moduli, so of values holding complex numbers too (chunk 43); `dynamic_matrix` of every element type the fixed-size matrix takes, complex numbers and values among them (chunk 46); of `float`, `double` and `long double`, `dot`, `cross`, `sum`, products, the trace and `solve` the C core's compensated and refined kernels, `dot_fast` ... `solve_fast` the formulas as written (chunk 49); of `math::complex<T>` too, `cmat.h`'s bit for bit (chunk 50, S411) |
 | coordinate | 5 | ISO strict C++98 | points are `linalg::vector`s |
@@ -165,7 +165,14 @@ name for all three families (`d_math_sqrt_c(x)`).
 **One operation per statement.** Kernel bodies compute one operation per
 statement. This keeps x87 excess precision and FMA contraction from changing
 results, so every build in the matrix computes the same bits. Clang on the
-32-bit x87 is the known exception, and stays out of the matrix (S37).
+32-bit x87 is the known exception, and stays out of the matrix (S37). It is
+not enough where gcc fuses across statements, as it does in its GNU modes
+wherever the target has a fused multiply-add: there each exact product takes
+its low part by an explicit one, the bits Dekker's product gives elsewhere,
+and every generated header tells clang not to fuse (S414); the plain
+formulas, the `_fast` forms among them, follow the build (S415). The double
+family's correctly rounded functions refuse to compile where double is
+evaluated wider than double, as on a 32-bit x87 (S418).
 
 **Generated code.** Eighteen of the core headers are generated by
 `scripts/gen_c_math_float.py`, each from one template written out for each
@@ -887,6 +894,35 @@ computed in range wherever its operands lie, every bit in range kept
 complex dots exactly and the refined complex solve against 65 systems
 whose solutions `math_tests_csolve_refs.h` holds exactly rounded.
 
+**The double family: exp correctly rounded, pairs, a self-test.** Chunk 51
+(S414 to S423), the first of the double family's rewrite under the owner's
+rulings of 2026.11.16. `d_math_d_exp_c` is the exponential correctly rounded
+on every platform in double arithmetic alone, the lane's own algorithm in
+three phases, each bound proven with Sollya and Gappa from the code's own
+operations, fused or not: x reduced by ln2/128 against a table of 2^(j/128)
+in 128 pairs; phase 1 in doubles, which decides 99.86% of arguments; phase 2
+in pairs; phase 3 in fixed point, within 2^-218.3, for the arguments within
+2^-100 of a rounding boundary. It costs 9.9 ns a call over its range,
+against the C library's 6.7 and chunk 50's 266, and is a constant
+expression from C++14 through all three phases (S416); the plain
+`d_math_d_exp` stays the C library's until the owner's ruling 12. `dd.h`,
+new, is a public pair of doubles, `struct dj_math_dd`: the exact sum and
+product, then sums, products, quotients and a square root, each within a
+proven bound (S417). Every exact product in the core takes its low part by
+an explicit fused multiply-add where the target has one, the bits Dekker's
+product gives where it has none, so that a compiler that fuses cannot break
+it, and every generated header tells clang not to fuse (S414). Where double
+is evaluated wider than double, as on a 32-bit x87, a translation unit that
+calls the double family's correctly rounded functions does not compile, the
+message naming the flags, `-msse2 -mfpmath=sse` (S418). `self_test.h`, new,
+says at start-up whether the build keeps those guarantees,
+`d_math_self_test()`, 0 where it does, and whether it fuses the plain
+formulas, `d_math_formulas_fuse()` (S419): a program that needs the same
+bits everywhere calls the first once and stops where it is not 0.
+`t_exponential.c` checks `exp_c` against 2,398 references made by mpmath at
+400 bits, each phase alone at every one (S422), and `t_dd.c`, new, every
+pair operation exactly, in integers of 768 bits.
+
 **Decimal text.** `decimal.h` reads a decimal number of any length as the
 nearest `float`, `double` or `long double`, ties to even, whatever the
 rounding mode, and says when the result overflowed to an infinity or
@@ -936,7 +972,12 @@ inc/djinterp/c/modules/math/            the C core
   decimal.h            decimal text to float, double, long double (hand-written)
   literal.h            number literals read as exact values (hand-written)
   elementary.h         sqrt, sin, cos, asin, acos, exact helpers
-  exponential.h        exp, log, exp2, log2, log10, log1p, expm1
+  exponential.h        exp, log, exp2, log2, log10, log1p, expm1; the
+                       double exp_c correctly rounded in double arithmetic
+  dd.h                 pairs of doubles: exact sums and products, proven
+                       bounds (chunk 51)
+  self_test.h          the double family's start-up self-test; whether the
+                       build fuses (chunk 51)
   tangent.h            tan, atan, atan2
   hyperbolic.h         sinh, cosh, tanh, asinh, acosh, atanh
   power.h              cbrt, pow, hypot
@@ -1009,7 +1050,7 @@ tests/djinterp/c/modules/math/math_tests_*.h
 tests/djinterp/cpp/modules/math/**/t_*_face.cpp
                        face tests
 scripts/gen_c_math_float.py             the generator
-scripts/ci/check_math_tests.sh          the tests: smoke and full tiers
+scripts/ci/check_math_tests.sh          the tests: smoke, full and fused tiers
 scripts/ci/ladder.py                    the C and C++ ladders
                                         (+ ladder_known.txt, the known list)
 scripts/ci/check_style.py               the guides' measurable rules
@@ -1062,6 +1103,7 @@ the 32-bit libraries. From the repository root:
 bash scripts/ci/check_math_tests.sh               # the tests, smoke tier
 bash scripts/ci/check_math_tests.sh full          # the tests, full matrix
 bash scripts/ci/check_math_tests.sh full t_decomp # one test, every build
+bash scripts/ci/check_math_tests.sh fused         # as compilers that fuse
 python3 scripts/gen_c_math_float.py --check       # generated headers in step
 python3 scripts/ci/ladder.py --known scripts/ci/ladder_known.txt \
     inc/djinterp/c/modules/math inc/djinterp/cpp/modules/math
@@ -1074,7 +1116,7 @@ python3 scripts/ci/check_style.py --known scripts/ci/style_known.txt \
 `scripts/ci/check_math_tests.sh` finds every C harness
 (`tests/djinterp/c/modules/math/t_*.c`) and every face test
 (`tests/djinterp/cpp/modules/math/**/t_*_face.cpp`) on each run, then builds
-and runs them in one of two tiers. A build passes when it compiles with
+and runs them in one of three tiers. A build passes when it compiles with
 warnings as errors, exits 0, and reports 0 failures.
 
 - `JOBS` sets how many builds run at once; the default is one per core.
@@ -1083,8 +1125,8 @@ warnings as errors, exits 0, and reports 0 failures.
 - Naming tests (`t_decomp`, `t_eigen_face`) runs only those.
 
 **The smoke tier** is the default. It builds every harness once (gcc, C99) and
-every face test at three rungs (g++ at ISO strict C++98, C++14 and C++20): 137
-builds. It needs only gcc and g++. On a 2.1 GHz Xeon it took 8 minutes with
+every face test at three rungs (g++ at ISO strict C++98, C++14 and C++20): 145
+builds since chunk 51. It needs only gcc and g++. On a 2.1 GHz Xeon it took 8 minutes with
 one job and 4 with two; chunk 40's, on two cores of it, 7, chunk 41's, 6,
 chunks 42's and 43's, 7, chunk 44's, 9, and chunk 45's, 7.
 
@@ -1123,6 +1165,22 @@ them, in 39, and the 64 builds of the four harnesses that include `cplx.h`
 in 21.
 The full tier needs clang and the 32-bit libraries; if either is missing,
 it stops before building anything.
+
+**The fused tier** (chunk 51, S414) builds every test as compilers that
+fuse a multiply and an add build it: each harness by gcc and clang in GNU
+C11, a harness with a C++14 section by g++ and clang++ in GNU C++14 and
+C++20 too, and each face test by g++ and clang++ in GNU C++17, plain and
+testing, all with the host's fused multiply-add (`-march=x86-64-v3`): 288
+builds. Where a build fuses, the harnesses leave out the checks that a
+function's bits are another computation's, and say so (S421).
+
+**The double family on 32-bit x86.** Its correctly rounded functions, `dd.h`
+and `d_math_self_test` need double evaluated as double: build with `-msse2
+-mfpmath=sse`. Without them a translation unit that calls one does not
+compile (S418); the full tier's x87 builds leave them out with a note. A
+program that needs the same bits everywhere calls `d_math_self_test()` once
+at start-up, in each translation unit whose build may differ, and stops
+where it is not 0 (S419).
 
 ### On Windows
 
@@ -1198,6 +1256,7 @@ module:
 | 2026.11.04 | `math::complex<T>`'s functions by their own names `cplx.h`'s plain forms at run time, the `_c` forms in constant evaluation and by the `_c` names; the language's values the `_c` forms (S336); every evaluator given the fold's context, each value evaluator holding its answer real where it asks (S340) |
 | 2026.11.12 | before the itinerary goes on, the four groups of fixes of the lane's evaluation: speed, consolidation, `math::expr::` and accuracy |
 | 2026.11.14 | the language flat in `djinterp::math`, no namespace below it; a clean break for the old names; the prefix left to the lane's recommendation, fewer or no levels below `math` (S397) |
+| 2026.11.16 | the double family rewritten on pairs of doubles: one result, the correctly rounded one, on every platform, under eight rules, by the lane's own algorithms proven with Gappa and Sollya; exp and log first, then 0.8's items, core v2 in December, then the rest; the x87 refused for the family; a public pair type; kernels immune to fusing (rulings 1 to 7, S414 to S419); before 0.8, the language's solves refined, `rotquat` the nearest rotation, `expression.hpp`'s variables in a namespace (rulings 8 to 10) |
 | 2026.11.14 | accuracy before 0.8 for the float and double families: compensated sums and a refined solve, then their `_c` forms correctly rounded, provably, at today's speed; the long double family and the plain forms at step 36 (S404 to S408) |
 
 ---
@@ -1238,6 +1297,11 @@ itself, as lane A ruled for chunk 44 on: chunks 44 and 45 laid into his tree
 of 2026.11.07, every file of the lane at its restructured path, its banners'
 paths and tags and its generator's paths as the tree has them, every C type
 renamed `dj_`, and no shims (chunk 45b's record).
+
+From chunk 51 (2026.11.16) the lane works over the owner's tree of
+2026.11.16, which holds chunks 44 to 50 as he committed them, and delivers a
+zip over it of the files the chunk changed or made, with its record (S423).
+From 2026.11.18 the lane's notes and deliveries go out once a day.
 
 Outside `cpp/modules/math/`, `c/modules/math/` and their tests, this lane
 changed:

@@ -9,6 +9,12 @@
 * triangle's centroid are what they are, a polygon's area does not depend on
 * where its vertex list starts, and a degenerate polygon has no centroid.
 *
+*   Where the build fuses a multiply and an add written apart -- gcc in its GNU
+* modes on a target with the instruction, clang under -ffp-contract=fast
+* (self_test.h's d_math_formulas_fuse) -- the plain formulas' bits follow the
+* build (S415), and the checks against the former formulas written out are left
+* out; the harness says so.
+*
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
 *        tests/djinterp/c/modules/math/t_plane.c -o t_plane -lm
@@ -17,17 +23,22 @@
 * path:      /tests/djinterp/c/modules/math/t_plane.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.06
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 // std
 #include <stdio.h>   // printf
 // djinterp
 #include "../../../../../inc/djinterp/c/modules/math/plane.h"  // unit under test
+#include "../../../../../inc/djinterp/c/modules/math/self_test.h"  // d_math_formulas_fuse
 
 
 static long          g_checks   = 0;
 static long          g_failures = 0;
 static unsigned long g_state    = 1732050u;
+// whether this build fuses a multiply and an add written apart: then the
+// plain formulas' bits follow the build (S415), and the checks that a
+// function's bits are another computation's are left out
+static bool          g_fuses    = false;
 
 static void
 d_tests_expect(
@@ -131,14 +142,16 @@ d_tests_plane_##S(void)                                                        \
         {                                                                      \
             volatile T half = sum / (T)2;                                      \
             const T    area = (half < (T)0) ? -half : half;                    \
-            D_TESTS_EXPECT(d_plane_##S##_polygon_area(xy, n) == area,          \
+            /* the formula's bits follow a build that fuses (S415) */         \
+            D_TESTS_EXPECT(g_fuses ||                                          \
+                           (d_plane_##S##_polygon_area(xy, n) == area),        \
                            #S " polygon_area is the former shoelace sum");     \
         }                                                                      \
         if (d_plane_##S##_polygon_centroid(c, xy, n))                          \
         {                                                                      \
             volatile T den = (T)3 * sum;                                       \
             volatile T wx = cx / den, wy = cy / den;                           \
-            D_TESTS_EXPECT( (c[0] == wx) && (c[1] == wy),                      \
+            D_TESTS_EXPECT( g_fuses || ((c[0] == wx) && (c[1] == wy)),         \
                             #S " polygon_centroid is the former formula");     \
         }                                                                      \
                                                                                \
@@ -191,6 +204,15 @@ D_TESTS_PLANE_FAMILY(long double, ld)
 int
 main(void)
 {
+    g_fuses = d_math_formulas_fuse();
+
+    if (g_fuses)
+    {
+        printf("t_plane: this build fuses multiplies and adds: the checks "
+               "that bits are another computation's are left out "
+               "(S415)\n");
+    }
+
     d_tests_plane_f();
     d_tests_plane_d();
     d_tests_plane_ld();

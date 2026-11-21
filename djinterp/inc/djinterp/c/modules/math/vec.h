@@ -24,7 +24,7 @@
 * path:      /inc/djinterp/c/modules/math/vec.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.15
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 
 /*
@@ -75,6 +75,14 @@ TABLE OF CONTENTS
                              // d_internal_math_*_pow2: the scaling
 #include "./math_common.h"   // D_MATH_FN
 
+// no multiply and add fused by the compiler in this header, where it can be
+// told; the including file's state is restored at the end (math_common.h,
+// section 5.3)
+#if D_MATH_PRAGMA_NO_CONTRACT
+    #pragma float_control(push)
+    #pragma STDC FP_CONTRACT OFF
+#endif  // D_MATH_PRAGMA_NO_CONTRACT
+
 
 //==============================================================================
 // 1.  THE COMPENSATED SUMS' ARITHMETIC
@@ -117,10 +125,13 @@ d_internal_vec_d2_two_sum(
 }
 
 // d_internal_vec_d2_product
-//   _a * _b exactly, as high + low: Dekker's product, each factor split by
-// Veltkamp's constant 2^ceil(P/2) + 1 (float_order.h). Each factor is 0 or
-// within 2^(EMIN/2 + P) to 2^(EMAX/2 - P) in magnitude, as the kernels
-// scale them, so that nothing overflows and the low part is exact.
+//   _a * _b exactly, as high + low: the low part by a fused multiply-add
+// where the target has one for double, and otherwise by Dekker's product,
+// each factor split by Veltkamp's constant 2^ceil(P/2) + 1 (float_order.h);
+// both exact, so both give the same bits (math_common.h, section 5). Each
+// factor is 0 or within 2^(EMIN/2 + P) to 2^(EMAX/2 - P) in magnitude, as
+// the kernels scale them, so that nothing overflows and the low part is
+// exact.
 D_MATH_FN struct dj_internal_math_d_pair
 d_internal_vec_d2_product(
     double _a,
@@ -128,6 +139,17 @@ d_internal_vec_d2_product(
 )
 {
     struct dj_internal_math_d_pair result = { 0.0, 0.0 };
+
+#if D_MATH_DBL_FMA
+    if (D_MATH_RUN_TIME())
+    {
+        result.high = _a * _b;
+        result.low  = D_MATH_DBL_FMA_OF(_a, _b, -result.high);
+
+        return result;
+    }
+#endif  // D_MATH_DBL_FMA
+
     const double                   split  = d_internal_math_d_veltkamp();
     const double                   ta     = split * _a;
     const double                   a_hi   = ta - (ta - _a);
@@ -7928,5 +7950,10 @@ d_internal_vec_add_pair(
 }
 
 #endif  // __cplusplus
+
+// the including file's own fusing again
+#if D_MATH_PRAGMA_NO_CONTRACT
+    #pragma float_control(pop)
+#endif  // D_MATH_PRAGMA_NO_CONTRACT
 
 #endif  // DJINTERP_C_MATH_VEC_H

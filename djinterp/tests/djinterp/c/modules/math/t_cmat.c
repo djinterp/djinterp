@@ -35,6 +35,12 @@
 * the determinant and the compensated product as constant expressions, for
 * every family, with the bits they have at run time.
 *
+*   Where the build fuses a multiply and an add written apart -- gcc in its GNU
+* modes on a target with the instruction, clang under -ffp-contract=fast
+* (self_test.h's d_math_formulas_fuse) -- the plain formulas' bits follow the
+* build (S415), and the check that the constant evaluation, which never fuses,
+* has the run time's bits is left out; the harness says so.
+*
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
 *        tests/djinterp/c/modules/math/t_cmat.c -o t_cmat -lm
@@ -43,7 +49,7 @@
 * path:      /tests/djinterp/c/modules/math/t_cmat.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.30
-*                                                            revised: 2026.11.15
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_EPSILON ... LDBL_MIN, the families' limits
@@ -54,6 +60,7 @@
 #include "../../../../../inc/djinterp/c/modules/math/cmat.h"     // unit under test
 #include "../../../../../inc/djinterp/c/modules/math/decimal.h"  // d_math_decimal_to_ld
 #include "../../../../../inc/djinterp/c/modules/math/decomp.h"   // d_decomp_*_sym_eigen
+#include "../../../../../inc/djinterp/c/modules/math/self_test.h" // d_math_formulas_fuse
 // tests
 #include "./math_tests_cmat_refs.h"  // g_cmat_cases, g_cmat_systems
 
@@ -64,6 +71,10 @@
 static long          g_checks   = 0;
 static long          g_failures = 0;
 static unsigned long g_state    = 2236067u;
+// whether this build fuses a multiply and an add written apart: then the
+// plain formulas' bits follow the build (S415), and the checks that a
+// function's bits are another computation's are left out
+static bool          g_fuses    = false;
 
 static void
 d_tests_expect(
@@ -1531,9 +1542,11 @@ d_tests_constant_##S(void)                                                     \
         ok = ok && d_tests_csame_##S(g_constant_solve_##S[k + 2], inv[k]);     \
     ok = ok && d_tests_csame_##S(g_constant_solve_##S[6],                      \
                                  d_cmat_##S##_determinant(s, sc, 2));          \
-    D_TESTS_EXPECT(ok, #S " eigen_c, hermitian_eigen_c, solve, inverse, "      \
-                       "determinant, multiply: constant expressions, the "     \
-                       "run time's bits");                                     \
+    /* the run time's bits follow a build that fuses (S415) */                \
+    D_TESTS_EXPECT(g_fuses || ok,                                              \
+                   #S " eigen_c, hermitian_eigen_c, solve, inverse, "          \
+                   "determinant, multiply: constant expressions, the "         \
+                   "run time's bits");                                         \
 }
 
 D_TESTS_CMAT_CONSTANT(float,       f)
@@ -1546,6 +1559,15 @@ D_TESTS_CMAT_CONSTANT(long double, ld)
 int
 main(void)
 {
+    g_fuses = d_math_formulas_fuse();
+
+    if (g_fuses)
+    {
+        printf("t_cmat: this build fuses multiplies and adds: the checks "
+               "that bits are another computation's are left out "
+               "(S415)\n");
+    }
+
     d_tests_systems_f();
     d_tests_systems_d();
     d_tests_systems_ld();

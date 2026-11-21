@@ -54,11 +54,22 @@
 * and a compiler takes a call's result to be of its type; a kernel that
 * hands such a result on stores it first, so that it is (section 4).
 *
+*   A compiler may also fuse a multiply and an add into one instruction,
+* rounding once where the text rounds twice: gcc does by default in its GNU
+* modes wherever the target has the instruction, and clang under
+* -ffp-contract=fast. That is harmless where the product is exact, and where
+* a kernel's error bound is proven for both forms, but it breaks the exact
+* products that the compensated kernels are built on. So an exact product
+* takes its error with an explicit fused multiply-add wherever the target
+* has one, and Dekker's split only where it has none, where no compiler can
+* fuse; and every generated header tells clang not to fuse at all, where
+* clang can be told (section 5).
+*
 *
 * path:      /inc/djinterp/c/modules/math/math_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 
 /*
@@ -92,6 +103,20 @@ TABLE OF CONTENTS
          2.  D_MATH_FLT_EVAL_WIDE
          3.  D_MATH_DBL_EVAL_WIDE
          4.  D_MATH_LDBL_EVAL_WIDE
+    2.  The double family's refusal
+         1.  D_MATH_DBL_REFUSE
+5.  FUSED MULTIPLY-ADDS
+    -------------------
+    1.  Constant evaluation
+         1.  D_MATH_CONSTANT_EVALUATED
+         2.  D_MATH_RUN_TIME
+         3.  D_INTERNAL_MATH_HAS_BIT_CAST
+    2.  Each family's fused multiply-add
+         1.  D_MATH_FLT_FMA, D_MATH_FLT_FMA_OF
+         2.  D_MATH_DBL_FMA, D_MATH_DBL_FMA_OF
+         3.  D_MATH_LDBL_FMA, D_MATH_LDBL_FMA_OF
+    3.  Telling the compiler not to fuse
+         1.  D_MATH_PRAGMA_NO_CONTRACT
 */
 
 #ifndef DJINTERP_C_MATH_MATH_COMMON_H
@@ -306,6 +331,204 @@ struct dj_math_ratio
     #define D_MATH_LDBL_EVAL_WIDE   1
 #else
     #define D_MATH_LDBL_EVAL_WIDE   0
+#endif
+
+
+// 4.2    The double family's refusal
+//------------------------------------------------------------------------------
+// 4.2.1
+// D_MATH_DBL_REFUSE
+//   statement: nothing where double is evaluated in double. Where it is
+// evaluated wider -- a 32-bit x87 -- the double family's correctly rounded
+// functions and dd.h's pairs cannot keep their bounds, as their exact sums
+// and products need each operation rounded to double, so each begins with
+// this: for gcc and clang, a call to a function whose error attribute stops
+// the build with the fix, -msse2 -mfpmath=sse. It is compiled only where the
+// function is, so a translation unit that never calls one still builds.
+// _x is the function's argument: the call is made only where _x == _x, so
+// that a constant evaluation of a NaN does not reach it and clang does not
+// take the function to have no constant value. Elsewhere it is empty, and
+// the functions document the bound they lose.
+#if ( D_MATH_DBL_EVAL_WIDE && defined(__has_attribute) )
+    #if __has_attribute(error)
+        #define D_INTERNAL_MATH_DBL_REFUSES 1
+    #endif
+#endif
+
+#if defined(D_INTERNAL_MATH_DBL_REFUSES)
+    extern void
+    d_math_double_family_needs_double_evaluated_as_double(void)
+        __attribute__((error("double is evaluated wider than double: build "
+                             "with -msse2 -mfpmath=sse for the double "
+                             "family's correctly rounded functions")));
+
+    #define D_MATH_DBL_REFUSE(_x)                                              \
+        if ((_x) == (_x))                                                      \
+        {                                                                      \
+            d_math_double_family_needs_double_evaluated_as_double();           \
+        }
+#else
+    #define D_MATH_DBL_REFUSE(_x)
+#endif
+
+
+//==============================================================================
+// 5.  FUSED MULTIPLY-ADDS
+//==============================================================================
+// A fused multiply-add computes a b + c with one rounding. A compiler may
+// fuse a multiply and an add of the text on its own: gcc does by default in
+// its GNU modes (its default without -std) wherever the target has the
+// instruction -- every ARM64 and POWER, and x86 with -mfma or a -march that
+// has it -- and clang under -ffp-contract=fast; clang's default fuses within
+// one expression. Fusing is harmless where the product is exact, and where a
+// kernel's error bound holds for both forms, but it breaks Veltkamp's split,
+// on which Dekker's exact product rests: there the rounding of split * a is
+// the point, and a fused split * a - a loses it. Measured: built with gcc
+// -std=gnu11 -march=x86-64-v3, chunk 50's compensated double dot was
+// correctly rounded on 2,403 of 20,000 dots that cancel, its worst error
+// 6.4e13 ulps.
+//   So an exact product takes its error, a b - high, with an explicit fused
+// multiply-add wherever the target has one, which is exact and gives the
+// bits Dekker's product gives; and Dekker's product where the target has
+// none, where no compiler can fuse. A constant evaluation takes Dekker's
+// product, as an explicit fused multiply-add is no constant expression for
+// every compiler, and a constant evaluation never fuses.
+
+
+// 5.1    Constant evaluation
+//------------------------------------------------------------------------------
+// 5.1.1
+// D_MATH_CONSTANT_EVALUATED
+//   macro: true in a C++ constant evaluation, false at run time, by the
+// compiler's builtin (gcc from 9, clang from 9, MSVC from 19.25), which every
+// language level from C++14 reads. Undefined in C, and in C++ where no
+// builtin can tell; there the exact products take Dekker's form throughout.
+#if defined(__cplusplus)
+    #if defined(__has_builtin)
+        #if __has_builtin(__builtin_is_constant_evaluated)
+            #define D_MATH_CONSTANT_EVALUATED()                                \
+                __builtin_is_constant_evaluated()
+        #endif
+    #endif
+    #if ( !defined(D_MATH_CONSTANT_EVALUATED) &&                               \
+          ( ( defined(__GNUC__) && !defined(__clang__) &&                      \
+              (__GNUC__ >= 9) ) ||                                             \
+            ( defined(_MSC_VER) && (_MSC_VER >= 1925) ) ) )
+        #define D_MATH_CONSTANT_EVALUATED()                                    \
+            __builtin_is_constant_evaluated()
+    #endif
+#endif  // __cplusplus
+
+// 5.1.2
+// D_MATH_RUN_TIME
+//   macro: true where a kernel may take a step that is no constant
+// expression, an explicit fused multiply-add: always in C, and in C++
+// outside a constant evaluation.
+#if defined(D_MATH_CONSTANT_EVALUATED)
+    #define D_MATH_RUN_TIME()       (!D_MATH_CONSTANT_EVALUATED())
+#else
+    #define D_MATH_RUN_TIME()       1
+#endif
+
+// 5.1.3
+// D_INTERNAL_MATH_HAS_BIT_CAST
+//   defined where C++ has gcc's and clang's __builtin_bit_cast, a constant
+// expression, by which a double is made from its bits (gcc from 11, clang
+// from 9).
+#if ( defined(__cplusplus) && defined(__has_builtin) )
+    #if __has_builtin(__builtin_bit_cast)
+        #define D_INTERNAL_MATH_HAS_BIT_CAST 1
+    #endif
+#endif
+
+
+// 5.2    Each family's fused multiply-add
+//------------------------------------------------------------------------------
+// D_MATH_<F>_FMA is 1 where the target has a fused multiply-add for the
+// family that gcc's or clang's builtin compiles to -- gcc's __FP_FAST_FMA
+// macros, which it defines exactly where it may fuse, and x86's FMA and
+// ARM's, which clang names -- and the builtin may be called: in C; in C++
+// before C++14, where no kernel is a constant expression; and from C++14
+// where D_MATH_CONSTANT_EVALUATED can keep it out of a constant evaluation.
+// 0 elsewhere, where the exact products take Dekker's form: from C++14 on a
+// compiler with no such builtin (gcc before 9, clang before 9), where a
+// build that fuses breaks them, as d_math_self_test then says (self_test.h).
+// D_MATH_<F>_FMA_OF(a, b, c) is then a b + c, rounded once.
+
+#if ( ( defined(__GNUC__) || defined(__clang__) ) &&                           \
+      ( !defined(__cplusplus)              ||                                  \
+        !D_ENV_LANG_IS_CPP14_OR_HIGHER     ||                                  \
+        defined(D_MATH_CONSTANT_EVALUATED) ) )
+    #define D_INTERNAL_MATH_FMA_CALLABLE    1
+#else
+    #define D_INTERNAL_MATH_FMA_CALLABLE    0
+#endif
+
+// 5.2.1
+// D_MATH_FLT_FMA
+//   constant: 1 where float's fused multiply-add can be called; see above.
+#if ( D_INTERNAL_MATH_FMA_CALLABLE &&                                          \
+      ( defined(__FP_FAST_FMAF)     ||                                         \
+        defined(__FMA__)            ||                                         \
+        defined(__ARM_FEATURE_FMA)  ||                                         \
+        defined(__aarch64__) ) )
+    #define D_MATH_FLT_FMA              1
+    #define D_MATH_FLT_FMA_OF(a, b, c)  __builtin_fmaf((a), (b), (c))
+#else
+    #define D_MATH_FLT_FMA              0
+#endif
+
+// 5.2.2
+// D_MATH_DBL_FMA
+//   constant: 1 where double's fused multiply-add can be called; see above.
+#if ( D_INTERNAL_MATH_FMA_CALLABLE &&                                          \
+      ( defined(__FP_FAST_FMA)      ||                                         \
+        defined(__FMA__)            ||                                         \
+        ( defined(__ARM_FEATURE_FMA) && defined(__ARM_FP) &&                   \
+          ((__ARM_FP & 8) != 0) )   ||                                         \
+        defined(__aarch64__) ) )
+    #define D_MATH_DBL_FMA              1
+    #define D_MATH_DBL_FMA_OF(a, b, c)  __builtin_fma((a), (b), (c))
+#else
+    #define D_MATH_DBL_FMA              0
+#endif
+
+// 5.2.3
+// D_MATH_LDBL_FMA
+//   constant: 1 where long double's fused multiply-add can be called: gcc's
+// __FP_FAST_FMAL, or a long double that is double where double's can be.
+// An x87's long double has none.
+#if ( D_INTERNAL_MATH_FMA_CALLABLE &&                                          \
+      ( defined(__FP_FAST_FMAL) ||                                             \
+        ( D_MATH_DBL_FMA && (LDBL_MANT_DIG == DBL_MANT_DIG) &&                 \
+          (LDBL_MAX_EXP == DBL_MAX_EXP) ) ) )
+    #define D_MATH_LDBL_FMA             1
+    #define D_MATH_LDBL_FMA_OF(a, b, c) __builtin_fmal((a), (b), (c))
+#else
+    #define D_MATH_LDBL_FMA             0
+#endif
+
+
+// 5.3    Telling the compiler not to fuse
+//------------------------------------------------------------------------------
+// 5.3.1
+// D_MATH_PRAGMA_NO_CONTRACT
+//   constant: 1 where the compiler takes C's FP_CONTRACT pragma inside a
+// saved and restored state: clang from 11 (Apple's from 12). Each generated
+// header then opens with
+//     #pragma float_control(push)
+//     #pragma STDC FP_CONTRACT OFF
+// and closes with #pragma float_control(pop), so that clang fuses nothing in
+// it and the including file's state is as it was. clang under
+// -ffp-contract=fast ignores the pragma; gcc ignores it everywhere, and
+// warns. There the exact products are safe by section 5.2, and the plain
+// formulas -- the _fast forms among them -- follow the build.
+#if ( defined(__clang__) &&                                                    \
+      ( ( defined(__apple_build_version__) && (__clang_major__ >= 12) ) ||     \
+        ( !defined(__apple_build_version__) && (__clang_major__ >= 11) ) ) )
+    #define D_MATH_PRAGMA_NO_CONTRACT   1
+#else
+    #define D_MATH_PRAGMA_NO_CONTRACT   0
 #endif
 
 

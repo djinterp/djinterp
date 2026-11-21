@@ -18,7 +18,7 @@
 * path:      /inc/djinterp/c/modules/math/mat.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 
 /*
@@ -61,6 +61,15 @@ TABLE OF CONTENTS
 #include "../../../config/c/modules/math/cfg_mat.h"  // D_CFG_MATH_MAT_*
 #include "./math_common.h"   // D_MATH_FN
 #include "./vec.h"           // d_vec_*_fill, _dot, the compensated sums
+
+// no multiply and add fused by the compiler in this header, where it can be
+// told; the including file's state is restored at the end (math_common.h,
+// section 5.3)
+#if D_MATH_PRAGMA_NO_CONTRACT
+    #pragma float_control(push)
+    #pragma STDC FP_CONTRACT OFF
+#endif  // D_MATH_PRAGMA_NO_CONTRACT
+
 
 //==============================================================================
 // 1.  THE FLOAT FAMILY (_f)
@@ -4924,5 +4933,10 @@ d_mat_rotation_axis(
 }
 
 #endif  // __cplusplus
+
+// the including file's own fusing again
+#if D_MATH_PRAGMA_NO_CONTRACT
+    #pragma float_control(pop)
+#endif  // D_MATH_PRAGMA_NO_CONTRACT
 
 #endif  // DJINTERP_C_MATH_MAT_H

@@ -8,7 +8,7 @@
 # a new test is in the next run. Each test prints "<name>: <n> checks, <m>
 # failures" last. A build passes when it compiles (warnings are errors), exits
 # 0, and its last line ends in ", 0 failures".
-#   Two tiers:
+#   Three tiers:
 #     smoke  every harness once, by gcc at C99, and every face test by g++ at
 #            three rungs: ISO strict C++98, C++14 and C++20, at the host's
 #            width. Needs gcc and g++ only.
@@ -23,6 +23,14 @@
 #            and clang++, 64- and 32-bit, the C++ ladder's 8 rungs, plain and
 #            testing (-DD_TESTING=1). Needs gcc, g++, clang and clang++ and
 #            their 32-bit libraries.
+#     fused  where the compiler fuses multiplies and adds: each harness by gcc
+#            and clang in GNU C11, and from C++14 by g++ and clang++ in GNU
+#            C++14 and C++20 too, and each face test by g++ and clang++ in GNU
+#            C++17, plain and testing, all with the host's fused multiply-add
+#            (-march=x86-64-v3 on x86-64; nothing more on ARM64, which always
+#            has it). gcc fuses there by default; clang within an expression.
+#            The results must be every other tier's. Needs gcc, g++, clang and
+#            clang++, and a processor with the instruction.
 #   ISO strict C++98 is -std=c++98 -DD_CFG_ENV_ISO_STRICT=1
 # -DRE_STD_CFG_ISO_STRICT=1; with -m32 it leaves no 64-bit integer at all.
 # Harnesses build with -O2 -Wall -Wextra -Werror -pedantic-errors, face tests
@@ -33,7 +41,8 @@
 # of a full run's. Failures are printed as they happen, progress once a
 # minute; then the builds and passes per test, and the time.
 #
-#   usage:   scripts/ci/check_math_tests.sh [smoke|full] [--save <file>] [--list]
+#   usage:   scripts/ci/check_math_tests.sh [smoke|full|fused] [--save <file>]
+#                                   [--list]
 #                                   [name ...]
 #              smoke   the default
 #              --save  also writes every build's line, sorted, to <file>
@@ -42,12 +51,13 @@
 #   env:     JOBS      parallel builds        (default: processor count)
 #   exit:    0 when every build passes, 1 when one does not, 2 when the run
 #            cannot be made (an unknown tier, option or name, a missing
-#            compiler, or no 32-bit support for the full tier)
+#            compiler, no 32-bit support for the full tier, or no fused
+#            multiply-add for the fused tier)
 #
 # path:      /scripts/ci/check_math_tests.sh
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.14
-#                                                            revised: 2026.10.14
+#                                                            revised: 2026.11.16
 #*******************************************************************************
 set -u
 export LC_ALL=C
@@ -62,7 +72,7 @@ list=0
 names=()
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        smoke|full)
+        smoke|full|fused)
             tier="$1"
             ;;
         --save)
@@ -100,6 +110,9 @@ trap 'rm -rf "$tmp"' EXIT
 warn_c="-O2 -Wall -Wextra -Werror -pedantic-errors"
 warn_cpp="-Wall -Wextra -Werror -Wshadow -pedantic-errors"
 strict="-DD_CFG_ENV_ISO_STRICT=1 -DRE_STD_CFG_ISO_STRICT=1"
+# the fused tier's: the host's fused multiply-add
+fused=""
+[[ "$(uname -m)" == x86_64 ]] && fused="-march=x86-64-v3"
 
 # the tests, and the names asked for
 find tests/djinterp/c/modules/math -maxdepth 1 -name 't_*.c' | sort > "$tmp/harnesses"
@@ -142,6 +155,22 @@ while read -r src; do
         echo "$t|gcc-c99|$src|gcc -std=c99 $warn_c" >> "$tmp/jobs"
         continue
     fi
+    if [[ "$tier" == fused ]]; then
+        {
+            for cc in gcc clang; do
+                echo "$t|$cc-gnu11-fused|$src|$cc -std=gnu11 $warn_c $fused"
+            done
+            if grep -q '__cplusplus >= 201402L' "$src"; then
+                for cxx in g++ clang++; do
+                    for std in gnu++14 gnu++20; do
+                        echo "$t|$cxx-$std-fused|$src|$cxx -x c++" \
+                             "-std=$std $warn_c $fused"
+                    done
+                done
+            fi
+        } >> "$tmp/jobs"
+        continue
+    fi
     {
         for cc in gcc clang; do
             for std in c99 c11; do
@@ -182,6 +211,17 @@ while read -r src; do
         done
         continue
     fi
+    if [[ "$tier" == fused ]]; then
+        for cxx in g++ clang++; do
+            for mode in plain testing; do
+                flag=""
+                [[ "$mode" == testing ]] && flag=" -DD_TESTING=1"
+                echo "$t|$cxx-gnu++17-$host_bits-$mode-fused|$src|$cxx" \
+                     "-std=gnu++17 $warn_cpp $fused$flag" >> "$tmp/jobs"
+            done
+        done
+        continue
+    fi
     for cxx in g++ clang++; do
         for bits in 64 32; do
             arch=""
@@ -216,6 +256,16 @@ for cc in $compilers; do
         exit 2
     fi
 done
+if [[ "$tier" == fused ]]; then
+    printf '%s\n' 'int main(void) { volatile double a = 1.0 + 0x1p-30;' \
+        '  return (__builtin_fma(a, a, -(a * a)) == 0x1p-60) ? 0 : 1; }' \
+        > "$tmp/fma.c"
+    if ! { gcc -std=gnu11 -O0 $fused "$tmp/fma.c" -o "$tmp/fma" &&
+           "$tmp/fma"; } > /dev/null 2>&1; then
+        echo "no fused multiply-add on this host: the fused tier needs one" >&2
+        exit 2
+    fi
+fi
 if [[ "$tier" == full ]]; then
     printf '#include <math.h>\nint main(void) { return (int)sqrt(0.0); }\n' \
         > "$tmp/probe.c"

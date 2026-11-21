@@ -36,6 +36,12 @@
 * the edges: products past the range, a subnormal part, a zero operand's
 * +0, NaNs and infinities the formula's, a column with an infinity.
 *
+*   Where the build fuses a multiply and an add written apart -- gcc in its GNU
+* modes on a target with the instruction, clang under -ffp-contract=fast
+* (self_test.h's d_math_formulas_fuse) -- the plain formulas' bits follow the
+* build (S415), and the check that dot_fast, a _fast form, makes products that
+* cancel past the range NaN is left out; the harness says so.
+*
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
 *        tests/djinterp/c/modules/math/t_compensated.c -o t_compensated -lm
@@ -44,7 +50,7 @@
 * path:      /tests/djinterp/c/modules/math/t_compensated.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.14
-*                                                            revised: 2026.11.15
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 
 // the exact reference's integers: 768 bits, for sums of products of the
@@ -63,11 +69,16 @@
 #include "./math_tests_solve_refs.h"   // g_systems_*
 #include "../../../../../inc/djinterp/c/modules/math/cmat.h"  // under test
 #include "../../../../../inc/djinterp/c/modules/math/mat.h"   // under test
+#include "../../../../../inc/djinterp/c/modules/math/self_test.h"  // d_math_formulas_fuse
 
 
 static long          g_checks   = 0;
 static long          g_failures = 0;
 static unsigned long g_state    = 271828183u;
+// whether this build fuses a multiply and an add written apart: then the
+// plain formulas' bits follow the build (S415), and the checks that a
+// function's bits are another computation's are left out
+static bool          g_fuses    = false;
 
 // d_tests_expect
 //   one check: counted, and reported where it fails, the first few times.
@@ -393,7 +404,8 @@ d_tests_edges_##S(void)                                                        \
         const T b[3] = { one, one, one };                                      \
         D_TESTS_EXPECT( (d_vec_##S##_dot(a, b, 3u) == MAXV) &&                 \
                         (d_vec_##S##_sum(a, 3u) == MAXV) &&                    \
-                        (d_vec_##S##_dot_fast(a, b, 3u) > MAXV),               \
+                        (g_fuses ||                                            \
+                         (d_vec_##S##_dot_fast(a, b, 3u) > MAXV)),             \
                         #S " a sum the formula overflows: MAX");               \
     }                                                                          \
     /* products past the range, cancelling exactly: +0, the formula NaN */     \
@@ -402,7 +414,8 @@ d_tests_edges_##S(void)                                                        \
         const T b[2] = { big, -(big * (T)3) };                                 \
         const T d    = d_vec_##S##_dot(a, b, 2u);                              \
         const T f    = d_vec_##S##_dot_fast(a, b, 2u);                         \
-        D_TESTS_EXPECT( (d == (T)0) && (!signbit(d)) && (f != f),              \
+        /* the formula's, which follows a build that fuses (S415) */          \
+        D_TESTS_EXPECT( (d == (T)0) && (!signbit(d)) && (g_fuses || (f != f)), \
                         #S " products past the range, cancelling: +0");        \
     }                                                                          \
     /* products far below the range: 1.5 tiny - tiny 2^-30, a subnormal */     \
@@ -903,7 +916,7 @@ d_tests_cedges_##S(void)                                                       \
         d_cmat_##S##_multiply(&out, a, b, 1u, 3u, 1u);                         \
         d_cmat_##S##_multiply_fast(&fast, a, b, 1u, 3u, 1u);                   \
         D_TESTS_EXPECT( (out.part[0] == MAXV) && (out.part[1] == (T)0) &&      \
-                        ((WIDE) || (fast.part[0] == inf)),                     \
+                        ((WIDE) || g_fuses || (fast.part[0] == inf)),          \
                         #S " a complex sum the formula overflows: MAX");       \
     }                                                                          \
     {                                                                          \
@@ -1010,6 +1023,15 @@ D_TESTS_COMPENSATED_COMPLEX(long double, ld, LDBL_MANT_DIG, LDBL_MIN, LDBL_MAX,
 int
 main(void)
 {
+    g_fuses = d_math_formulas_fuse();
+
+    if (g_fuses)
+    {
+        printf("t_compensated: this build fuses multiplies and adds: the "
+               "checks that bits are another computation's are left out "
+               "(S415)\n");
+    }
+
     d_tests_family_f();
     d_tests_family_d();
 #if (LDBL_MANT_DIG == 64)

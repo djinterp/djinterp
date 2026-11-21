@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/c/modules/math/elementary.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 
 /*
@@ -78,6 +78,15 @@ D_MATH_FN long double
 d_math_ld_sqrt_c(
     long double _x
 );
+
+// no multiply and add fused by the compiler in this header, where it can be
+// told; the including file's state is restored at the end (math_common.h,
+// section 5.3)
+#if D_MATH_PRAGMA_NO_CONTRACT
+    #pragma float_control(push)
+    #pragma STDC FP_CONTRACT OFF
+#endif  // D_MATH_PRAGMA_NO_CONTRACT
+
 
 //==============================================================================
 // 1.  THE KERNELS (long double)
@@ -135,10 +144,12 @@ d_internal_math_ld_two_sum(
 }
 
 // d_internal_math_ld_product_exact
-//   _a * _b exactly, as high + low: Dekker's product, each factor split by
-// Veltkamp's constant 2^ceil(P/2) + 1, P long double's precision
-// (float_order.h). The factors must be normal (or zero) and their product far
-// from overflow.
+//   _a * _b exactly, as high + low: the low part by a fused multiply-add
+// where the target has one for long double, and otherwise by Dekker's
+// product, each factor split by Veltkamp's constant 2^ceil(P/2) + 1, P long
+// double's precision (float_order.h); both exact, so both give the same bits
+// (math_common.h, section 5). The factors must be normal (or zero) and their
+// product far from overflow.
 D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_product_exact(
     long double _a,
@@ -146,6 +157,17 @@ d_internal_math_ld_product_exact(
 )
 {
     struct dj_internal_math_ld_pair result = { 0.0L, 0.0L };
+
+#if D_MATH_LDBL_FMA
+    if (D_MATH_RUN_TIME())
+    {
+        result.high = _a * _b;
+        result.low  = D_MATH_LDBL_FMA_OF(_a, _b, -result.high);
+
+        return result;
+    }
+#endif  // D_MATH_LDBL_FMA
+
     const long double split = d_internal_math_ld_veltkamp();
     const long double ta    = split * _a;
     const long double a_hi  = ta - (ta - _a);
@@ -1062,15 +1084,28 @@ d_internal_math_f_abs(
 }
 
 // d_internal_math_f_square_exact
-//   _c * _c exactly, as high + low: Dekker's product, the factors split by
-// Veltkamp's constant 2^ceil(P/2) + 1 (float_order.h). _c must be normal and
-// its square finite.
+//   _c * _c exactly, as high + low: the low part by a fused multiply-add
+// where the target has one for float, and otherwise by Dekker's product,
+// the factors split by Veltkamp's constant 2^ceil(P/2) + 1 (float_order.h);
+// both exact, so both give the same bits (math_common.h, section 5). _c must
+// be normal and its square finite.
 D_MATH_FN struct dj_internal_math_f_pair
 d_internal_math_f_square_exact(
     float _c
 )
 {
     struct dj_internal_math_f_pair result = { (float)0, (float)0 };
+
+#if D_MATH_FLT_FMA
+    if (D_MATH_RUN_TIME())
+    {
+        result.high = _c * _c;
+        result.low  = D_MATH_FLT_FMA_OF(_c, _c, -result.high);
+
+        return result;
+    }
+#endif  // D_MATH_FLT_FMA
+
     const float split = d_internal_math_f_veltkamp();
     const float t     = split * _c;
     const float hi    = t - (t - _c);
@@ -1934,15 +1969,28 @@ d_internal_math_d_abs(
 }
 
 // d_internal_math_d_square_exact
-//   _c * _c exactly, as high + low: Dekker's product, the factors split by
-// Veltkamp's constant 2^ceil(P/2) + 1 (float_order.h). _c must be normal and
-// its square finite.
+//   _c * _c exactly, as high + low: the low part by a fused multiply-add
+// where the target has one for double, and otherwise by Dekker's product,
+// the factors split by Veltkamp's constant 2^ceil(P/2) + 1 (float_order.h);
+// both exact, so both give the same bits (math_common.h, section 5). _c must
+// be normal and its square finite.
 D_MATH_FN struct dj_internal_math_d_pair
 d_internal_math_d_square_exact(
     double _c
 )
 {
     struct dj_internal_math_d_pair result = { (double)0, (double)0 };
+
+#if D_MATH_DBL_FMA
+    if (D_MATH_RUN_TIME())
+    {
+        result.high = _c * _c;
+        result.low  = D_MATH_DBL_FMA_OF(_c, _c, -result.high);
+
+        return result;
+    }
+#endif  // D_MATH_DBL_FMA
+
     const double split = d_internal_math_d_veltkamp();
     const double t     = split * _c;
     const double hi    = t - (t - _c);
@@ -2777,15 +2825,28 @@ d_internal_math_ld_abs(
 }
 
 // d_internal_math_ld_square_exact
-//   _c * _c exactly, as high + low: Dekker's product, the factors split by
-// Veltkamp's constant 2^ceil(P/2) + 1 (float_order.h). _c must be normal and
-// its square finite.
+//   _c * _c exactly, as high + low: the low part by a fused multiply-add
+// where the target has one for long double, and otherwise by Dekker's product,
+// the factors split by Veltkamp's constant 2^ceil(P/2) + 1 (float_order.h);
+// both exact, so both give the same bits (math_common.h, section 5). _c must
+// be normal and its square finite.
 D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_math_ld_square_exact(
     long double _c
 )
 {
     struct dj_internal_math_ld_pair result = { (long double)0, (long double)0 };
+
+#if D_MATH_LDBL_FMA
+    if (D_MATH_RUN_TIME())
+    {
+        result.high = _c * _c;
+        result.low  = D_MATH_LDBL_FMA_OF(_c, _c, -result.high);
+
+        return result;
+    }
+#endif  // D_MATH_LDBL_FMA
+
     const long double split = d_internal_math_ld_veltkamp();
     const long double t     = split * _c;
     const long double hi    = t - (t - _c);
@@ -3792,5 +3853,10 @@ d_math_cos(
 }
 
 #endif  // __cplusplus
+
+// the including file's own fusing again
+#if D_MATH_PRAGMA_NO_CONTRACT
+    #pragma float_control(pop)
+#endif  // D_MATH_PRAGMA_NO_CONTRACT
 
 #endif  // DJINTERP_C_MATH_ELEMENTARY_H

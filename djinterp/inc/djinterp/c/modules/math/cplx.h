@@ -89,7 +89,7 @@
 * path:      /inc/djinterp/c/modules/math/cplx.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.27
-*                                                            revised: 2026.11.07
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 
 /*
@@ -141,6 +141,15 @@ TABLE OF CONTENTS
 #include "./nearest_integer.h"   // d_math_*_floor_c
 #include "./power.h"             // d_math_*_hypot_c, *_pow_c
 #include "./tangent.h"           // d_math_*_atan2_c, *_negative
+
+// no multiply and add fused by the compiler in this header, where it can be
+// told; the including file's state is restored at the end (math_common.h,
+// section 5.3)
+#if D_MATH_PRAGMA_NO_CONTRACT
+    #pragma float_control(push)
+    #pragma STDC FP_CONTRACT OFF
+#endif  // D_MATH_PRAGMA_NO_CONTRACT
+
 
 //==============================================================================
 // 1.  THE TYPES
@@ -289,11 +298,13 @@ d_internal_cplx_f_two_sum(
 }
 
 // d_internal_cplx_f_product
-//   _a * _b exactly, as high + low: Dekker's product, each factor split by
-// Veltkamp's constant (float_order.h). The factors are within 2^(EMAX/2 - P)
-// in magnitude and their product, where it is not 0, at least 2^(EMIN + 2P),
-// as the scalings below keep them, so that nothing overflows and the low
-// part is exact.
+//   _a * _b exactly, as high + low: the low part by a fused multiply-add
+// where the target has one for float, and otherwise by Dekker's product,
+// each factor split by Veltkamp's constant (float_order.h); both exact, so
+// both give the same bits (math_common.h, section 5). The factors are within
+// 2^(EMAX/2 - P) in magnitude and their product, where it is not 0, at least
+// 2^(EMIN + 2P), as the scalings below keep them, so that nothing overflows
+// and the low part is exact.
 D_MATH_FN struct dj_internal_math_f_pair
 d_internal_cplx_f_product(
     float _a,
@@ -301,6 +312,17 @@ d_internal_cplx_f_product(
 )
 {
     struct dj_internal_math_f_pair result = { (float)0, (float)0 };
+
+#if D_MATH_FLT_FMA
+    if (D_MATH_RUN_TIME())
+    {
+        result.high = _a * _b;
+        result.low  = D_MATH_FLT_FMA_OF(_a, _b, -result.high);
+
+        return result;
+    }
+#endif  // D_MATH_FLT_FMA
+
     const float split = d_internal_math_f_veltkamp();
     const float ta    = split * _a;
     const float a_hi  = ta - (ta - _a);
@@ -1157,11 +1179,13 @@ d_internal_cplx_d_two_sum(
 }
 
 // d_internal_cplx_d_product
-//   _a * _b exactly, as high + low: Dekker's product, each factor split by
-// Veltkamp's constant (float_order.h). The factors are within 2^(EMAX/2 - P)
-// in magnitude and their product, where it is not 0, at least 2^(EMIN + 2P),
-// as the scalings below keep them, so that nothing overflows and the low
-// part is exact.
+//   _a * _b exactly, as high + low: the low part by a fused multiply-add
+// where the target has one for double, and otherwise by Dekker's product,
+// each factor split by Veltkamp's constant (float_order.h); both exact, so
+// both give the same bits (math_common.h, section 5). The factors are within
+// 2^(EMAX/2 - P) in magnitude and their product, where it is not 0, at least
+// 2^(EMIN + 2P), as the scalings below keep them, so that nothing overflows
+// and the low part is exact.
 D_MATH_FN struct dj_internal_math_d_pair
 d_internal_cplx_d_product(
     double _a,
@@ -1169,6 +1193,17 @@ d_internal_cplx_d_product(
 )
 {
     struct dj_internal_math_d_pair result = { (double)0, (double)0 };
+
+#if D_MATH_DBL_FMA
+    if (D_MATH_RUN_TIME())
+    {
+        result.high = _a * _b;
+        result.low  = D_MATH_DBL_FMA_OF(_a, _b, -result.high);
+
+        return result;
+    }
+#endif  // D_MATH_DBL_FMA
+
     const double split = d_internal_math_d_veltkamp();
     const double ta    = split * _a;
     const double a_hi  = ta - (ta - _a);
@@ -2025,11 +2060,13 @@ d_internal_cplx_ld_two_sum(
 }
 
 // d_internal_cplx_ld_product
-//   _a * _b exactly, as high + low: Dekker's product, each factor split by
-// Veltkamp's constant (float_order.h). The factors are within 2^(EMAX/2 - P)
-// in magnitude and their product, where it is not 0, at least 2^(EMIN + 2P),
-// as the scalings below keep them, so that nothing overflows and the low
-// part is exact.
+//   _a * _b exactly, as high + low: the low part by a fused multiply-add
+// where the target has one for long double, and otherwise by Dekker's product,
+// each factor split by Veltkamp's constant (float_order.h); both exact, so
+// both give the same bits (math_common.h, section 5). The factors are within
+// 2^(EMAX/2 - P) in magnitude and their product, where it is not 0, at least
+// 2^(EMIN + 2P), as the scalings below keep them, so that nothing overflows
+// and the low part is exact.
 D_MATH_FN struct dj_internal_math_ld_pair
 d_internal_cplx_ld_product(
     long double _a,
@@ -2037,6 +2074,17 @@ d_internal_cplx_ld_product(
 )
 {
     struct dj_internal_math_ld_pair result = { (long double)0, (long double)0 };
+
+#if D_MATH_LDBL_FMA
+    if (D_MATH_RUN_TIME())
+    {
+        result.high = _a * _b;
+        result.low  = D_MATH_LDBL_FMA_OF(_a, _b, -result.high);
+
+        return result;
+    }
+#endif  // D_MATH_LDBL_FMA
+
     const long double split = d_internal_math_ld_veltkamp();
     const long double ta    = split * _a;
     const long double a_hi  = ta - (ta - _a);
@@ -13185,5 +13233,10 @@ d_cplx_expm1(
 }
 
 #endif  // __cplusplus
+
+// the including file's own fusing again
+#if D_MATH_PRAGMA_NO_CONTRACT
+    #pragma float_control(pop)
+#endif  // D_MATH_PRAGMA_NO_CONTRACT
 
 #endif  // DJINTERP_C_MATH_CPLX_H

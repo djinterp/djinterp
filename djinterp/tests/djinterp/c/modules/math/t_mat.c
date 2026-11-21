@@ -18,6 +18,12 @@
 * transform.hpp's order of operations, bit for bit; a rotation about a unit
 * axis orthogonal to rounding; the axis and plane rotations' layouts.
 *
+*   Where the build fuses a multiply and an add written apart -- gcc in its GNU
+* modes on a target with the instruction, clang under -ffp-contract=fast
+* (self_test.h's d_math_formulas_fuse) -- the plain formulas' bits follow the
+* build (S415), and the check against Rodrigues's formula written out is left
+* out; the harness says so.
+*
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
 *        tests/djinterp/c/modules/math/t_mat.c -o t_mat -lm
@@ -26,18 +32,23 @@
 * path:      /tests/djinterp/c/modules/math/t_mat.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.14
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 // std
 #include <stdio.h>   // printf
 // djinterp
 #include "../../../../../inc/djinterp/c/modules/math/mat.h"  // unit under test
+#include "../../../../../inc/djinterp/c/modules/math/self_test.h"  // d_math_formulas_fuse
 
 
 static long          g_checks          = 0;
 static long          g_singular_missed = 0;
 static long          g_failures = 0;
 static unsigned long g_state    = 314159265u;
+// whether this build fuses a multiply and an add written apart: then the
+// plain formulas' bits follow the build (S415), and the checks that a
+// function's bits are another computation's are left out
+static bool          g_fuses    = false;
 
 static void
 d_tests_expect(
@@ -553,7 +564,8 @@ d_tests_rotation_##S(void)                                                     \
             p = kz * ky; q = p * t; p = kx * s; want[7] = q + p;               \
             p = kz * kz; q = p * t; want[8] = c + q;                           \
         }                                                                      \
-        D_TESTS_EXPECT(d_vec_##S##_equal(r, want, 9u),                         \
+        /* the formula's bits follow a build that fuses (S415) */             \
+        D_TESTS_EXPECT(g_fuses || d_vec_##S##_equal(r, want, 9u),              \
                        #S " rotation_axis is Rodrigues's formula");            \
                                                                                \
         /* a true rotation: a unit axis and c^2 + s^2 = 1 */                   \
@@ -599,6 +611,15 @@ D_TESTS_ROTATION_FAMILY(long double, ld)
 int
 main(void)
 {
+    g_fuses = d_math_formulas_fuse();
+
+    if (g_fuses)
+    {
+        printf("t_mat: this build fuses multiplies and adds: the checks "
+               "that bits are another computation's are left out "
+               "(S415)\n");
+    }
+
     d_tests_mat_f();
     d_tests_mat_d();
     d_tests_mat_ld();

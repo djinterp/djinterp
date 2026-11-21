@@ -19,6 +19,12 @@
 *   One test body serves the three families, stamped out by
 * D_TESTS_VEC_FAMILY: the families are one text, and so is their test.
 *
+*   Where the build fuses a multiply and an add written apart -- gcc in its GNU
+* modes on a target with the instruction, clang under -ffp-contract=fast
+* (self_test.h's d_math_formulas_fuse) -- the plain formulas' bits follow the
+* build (S415), and the check that project and reject, moved past the range,
+* give the results in range, moved, is left out; the harness says so.
+*
 *   Build (from the repo root), at any language level from C99:
 *     cc -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors -Iinc             \
 *        tests/djinterp/c/modules/math/t_vec.c -o t_vec -lm
@@ -27,7 +33,7 @@
 * path:      /tests/djinterp/c/modules/math/t_vec.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.04
-*                                                            revised: 2026.11.15
+*                                                            revised: 2026.11.16
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_EPSILON ...
@@ -36,11 +42,16 @@
 #include <string.h>  // memcpy
 // djinterp
 #include "../../../../../inc/djinterp/c/modules/math/vec.h"  // unit under test
+#include "../../../../../inc/djinterp/c/modules/math/self_test.h"  // d_math_formulas_fuse
 
 
 static long          g_checks   = 0;
 static long          g_failures = 0;
 static unsigned long g_state    = 88172645u;
+// whether this build fuses a multiply and an add written apart: then the
+// plain formulas' bits follow the build (S415), and the checks that a
+// function's bits are another computation's are left out
+static bool          g_fuses    = false;
 
 static void
 d_tests_expect(
@@ -460,7 +471,8 @@ d_tests_projection_##S(long* _moved)                                          \
                    (d_tests_stored_##S(mr[i]) == wr);                          \
         }                                                                      \
         *_moved   += normal ? 1 : 0;                                           \
-        D_TESTS_EXPECT((!normal) || (same),                                    \
+        /* the two paths' bits follow a build that fuses (S415) */            \
+        D_TESTS_EXPECT(g_fuses || (!normal) || (same),                         \
                        #S " project and reject moved past the range: the "     \
                           "results in range, moved");                          \
     }                                                                          \
@@ -495,6 +507,15 @@ int
 main(void)
 {
     long moved[3]   = { 0, 0, 0 };
+
+    g_fuses = d_math_formulas_fuse();
+
+    if (g_fuses)
+    {
+        printf("t_vec: this build fuses multiplies and adds: the checks "
+               "that bits are another computation's are left out "
+               "(S415)\n");
+    }
 
     d_tests_vec_f();
     d_tests_vec_d();
