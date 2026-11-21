@@ -10,7 +10,7 @@
 * path:      /tests/djinterp/c/log/log_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
 #include "./log_tests.h"  // corresponding header
@@ -18,7 +18,7 @@
 // std
 #include <stdio.h>   // snprintf, fopen, fread, remove
 #include <stdlib.h>  // setenv, getenv
-#include <string.h>  // strcmp, strstr, strlen
+#include <string.h>  // strcmp, strstr, strlen, strchr
 #include <time.h>    // tzset
 #if defined(__unix__) || defined(__APPLE__)
     #include <unistd.h>  // getpid
@@ -477,6 +477,64 @@ d_tests_log_text(
         "2025-11-13T15:04:05.123Z error t.net:207: connecting to  took over "
         " ms\n"));
 #endif
+
+    return;
+}
+
+/*
+d_tests_log_classes
+  Checks the following:
+  - the four classes of the log's decision 81 by their names
+  - every class has a name of its own, dotted but for "none", and a
+    number past the vocabulary is written "?"
+*/
+static void
+d_tests_log_classes(
+    struct dj_test_suite* _suite
+)
+{
+    uint32_t    i;
+    uint32_t    j;
+    bool        named  = true;
+    bool        unique = true;
+    const char* name;
+
+    (void)d_test_suite_test(_suite, "the class vocabulary");
+
+    D_TEST_CHECK(_suite,
+        (strcmp(d_log_class_name(D_LOG_CLASS_IO_INTERRUPTED),
+                "io.interrupted") == 0) &&
+        (strcmp(d_log_class_name(D_LOG_CLASS_RESOURCE_IN_USE),
+                "resource.in_use") == 0) &&
+        (strcmp(d_log_class_name(D_LOG_CLASS_ACCESS_DENIED),
+                "access.denied") == 0) &&
+        (strcmp(d_log_class_name(D_LOG_CLASS_ACCESS_UNAUTHENTICATED),
+                "access.unauthenticated") == 0));
+
+    for (i = 0u; i < (uint32_t)D_LOG_CLASS_COUNT; ++i)
+    {
+        name = d_log_class_name(i);
+
+        if ( (name == NULL) ||
+             ( (i != (uint32_t)D_LOG_CLASS_NONE) &&
+               (strchr(name, '.') == NULL) ) )
+        {
+            named = false;
+        }
+
+        for (j = 0u; (name != NULL) && (j < i); ++j)
+        {
+            if (strcmp(name, d_log_class_name(j)) == 0)
+            {
+                unique = false;
+            }
+        }
+    }
+
+    D_TEST_CHECK(_suite, named);
+    D_TEST_CHECK(_suite, unique);
+    D_TEST_CHECK(_suite,
+        strcmp(d_log_class_name((uint32_t)D_LOG_CLASS_COUNT), "?") == 0);
 
     return;
 }
@@ -1042,6 +1100,7 @@ d_tests_log(
     d_tests_log_levels(_suite);
     d_tests_log_codes(_suite);
     d_tests_log_signed(_suite);
+    d_tests_log_classes(_suite);
     d_tests_log_threshold(_suite);
     d_tests_log_text(_suite);
     d_tests_log_json(_suite);

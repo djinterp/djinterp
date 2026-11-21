@@ -177,7 +177,11 @@ not taken before anything is bound.
   name, a kind, a refused source, a value not built, a range, a choice, text
   the kind does not read, room. `d_option_env_reason_of` gives it for any
   status binding answered, and `d_option_env_reason_name` its stock words
-  (option_env's decision 70).
+  (option_env's decision 70). A registry's check adds one, the frame: a
+  dotted name whose first part names no djin and that the root does not
+  take, `net.timeout` with no djin `net`, which the stock report words "no
+  djin named net". The check's record names the frame the name addressed,
+  found or not (option_env's decision 84).
 - `d_option_env_describe(env, sink, flags)` (`option_env_desc.h`) writes a
   frame's settings as desc facts, a level each: value, source, default,
   knob, help and refused sources, and on request each setting's layers,
@@ -280,7 +284,7 @@ Each point says which module agreed to it: the CLI kit on 11-10, parse on
    - Agreed by parse: `settings.h` says to register before a program
      starts its threads.
 5. **The kit**: `get`, `set` and `--show-origin`'s text. **net**: the knobs
-   in its items #10, #12, E1, E3 and E9, each mapped to a row.
+   it listed for 0.8, each mapped to a row.
    - Agreed by the kit:
      - `get` and `set` write their values with
        `d_option_env_format_quoted`, so what they write loads back;

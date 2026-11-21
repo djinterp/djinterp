@@ -18,7 +18,7 @@
 * path:      /src/djinterp/c/option/option_env_registry.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/option/option_env_registry.h"  // corresponding header
 // std
@@ -374,9 +374,47 @@ d_option_env_registry_assign(
                                     _source);
 }
 
+/**
+ * @brief Whether a dotted name's first part names no djin, and nothing in
+ *        the root takes it: neither the root's own name nor a scope of its.
+ *
+ * @param[in] _registry  the registry.
+ * @param[in] _name      the name; need not end in a NUL.
+ * @param[in] _size      its length.
+ * @return true when no frame the registry has is the one it names.
+ */
+static bool
+d_internal_option_env_registry_no_djin(
+    struct dj_option_env_registry* _registry,
+    const char*                    _name,
+    size_t                         _size
+)
+{
+    const char* const dot  = (const char*)memchr(_name, '.', _size);
+    const char* const own  = _registry->frame.name;
+    const size_t      head = (dot != NULL) ? (size_t)(dot - _name) : 0u;
+
+    if ( (head == 0u) ||
+         (d_option_env_registry_find(_registry, _name, head) != NULL) )
+    {
+        return false;
+    }
+
+    if ( (own != NULL) &&
+         (strlen(own) == head) &&
+         (memcmp(own, _name, head) == 0) )
+    {
+        return false;
+    }
+
+    return !d_option_env_find_scope(&_registry->frame, _name, head).is_ok;
+}
+
 /*
 d_option_env_registry_check_from
-  The frame the name addresses, and option_env's check there.
+  The frame the name addressed, and option_env's check there; a name the
+root was given only because no djin has its first part, and that the root
+cannot take either, is refused for the frame (option_env's decision 84).
 */
 size_t
 d_option_env_registry_check_from(
@@ -398,9 +436,22 @@ d_option_env_registry_check_from(
             : NULL;
 
     // the frame's check answers a null frame, and fills the record, alike
-    return d_option_env_check_from(target, _name, _name_size, _value,
-                                   _value_size, _source, _buffer, _capacity,
-                                   _result, _checked);
+    const size_t written =
+        d_option_env_check_from(target, _name, _name_size, _value,
+                                _value_size, _source, _buffer, _capacity,
+                                _result, _checked);
+
+    if ( (_checked != NULL) &&
+         (_checked->size >= (uint32_t)sizeof(struct dj_option_env_checked)) &&
+         (_checked->reason == (int32_t)D_OPTION_ENV_REASON_NAME) &&
+         (target == &_registry->frame) &&
+         d_internal_option_env_registry_no_djin(_registry, _name,
+                                                _name_size) )
+    {
+        _checked->reason = (int32_t)D_OPTION_ENV_REASON_FRAME;
+    }
+
+    return written;
 }
 
 /*

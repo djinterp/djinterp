@@ -32,7 +32,7 @@
 * path:      /inc/djinterp/c/option/option_env_registry.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
 /*
@@ -363,7 +363,11 @@ size_t d_option_env_registry_suggest(
  * @param[in]  _capacity    its size.
  * @param[out] _result      the variable's id, or why not; may be null.
  * @param[out] _checked     where it resolved, and why refused; may be null;
- *                          its size set by the caller.
+ *                          its size set by the caller. Its reason is
+ *                          D_OPTION_ENV_REASON_FRAME for a dotted name
+ *                          whose first part names no djin and that the
+ *                          root takes neither as its own name nor as a
+ *                          scope: "net.timeout" with no djin net.
  * @return as d_option_env_check_from: the text's length as snprintf counts
  *         it, whatever the capacity; (size_t)-1 when the check failed.
  */

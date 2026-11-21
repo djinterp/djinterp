@@ -42,7 +42,7 @@
 * path:      /inc/djinterp/c/log/log.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
 /*
@@ -171,13 +171,15 @@ int d_log_level_add(const char* _name,
 //   enum: what kind of fault a code is, from one vocabulary across modules,
 // so a reader treats every module's out-of-range index alike: the
 // containers' table of 11-04, the syntax family, and the classes the log's
-// decisions 57, 58, 66 and 78 add. Each is written by its dotted name
+// decisions 57, 58, 66, 78 and 81 add. Each is written by its dotted name
 // (d_log_class_name). A class is part of a code's meaning, fixed when it
 // compiles and kept by the manifest; the tree's tables use only this
 // vocabulary. A program's own tables may add classes of their own, by
 // D_CFG_LOG_CLASSES_EXTRA (cfg_log.h), after these.
 #define D_LOG_CLASSES(X)                                                       \
     X(NONE,                 "none")                                            \
+    X(ACCESS_DENIED,        "access.denied")                                   \
+    X(ACCESS_UNAUTHENTICATED, "access.unauthenticated")                        \
     X(ARGUMENT_NULL,        "argument.null")                                   \
     X(ARGUMENT_INVALID,     "argument.invalid")                                \
     X(ARGUMENT_UNMET,       "argument.unmet")                                  \
@@ -199,6 +201,7 @@ int d_log_level_add(const char* _name,
     X(QUANTITY_DEPTH,       "quantity.depth")                                  \
     X(QUANTITY_SIZE,        "quantity.size")                                   \
     X(RESOURCE_BUDGET,      "resource.budget")                                 \
+    X(RESOURCE_IN_USE,      "resource.in_use")                                 \
     X(RESOURCE_MEMORY,      "resource.memory")                                 \
     X(SPAN_EMPTY,           "span.empty")                                      \
     X(SPAN_INVERTED,        "span.inverted")                                   \
@@ -223,6 +226,7 @@ int d_log_level_add(const char* _name,
     X(IO_UNREACHABLE,       "io.unreachable")                                  \
     X(IO_RESET,             "io.reset")                                        \
     X(IO_WOULD_BLOCK,       "io.would_block")                                  \
+    X(IO_INTERRUPTED,       "io.interrupted")                                  \
     X(FORMAT_MALFORMED,     "format.malformed")                                \
     X(FORMAT_UNSUPPORTED,   "format.unsupported")                              \
     X(FORMAT_TRUNCATED,     "format.truncated")                                \
@@ -518,7 +522,9 @@ uint64_t d_log_failures(void);
 // codes must be declared (D_LOG_CODES_DECLARE). A record whose level is
 // below D_CFG_LOG_LEVEL_MIN compiles to nothing; one below the threshold
 // builds nothing. It needs variadic macros: C99, or C++11; elsewhere call
-// d_log_emit.
+// d_log_emit. The variadic definitions are the header's own, so the warning
+// a strict build gives for each is quieted here, and only here.
+D_ENV_PP_VARIADIC_QUIET_BEGIN
 #if D_CFG_LOG_ENABLED &&                                                       \
     ( D_ENV_LANG_IS_CPP11_OR_HIGHER ||                                         \
       (!defined(__cplusplus) && D_ENV_LANG_IS_C99_OR_HIGHER) )
@@ -543,6 +549,7 @@ uint64_t d_log_failures(void);
 #elif !D_CFG_LOG_ENABLED
     #define D_LOG(m, ...)  do { } while (0)
 #endif
+D_ENV_PP_VARIADIC_QUIET_END
 
 
 //==============================================================================

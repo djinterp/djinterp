@@ -53,18 +53,15 @@ table with a number twice, always.
 
 Events and codes share one key space. An event's name is declared beside
 its type, the same string in C and C++ (the event core's decision 15:
-`D_EVENT(DOnResize,
-"ui.resize", int, int)`, `D_EVENT_DECLARE(on_resize, "ui.resize", int,
-int)`), and hashed the same way. A record is an occurrence of its code's
-event, so a name means one thing, with one payload, whichever declared it:
-the manifest lists events' names as well as codes', and CI's collision
-check covers both (decision 64). The debug check sees only registered codes,
-since
-events are not registered. A program's own hash
-(`D_CFG_EVENT_KEY_HASH`) and the option `event.key_check` come with the
-event system's djin, in week 3.
-CI's check of the tree's own names is not optional: it is the tree's
-guarantee.
+`D_EVENT(DOnResize, "ui.resize", int, int)`,
+`D_EVENT_DECLARE(on_resize, "ui.resize", int, int)`), and hashed the same
+way. A record is an occurrence of its code's event, so a name means one
+thing, with one payload, whichever declared it: the manifest lists events'
+names as well as codes', and CI's collision check covers both (decision
+64). The debug check sees only registered codes, since events are not
+registered. A program's own hash (`D_CFG_EVENT_KEY_HASH`) and the option
+`event.key_check` come with the event system's djin, in week 3. CI's check
+of the tree's own names is not optional: it is the tree's guarantee.
 
 ## Levels (decision 22)
 
@@ -301,10 +298,16 @@ every module's codes share:
   `format.*` family, as one set (decision 58); `lifecycle.frozen`, for a
   change refused by an object that is still in use (decision 66); and
   `io.timed_out`, `io.refused`, `io.unreachable`, `io.reset` and
-  `io.would_block`, for a peer's conditions (decision 78). A class is part
-  of a code's meaning, fixed when it compiles; a missing one is proposed and
-  ruled before the table that needs it. A program's own tables may add
-  classes of their own, `D_CFG_LOG_CLASSES_EXTRA`, after the vocabulary.
+  `io.would_block`, for a peer's conditions (decision 78). Ruled on 11-17
+  as one set, for what a host or a server refuses or cuts short (decision
+  81): `io.interrupted`, a call a signal cut short (its codes are soft:
+  the caller tries again); `resource.in_use`, an address or a resource
+  another holds; `access.denied`, a caller who is known but not allowed;
+  and `access.unauthenticated`, a caller whose identity was not accepted.
+  A class is part of a code's meaning, fixed when it compiles; a missing
+  one is proposed and ruled before the table that needs it. A program's
+  own tables may add classes of their own, `D_CFG_LOG_CLASSES_EXTRA`, after
+  the vocabulary.
 - **A side**, a standard fact for a value or a range against the valid
   interval: any of below (B), at its lower edge (L), within (W), at its upper
   edge (U) and above (A). An index past the end is `position.index {A}`; a

@@ -3,10 +3,11 @@
 desc's design, for the agreement of Friday 11-13 (decision 29): the APIs of
 all three of desc's layers -- the units, the facts and the macro layer -- as
 they are in the tree, and the C++ face over them. It records the owner's
-rulings of 11-12 and 11-17, by desc's decision numbers: 20 (describer forms
-and machines), 28 (d) (one authored form), 30 (a) (op arrays), 31 (c) (a
-declaring macro per family), 32 (b) (dmacro's tools), 33 (c) (where a
-describer is found), 34 (a) (the order of adoption) and 74 (JSON that names
+rulings of 11-12, 11-17 and 11-18, by desc's decision numbers: 20
+(describer forms and machines), 28 (d) (one authored form), 30 (a) (op
+arrays), 31 (c) (a declaring macro per family), 32 (b) (dmacro's tools), 33
+(c) (where a describer is found), 34 (a) (the order of adoption), 68 (c)
+and 82 (a) (where other modules' describers live), and 74 (JSON that names
 its shape). It builds on desc.txt (the owner's idea and the first C++
 sketch) and on what the tree already has: the stream's value and templates
 (`c/text/ostream_template.h`), the environment printer and option_env with
@@ -479,6 +480,28 @@ program registers (the default), 2 every described type.
 Week 3's describers follow the roadmap's order: memory, filesys, option,
 test, db, net.
 
+## Other modules' describers (decisions 68 (c) and 82 (a))
+
+The describers of memory's, filesys's, DTest's, db's, net's and the
+containers' types are desc's own, written with desc rather than by each
+module (decision 68 (c)). They live in a library of desc's own,
+`djinterp_c_desc_of`, above the modules it describes: a unit and a header
+per module (`desc/of/mem_desc.c` and `.h`, with `units<T>` in a `.hpp`),
+each built only where its module is (decision 82 (a)). desc's core stays
+below every module, and a program that describes none of these types links
+none of them. `D_CFG_DESC_OF` (1) builds the library, and
+`D_CFG_DESC_OF_<MODULE>` (1 wherever its module is built) leaves one
+module's describers out. No run-time option says whether a describer
+exists: a run chooses how a description is written, by `desc.form` and
+`desc.format`.
+
+desc's suite checks each describer against its type: the type's size, and
+the offset of each field the describer reads, recorded beside the
+describer. A change to a described type that its describer has not
+followed fails desc's tests in the window it lands, naming the type and the
+field, while the type's own module still builds; a module that changes a
+described type says so, so that the describer's change lands with it.
+
 ## When each part lands
 
 - **Friday 11-13**: desc.h's core with its machines; the units engine and
@@ -491,8 +514,8 @@ test, db, net.
   `d_desc_write_with` and `d_desc_write_shaped`; a JSON shape member; a
   frame's settings as facts (`option_env_desc.h`).
 - **Week 3**: the name registry (decision 33); describers in decision 34's
-  order; the declaring macros per family, with the containers' module
-  (decision 31).
+  order, in `djinterp_c_desc_of` (decision 82), memory's first; the
+  declaring macros per family, with the containers' module (decision 31).
 
 ## Settled
 
@@ -503,7 +526,9 @@ test, db, net.
 2. The layers: desc.h's nine, and no others; a module adds keys.
 3. Where a describer is found: decision 33 (c), above.
 4. Which modules get describers first: decision 34 (a), above.
-5. JSON that names its shape: the JSON machine writes `"format": "<shape>"`
+5. Where other modules' describers live, and how they keep up with their
+   types: decisions 68 (c) and 82 (a), above.
+6. JSON that names its shape: the JSON machine writes `"format": "<shape>"`
    first, a shape a caller names, as `djinterp.describe/1.0` and
    `djinterp.help/1.0` (decision 74). A shape's version is MAJOR.MINOR:
    MAJOR moves at any change that is not an addition, MINOR at an

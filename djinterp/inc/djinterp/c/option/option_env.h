@@ -56,7 +56,7 @@
 * path:      /inc/djinterp/c/option/option_env.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
 /*
@@ -998,7 +998,11 @@ struct dj_option_result d_option_env_unset_from(struct dj_option_env* _env,
 //   enum: which rule refused a value, finer than its status: an unbuilt
 // value and a refused source share POLICY_REJECTED, and a range, a choice
 // and unreadable text share INVALID_ARGUMENT. Reports and checks carry one,
-// so every caller words a refusal right (option_env's decision 70).
+// so every caller words a refusal right (option_env's decision 70). FRAME
+// is a registry's: a dotted name whose first part names no djin, and which
+// nothing in the root takes (option_env's decision 84); NAME is then a
+// known frame's unknown name, so a caller testing for an unknown name tests
+// both.
 enum dj_option_env_reason
 {
     D_OPTION_ENV_REASON_NONE     = 0,  // nothing was refused
@@ -1010,7 +1014,8 @@ enum dj_option_env_reason
     D_OPTION_ENV_REASON_CHOICE   = 6,  // none of a choice's or flags' names
     D_OPTION_ENV_REASON_TEXT     = 7,  // text the kind does not read
     D_OPTION_ENV_REASON_ROOM     = 8,  // no room in the frame
-    D_OPTION_ENV_REASON_ARGUMENT = 9   // a null pointer, or no such source
+    D_OPTION_ENV_REASON_ARGUMENT = 9,  // a null pointer, or no such source
+    D_OPTION_ENV_REASON_FRAME    = 10  // no djin by a dotted name's first part
 };
 
 /**
@@ -1293,14 +1298,18 @@ size_t d_option_env_format_quoted(const struct dj_option_env* _env,
 //   struct: what a check resolved, besides its result: where the value would
 // be bound, so a writer of settings can name the setting canonically and
 // replace a line however it was spelled, and why it was refused. `size` is
-// the struct's size as the caller was built.
+// the struct's size as the caller was built. The frame is the one the name
+// addressed, found or not, so a caller can say where it was looked for
+// (option_env's decision 84).
 struct dj_option_env_checked
 {
     uint32_t                    size;    // sizeof, as the caller built it
     int32_t                     reason;  // D_OPTION_ENV_REASON_*
-    const struct dj_option_env* frame;   // the frame; null when not found
+    const struct dj_option_env* frame;   // the frame the name addressed;
+                                         // null for a bad argument
     uint32_t                    scope;   // the scope it resolved
-    uint32_t                    var;     // the variable, seen from frame
+    uint32_t                    var;     // the variable, seen from frame;
+                                         // D_OPTION_ENV_NONE when none
 };
 
 /**

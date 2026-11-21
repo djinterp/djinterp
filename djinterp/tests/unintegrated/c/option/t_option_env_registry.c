@@ -17,7 +17,7 @@
 * path:      /tests/unintegrated/c/option/t_option_env_registry.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 // std
 #include <stdbool.h>  // bool
@@ -66,6 +66,9 @@ static const struct dj_option_env_var D_TESTS_PRINTER_SCHEMA[] =
 };
 
 static const char* const D_TESTS_PRINTER_SCOPES[] = { "language", "compiler" };
+
+// a scope of the root's, by the name a djin might have
+static const char* const D_TESTS_ROOT_SCOPES[] = { "net" };
 
 // the logger djin's schema
 static const struct dj_option_env_var D_TESTS_LOGGER_SCHEMA[] =
@@ -771,6 +774,10 @@ d_tests_registry_checking
     as binding it from the source would, and its value written as a file
     needs it; nothing is bound
   - no '=', or no name, is INVALID_ARGUMENT; an unknown name KEY_ABSENT
+  - the record names the frame the name addressed, found or not: a djin's
+    unknown name is NAME there; a first part that names no djin, and that
+    the root takes neither as its own name nor as a scope, is FRAME at the
+    root; a root scope by that name takes the name, NAME when it lacks it
 */
 static void
 d_tests_registry_checking(void)
@@ -853,9 +860,59 @@ d_tests_registry_checking(void)
                                      "printer.nothing", 15u, "1", 1u, file,
                                      NULL, 0u, &result, &record) ==
                                  (size_t)-1) &&
-                                (record.frame == NULL) &&
+                                (record.frame == &printer) &&
+                                (record.var == D_OPTION_ENV_NONE) &&
                                 (record.reason ==
                                  (int32_t)D_OPTION_ENV_REASON_NAME) );
+
+        // no djin net, and nothing in the root by that name
+        D_TESTS_REGISTRY_CHECK( (d_option_env_registry_check_from(&registry,
+                                     "net.timeout", 11u, "5", 1u, file,
+                                     NULL, 0u, &result, &record) ==
+                                 (size_t)-1) &&
+                                (D_TESTS_REGISTRY_STATUS(result) ==
+                                 (int32_t)D_OPTION_STATUS_KEY_ABSENT) &&
+                                (record.frame == &registry.frame) &&
+                                (record.var == D_OPTION_ENV_NONE) &&
+                                (record.reason ==
+                                 (int32_t)D_OPTION_ENV_REASON_FRAME) );
+
+        // the root's own name leads its own settings, known or not
+        D_TESTS_REGISTRY_CHECK( (d_option_env_registry_check_from(&registry,
+                                     "tests.color", 11u, "yes", 3u, file,
+                                     buffer, sizeof(buffer), &result,
+                                     &record) == 4u) &&
+                                (record.frame == &registry.frame) &&
+                                (record.reason ==
+                                 (int32_t)D_OPTION_ENV_REASON_NONE) );
+        D_TESTS_REGISTRY_CHECK( (d_option_env_registry_check_from(&registry,
+                                     "tests.nothing", 13u, "1", 1u, file,
+                                     NULL, 0u, &result, &record) ==
+                                 (size_t)-1) &&
+                                (record.frame == &registry.frame) &&
+                                (record.reason ==
+                                 (int32_t)D_OPTION_ENV_REASON_NAME) );
+
+        // a root scope named net takes net's names: known, or NAME
+        D_TESTS_REGISTRY_CHECK(d_option_env_set_scopes(&registry.frame,
+                                   D_TESTS_ROOT_SCOPES, 1u).is_ok);
+        D_TESTS_REGISTRY_CHECK( (d_option_env_registry_check_from(&registry,
+                                     "net.timeout", 11u, "5", 1u, file,
+                                     NULL, 0u, &result, &record) ==
+                                 (size_t)-1) &&
+                                (record.frame == &registry.frame) &&
+                                (record.scope != D_OPTION_ENV_GLOBAL) &&
+                                (record.var == D_OPTION_ENV_NONE) &&
+                                (record.reason ==
+                                 (int32_t)D_OPTION_ENV_REASON_NAME) );
+        D_TESTS_REGISTRY_CHECK( (d_option_env_registry_check_from(&registry,
+                                     "net.color", 9u, "yes", 3u, file,
+                                     buffer, sizeof(buffer), &result,
+                                     &record) == 4u) &&
+                                (record.frame == &registry.frame) &&
+                                (record.scope != D_OPTION_ENV_GLOBAL) &&
+                                (record.reason ==
+                                 (int32_t)D_OPTION_ENV_REASON_NONE) );
         D_TESTS_REGISTRY_CHECK(d_option_env_registry_check_from(NULL, "x",
                                    1u, "1", 1u, file, NULL, 0u, NULL,
                                    &record) == (size_t)-1);

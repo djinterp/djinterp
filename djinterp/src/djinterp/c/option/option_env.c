@@ -29,7 +29,7 @@
 * path:      /src/djinterp/c/option/option_env.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/option/option_env.h"  // corresponding header
 // std
@@ -3974,7 +3974,8 @@ static const char* const REASON_NAMES[] =
     "not one of its names",
     "not readable as its kind",
     "no room to bind it",
-    "a bad argument"
+    "a bad argument",
+    "no such djin"
 };
 
 const char*
@@ -4042,6 +4043,38 @@ d_internal_option_env_print_text(
 }
 
 /*
+d_internal_option_env_print_djin
+  "no djin named net", for a setting's full name, net.timeout; the reason's
+stock words when the name has no first part.
+*/
+static void
+d_internal_option_env_print_djin(
+    FILE*       _out,
+    const char* _setting
+)
+{
+    char         head[D_INTERNAL_OPTION_ENV_NAME_MAX + 1u];
+    const char*  dot  = (_setting != NULL) ? strchr(_setting, '.') : NULL;
+    const size_t size = (dot != NULL) ? (size_t)(dot - _setting) : 0u;
+
+    if ( (size == 0u) ||
+         (size > D_INTERNAL_OPTION_ENV_NAME_MAX) )
+    {
+        (void)fputs(d_option_env_reason_name(
+                        (int32_t)D_OPTION_ENV_REASON_FRAME), _out);
+
+        return;
+    }
+
+    memcpy(head, _setting, size);
+    head[size] = '\0';
+    (void)fputs("no djin named ", _out);
+    d_internal_option_env_print_text(_out, head);
+
+    return;
+}
+
+/*
 d_internal_option_env_print_why
   A reason in the row's own terms: the kind a text is not, the range and the
 names an int takes, a choice's names, the source refused.
@@ -4068,9 +4101,13 @@ d_internal_option_env_print_why(
 
     // without the row, every reason is said in its stock words
     switch ( ( (_decl != NULL) ||
-               (_report->reason == (int32_t)D_OPTION_ENV_REASON_SOURCE) )
+               (_report->reason == (int32_t)D_OPTION_ENV_REASON_SOURCE) ||
+               (_report->reason == (int32_t)D_OPTION_ENV_REASON_FRAME) )
                  ? _report->reason : -1 )
     {
+        case D_OPTION_ENV_REASON_FRAME:
+            d_internal_option_env_print_djin(_out, _report->setting);
+            break;
         case D_OPTION_ENV_REASON_TEXT:
             (void)fprintf(_out, "not %s",
                           ( (_decl->kind >= (int32_t)D_OPTION_ENV_KIND_BOOL) &&
@@ -4886,9 +4923,12 @@ d_option_env_check_from(
         status = (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT;
     }
 
-    found = (status == (int32_t)D_OPTION_STATUS_OK)
-                ? d_option_env_resolve(_env, _name, _name_size, &scope)
-                : d_option_fail(status);
+    // the name addressed this frame, found or not, once the arguments hold
+    const bool addressed = (status == (int32_t)D_OPTION_STATUS_OK);
+
+    found  = addressed
+                 ? d_option_env_resolve(_env, _name, _name_size, &scope)
+                 : d_option_fail(status);
     status = found.is_ok ? status : found.payload.error;
 
     if (status == (int32_t)D_OPTION_STATUS_OK)
@@ -4929,7 +4969,7 @@ d_option_env_check_from(
                        : d_option_fail(status);
     }
 
-    d_internal_option_env_checked(_checked, found.is_ok ? _env : NULL, scope,
+    d_internal_option_env_checked(_checked, addressed ? _env : NULL, scope,
                                   found.is_ok ? found.payload.value
                                               : D_OPTION_ENV_NONE,
                                   d_option_env_reason_of(

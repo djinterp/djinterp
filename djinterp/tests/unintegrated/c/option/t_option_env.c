@@ -21,7 +21,7 @@
 * path:      /tests/unintegrated/c/option/t_option_env.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.28
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 // std
 #include <locale.h>   // setlocale, LC_NUMERIC
@@ -2644,14 +2644,16 @@ d_tests_option_env_reasons
   Tests the following:
   - a check's record says which rule refused, finer than the status: a
     range, an unbuilt name, a refused source, an unknown name, text a kind
-    does not read, a choice's names, a kind; and where it resolved
+    does not read, a choice's names, a kind; and where it resolved: for an
+    unknown name, the frame it addressed, with no variable
   - d_option_env_reason_of gives the same for binding's own status
   - d_option_env_refuses reads a row's refused sources; -1 for no such
     variable or source
   - D_OPTION_ENV_REFUSES_CALLER refuses the file, the environment and the
     command line, and takes the program and an override
   - the stock report words each refusal from its row, and writes control
-    bytes as \xNN
+    bytes as \xNN; a frame refused names the djin its setting's first part
+    asked for, "no djin named net"
 */
 static void
 d_tests_option_env_reasons(void)
@@ -2730,7 +2732,7 @@ d_tests_option_env_reasons(void)
         }
         else
         {
-            D_TESTS_OPTION_ENV_CHECK( (record.frame == NULL) &&
+            D_TESTS_OPTION_ENV_CHECK( (record.frame == &env) &&
                                       (record.var == D_OPTION_ENV_NONE) );
         }
 
@@ -2777,6 +2779,30 @@ d_tests_option_env_reasons(void)
                                    != NULL) &&
                                   (strcmp(line, "X=a\\x1B]0;owned\\x07: no "
                                                 "room to bind it\n") == 0) );
+
+        // a frame refused: the djin the setting's first part asked for
+        report.value   = "5";
+        report.setting = "net.timeout";
+        report.frame   = NULL;
+        report.var     = D_OPTION_ENV_NONE;
+        report.reason  = (int32_t)D_OPTION_ENV_REASON_FRAME;
+        rewind(out);
+        d_option_env_report_print(out, &report);
+        (void)fputc('\0', out);
+        rewind(out);
+        D_TESTS_OPTION_ENV_CHECK( (fgets(line, (int)sizeof(line), out)
+                                   != NULL) &&
+                                  (strcmp(line, "X=5: no djin named net\n")
+                                   == 0) );
+        report.setting = "timeout";
+        rewind(out);
+        d_option_env_report_print(out, &report);
+        (void)fputc('\0', out);
+        rewind(out);
+        D_TESTS_OPTION_ENV_CHECK( (fgets(line, (int)sizeof(line), out)
+                                   != NULL) &&
+                                  (strcmp(line, "X=5: no such djin\n")
+                                   == 0) );
         (void)fclose(out);
     }
 
@@ -2788,6 +2814,9 @@ d_tests_option_env_reasons(void)
     D_TESTS_OPTION_ENV_CHECK(
         (strcmp(d_option_env_reason_name(D_OPTION_ENV_REASON_SOURCE),
                 "not taken from this source") == 0) &&
+        (strcmp(d_option_env_reason_name(D_OPTION_ENV_REASON_FRAME),
+                "no such djin") == 0) &&
+        (strcmp(d_option_env_reason_name(11), "?") == 0) &&
         (strcmp(d_option_env_reason_name(42), "?") == 0));
 
     // the caller's sources refused; the program's and a test's taken

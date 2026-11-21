@@ -28,7 +28,7 @@
 * path:      /inc/djinterp/config/c/log/cfg_log.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.19
 *******************************************************************************/
 
 /*
@@ -391,7 +391,8 @@ TABLE OF CONTENTS
 // 1.7.5
 // D_CFG_LOG_BUFFER
 //   configuration: the bytes the log's destination buffers; it is flushed at
-// each record's end, so a record that fits is one write. 4096 by default.
+// each record's end, so a record that fits is one call to the destination.
+// 4096 by default.
 #ifndef D_CFG_LOG_BUFFER
     #define D_CFG_LOG_BUFFER 4096
 #endif
