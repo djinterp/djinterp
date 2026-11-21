@@ -5,10 +5,11 @@
 # suites at each C level, the allocation sweep at the C floor (`-sweep`),
 # the C++ suite at each C++ level, and the C++ suite without exceptions
 # (`-noexc`) at the lowest and the highest.
-#   A suite is a table of sections, and a section is the unit a configuration
-# knob removes. A section that silently stopped being compiled would
-# otherwise read as a smaller pass; these are the counts that make it a
-# failure instead.
+#   A suite is a block of DTest's spec form, and each section one of its
+# tests, the unit a configuration knob removes. A section that silently
+# stopped being compiled would otherwise read as a smaller pass; these are
+# the counts that make it a failure instead: DTest's summary must say this
+# many tests passed, and none failed or skipped.
 #   Both builds read this file -- CMakeLists.txt and run_cli_tests.sh, beside
 # it -- so there is one place to change when a section is added. A line is
 # `<build> <sections>`; anything else is a comment.
@@ -18,10 +19,10 @@
 # path:      /build/cmake/config/testing/djinterp/tools/cli/expected_sections.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-#                                                            revised: 2026.11.13
+#                                                            revised: 2026.11.18
 
 # the C suites: streams and files 8, help 5, the program 18, commands that
-# change a file 4, operands that name no file 2, plugins 9
+# change a file 4, operands that name no file 2, plugins 9, settings 5
 c99 51
 c11 51
 c17 51

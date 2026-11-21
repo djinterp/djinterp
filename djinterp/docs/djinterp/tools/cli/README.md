@@ -328,7 +328,7 @@ different settings still agree on every layout.
 
 ## Tests
 
-The suites are under `tests/djinterp/parse/cli/`: the C suites in `c/`,
+The suites are under `tests/djinterp/tools/cli/`: the C suites in `c/`,
 the C++ suite beside them, and the probe modules the plugin suites load in
 `c/probe/`. Beside the C suites is the allocation sweep,
 `c/cli_sweep_tests.c`: each of its cases -- a program made, a command line
@@ -337,22 +337,34 @@ once as it is, then once for each allocation it makes with that one
 refused, every run held to leaving nothing live and to doing all the clean
 run did or ending in trouble and saying `out of memory`. It wraps `malloc`
 and its kin at link time, so it is built where the linker has `--wrap`.
-Their leaf, `build/cmake/config/testing/djinterp/parse/cli/cli/`, builds
-them two ways, each holding every run to the count of sections
-`expected_sections.txt` gives it:
+
+*(added 11-20)* Every suite runs on DTest's C face
+(`c/modules/test/test_suite.h`). A suite is a block of its spec form and
+each section a test; the C suites run as one module, `cli`, the sweep as
+`cli_sweep` and the C++ suite as `cli_cpp`. A case's status, output and
+error output are three checks, each named by the case's tag, and a
+difference is a note on the failed test: DTest's text check gives the line
+and column, and every byte counts, so a CR before an LF, which that check
+passes over, fails the case too.
+
+Their leaf, `build/cmake/config/testing/djinterp/tools/cli/`, builds them
+two ways, each holding every run to the count of tests
+`expected_sections.txt` gives it, all passed:
 
 ```
-cmake -S build/cmake/config/testing/djinterp/parse/cli/cli -B out
+cmake -S build/cmake/config/testing/djinterp/tools/cli -B out
 cmake --build out
 ctest --test-dir out
 
-build/cmake/config/testing/djinterp/parse/cli/cli/run_cli_tests.sh [--sanitize]
+build/cmake/config/testing/djinterp/tools/cli/run_cli_tests.sh [--sanitize]
 ```
 
 The script takes `CC`, `CXX` and `AR`, and for a Windows cross build
 `EXE_SUFFIX=.exe` and a `RUN_PREFIX` that runs a Windows program, such as
-`env LC_ALL=C.UTF-8 wine`. A run is given the directory the probes are in,
-or looks beside itself.
+`env LC_ALL=C.UTF-8 wine`. A run's first argument is the directory the
+probes are in, or it looks beside itself. *(added 11-20)* Any other is
+DTest's: `--failures`, `--checks`, `--no-table` and `--filter=TEXT`, such
+as `--filter=cli_settings` to run one suite's tests.
 
 A case's expected output is in its table. With `D_TESTS_CLI_DUMP` set in
 the environment, a C run prints what each case came to as the table entry

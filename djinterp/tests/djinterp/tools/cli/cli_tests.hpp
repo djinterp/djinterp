@@ -35,7 +35,7 @@
 // djinterp
 #include "../../../../inc/djinterp/env/env.h"  // language levels
 #include "../../../../inc/djinterp/config/c/modules/parse/cli/arg_parser/cfg_arg_parser.h"  // D_INTERNAL_ARG_PARSER_CPP_CATCH
-#include "../../c/modules/parse/tests_section.h"     // dj_tests_section
+#include "../../../../inc/djinterp/c/modules/test/test_suite.h"  // specs
 
 
 // the directory the probe modules were built in; NULL for the runner's own
@@ -73,9 +73,9 @@ bool d_tests_cli_cpp_plugins();
 // 8.  THE VERSION
 bool d_tests_cli_cpp_version();
 
-// the suite's sections, in the order they run
-extern const dj_tests_section d_tests_cli_cpp[];
-extern const std::size_t     d_tests_cli_cpp_count;
+// the suite's sections, in the order they run, and the block they make
+extern const struct dj_test_case_spec  d_tests_cli_cpp[];
+extern const struct dj_test_block_spec d_tests_cli_cpp_block;
 
 
 #endif  // DJINTERP_TOOLS_CLI_CLI_TESTS_HPP

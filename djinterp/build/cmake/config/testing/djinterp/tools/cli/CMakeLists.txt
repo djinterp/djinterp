@@ -18,11 +18,15 @@
 # the directory the probes are in. A level the compiler cannot select is
 # left out, and the configure step says so; so is the C++ suite when there
 # is no C++ compiler, and the sweep when the linker cannot wrap.
-#   A suite is a table of sections, and a section is what a configuration
-# knob removes -- or a language level, or exceptions turned off -- so the
-# number of sections run differs by configuration, by design.
-# expected_sections.txt holds the count each build has in the default
-# configuration, and every test here must print exactly that.
+#   Every suite runs on DTest's C face (c/modules/test/test_suite.h), whose
+# one source each executable compiles at its own level, as the parse
+# settings leaf does: this leaf stands alone, in the testing configuration.
+# A suite is a block of DTest's spec form, and each of its sections a test,
+# which a configuration knob removes -- or a language level, or exceptions
+# turned off -- so the number of tests run differs by configuration, by
+# design. expected_sections.txt holds the count each build has in the
+# default configuration, and every test here must report exactly that many
+# passed, and none failed or skipped.
 #   PLAIN CMAKE, as the argument parser's leaf is: the leaf stands alone or
 # is added from another project.
 #     cmake -S <this directory> -B <out> && cmake --build <out> && \
@@ -34,7 +38,8 @@
 #           DJINTERP_CLI_NO_EXCEPTIONS  the C++ suite without exceptions too,
 #                                       where the compiler turns them off
 #           DJINTERP_CLI_EXPECT_COUNTS  hold each test to its count; OFF
-#                                       under a configuration knob
+#                                       under a configuration knob, when
+#                                       DTest's exit status alone decides
 #           DJINTERP_CLI_STRICT         the ladder's own diagnostics, as
 #                                       errors, where the compiler has them
 #           DJINTERP_CLI_SANITIZE       AddressSanitizer and
@@ -44,7 +49,7 @@
 # path:      /build/cmake/config/testing/djinterp/tools/cli/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-#                                                            revised: 2026.11.13
+#                                                            revised: 2026.11.18
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -100,9 +105,10 @@ option(DJINTERP_CLI_SANITIZE
        "Build with AddressSanitizer and UndefinedBehaviorSanitizer"
        OFF)
 
-# where the suites are
+# where the suites are, and DTest's C face, which runs them
 set(_tests "${DJINTERP_CLI_ROOT}/tests/djinterp/tools/cli")
 set(_parser_tests "${DJINTERP_CLI_ROOT}/tests/djinterp/c/modules/parse/cli/arg_parser")
+set(_dtest "${DJINTERP_CLI_ROOT}/src/djinterp/c/modules/test/test_suite.c")
 
 
 #------------------------------------------------------------------------------
@@ -167,9 +173,10 @@ function(djinterp_cli_sanitize _target)
 endfunction()
 
 # djinterp_cli_expect
-#   function: holds a test to the number of sections its build has in the
+#   function: holds a test to the number of tests its build has in the
 # default configuration, as expected_sections.txt records it under the
 # build's name: its level, and `-noexc` for a C++ build without exceptions.
+# DTest's summary must say that many passed, and none failed or skipped.
 function(djinterp_cli_expect _test _level)
     if(NOT DJINTERP_CLI_EXPECT_COUNTS)
         return()
@@ -181,11 +188,13 @@ function(djinterp_cli_expect _test _level)
     foreach(_line IN LISTS _lines)
         if(_line MATCHES "^([a-z+]+[0-9]+(-[a-z]+)?) +([0-9]+)$")
             if(CMAKE_MATCH_1 STREQUAL "${_level}")
+                set(_n "${CMAKE_MATCH_3}")
+                set(_summary
+                    "tests: +${_n} \\(${_n} passed, 0 failed, 0 skipped\\)")
+
                 set_tests_properties(${_test} PROPERTIES
-                    PASS_REGULAR_EXPRESSION
-                        "passed: ${CMAKE_MATCH_3}   failed: 0"
-                    FAIL_REGULAR_EXPRESSION
-                        "\\[FAIL\\]")
+                    PASS_REGULAR_EXPRESSION "${_summary}"
+                    FAIL_REGULAR_EXPRESSION "result: +(FAILED|ERROR)")
 
                 return()
             endif()
@@ -212,8 +221,8 @@ endfunction()
 # to the count expected_sections.txt gives `_key`; anything after the key
 # is a compile option of the C++ sources -- the one that turns exceptions
 # off. C++98 without extensions is the framework's strict ISO mode. The
-# suite's C sources, the C suites' support and the scratch directories, are
-# C99, as the libraries are.
+# suite's C sources, the C suites' support, the scratch directories and
+# DTest, are C99, as the libraries are.
 function(djinterp_cli_cpp_test _target _level _key)
     add_executable(${_target} ${_cpp_sources})
 
@@ -345,6 +354,7 @@ foreach(_level IN LISTS DJINTERP_CLI_C_LEVELS)
         "${_tests}/c/cli_operand_tests.c"
         "${_tests}/c/cli_plugin_tests.c"
         "${_tests}/c/cli_settings_tests.c"
+        "${_dtest}"
         "${CMAKE_CURRENT_LIST_DIR}/cli_c_tests_runner.c")
 
     set_target_properties(${_target} PROPERTIES
@@ -383,6 +393,7 @@ if(DJINTERP_CLI_LINKER_WRAPS)
         "${_tests}/c/cli_sweep_tests.c"
         "${_tests}/c/cli_tests_support.c"
         "${_parser_tests}/arg_tests_files.c"
+        "${_dtest}"
         "${CMAKE_CURRENT_LIST_DIR}/cli_c_sweep_runner.c")
 
     set_target_properties(${_target} PROPERTIES
@@ -421,9 +432,10 @@ endif()
 
 set(_cpp_sources
     "${_tests}/cli_tests.cpp"
-    # the C suites' support and the scratch directories, which are C
+    # the C suites' support, the scratch directories and DTest, which are C
     "${_tests}/c/cli_tests_support.c"
     "${_parser_tests}/arg_tests_files.c"
+    "${_dtest}"
     "${CMAKE_CURRENT_LIST_DIR}/cli_cpp_tests_runner.cpp")
 
 set(_cpp_built "")

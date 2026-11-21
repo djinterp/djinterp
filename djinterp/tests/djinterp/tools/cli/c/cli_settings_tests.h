@@ -38,7 +38,7 @@ TABLE OF CONTENTS
 #include <stdbool.h>  // bool
 #include <stddef.h>   // size_t
 // djinterp
-#include "../../../c/modules/parse/tests_section.h"  // dj_tests_section
+#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // specs
 
 
 // 1.  TAKEN
@@ -52,10 +52,10 @@ bool d_tests_cli_settings_environment(void);
 // 5.  WHAT THE KIT READS
 bool d_tests_cli_settings_reads(void);
 
-// the suite's sections, in the order they run; none where the option core
-// is not built, or outside testing (D_TESTING)
-extern const struct dj_tests_section d_tests_cli_settings[];
-extern const size_t                 d_tests_cli_settings_count;
+// the suite's sections, in the order they run, and the block they make;
+// none where the option core is not built, or outside testing (D_TESTING)
+extern const struct dj_test_case_spec  d_tests_cli_settings[];
+extern const struct dj_test_block_spec d_tests_cli_settings_block;
 
 
 #endif  // DJINTERP_TOOLS_CLI_C_CLI_SETTINGS_TESTS_H

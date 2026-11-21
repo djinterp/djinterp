@@ -25,7 +25,7 @@
 #include <stdbool.h>                   // bool
 #include <stddef.h>                    // size_t
 // djinterp
-#include "../../../c/modules/parse/tests_section.h"  // dj_tests_section
+#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // specs
 
 
 // 1.  NAMED OPERANDS
@@ -34,9 +34,9 @@ bool d_tests_cli_operand_named(void);
 // 2.  NULLS
 bool d_tests_cli_operand_nulls(void);
 
-// the suite's sections, in the order they run
-extern const struct dj_tests_section d_tests_cli_operand[];
-extern const size_t                 d_tests_cli_operand_count;
+// the suite's sections, in the order they run, and the block they make
+extern const struct dj_test_case_spec  d_tests_cli_operand[];
+extern const struct dj_test_block_spec d_tests_cli_operand_block;
 
 
 #endif  // DJINTERP_TOOLS_CLI_C_CLI_OPERAND_TESTS_H

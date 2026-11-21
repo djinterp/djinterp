@@ -40,7 +40,7 @@
 #include "../../../../../inc/djinterp/tools/cli/c/cli_io.h"  // d_cli_read_file
 #include "../../../../../inc/djinterp/tools/cli/c/cli_program.h"  // the program
 #include "../../../c/modules/parse/cli/arg_parser/arg_tests_files.h"  // scratch directories
-#include "../../../c/modules/parse/tests_section.h"  // dj_tests_section
+#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // specs
 #include "./cli_tests_support.h"  // cases, checks, files
 // re_std
 #include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t
@@ -603,7 +603,7 @@ bool d_tests_cli_edit_left(
                                             _want,
                                             held,
                                             length)
-                         : d_tests_cli_check((held == NULL),
+                         : D_TESTS_CLI_CHECK((held == NULL),
                                              _tag,
                                              "a file written that should "
                                              "not have been");
@@ -628,7 +628,7 @@ bool d_tests_cli_edit_write_run(
 {
     (void)remove("copy.txt");
 
-    bool held = d_tests_cli_check(
+    bool held = D_TESTS_CLI_CHECK(
                     d_tests_cli_file_write("notes.txt",
                                            D_TESTS_CLI_EDIT_NOTES,
                                            strlen(D_TESTS_CLI_EDIT_NOTES)),
@@ -667,7 +667,7 @@ bool d_tests_cli_edit_writing(void)
            (d_tests_arg_files_folder(&files,
                                      "folder"));
 
-    if (!d_tests_cli_check(held,
+    if (!D_TESTS_CLI_CHECK(held,
                            "W01",
                            "the scratch directory could not be made"))
     {
@@ -708,7 +708,7 @@ bool d_tests_cli_edit_nulls_defined(
 {
     struct dj_cli_edit edit = D_CLI_EDIT_INIT;
 
-    return d_tests_cli_check(
+    return D_TESTS_CLI_CHECK(
                (!d_cli_edit_add_operand(NULL, _root, &edit, "F", "x"))      &&
                (!d_cli_edit_add_operand(_program, NULL, &edit, "F", "x"))   &&
                (!d_cli_edit_add_operand(_program, _root, NULL, "F", "x"))   &&
@@ -748,7 +748,7 @@ bool d_tests_cli_edit_nulls(void)
                                                      &out,
                                                      &err);
 
-    if (!d_tests_cli_check(held,
+    if (!D_TESTS_CLI_CHECK(held,
                            "N01",
                            "the program could not be made"))
     {
@@ -757,7 +757,7 @@ bool d_tests_cli_edit_nulls(void)
 
     held = d_tests_cli_edit_nulls_defined(&program,
                                           &parser.command);
-    held = d_tests_cli_check(
+    held = D_TESTS_CLI_CHECK(
                (d_cli_edit_target(NULL, &edit) == (int)D_CLI_EDIT_BACK)    &&
                (d_cli_edit_target(&program, NULL) == (int)D_CLI_EDIT_BACK) &&
                (d_cli_edit_target(&program, &edit) ==
@@ -790,15 +790,29 @@ bool d_tests_cli_edit_nulls(void)
 
 // d_tests_cli_edit
 //   constant: the suite's sections, in the order they run.
-const struct dj_tests_section d_tests_cli_edit[] =
+const struct dj_test_case_spec d_tests_cli_edit[] =
 {
-    { "cli_edit_help",    d_tests_cli_edit_help    },
-    { "cli_edit_where",   d_tests_cli_edit_where   },
-    { "cli_edit_writing", d_tests_cli_edit_writing },
-    { "cli_edit_nulls",   d_tests_cli_edit_nulls   }
+    { "cli_edit_help",
+      "each rule's operand, options and help",
+      d_tests_cli_edit_help },
+    { "cli_edit_where",
+      "where each command line sends the result, by rule",
+      d_tests_cli_edit_where },
+    { "cli_edit_writing",
+      "a file written back, elsewhere, out, dry, or refused",
+      d_tests_cli_edit_writing },
+    { "cli_edit_nulls",
+      "every call given nothing",
+      d_tests_cli_edit_nulls }
 };
 
-// d_tests_cli_edit_count
-//   constant: how many sections d_tests_cli_edit has.
-const size_t d_tests_cli_edit_count =
-    sizeof(d_tests_cli_edit) / sizeof(d_tests_cli_edit[0]);
+// d_tests_cli_edit_block
+//   constant: d_tests_cli_edit as a block of the C face's spec form.
+const struct dj_test_block_spec d_tests_cli_edit_block =
+{
+    "edit",
+    "commands that change a file (cli_edit.c)",
+    d_tests_cli_edit,
+    sizeof(d_tests_cli_edit) / sizeof(d_tests_cli_edit[0])
+};
+

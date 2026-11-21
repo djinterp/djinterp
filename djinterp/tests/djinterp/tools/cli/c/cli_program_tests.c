@@ -47,7 +47,7 @@
 #include "../../../../../inc/djinterp/tools/cli/c/cli_io.h"  // dj_cli_colour, d_cli_free
 #include "../../../../../inc/djinterp/tools/cli/c/cli_plugin.h"  // d_cli_executable_path
 #include "../../../../../inc/djinterp/tools/cli/c/cli_program.h"  // the program
-#include "../../../c/modules/parse/tests_section.h"  // dj_tests_section
+#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // specs
 #include "./cli_tests_support.h"  // cases, checks
 // re_std
 #include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t
@@ -1822,7 +1822,7 @@ bool d_tests_cli_standard_options(
     const struct dj_arg_command* _root
 )
 {
-    const bool held = d_tests_cli_check(
+    const bool held = D_TESTS_CLI_CHECK(
                           (_program->quiet ==
                            d_arg_command_option(_root,
                                                 "--quiet"))         &&
@@ -1842,7 +1842,7 @@ bool d_tests_cli_standard_options(
                           "M02",
                           "the standard options");
 
-    return d_tests_cli_check( (_program->colour_alias != NULL)      &&
+    return D_TESTS_CLI_CHECK( (_program->colour_alias != NULL)      &&
                               (strcmp(d_arg_option_group(
                                           _program->colour_alias),
                                       "") == 0),
@@ -1871,7 +1871,7 @@ bool d_tests_cli_making_fields(void)
                                                   &err);
 
     // a program made, to look at
-    if (!d_tests_cli_check(held,
+    if (!D_TESTS_CLI_CHECK(held,
                            "M01",
                            "the program could not be made"))
     {
@@ -1880,7 +1880,7 @@ bool d_tests_cli_making_fields(void)
 
     const struct dj_arg_command* const root = &parser.command;
 
-    held = d_tests_cli_check( (strcmp(program.name,
+    held = D_TESTS_CLI_CHECK( (strcmp(program.name,
                                       "prog") == 0)                   &&
                               (strcmp(program.version,
                                       "1.2") == 0)                    &&
@@ -1892,7 +1892,7 @@ bool d_tests_cli_making_fields(void)
                               "the program's fields") && held;
     held = d_tests_cli_standard_options(&program,
                                         root) && held;
-    held = d_tests_cli_check( (program.help_command == NULL)          &&
+    held = D_TESTS_CLI_CHECK( (program.help_command == NULL)          &&
                               (program.completion_command == NULL),
                               "M04",
                               "the standard commands wait for a parse") &&
@@ -1929,7 +1929,7 @@ bool d_tests_cli_making_standard(void)
                                           &err);
 
     // a program made, to parse
-    if (!d_tests_cli_check(held,
+    if (!D_TESTS_CLI_CHECK(held,
                            "M05",
                            "the program could not be made"))
     {
@@ -1943,7 +1943,7 @@ bool d_tests_cli_making_standard(void)
                                               &status);
     const size_t after  = parser.command.subcommands.count;
 
-    held = d_tests_cli_check( (!ended)                                &&
+    held = D_TESTS_CLI_CHECK( (!ended)                                &&
                               (status == -1)                          &&
                               (after == before + 2u)                  &&
                               (program.help_command ==
@@ -1958,7 +1958,7 @@ bool d_tests_cli_making_standard(void)
                               3,
                               argv,
                               &status);
-    held = d_tests_cli_check(parser.command.subcommands.count == after,
+    held = D_TESTS_CLI_CHECK(parser.command.subcommands.count == after,
                              "M06",
                              "the standard commands added once") && held;
 
@@ -1993,14 +1993,14 @@ bool d_tests_cli_making_single(void)
                                           &err);
 
     // a program made, to look at
-    if (!d_tests_cli_check(held,
+    if (!D_TESTS_CLI_CHECK(held,
                            "M07",
                            "the program could not be made"))
     {
         return false;
     }
 
-    held = d_tests_cli_check( (d_arg_command_option(&parser.command,
+    held = D_TESTS_CLI_CHECK( (d_arg_command_option(&parser.command,
                                                     "--version") == NULL) &&
                               (strcmp(program.version,
                                       "") == 0),
@@ -2010,7 +2010,7 @@ bool d_tests_cli_making_single(void)
                               1,
                               argv,
                               &status);
-    held = d_tests_cli_check( (program.help_command == NULL)          &&
+    held = D_TESTS_CLI_CHECK( (program.help_command == NULL)          &&
                               (parser.command.subcommands.count == 0u),
                               "M08",
                               "no commands, no standard commands") && held;
@@ -2037,7 +2037,7 @@ bool d_tests_cli_refused_contexts(
     int*                   _released
 )
 {
-    const bool held = d_tests_cli_check(
+    const bool held = D_TESTS_CLI_CHECK(
                           (d_cli_program_add_command(
                                NULL,
                                NULL,
@@ -2050,7 +2050,7 @@ bool d_tests_cli_refused_contexts(
                           "M09",
                           "a NULL program releases the context");
 
-    return d_tests_cli_check( (d_cli_program_add_command(
+    return D_TESTS_CLI_CHECK( (d_cli_program_add_command(
                                    _program,
                                    NULL,
                                    "bad name",
@@ -2087,7 +2087,7 @@ bool d_tests_cli_making_contexts(void)
                                         &err);
 
     // a program made, to give contexts to
-    if (!d_tests_cli_check(held,
+    if (!D_TESTS_CLI_CHECK(held,
                            "M09",
                            "the program could not be made"))
     {
@@ -2096,7 +2096,7 @@ bool d_tests_cli_making_contexts(void)
 
     held = d_tests_cli_refused_contexts(&program,
                                         &released);
-    held = d_tests_cli_check( (d_cli_program_set_main(
+    held = D_TESTS_CLI_CHECK( (d_cli_program_set_main(
                                    &program,
                                    d_tests_cli_work_nothing,
                                    &released,
@@ -2104,7 +2104,7 @@ bool d_tests_cli_making_contexts(void)
                               (released == 2),
                               "M11",
                               "work replaced keeps the new context") && held;
-    held = d_tests_cli_check( (d_cli_program_set_main(
+    held = D_TESTS_CLI_CHECK( (d_cli_program_set_main(
                                    &program,
                                    d_tests_cli_work_nothing,
                                    &released,
@@ -2116,7 +2116,7 @@ bool d_tests_cli_making_contexts(void)
 
     d_tests_cli_finish(&program,
                        &parser);
-    held = d_tests_cli_check(released == 4,
+    held = D_TESTS_CLI_CHECK(released == 4,
                              "M13",
                              "the program releases the context it keeps") &&
            held;
@@ -2172,7 +2172,7 @@ bool d_tests_cli_failed_making(
                                2,
                                argv);
 
-    bool held = d_tests_cli_check(
+    bool held = D_TESTS_CLI_CHECK(
                     (made == (int)D_ARG_ERROR_OPTION_ALREADY_ADDED) &&
                     (program.status == made)                     &&
                     (program.name == NULL)                       &&
@@ -2308,7 +2308,7 @@ bool d_tests_cli_unwritable(
                            &parser);
     }
 
-    const bool held = d_tests_cli_check((made) &&
+    const bool held = D_TESTS_CLI_CHECK((made) &&
                                         (status == D_CLI_EXIT_TROUBLE),
                                         _tag,
                                         "trouble, when the output refuses") &&
@@ -2435,7 +2435,7 @@ bool d_tests_cli_completion(
                                       &err);
 
     // a program made, to run
-    if (!d_tests_cli_check(held,
+    if (!D_TESTS_CLI_CHECK(held,
                            _tag,
                            "the program could not be made"))
     {
@@ -2448,7 +2448,7 @@ bool d_tests_cli_completion(
 
     d_tests_cli_finish(&program,
                        &parser);
-    held = d_tests_cli_check( (status == D_CLI_EXIT_OK)               &&
+    held = D_TESTS_CLI_CHECK( (status == D_CLI_EXIT_OK)               &&
                               (err.length == 0u)                      &&
                               (out.data != NULL)                      &&
                               (strstr(out.data,
@@ -2652,7 +2652,7 @@ bool d_tests_cli_reports_after(
                              &out,
                              &err)) )
     {
-        return d_tests_cli_check(false,
+        return D_TESTS_CLI_CHECK(false,
                                  _tag,
                                  "the program could not be made");
     }
@@ -2667,7 +2667,7 @@ bool d_tests_cli_reports_after(
         d_tests_cli_report_all(&program);
     }
 
-    const bool held = d_tests_cli_check(parsed,
+    const bool held = D_TESTS_CLI_CHECK(parsed,
                                         _tag,
                                         "the command line ended the run") &&
                       d_tests_cli_same(_tag,
@@ -2758,14 +2758,14 @@ bool d_tests_cli_reports_ending(
                                                   &err);
 
     // a program made, to report through
-    if (!d_tests_cli_check(held,
+    if (!D_TESTS_CLI_CHECK(held,
                            _tag,
                            "the program could not be made"))
     {
         return false;
     }
 
-    held = d_tests_cli_check(d_tests_cli_report_endings(
+    held = D_TESTS_CLI_CHECK(d_tests_cli_report_endings(
                                  &program,
                                  d_arg_command_subcommand(&parser.command,
                                                           "show")),
@@ -2908,7 +2908,7 @@ bool d_tests_cli_program_arguments(void)
 {
     static const char* const argv[] = { "prog", "a", NULL };
     size_t                   again  = 0u;
-    bool                     held   = d_tests_cli_check(
+    bool                     held   = D_TESTS_CLI_CHECK(
                                           (d_tests_cli_taken_again(
                                                2,
                                                argv,
@@ -2929,7 +2929,7 @@ bool d_tests_cli_program_arguments(void)
     }
 
     runtime[count] = NULL;
-    held = d_tests_cli_check(
+    held = D_TESTS_CLI_CHECK(
                (count > 0)                                    &&
                (d_tests_cli_taken_again(count,
                                         runtime,
@@ -2938,7 +2938,7 @@ bool d_tests_cli_program_arguments(void)
                "A02",
                "a list as long as main's, another first word: as given") &&
            held;
-    held = d_tests_cli_check(
+    held = D_TESTS_CLI_CHECK(
                (d_tests_cli_taken_again(__argc,
                                         (const char* const*)__argv,
                                         &again))              &&
@@ -3201,7 +3201,7 @@ bool d_tests_cli_version_kit(void)
     static const struct dj_cli_build here = D_CLI_BUILD_INIT;
     const struct dj_cli_build* const kit  = d_cli_kit_build();
 
-    return d_tests_cli_check( (kit != NULL)                           &&
+    return D_TESTS_CLI_CHECK( (kit != NULL)                           &&
                               (d_tests_cli_same_part(kit->compiler,
                                                      here.compiler))  &&
                               (kit->major == here.major)              &&
@@ -3249,7 +3249,7 @@ bool d_tests_cli_version_refused(void)
                            &out,
                            &err))
     {
-        return d_tests_cli_check(false,
+        return D_TESTS_CLI_CHECK(false,
                                  "V13",
                                  "the program could not be made");
     }
@@ -3287,7 +3287,7 @@ bool d_tests_cli_version_refused(void)
     d_arg_buffer_release(&out);
     d_arg_buffer_release(&err);
 
-    return d_tests_cli_check(held,
+    return D_TESTS_CLI_CHECK(held,
                              "V13",
                              "the lines refused, and the lines kept");
 }
@@ -3434,7 +3434,7 @@ bool d_tests_cli_nulls_running(
     int                      status = 0;
     bool                     held   = true;
 
-    held = d_tests_cli_check(
+    held = D_TESTS_CLI_CHECK(
                (d_cli_program_init(NULL,
                                    _parser,
                                    "prog",
@@ -3453,7 +3453,7 @@ bool d_tests_cli_nulls_running(
                "N01",
                "init without a program, a parser or a name");
 
-    return d_tests_cli_check(
+    return D_TESTS_CLI_CHECK(
                (d_cli_program_parse(NULL,
                                     1,
                                     argv,
@@ -3513,7 +3513,7 @@ bool d_tests_cli_program_nulls(void)
                0,
                "x");
 
-    return d_tests_cli_check(
+    return D_TESTS_CLI_CHECK(
                (d_cli_program_command(NULL) == NULL)                  &&
                (d_cli_program_verbosity(NULL) == 0)                   &&
                (!d_cli_program_colour(NULL,
@@ -3567,30 +3567,71 @@ bool d_tests_cli_program_responses(void)
 
 // d_tests_cli_program
 //   constant: the suite's sections, in the order they run.
-const struct dj_tests_section d_tests_cli_program[] =
+const struct dj_test_case_spec d_tests_cli_program[] =
 {
-    { "cli_program_making",    d_tests_cli_program_making    },
-    { "cli_program_endings",   d_tests_cli_program_endings   },
-    { "cli_program_commands",  d_tests_cli_program_commands  },
-    { "cli_program_standard",  d_tests_cli_program_standard  },
-    { "cli_program_options",   d_tests_cli_program_options   },
-    { "cli_program_failures",  d_tests_cli_program_failures  },
-    { "cli_program_reports",   d_tests_cli_program_reports   },
-    { "cli_program_single",    d_tests_cli_program_single    },
-    { "cli_program_slash",     d_tests_cli_program_slash     },
-    { "cli_program_arguments", d_tests_cli_program_arguments },
-    { "cli_program_version",   d_tests_cli_program_version   },
-    { "cli_program_repeats",   d_tests_cli_program_repeats   },
-    { "cli_program_digits",    d_tests_cli_program_digits    },
-    { "cli_program_plain",     d_tests_cli_program_plain     },
-    { "cli_program_layout",    d_tests_cli_program_layout    },
+    { "cli_program_making",
+      "fields, options, standard commands and contexts",
+      d_tests_cli_program_making },
+    { "cli_program_endings",
+      "how runs end, and output that refuses",
+      d_tests_cli_program_endings },
+    { "cli_program_commands",
+      "commands reached and run",
+      d_tests_cli_program_commands },
+    { "cli_program_standard",
+      "the standard commands, and each shell's script",
+      d_tests_cli_program_standard },
+    { "cli_program_options",
+      "the program's own options",
+      d_tests_cli_program_options },
+    { "cli_program_failures",
+      "the failures a command line meets",
+      d_tests_cli_program_failures },
+    { "cli_program_reports",
+      "every report at each verbosity, and in colour",
+      d_tests_cli_program_reports },
+    { "cli_program_single",
+      "a program of one command",
+      d_tests_cli_program_single },
+    { "cli_program_slash",
+      "`/?` as help where asked, a path elsewhere",
+      d_tests_cli_program_slash },
+    { "cli_program_arguments",
+      "the arguments parsed; main's taken again on Windows",
+      d_tests_cli_program_arguments },
+    { "cli_program_version",
+      "versions, the kit's build, and lines a program adds",
+      d_tests_cli_program_version },
+    { "cli_program_repeats",
+      "an option given twice differently, said at -v",
+      d_tests_cli_program_repeats },
+    { "cli_program_digits",
+      "a digit option, and numbers it leaves alone",
+      d_tests_cli_program_digits },
+    { "cli_program_plain",
+      "errors without their word; help as it was",
+      d_tests_cli_program_plain },
+    { "cli_program_layout",
+      "help in the argument parser's own layout",
+      d_tests_cli_program_layout },
     { "cli_program_abbreviations",
+      "unique prefixes of long names; ambiguous refused",
       d_tests_cli_program_abbreviations },
-    { "cli_program_nulls",     d_tests_cli_program_nulls     },
-    { "cli_program_responses", d_tests_cli_program_responses }
+    { "cli_program_nulls",
+      "every call given NULL, nothing written",
+      d_tests_cli_program_nulls },
+    { "cli_program_responses",
+      "`@FILE` on every page",
+      d_tests_cli_program_responses }
 };
 
-// d_tests_cli_program_count
-//   constant: how many sections d_tests_cli_program has.
-const size_t d_tests_cli_program_count =
-    sizeof(d_tests_cli_program) / sizeof(d_tests_cli_program[0]);
+// d_tests_cli_program_block
+//   constant: d_tests_cli_program as a block of the C face's spec form.
+const struct dj_test_block_spec d_tests_cli_program_block =
+{
+    "program",
+    "the program (cli_program.c)",
+    d_tests_cli_program,
+    sizeof(d_tests_cli_program) / sizeof(d_tests_cli_program[0])
+};
+

@@ -33,7 +33,7 @@
 #include <stdbool.h>                   // bool
 #include <stddef.h>                    // size_t
 // djinterp
-#include "../../../c/modules/parse/tests_section.h"  // dj_tests_section
+#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // specs
 
 
 // 1.  MAKING
@@ -90,9 +90,9 @@ bool d_tests_cli_program_nulls(void);
 // 18. RESPONSE FILES
 bool d_tests_cli_program_responses(void);
 
-// the suite's sections, in the order they run
-extern const struct dj_tests_section d_tests_cli_program[];
-extern const size_t                 d_tests_cli_program_count;
+// the suite's sections, in the order they run, and the block they make
+extern const struct dj_test_case_spec  d_tests_cli_program[];
+extern const struct dj_test_block_spec d_tests_cli_program_block;
 
 
 #endif  // DJINTERP_TOOLS_CLI_C_CLI_PROGRAM_TESTS_H

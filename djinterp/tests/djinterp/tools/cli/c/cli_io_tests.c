@@ -29,7 +29,7 @@
 #include "../../../../../inc/djinterp/c/djinterp.h"  // framework root
 #include "../../../../../inc/djinterp/tools/cli/c/cli_io.h"  // the kit's streams and files
 #include "../../../c/modules/parse/cli/arg_parser/arg_tests_files.h"  // scratch directories
-#include "../../../c/modules/parse/tests_section.h"  // dj_tests_section
+#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // specs
 #include "./cli_tests_support.h"  // checks, the environment
 
 #if (D_TESTS_ARG_FILES_POSIX == 1)
@@ -91,7 +91,7 @@ bool d_tests_cli_io_streams(void)
     const struct dj_pack_sink err  = d_cli_sink_error();
     bool                     held = true;
 
-    held = d_tests_cli_check( (d_cli_is_standard("-"))                &&
+    held = D_TESTS_CLI_CHECK( (d_cli_is_standard("-"))                &&
                               (!d_cli_is_standard("--"))              &&
                               (!d_cli_is_standard(""))                &&
                               (!d_cli_is_standard("-x"))              &&
@@ -99,14 +99,14 @@ bool d_tests_cli_io_streams(void)
                               (!d_cli_is_standard("./-")),
                               "S01",
                               "only `-` is a standard stream") && held;
-    held = d_tests_cli_check( (out.write != NULL)                     &&
+    held = D_TESTS_CLI_CHECK( (out.write != NULL)                     &&
                               (err.write != NULL)                     &&
                               (out.context == NULL)                   &&
                               (err.context != NULL),
                               "S02",
                               "the sinks of standard output and error") &&
            held;
-    held = d_tests_cli_check( (!d_cli_is_terminal(-1))                &&
+    held = D_TESTS_CLI_CHECK( (!d_cli_is_terminal(-1))                &&
                               (!d_cli_is_terminal(3))                 &&
                               (!d_cli_is_terminal(99)),
                               "S03",
@@ -168,14 +168,14 @@ bool d_tests_cli_io_colour_auto(void)
                                            (int)D_CLI_COLOUR_AUTO);
 
 #if (D_INTERNAL_CLI_COLOUR == 1)
-    return d_tests_cli_check( (!out ||
+    return D_TESTS_CLI_CHECK( (!out ||
                                d_cli_is_terminal((int)D_CLI_STREAM_OUTPUT)) &&
                               (!err ||
                                d_cli_is_terminal((int)D_CLI_STREAM_ERROR)),
                               "C04",
                               "auto colours a terminal, and nothing else");
 #else
-    return d_tests_cli_check( (!out) &&
+    return D_TESTS_CLI_CHECK( (!out) &&
                               (!err),
                               "C04",
                               "nothing is coloured without colour");
@@ -191,7 +191,7 @@ bool d_tests_cli_io_colour_auto(void)
 static
 bool d_tests_cli_io_colour_odd(void)
 {
-    return d_tests_cli_check(
+    return D_TESTS_CLI_CHECK(
                (!d_tests_cli_io_wanted(NULL,
                                        "xterm",
                                        (int)D_CLI_STREAM_INPUT,
@@ -233,7 +233,7 @@ bool d_tests_cli_io_colour(void)
                    sizeof(saved),
                    "%s",
                    (had) ? term : "");
-    held = d_tests_cli_check(
+    held = D_TESTS_CLI_CHECK(
                (d_tests_cli_io_wanted("1",
                                       "xterm",
                                       (int)D_CLI_STREAM_ERROR,
@@ -248,7 +248,7 @@ bool d_tests_cli_io_colour(void)
                                        (int)D_CLI_COLOUR_NEVER)),
                "C01",
                "always and never, whatever else holds") && held;
-    held = d_tests_cli_check(
+    held = D_TESTS_CLI_CHECK(
                (!d_tests_cli_io_wanted("1",
                                        "xterm",
                                        (int)D_CLI_STREAM_ERROR,
@@ -318,13 +318,13 @@ bool d_tests_cli_io_columns(void)
     // a terminal answers for itself
     if (d_cli_is_terminal((int)D_CLI_STREAM_OUTPUT))
     {
-        held = d_tests_cli_check(d_tests_cli_io_columns_with("abc") > 0u,
+        held = D_TESTS_CLI_CHECK(d_tests_cli_io_columns_with("abc") > 0u,
                                  "T01",
                                  "a terminal says how wide it is");
     }
     else
     {
-        held = d_tests_cli_check(
+        held = D_TESTS_CLI_CHECK(
                    (d_tests_cli_io_columns_with("120") == 120u)     &&
                    (d_tests_cli_io_columns_with("1") == 1u)         &&
                    (d_tests_cli_io_columns_with("10000") == 10000u) &&
@@ -384,7 +384,7 @@ bool d_tests_cli_io_read_back(
 
     d_cli_free(data);
 
-    return d_tests_cli_check(held,
+    return D_TESTS_CLI_CHECK(held,
                              _tag,
                              "the file read whole, its bytes as they are, "
                              "and a NUL after them");
@@ -432,7 +432,7 @@ bool d_tests_cli_io_reading(void)
                                       (d_tests_arg_files_enter(&files)) );
 
     // a scratch directory to read in
-    if (!d_tests_cli_check(held,
+    if (!D_TESTS_CLI_CHECK(held,
                            "R01",
                            "the scratch directory could not be made"))
     {
@@ -441,7 +441,7 @@ bool d_tests_cli_io_reading(void)
         return false;
     }
 
-    held = d_tests_cli_check(d_tests_cli_io_to_read(&files,
+    held = D_TESTS_CLI_CHECK(d_tests_cli_io_to_read(&files,
                                                     big),
                              "R01",
                              "the files to read could not be made") &&
@@ -457,14 +457,14 @@ bool d_tests_cli_io_reading(void)
                                     "big.bin",
                                     big,
                                     D_TESTS_CLI_IO_BIG) && held;
-    held = d_tests_cli_check( (d_cli_read_file("missing.txt",
+    held = D_TESTS_CLI_CHECK( (d_cli_read_file("missing.txt",
                                                &data,
                                                &size) == ENOENT) &&
                               (data == NULL)                     &&
                               (size == 0u),
                               "R04",
                               "a file that is not there: ENOENT") && held;
-    held = d_tests_cli_check( (d_cli_read_file("dir",
+    held = D_TESTS_CLI_CHECK( (d_cli_read_file("dir",
                                                &data,
                                                &size) == EISDIR) &&
                               (data == NULL)                     &&
@@ -582,10 +582,10 @@ bool d_tests_cli_io_modes(
                                                   "tool.sh",
                                                   0755u)) );
 
-    held = d_tests_cli_check(held,
+    held = D_TESTS_CLI_CHECK(held,
                              "W03",
                              "the files to replace could not be made") &&
-           d_tests_cli_check( (d_cli_write_file("fresh.txt",
+           D_TESTS_CLI_CHECK( (d_cli_write_file("fresh.txt",
                                                 "x",
                                                 1u) == 0)            &&
                               (d_tests_cli_io_mode("fresh.txt") == 0644u) &&
@@ -636,10 +636,10 @@ bool d_tests_cli_io_links(
                                                  "loop.txt",
                                                  "loop.txt")) );
 
-    held = d_tests_cli_check(held,
+    held = D_TESTS_CLI_CHECK(held,
                              "W04",
                              "the links could not be made") &&
-           d_tests_cli_check( (d_cli_write_file("link.txt",
+           D_TESTS_CLI_CHECK( (d_cli_write_file("link.txt",
                                                 "through",
                                                 7u) == 0)              &&
                               (d_tests_cli_file_holds("target.txt",
@@ -650,7 +650,7 @@ bool d_tests_cli_io_links(
                               (S_ISLNK(status.st_mode)),
                               "W04",
                               "a link's file replaced, and the link kept");
-    held = d_tests_cli_check( (d_cli_write_file("dangling.txt",
+    held = D_TESTS_CLI_CHECK( (d_cli_write_file("dangling.txt",
                                                 "file",
                                                 4u) == 0)              &&
                               (lstat("dangling.txt",
@@ -662,7 +662,7 @@ bool d_tests_cli_io_links(
                               "W05",
                               "a link that leads nowhere replaced by a "
                               "file") && held;
-    held = d_tests_cli_check( (d_cli_write_file("loop.txt",
+    held = D_TESTS_CLI_CHECK( (d_cli_write_file("loop.txt",
                                                 "x",
                                                 1u) == ELOOP)          &&
                               (lstat("loop.txt",
@@ -698,10 +698,10 @@ bool d_tests_cli_io_files(
                   (d_tests_arg_files_folder(_files,
                                             "dir")) );
 
-    held = d_tests_cli_check(held,
+    held = D_TESTS_CLI_CHECK(held,
                              "W01",
                              "the files to write over could not be made") &&
-           d_tests_cli_check( (d_cli_write_file("new.bin",
+           D_TESTS_CLI_CHECK( (d_cli_write_file("new.bin",
                                                 BYTES,
                                                 sizeof(BYTES) - 1u) == 0) &&
                               (d_tests_cli_file_holds("new.bin",
@@ -709,7 +709,7 @@ bool d_tests_cli_io_files(
                                                       sizeof(BYTES) - 1u)),
                               "W01",
                               "a new file, its bytes as they are");
-    held = d_tests_cli_check( (d_cli_write_file("old.txt",
+    held = D_TESTS_CLI_CHECK( (d_cli_write_file("old.txt",
                                                 "new",
                                                 3u) == 0)               &&
                               (d_tests_cli_file_holds("old.txt",
@@ -730,7 +730,7 @@ bool d_tests_cli_io_files(
                               "W02",
                               "a file replaced, an empty one, a big one") &&
            held;
-    held = d_tests_cli_check( (d_cli_write_file("dir",
+    held = D_TESTS_CLI_CHECK( (d_cli_write_file("dir",
                                                 "x",
                                                 1u) == EISDIR)          &&
                               (d_cli_write_file("nowhere/x.txt",
@@ -756,7 +756,7 @@ bool d_tests_cli_io_writing(void)
                                       (d_tests_arg_files_enter(&files)) );
 
     // a scratch directory to write in
-    if (!d_tests_cli_check(held,
+    if (!D_TESTS_CLI_CHECK(held,
                            "W01",
                            "the scratch directory could not be made"))
     {
@@ -778,7 +778,7 @@ bool d_tests_cli_io_writing(void)
 
     held = d_tests_cli_io_modes(&files) && held;
     held = d_tests_cli_io_links(&files) && held;
-    held = d_tests_cli_check(d_tests_cli_io_only(made),
+    held = D_TESTS_CLI_CHECK(d_tests_cli_io_only(made),
                              "W07",
                              "nothing left beside a file written") && held;
 #endif
@@ -832,7 +832,7 @@ bool d_tests_cli_io_fifo(
         (void)close(reader);
     }
 
-    return d_tests_cli_check( (read_ == 5L)                          &&
+    return D_TESTS_CLI_CHECK( (read_ == 5L)                          &&
                               (memcmp(got,
                                       "piped",
                                       5u) == 0)                      &&
@@ -856,7 +856,7 @@ bool d_tests_cli_io_special(void)
 #if (D_TESTS_ARG_FILES_POSIX == 1)
     struct dj_tests_arg_files files;
     struct stat              status;
-    bool                     held = d_tests_cli_check(
+    bool                     held = D_TESTS_CLI_CHECK(
                                         (d_cli_write_file("/dev/null",
                                                           "nothing",
                                                           7u) == 0)  &&
@@ -868,7 +868,7 @@ bool d_tests_cli_io_special(void)
                                         "the null device");
 
     // a scratch directory for the FIFO
-    if (!d_tests_cli_check(d_tests_arg_files_enter(&files),
+    if (!D_TESTS_CLI_CHECK(d_tests_arg_files_enter(&files),
                            "D02",
                            "the scratch directory could not be made"))
     {
@@ -903,7 +903,7 @@ bool d_tests_cli_io_standard(void)
     bool                     held   = d_tests_arg_files_enter(&files);
 
     // a scratch directory for the streams' files
-    if (!d_tests_cli_check(held,
+    if (!D_TESTS_CLI_CHECK(held,
                            "I01",
                            "the scratch directory could not be made"))
     {
@@ -923,7 +923,7 @@ bool d_tests_cli_io_standard(void)
 
     d_tests_cli_restore(0,
                         saved);
-    held = d_tests_cli_check( (held)                              &&
+    held = D_TESTS_CLI_CHECK( (held)                              &&
                               (read_ == 0)                        &&
                               (length == sizeof(BYTES) - 1u)      &&
                               (memcmp(data,
@@ -944,7 +944,7 @@ bool d_tests_cli_io_standard(void)
 
     d_tests_cli_restore(1,
                         saved);
-    held = d_tests_cli_check( (wrote == 0)                        &&
+    held = D_TESTS_CLI_CHECK( (wrote == 0)                        &&
                               (d_tests_cli_file_holds("out.bin",
                                                       BYTES,
                                                       sizeof(BYTES) - 1u)),
@@ -976,7 +976,7 @@ bool d_tests_cli_io_nulls(void)
 
     d_cli_free(NULL);
 
-    return d_tests_cli_check( (d_cli_read_file(NULL,
+    return D_TESTS_CLI_CHECK( (d_cli_read_file(NULL,
                                                &data,
                                                &length) == EINVAL)  &&
                               (d_cli_read_file("x",
@@ -1003,19 +1003,41 @@ bool d_tests_cli_io_nulls(void)
 
 // d_tests_cli_io
 //   constant: the suite's sections, in the order they run.
-const struct dj_tests_section d_tests_cli_io[] =
+const struct dj_test_case_spec d_tests_cli_io[] =
 {
-    { "cli_io_streams",  d_tests_cli_io_streams  },
-    { "cli_io_colour",   d_tests_cli_io_colour   },
-    { "cli_io_columns",  d_tests_cli_io_columns  },
-    { "cli_io_reading",  d_tests_cli_io_reading  },
-    { "cli_io_writing",  d_tests_cli_io_writing  },
-    { "cli_io_special",  d_tests_cli_io_special  },
-    { "cli_io_standard", d_tests_cli_io_standard },
-    { "cli_io_nulls",    d_tests_cli_io_nulls    }
+    { "cli_io_streams",
+      "the standard streams' names, the two sinks, no terminal",
+      d_tests_cli_io_streams },
+    { "cli_io_colour",
+      "colour's modes, and what refuses auto",
+      d_tests_cli_io_colour },
+    { "cli_io_columns",
+      "COLUMNS off a terminal, the terminal's width on one",
+      d_tests_cli_io_columns },
+    { "cli_io_reading",
+      "files read byte for byte; missing ones refused",
+      d_tests_cli_io_reading },
+    { "cli_io_writing",
+      "files written, POSIX modes and links kept",
+      d_tests_cli_io_writing },
+    { "cli_io_special",
+      "a device and a FIFO written to, not replaced",
+      d_tests_cli_io_special },
+    { "cli_io_standard",
+      "`-` as standard input and output, bytes as they are",
+      d_tests_cli_io_standard },
+    { "cli_io_nulls",
+      "EINVAL for every pointer not given",
+      d_tests_cli_io_nulls }
 };
 
-// d_tests_cli_io_count
-//   constant: how many sections d_tests_cli_io has.
-const size_t d_tests_cli_io_count =
-    sizeof(d_tests_cli_io) / sizeof(d_tests_cli_io[0]);
+// d_tests_cli_io_block
+//   constant: d_tests_cli_io as a block of the C face's spec form.
+const struct dj_test_block_spec d_tests_cli_io_block =
+{
+    "io",
+    "the streams and files the kit reads and writes (cli_io.c)",
+    d_tests_cli_io,
+    sizeof(d_tests_cli_io) / sizeof(d_tests_cli_io[0])
+};
+

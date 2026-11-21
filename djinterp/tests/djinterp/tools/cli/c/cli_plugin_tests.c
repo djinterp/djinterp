@@ -38,7 +38,7 @@
 #include "../../../../../inc/djinterp/tools/cli/c/cli_plugin.h"  // the plugin interface
 #include "../../../../../inc/djinterp/tools/cli/c/cli_program.h"  // the program
 #include "../../../c/modules/parse/cli/arg_parser/arg_tests_files.h"  // scratch directories
-#include "../../../c/modules/parse/tests_section.h"  // dj_tests_section
+#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // specs
 #include "./cli_tests_support.h"  // checks, the environment, the streams
 // re_std
 #include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t
@@ -203,14 +203,14 @@ bool d_tests_cli_plugin_executable(void)
                             ( (path[0] != '\0') &&
                               (path[1] == ':') ) ||
                             (path[0] == '\\') ) );
-    bool       held   = d_tests_cli_check( (whole) &&
+    bool       held   = D_TESTS_CLI_CHECK( (whole) &&
                                            (d_file_is_regular(path) != 0),
                                            "X01",
                                            "the runner's own file, by an "
                                            "absolute path");
 
     d_cli_free(path);
-    held = d_tests_cli_check(d_cli_executable_path(NULL,
+    held = D_TESTS_CLI_CHECK(d_cli_executable_path(NULL,
                                                    NULL) != 0,
                              "X02",
                              "nowhere to put the path") && held;
@@ -286,7 +286,7 @@ bool d_tests_cli_find_case(
     d_arg_buffer_release(&found);
     d_arg_buffer_release(&searched);
 
-    return d_tests_cli_check(held,
+    return D_TESTS_CLI_CHECK(held,
                              _tag,
                              "where the module was found") && same;
 }
@@ -347,7 +347,7 @@ bool d_tests_cli_find_with_case(
     d_arg_buffer_release(&found);
     d_arg_buffer_release(&searched);
 
-    return d_tests_cli_check(held,
+    return D_TESTS_CLI_CHECK(held,
                              _tag,
                              "where the module was found, told where "
                              "first") && same;
@@ -613,7 +613,7 @@ bool d_tests_cli_plugin_finding(void)
     bool                     held = d_tests_arg_files_enter(&files);
 
     // a scratch directory of modules
-    if (!d_tests_cli_check( (held) &&
+    if (!D_TESTS_CLI_CHECK( (held) &&
                             (d_tests_cli_find_files(&files)),
                             "F01",
                             "the modules to find could not be made"))
@@ -695,18 +695,18 @@ bool d_tests_cli_load_case(
                    : (why.length > 0u) ) );
     }
 
-    if (!held)
+    if (!D_TEST_EXPECT(held))
     {
-        printf("  [%s] status %d, why: %.*s\n",
-               _tag,
-               status,
-               (int)why.length,
-               (why.data != NULL) ? why.data : "");
+        (void)D_TEST_NOTE("[%s] status %d, why: %.*s",
+                          _tag,
+                          status,
+                          (int)why.length,
+                          (why.data != NULL) ? why.data : "");
     }
 
     d_arg_buffer_release(&why);
 
-    return d_tests_cli_check(held,
+    return D_TESTS_CLI_CHECK(held,
                              _tag,
                              "the module loaded, or refused and why");
 }
@@ -809,7 +809,7 @@ bool d_tests_cli_plugin_loading(void)
     held = d_tests_cli_load_refused() && held;
 
     // a scratch directory for the file that is no module
-    if (!d_tests_cli_check(d_tests_arg_files_enter(&files),
+    if (!D_TESTS_CLI_CHECK(d_tests_arg_files_enter(&files),
                            "L10",
                            "the scratch directory could not be made"))
     {
@@ -1145,7 +1145,7 @@ bool d_tests_cli_probe_case(
                                                       &err);
     char* const         report = d_tests_cli_file_read("report.txt",
                                                        &length);
-    bool                held   = d_tests_cli_check(
+    bool                held   = D_TESTS_CLI_CHECK(
                                      (ran)                    &&
                                      (status == _status)      &&
                                      (out.length == 0u)       &&
@@ -1217,19 +1217,19 @@ bool d_tests_cli_refused_case(
                         ( (_notes == (size_t)-1) ||
                           (notes == _notes) ) );
 
-    if (!held)
+    if (!D_TEST_EXPECT(held))
     {
-        printf("  [%s] status %d, err: %.*s\n",
-               _tag,
-               status,
-               (int)err.length,
-               (err.data != NULL) ? err.data : "");
+        (void)D_TEST_NOTE("[%s] status %d, err: %.*s",
+                          _tag,
+                          status,
+                          (int)err.length,
+                          (err.data != NULL) ? err.data : "");
     }
 
     d_arg_buffer_release(&out);
     d_arg_buffer_release(&err);
 
-    return d_tests_cli_check(held,
+    return D_TESTS_CLI_CHECK(held,
                              _tag,
                              "the module refused, and why");
 }
@@ -1287,7 +1287,7 @@ bool d_tests_cli_plugin_running(void)
     bool                     held = d_tests_arg_files_enter(&files);
 
     // a scratch directory for the probe's reports
-    if (!d_tests_cli_check(held,
+    if (!D_TESTS_CLI_CHECK(held,
                            "U01",
                            "the scratch directory could not be made"))
     {
@@ -1393,7 +1393,7 @@ bool d_tests_cli_kit_case(
                                                     &written);
     char* const stderr_text = d_tests_cli_file_read("kit.err",
                                                     &said);
-    bool        held        = d_tests_cli_check(
+    bool        held        = D_TESTS_CLI_CHECK(
                                   (saved_1 >= 0)          &&
                                   (saved_2 >= 0)          &&
                                   (ran)                   &&
@@ -1597,7 +1597,7 @@ bool d_tests_cli_kit_responding(void)
     bool held = true;
 
 #if (D_INTERNAL_ARG_PARSER_RESPONSE_FILES == 1)
-    held = d_tests_cli_check(
+    held = D_TESTS_CLI_CHECK(
                (d_tests_cli_file_write("args.txt",
                                        "--shout world\n",
                                        14u)) &&
@@ -1651,7 +1651,7 @@ bool d_tests_cli_plugin_kit(void)
     bool                     held = d_tests_arg_files_enter(&files);
 
     // a scratch directory for the streams' files
-    if (!d_tests_cli_check(held,
+    if (!D_TESTS_CLI_CHECK(held,
                            "K01",
                            "the scratch directory could not be made"))
     {
@@ -1812,7 +1812,7 @@ bool d_tests_cli_plugin_version(void)
                                                         &out,
                                                         &err);
 
-    held = d_tests_cli_check( (held)                          &&
+    held = D_TESTS_CLI_CHECK( (held)                          &&
                               (status == D_CLI_EXIT_OK)       &&
                               (d_tests_cli_holds(&out,
                                                  "prog 1.2\n")) &&
@@ -1822,7 +1822,7 @@ bool d_tests_cli_plugin_version(void)
     d_arg_buffer_release(&out);
     d_arg_buffer_release(&err);
     d_tests_cli_host_version(&expected);
-    held = d_tests_cli_check( (d_tests_cli_host_run("prog --version -v",
+    held = D_TESTS_CLI_CHECK( (d_tests_cli_host_run("prog --version -v",
                                                     d_tests_cli_make_host,
                                                     &status,
                                                     &out,
@@ -1926,7 +1926,7 @@ bool d_tests_cli_module_refused(
     bool                     held      = true;
 
     host.abi = D_CLI_PLUGIN_ABI + 1u;
-    held     = d_tests_cli_check(d_tests_cli_module_with(
+    held     = D_TESTS_CLI_CHECK(d_tests_cli_module_with(
                                      &host,
                                      NULL,
                                      &verbosity,
@@ -1936,7 +1936,7 @@ bool d_tests_cli_module_refused(
 
     host      = *_host;
     host.size = 4u;
-    held      = d_tests_cli_check(d_tests_cli_module_with(
+    held      = D_TESTS_CLI_CHECK(d_tests_cli_module_with(
                                       &host,
                                       NULL,
                                       &verbosity,
@@ -1947,7 +1947,7 @@ bool d_tests_cli_module_refused(
     host         = *_host;
     host.program = NULL;
 
-    return d_tests_cli_check(d_tests_cli_module_with(
+    return D_TESTS_CLI_CHECK(d_tests_cli_module_with(
                                  &host,
                                  NULL,
                                  &verbosity,
@@ -2056,7 +2056,7 @@ bool d_tests_cli_module_styles(
                  D_CLI_PROGRAM_ABBREVIATIONS  |
                  D_CLI_PROGRAM_EDITS_TO_OUTPUT;
 
-    bool held = d_tests_cli_check(
+    bool held = D_TESTS_CLI_CHECK(
                     (d_tests_cli_module_flags(&host,
                                               0u,
                                               &flags) == D_ARG_OK) &&
@@ -2070,7 +2070,7 @@ bool d_tests_cli_module_styles(
                     "and no others");
 
     host.flags = D_CLI_PROGRAM_RESPONSE_FILES;
-    held       = d_tests_cli_check(
+    held       = D_TESTS_CLI_CHECK(
                      (d_tests_cli_module_reading(&host,
                                                  0u,
                                                  &flags,
@@ -2082,7 +2082,7 @@ bool d_tests_cli_module_styles(
                      "again") && held;
 
     host.flags = D_CLI_PROGRAM_PLAIN_ERRORS;
-    held       = d_tests_cli_check(
+    held       = D_TESTS_CLI_CHECK(
                      (d_tests_cli_module_flags(&host,
                                                D_CLI_PROGRAM_COMMANDS,
                                                &flags) == D_ARG_OK) &&
@@ -2092,7 +2092,7 @@ bool d_tests_cli_module_styles(
                      "the host's joined to the module's own") && held;
 
     host.size = (uint32_t)D_CLI_PLUGIN_HOST_FIRST_SIZE;
-    held      = d_tests_cli_check(
+    held      = D_TESTS_CLI_CHECK(
                     (d_tests_cli_module_flags(&host,
                                               0u,
                                               &flags) == D_ARG_OK) &&
@@ -2103,7 +2103,7 @@ bool d_tests_cli_module_styles(
 
     host.size = (uint32_t)D_CLI_PLUGIN_HOST_FIRST_SIZE - 1u;
 
-    return d_tests_cli_check(d_tests_cli_module_flags(
+    return D_TESTS_CLI_CHECK(d_tests_cli_module_flags(
                                  &host,
                                  0u,
                                  &flags) == D_ARG_ERROR_BAD_ARGUMENT,
@@ -2136,7 +2136,7 @@ bool d_tests_cli_plugin_module_side(void)
     host.verbosity = 2;
     host.colour    = (int)D_CLI_COLOUR_ALWAYS;
 
-    held = d_tests_cli_check(
+    held = D_TESTS_CLI_CHECK(
                (d_tests_cli_module_with(&host,
                                         "prog-gui",
                                         &verbosity,
@@ -2211,19 +2211,19 @@ bool d_tests_cli_setting_case(
                                             _err,
                                             length) == 0) );
 
-    if (!held)
+    if (!D_TEST_EXPECT(held))
     {
-        printf("  [%s] status %d, err: %s\n",
-               _tag,
-               status,
-               said);
+        (void)D_TEST_NOTE("[%s] status %d, err: %s",
+                          _tag,
+                          status,
+                          said);
     }
 
     (void)remove("report.txt");
     d_arg_buffer_release(&out);
     d_arg_buffer_release(&err);
 
-    return d_tests_cli_check(held,
+    return D_TESTS_CLI_CHECK(held,
                              _tag,
                              "the status, and what the host said");
 }
@@ -2384,7 +2384,7 @@ bool d_tests_cli_setting_path(void)
                            &parser);
     }
 
-    held = d_tests_cli_check(
+    held = D_TESTS_CLI_CHECK(
                (said == D_CLI_EXIT_OK) &&
                (out.data != NULL)      &&
                (strstr(out.data,
@@ -2446,7 +2446,7 @@ bool d_tests_cli_setting_contract(void)
     (void)d_cli_program_set_plugin_path(&program,
                                         NULL);
 
-    return d_tests_cli_check(kept,
+    return D_TESTS_CLI_CHECK(kept,
                              "Z10",
                              "the settings copied, cleared and kept to "
                              "their values");
@@ -2463,7 +2463,7 @@ bool d_tests_cli_plugin_settings(void)
     bool                     held = d_tests_arg_files_enter(&files);
 
     // a scratch directory for the probe's reports
-    if (!d_tests_cli_check(held,
+    if (!D_TESTS_CLI_CHECK(held,
                            "Z01",
                            "the scratch directory could not be made"))
     {
@@ -2504,7 +2504,7 @@ bool d_tests_cli_plugin_nulls(void)
     d_cli_module_unload(NULL);
     d_cli_module_unload(&module);
 
-    return d_tests_cli_check(
+    return D_TESTS_CLI_CHECK(
                (d_cli_plugin_find(NULL,
                                   "gui",
                                   NULL,
@@ -2559,22 +2559,46 @@ bool d_tests_cli_plugin_nulls(void)
 // d_tests_cli_plugin
 //   constant: the suite's sections, in the order they run; loading and
 // running modules where the kit has a loader.
-const struct dj_tests_section d_tests_cli_plugin[] =
+const struct dj_test_case_spec d_tests_cli_plugin[] =
 {
-    { "cli_plugin_executable",  d_tests_cli_plugin_executable  },
-    { "cli_plugin_finding",     d_tests_cli_plugin_finding     },
+    { "cli_plugin_executable",
+      "the runner's own file, by absolute path",
+      d_tests_cli_plugin_executable },
+    { "cli_plugin_finding",
+      "modules found by the list and by the program's file",
+      d_tests_cli_plugin_finding },
 #if (D_INTERNAL_CLI_PLUGINS == 1)
-    { "cli_plugin_loading",     d_tests_cli_plugin_loading     },
-    { "cli_plugin_running",     d_tests_cli_plugin_running     },
-    { "cli_plugin_kit",         d_tests_cli_plugin_kit         },
-    { "cli_plugin_settings",    d_tests_cli_plugin_settings    },
+    { "cli_plugin_loading",
+      "probes taken and refused, with the system's words",
+      d_tests_cli_plugin_loading },
+    { "cli_plugin_running",
+      "modules run through the host, and refused",
+      d_tests_cli_plugin_running },
+    { "cli_plugin_kit",
+      "a kit module's work, notes, help, failures and version",
+      d_tests_cli_plugin_kit },
+    { "cli_plugin_settings",
+      "the versions a program takes, and where it looks",
+      d_tests_cli_plugin_settings },
 #endif
-    { "cli_plugin_version",     d_tests_cli_plugin_version     },
-    { "cli_plugin_module_side", d_tests_cli_plugin_module_side },
-    { "cli_plugin_nulls",       d_tests_cli_plugin_nulls       }
+    { "cli_plugin_version",
+      "the host's --version, plain and verbose",
+      d_tests_cli_plugin_version },
+    { "cli_plugin_module_side",
+      "a module's program under its host's verbosity",
+      d_tests_cli_plugin_module_side },
+    { "cli_plugin_nulls",
+      "every pointer not given",
+      d_tests_cli_plugin_nulls }
 };
 
-// d_tests_cli_plugin_count
-//   constant: how many sections d_tests_cli_plugin has.
-const size_t d_tests_cli_plugin_count =
-    sizeof(d_tests_cli_plugin) / sizeof(d_tests_cli_plugin[0]);
+// d_tests_cli_plugin_block
+//   constant: d_tests_cli_plugin as a block of the C face's spec form.
+const struct dj_test_block_spec d_tests_cli_plugin_block =
+{
+    "plugin",
+    "the modules the kit loads (cli_plugin.c)",
+    d_tests_cli_plugin,
+    sizeof(d_tests_cli_plugin) / sizeof(d_tests_cli_plugin[0])
+};
+

@@ -36,7 +36,7 @@
 #include "../../../../../inc/djinterp/tools/cli/c/cli_format.h"  // the kit's formatter
 #include "../../../../../inc/djinterp/tools/cli/c/cli_io.h"  // d_cli_is_terminal
 #include "../../../../../inc/djinterp/tools/cli/c/cli_program.h"  // the program
-#include "../../../c/modules/parse/tests_section.h"  // dj_tests_section
+#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // specs
 #include "./cli_tests_support.h"  // cases, checks
 
 
@@ -1078,7 +1078,7 @@ bool d_tests_cli_bare_page(
                             "a parser without a program",
                             "bare") != D_ARG_OK) )
     {
-        return d_tests_cli_check(false,
+        return D_TESTS_CLI_CHECK(false,
                                  _tag,
                                  "the parser could not be made");
     }
@@ -1097,7 +1097,7 @@ bool d_tests_cli_bare_page(
                                 d_pack_text_from_cstr("bare"),
                                 (int)D_ARG_HELP_NORMAL,
                                 &out) == D_ARG_OK) );
-    held = d_tests_cli_check(held,
+    held = D_TESTS_CLI_CHECK(held,
                              _tag,
                              "the page could not be made") &&
            d_tests_cli_same(_tag,
@@ -1155,7 +1155,7 @@ bool d_tests_cli_usage_alone(
                                      &_parser->command,
                                      d_pack_text_from_cstr("prog"),
                                      &usage);
-    const bool          held   = d_tests_cli_check(status == D_ARG_OK,
+    const bool          held   = D_TESTS_CLI_CHECK(status == D_ARG_OK,
                                                    "D02",
                                                    "the usage line alone") &&
                                  d_tests_cli_same("D02",
@@ -1190,7 +1190,7 @@ bool d_tests_cli_format_modes(void)
                                                    &err);
 
     // a program, to ask for help of
-    if (!d_tests_cli_check(held,
+    if (!D_TESTS_CLI_CHECK(held,
                            "D01",
                            "the program could not be made"))
     {
@@ -1203,7 +1203,7 @@ bool d_tests_cli_format_modes(void)
     {
         out.length = 0u;
         own.length = 0u;
-        held = d_tests_cli_check(
+        held = D_TESTS_CLI_CHECK(
                    (d_arg_format_help(&parser.formatter,
                                       &parser.command,
                                       name,
@@ -1248,7 +1248,7 @@ bool d_tests_cli_format_help_width(void)
 {
     const size_t width = d_cli_help_width();
 
-    return d_tests_cli_check(
+    return D_TESTS_CLI_CHECK(
                (d_cli_is_terminal((int)D_CLI_STREAM_OUTPUT))
                ? ( (width >= 40u) &&
                    (width <= (size_t)D_INTERNAL_CLI_HELP_WIDTH_MAX) )
@@ -1266,18 +1266,34 @@ bool d_tests_cli_format_help_width(void)
 //   constant: the suite's sections, in the order they run; with the kit's
 // layout compiled out, help is the parser's own, which the parser's suites
 // test, and there is nothing of the kit's here to run.
-const struct dj_tests_section d_tests_cli_format[] =
+const struct dj_test_case_spec d_tests_cli_format[] =
 {
 #if (D_INTERNAL_CLI_FORMATTER == 1)
-    { "cli_format_pages",      d_tests_cli_format_pages      },
-    { "cli_format_widths",     d_tests_cli_format_widths     },
-    { "cli_format_bare",       d_tests_cli_format_bare       },
-    { "cli_format_modes",      d_tests_cli_format_modes      },
+    { "cli_format_pages",
+      "each help page, laid out",
+      d_tests_cli_format_pages },
+    { "cli_format_widths",
+      "help at a narrow and a wide width",
+      d_tests_cli_format_widths },
+    { "cli_format_bare",
+      "a parser with no program: subcommand optional, required",
+      d_tests_cli_format_bare },
+    { "cli_format_modes",
+      "a subcommand's help the parser's; the usage line the kit's",
+      d_tests_cli_format_modes },
 #endif
-    { "cli_format_help_width", d_tests_cli_format_help_width }
+    { "cli_format_help_width",
+      "help's width off a terminal and on one",
+      d_tests_cli_format_help_width }
 };
 
-// d_tests_cli_format_count
-//   constant: how many sections d_tests_cli_format has.
-const size_t d_tests_cli_format_count =
-    sizeof(d_tests_cli_format) / sizeof(d_tests_cli_format[0]);
+// d_tests_cli_format_block
+//   constant: d_tests_cli_format as a block of the C face's spec form.
+const struct dj_test_block_spec d_tests_cli_format_block =
+{
+    "format",
+    "the help the kit lays out (cli_format.c)",
+    d_tests_cli_format,
+    sizeof(d_tests_cli_format) / sizeof(d_tests_cli_format[0])
+};
+

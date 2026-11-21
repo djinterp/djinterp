@@ -3,18 +3,18 @@
 *
 * What the command-line kit's C suites share, declared in
 * cli_tests_support.h.
-*   A difference is said on the runner's standard output, before the line
-* that reports its section, so that a failed section's report follows its
-* reasons. With D_TESTS_CLI_DUMP set in the environment, each case run also
-* prints what it came to as the table entry that would hold it: a
-* maintainer who changed the kit's words on purpose reads those, checks
-* them, and puts them in the table.
+*   A difference is a note on the test running, which DTest's report prints
+* beneath the failed test. With D_TESTS_CLI_DUMP set in the environment, each
+* case run also prints what it came to, on standard output, as the table
+* entry that would hold it, and a text that differs prints whole: a
+* maintainer who changed the kit's words on purpose reads those, checks them,
+* and puts them in the table.
 *
 *
 * path:      /tests/djinterp/tools/cli/c/cli_tests_support.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "./cli_tests_support.h"  // corresponding header
 // std
@@ -365,33 +365,37 @@ bool d_tests_cli_case_run(
     struct dj_arg_parser      parser;
     struct dj_arg_buffer      out = D_ARG_BUFFER_INIT;
     struct dj_arg_buffer      err = D_ARG_BUFFER_INIT;
+    char                      said[64];
 
     // a command line the table should not hold, or no program
-    if ( (!d_tests_cli_split(_case->line,
-                             &words)) ||
-         (!d_tests_cli_start(&program,
-                             &parser,
-                             _make,
-                             &out,
-                             &err)) )
+    const bool made = ( (d_tests_cli_split(_case->line,
+                                           &words)) &&
+                        (d_tests_cli_start(&program,
+                                           &parser,
+                                           _make,
+                                           &out,
+                                           &err)) );
+
+    if (!D_TESTS_CLI_CHECK(made,
+                           _case->tag,
+                           "the case's program could not be made"))
     {
-        return d_tests_cli_check(false,
-                                 _case->tag,
-                                 "the case's program could not be made");
+        return false;
     }
 
     const int status = d_cli_program_run(&program,
                                          words.count,
                                          words.items);
-    bool      held   = (status == _case->status);
 
-    if (!held)
-    {
-        printf("  [%s] status: expected %d, was %d\n",
-               _case->tag,
-               _case->status,
-               status);
-    }
+    (void)snprintf(said,
+                   sizeof(said),
+                   "status: expected %d, was %d",
+                   _case->status,
+                   status);
+
+    bool held = D_TESTS_CLI_CHECK(status == _case->status,
+                                  _case->tag,
+                                  said);
 
     d_tests_cli_dump(_case,
                      status,
@@ -445,51 +449,113 @@ bool d_tests_cli_cases_run(
 //==============================================================================
 
 /**
- * @brief Prints the line of a text that holds an offset, escaped and
- *        quoted, after a label.
+ * @brief Whether two texts are the same once each CR just before an LF is
+ *        passed over, on either side, as DTest's text check passes over it.
  *
- * @param[in] _label   what the line is: `expected` or `actual`.
- * @param[in] _text    the text; may be NULL for none.
- * @param[in] _length  its length.
- * @param[in] _at      the offset, where the texts first differ.
+ * @param[in] _a         one text.
+ * @param[in] _a_length  its length.
+ * @param[in] _b         the other.
+ * @param[in] _b_length  its length.
+ * @return whether they are the same but for such CRs.
  */
 static
-void d_tests_cli_print_line(
-    const char* _label,
+bool d_tests_cli_same_but_cr(
+    const char* _a,
+    size_t      _a_length,
+    const char* _b,
+    size_t      _b_length
+)
+{
+    size_t a = 0u;
+    size_t b = 0u;
+
+    for (;;)
+    {
+        if ( (a + 1u < _a_length) &&
+             (_a[a] == '\r') &&
+             (_a[a + 1u] == '\n') )
+        {
+            ++a;
+        }
+
+        if ( (b + 1u < _b_length) &&
+             (_b[b] == '\r') &&
+             (_b[b + 1u] == '\n') )
+        {
+            ++b;
+        }
+
+        if ( (a == _a_length) ||
+             (b == _b_length) )
+        {
+            return ( (a == _a_length) &&
+                     (b == _b_length) );
+        }
+
+        if (_a[a] != _b[b])
+        {
+            return false;
+        }
+
+        ++a;
+        ++b;
+    }
+}
+
+/**
+ * @brief Writes a byte as a C literal writes it, into room for at most
+ *        five bytes and a NUL; `the end` past the text's end.
+ *
+ * @param[out] _room    the room.
+ * @param[in]  _size    its size, 8 or more.
+ * @param[in]  _text    the text.
+ * @param[in]  _length  its length.
+ * @param[in]  _at      the byte's offset.
+ */
+static
+void d_tests_cli_byte(
+    char*       _room,
+    size_t      _size,
     const char* _text,
     size_t      _length,
     size_t      _at
 )
 {
-    size_t start = (_at < _length) ? _at : _length;
-    size_t end   = start;
+    const unsigned char each = (_at < _length) ? (unsigned char)_text[_at]
+                                               : 0u;
 
-    while ( (start > 0u) &&
-            (_text[start - 1u] != '\n') )
+    if (_at >= _length)
     {
-        --start;
+        (void)snprintf(_room, _size, "the end");
     }
-
-    while ( (end < _length) &&
-            (_text[end] != '\n') )
+    else if (each == '\n')
     {
-        ++end;
+        (void)snprintf(_room, _size, "\"\\n\"");
     }
-
-    printf("      %-9s\"",
-           _label);
-    d_tests_cli_print_escaped(_text + start,
-                              (end < _length) ? (end - start + 1u)
-                                              : (end - start));
-    printf("\"%s\n",
-           (start == _length) ? " (the text ends here)" : "");
+    else if (each == '\r')
+    {
+        (void)snprintf(_room, _size, "\"\\r\"");
+    }
+    else if ( (each < 0x20u) ||
+              (each >= 0x7fu) )
+    {
+        (void)snprintf(_room, _size, "\"\\%03o\"", (unsigned int)each);
+    }
+    else
+    {
+        (void)snprintf(_room, _size, "\"%c\"", (char)each);
+    }
 
     return;
 }
 
 /*
 d_tests_cli_same
-  The texts' lengths and bytes; where they differ, the line each holds there.
+  One check named `[tag] what`: DTest's text check, which notes the line and
+column where the texts differ; or, where they differ only in a CR just
+before an LF, which that check passes over, a failed check of the kit's own,
+noting the byte. With D_TESTS_CLI_DUMP set, a difference prints the whole
+text too.
 */
 bool d_tests_cli_same(
     const char* _tag,
@@ -502,54 +568,77 @@ bool d_tests_cli_same(
     const char* const actual = (_actual != NULL) ? _actual : "";
     const size_t      length = (_actual != NULL) ? _length : 0u;
     const size_t      wanted = strlen(_expected);
-    size_t            at     = 0u;
+    char              name[D_TESTS_CLI_NAME_MAX];
+    bool              held   = ( (wanted == length) &&
+                                 (memcmp(_expected,
+                                         actual,
+                                         length) == 0) );
 
-    // the same text
-    if ( (wanted == length) &&
-         (memcmp(_expected,
-                 actual,
-                 length) == 0) )
+    (void)snprintf(name,
+                   sizeof(name),
+                   "[%s] %s",
+                   _tag,
+                   _what);
+
+    // every byte counts: a CR the text check would pass over fails here
+    if ( (!held) &&
+         (d_tests_cli_same_but_cr(_expected,
+                                  wanted,
+                                  actual,
+                                  length)) )
     {
-        return true;
-    }
+        size_t at = 0u;
+        char   got[8];
+        char   want[8];
 
-    while ( (at < wanted) &&
-            (at < length) &&
-            (_expected[at] == actual[at]) )
+        while ( (at < wanted) &&
+                (at < length) &&
+                (_expected[at] == actual[at]) )
+        {
+            ++at;
+        }
+
+        d_tests_cli_byte(got, sizeof(got), actual, length, at);
+        d_tests_cli_byte(want, sizeof(want), _expected, wanted, at);
+        (void)d_test_suite_require(false,
+                                   name,
+                                   __FILE__,
+                                   __LINE__);
+        (void)D_TEST_NOTE("%s: byte %lu is %s, not %s: a CR before an LF "
+                          "counts here",
+                          name,
+                          (unsigned long)at,
+                          got,
+                          want);
+    }
+    else
     {
-        ++at;
+        held = D_TEST_CHECK_TEXT(NULL,
+                                 name,
+                                 d_test_text_buffer(actual,
+                                                    length),
+                                 d_test_text_buffer(_expected,
+                                                    wanted));
     }
-
-    printf("  [%s] %s differs at byte %lu:\n",
-           _tag,
-           _what,
-           (unsigned long)at);
-    d_tests_cli_print_line("expected",
-                           _expected,
-                           wanted,
-                           at);
-    d_tests_cli_print_line("actual",
-                           actual,
-                           length,
-                           at);
 
     // the whole of it, to be checked and put where it is expected
-    if (getenv("D_TESTS_CLI_DUMP") != NULL)
+    if ( (!held) &&
+         (getenv("D_TESTS_CLI_DUMP") != NULL) )
     {
-        printf("    all of it:\n");
+        printf("    %s, all of it:\n",
+               name);
         d_tests_cli_print_literal(actual,
                                   length);
         printf("\n");
+        (void)fflush(stdout);
     }
 
-    (void)fflush(stdout);
-
-    return false;
+    return held;
 }
 
 /*
 d_tests_cli_check
-  The failure said, and the verdict returned.
+  The verdict, already a check; a failure noted under the tag.
 */
 bool d_tests_cli_check(
     bool        _held,
@@ -559,10 +648,9 @@ bool d_tests_cli_check(
 {
     if (!_held)
     {
-        printf("  [%s] %s\n",
-               _tag,
-               _what);
-        (void)fflush(stdout);
+        (void)D_TEST_NOTE("[%s] %s",
+                          _tag,
+                          _what);
     }
 
     return _held;
@@ -942,4 +1030,41 @@ void d_tests_cli_kit_line(
                    (kit->type != NULL) ? kit->type : "");
 
     return;
+}
+
+
+//==============================================================================
+// 10. THE RUNNERS
+//==============================================================================
+
+/*
+d_tests_cli_take_modules
+  The first argument, when it is no option, taken; the rest moved down.
+*/
+const char* d_tests_cli_take_modules(
+    int*   _argc,
+    char** _argv
+)
+{
+    const char* directory = NULL;
+
+    if ( (_argc == NULL) ||
+         (_argv == NULL) ||
+         (*_argc < 2) ||
+         (_argv[1] == NULL) ||
+         (_argv[1][0] == '-') )
+    {
+        return NULL;
+    }
+
+    directory = _argv[1];
+
+    for (int index = 1; index < *_argc; ++index)
+    {
+        _argv[index] = _argv[index + 1];
+    }
+
+    --*_argc;
+
+    return directory;
 }

@@ -30,7 +30,7 @@
 #include "../../../../../inc/djinterp/tools/cli/c/cli_operand.h"  // named operands
 #include "../../../../../inc/djinterp/tools/cli/c/cli_program.h"  // the program
 #include "../../../c/modules/parse/cli/arg_parser/arg_tests_files.h"  // scratch directories
-#include "../../../c/modules/parse/tests_section.h"  // dj_tests_section
+#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // specs
 #include "./cli_tests_support.h"  // cases, checks
 
 
@@ -221,7 +221,7 @@ bool d_tests_cli_operand_named(void)
     held = (held) &&
            (d_tests_cli_operand_files(&files));
 
-    if (!d_tests_cli_check(held,
+    if (!D_TESTS_CLI_CHECK(held,
                            "O01",
                            "the scratch directory could not be made"))
     {
@@ -294,14 +294,14 @@ bool d_tests_cli_operand_nulls(void)
                                                   &out,
                                                   &err);
 
-    if (!d_tests_cli_check(held,
+    if (!D_TESTS_CLI_CHECK(held,
                            "N01",
                            "the program could not be made"))
     {
         return false;
     }
 
-    held = d_tests_cli_check(
+    held = D_TESTS_CLI_CHECK(
                (d_tests_cli_operand_refused(NULL, "ex:a", "ex", "x"))     &&
                (d_tests_cli_operand_refused(&program, NULL, "ex", "x"))   &&
                (d_tests_cli_operand_refused(&program, "ex:a", NULL, "x")) &&
@@ -310,7 +310,7 @@ bool d_tests_cli_operand_nulls(void)
                 D_ARG_ERROR_BAD_ARGUMENT),
                "N01",
                "each argument given nothing");
-    held = d_tests_cli_check(
+    held = D_TESTS_CLI_CHECK(
                (d_tests_cli_operand_refused(&program, "c:a", "c", "x"))   &&
                (d_tests_cli_operand_refused(&program, ":a", "", "x"))     &&
                (d_tests_cli_operand_refused(&program, "Ex:a", "Ex", "x")) &&
@@ -339,13 +339,23 @@ bool d_tests_cli_operand_nulls(void)
 
 // d_tests_cli_operand
 //   constant: the suite's sections, in the order they run.
-const struct dj_tests_section d_tests_cli_operand[] =
+const struct dj_test_case_spec d_tests_cli_operand[] =
 {
-    { "cli_operand_named", d_tests_cli_operand_named },
-    { "cli_operand_nulls", d_tests_cli_operand_nulls }
+    { "cli_operand_named",
+      "named operands, and names holding a colon",
+      d_tests_cli_operand_named },
+    { "cli_operand_nulls",
+      "NULL arguments, and the prefixes R13 refuses",
+      d_tests_cli_operand_nulls }
 };
 
-// d_tests_cli_operand_count
-//   constant: how many sections d_tests_cli_operand has.
-const size_t d_tests_cli_operand_count =
-    sizeof(d_tests_cli_operand) / sizeof(d_tests_cli_operand[0]);
+// d_tests_cli_operand_block
+//   constant: d_tests_cli_operand as a block of the C face's spec form.
+const struct dj_test_block_spec d_tests_cli_operand_block =
+{
+    "operand",
+    "operands that name no file (cli_operand.c)",
+    d_tests_cli_operand,
+    sizeof(d_tests_cli_operand) / sizeof(d_tests_cli_operand[0])
+};
+

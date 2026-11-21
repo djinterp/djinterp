@@ -18,9 +18,11 @@
 # lowest and the highest. Each run is given the probes' directory. A level
 # the compiler cannot select is left out, and said so; so is the C++ suite
 # when there is no C++ compiler, and the sweep when the linker cannot wrap.
-#   Each run in the default configuration must print the count
-# expected_sections.txt gives its build: a section that silently stopped
-# being compiled is a failure, not a smaller pass.
+#   Every suite runs on DTest's C face (c/modules/test/test_suite.h), its one
+# source compiled with each run's suites. Each run in the default
+# configuration must report as many tests passed as expected_sections.txt
+# gives its build, and none failed or skipped: a section that silently
+# stopped being compiled is a failure, not a smaller pass.
 #   Every compile takes the ladder's flags (-pedantic-errors -Werror=undef
 # -D_XOPEN_SOURCE=700) with -Wall -Wextra beside them, in testing mode, with
 # re_std's knob set beside djinterp's. Warnings are counted and shown; they
@@ -34,7 +36,7 @@
 #
 #   usage:  run_cli_tests.sh [--sanitize] [--verbose]
 #             --sanitize  AddressSanitizer and UndefinedBehaviorSanitizer
-#             --verbose   print each section as it runs, not only the totals
+#             --verbose   print each run's whole report, not only its totals
 #   env:    CC          the C compiler         (default: gcc)
 #           CXX         the C++ compiler       (default: g++; one that is
 #                       not found leaves the C++ suite out)
@@ -54,7 +56,7 @@
 # path:      /build/cmake/config/testing/djinterp/tools/cli/run_cli_tests.sh
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-#                                                            revised: 2026.11.13
+#                                                            revised: 2026.11.18
 #*******************************************************************************
 set -uo pipefail
 export LC_ALL=C
@@ -148,14 +150,21 @@ if ! command -v "${CXX}" >/dev/null 2>&1; then
 fi
 
 # the parser's sources, the sinks it writes through, re_std's one C source;
-# the kit's, and filesys
+# the kit's; the option core its settings are kept in, as
+# DjinterpCliSources.cmake lists it; and filesys
 LIB_SOURCES=( "${ROOT}"/src/djinterp/c/modules/parse/cli/arg_parser/*.c
               "${ROOT}/src/djinterp/c/util/sink_common.c"
               "${ROOT}/src/re_std/c/cstdint/dstdint.c"
               "${ROOT}"/src/djinterp/tools/cli/c/*.c
+              "${ROOT}/src/djinterp/c/option/option_common.c"
+              "${ROOT}/src/djinterp/c/option/option_env.c"
+              "${ROOT}/src/djinterp/c/option/option_env_registry.c"
+              "${ROOT}/src/djinterp/c/option/option_set.c"
+              "${ROOT}/src/djinterp/c/option/option_set_common.c"
               "${ROOT}"/src/djinterp/c/filesys/file_*.c )
 
 TESTS="${ROOT}/tests/djinterp/tools/cli"
+DTEST="${ROOT}/src/djinterp/c/modules/test/test_suite.c"
 PARSER_TESTS="${ROOT}/tests/djinterp/c/modules/parse/cli/arg_parser"
 PROBE="${TESTS}/c/probe/cli_tests_probe.c"
 PROBES=( probe other old abi short idle null none kit )
@@ -168,10 +177,12 @@ C_SUITES=( "${TESTS}/c/cli_tests_support.c"
            "${TESTS}/c/cli_operand_tests.c"
            "${TESTS}/c/cli_plugin_tests.c"
            "${TESTS}/c/cli_settings_tests.c"
+           "${DTEST}"
            "${HERE}/cli_c_tests_runner.c" )
 SWEEP=( "${TESTS}/c/cli_sweep_tests.c"
         "${TESTS}/c/cli_tests_support.c"
         "${PARSER_TESTS}/arg_tests_files.c"
+        "${DTEST}"
         "${HERE}/cli_c_sweep_runner.c" )
 CXX_SUITES=( "${TESTS}/cli_tests.cpp"
              "${HERE}/cli_cpp_tests_runner.cpp" )
@@ -231,7 +242,7 @@ std_flag()
 }
 
 # expected <build>
-#   Prints the section count expected_sections.txt gives a build, or
+#   Prints the count of tests expected_sections.txt gives a build, or
 # nothing.
 expected()
 {
@@ -289,7 +300,8 @@ build_library()
     "${AR}" rcs "${out}/cli.a" "${out}"/objects/*.o
 
     for source in "${TESTS}/c/cli_tests_support.c" \
-                  "${PARSER_TESTS}/arg_tests_files.c"; do
+                  "${PARSER_TESTS}/arg_tests_files.c" \
+                  "${DTEST}"; do
         if ! "${CC}" ${floor} "${COMMON[@]}" -c "${source}" \
                 -o "${out}/cxx/$(basename "${source%.c}").o" \
                 2>>"${out}/log"; then
@@ -335,34 +347,46 @@ build_probes()
     note_warnings "${out}/probes.log"
 }
 
+# tests_line <report>
+#   Prints DTest's count of tests from a run's report, its spaces squeezed:
+# `tests: 51 (51 passed, 0 failed, 0 skipped)`; nothing when the run ended
+# before its summary.
+tests_line()
+{
+    sed -n 's/^  \(tests: .*\)$/\1/p' "$1" | tr -s ' '
+}
+
 # run_binary <binary> <out directory>
-#   Runs a built suite, given the probes' directory, and leaves `totals`
-# and `details`. Returns 0 when no section failed.
+#   Runs a built suite, given the probes' directory, and leaves `totals`,
+# DTest's count of tests, and `details`. Returns 0 when no test failed.
 run_binary()
 {
     local binary="$1" out="$2"
 
     # RUN_PREFIX is a command and its arguments, split deliberately
     # shellcheck disable=SC2086
-    if ! ${RUN_PREFIX} "${binary}" "${out}/modules" 2>&1 |
+    if ! ${RUN_PREFIX} "${binary}" "${out}/modules" --no-table 2>&1 |
              tr -d '\r' >"${binary}.out"; then
-        totals="$(tail -n 1 "${binary}.out")"
-        totals="${totals:-nothing printed: it did not start, or died at once}"
-        details+="$(grep -v '^  \[PASS\]' "${binary}.out" | sed '1d' |
+        totals="$(tests_line "${binary}.out")"
+        totals="${totals:-no summary: it did not start, or died}"
+        details+="$(sed '/^-- summary --$/,$d' "${binary}.out" |
+                    grep -v -e '^ *\[PASS\]' -e '^== ' -e '^$' |
                     sed 's/^/    /')"$'\n'
         return 1
     fi
 
-    totals="$(tail -n 1 "${binary}.out")"
+    totals="$(tests_line "${binary}.out")"
 
     if [[ "${verbose}" -eq 1 ]]; then
-        details+="$(sed '1d;$d' "${binary}.out" | sed 's/^/    /')"$'\n'
+        details+="$(sed '/^-- summary --$/,$d' "${binary}.out" |
+                    grep -v -e '^== ' -e '^$' |
+                    sed 's/^/    /')"$'\n'
     fi
 }
 
 # run_suites <level> <out directory>
 #   Builds the C suites at one level against the archive and runs them.
-# Returns 0 when they built, ran and failed no section; 2 when the compiler
+# Returns 0 when they built, ran and failed no test; 2 when the compiler
 # cannot select the level; 1 otherwise.
 run_suites()
 {
@@ -498,8 +522,9 @@ check()
 
     if [[ ${verdict} -ne 0 ]]; then
         failures=$((failures + 1))
-    elif [[ "${totals}" != "passed: ${want}   failed: 0" ]]; then
-        printf "                expected %s sections: see " \
+    elif [[ "${totals}" != \
+            "tests: ${want} (${want} passed, 0 failed, 0 skipped)" ]]; then
+        printf "                expected %s tests passed: see " \
                "${want:-a count that file does not give}"
         printf "expected_sections.txt\n"
         failures=$((failures + 1))

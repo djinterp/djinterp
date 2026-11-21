@@ -275,7 +275,7 @@ bool d_tests_cli_cpp_program()
     state        seen    = { std::string(), false, 0 };
     std::string  out;
     std::string  err;
-    bool         held    = d_tests_cli_check(
+    bool         held    = D_TESTS_CLI_CHECK(
                                (program.made())                       &&
                                (std::strcmp(program.kit().name,
                                             "prog") == 0)              &&
@@ -289,7 +289,7 @@ bool d_tests_cli_cpp_program()
                                     out,
                                     err);
 
-    held = d_tests_cli_check( (status == D_CLI_EXIT_NO)               &&
+    held = D_TESTS_CLI_CHECK( (status == D_CLI_EXIT_NO)               &&
                               (seen.runs == 1)                        &&
                               (seen.sheet == "s.json")                &&
                               (seen.all)                              &&
@@ -338,7 +338,7 @@ bool d_tests_cli_cpp_halves()
     d_arg_formatter_set_line_width(
         &static_cast< ::dj_arg_parser&>(program).formatter,
         80u);
-    held = d_tests_cli_check( (held)                                  &&
+    held = D_TESTS_CLI_CHECK( (held)                                  &&
                               (!program.parse_or_exit(3,
                                                       work,
                                                       exit_status))   &&
@@ -350,7 +350,7 @@ bool d_tests_cli_cpp_halves()
                               "H01",
                               "a parse that goes on, then the work");
     out.str("");
-    held = d_tests_cli_check( (program.parse_or_exit(2,
+    held = D_TESTS_CLI_CHECK( (program.parse_or_exit(2,
                                                      help,
                                                      exit_status))    &&
                               (exit_status == D_CLI_EXIT_OK)          &&
@@ -404,7 +404,7 @@ bool styled_reports()
     program.report(kit::severity::warning,
                    "kept");
 
-    bool held = d_tests_cli_check( (made) &&
+    bool held = D_TESTS_CLI_CHECK( (made) &&
                                    (status == D_CLI_EXIT_TROUBLE) &&
                                    (out.empty()),
                                    "R02",
@@ -422,7 +422,7 @@ bool styled_reports()
 
     // the parser's layout begins with the description, as CLI11's does;
     // asked for by a prefix of `--help`
-    held = d_tests_cli_check( (run_line(program,
+    held = D_TESTS_CLI_CHECK( (run_line(program,
                                         "prog --hel",
                                         out,
                                         err) == D_CLI_EXIT_OK) &&
@@ -485,7 +485,7 @@ bool d_tests_cli_cpp_reports()
                                              ENOENT) ==
                           D_CLI_EXIT_TROUBLE) );
 
-    return d_tests_cli_check( (made) &&
+    return D_TESTS_CLI_CHECK( (made) &&
                               (ended) &&
                               (out.empty()),
                               "R01",
@@ -582,7 +582,7 @@ bool thrown_case(
                                 out,
                                 err);
 
-    return d_tests_cli_check( (status == D_CLI_EXIT_TROUBLE) &&
+    return D_TESTS_CLI_CHECK( (status == D_CLI_EXIT_TROUBLE) &&
                               (out.empty()),
                               _tag,
                               "an exception the work let out is trouble") &&
@@ -660,7 +660,7 @@ bool d_tests_cli_cpp_lambdas()
                           err);
     }
 
-    return d_tests_cli_check( (status == D_CLI_EXIT_NO) &&
+    return D_TESTS_CLI_CHECK( (status == D_CLI_EXIT_NO) &&
                               (ran == 1)                 &&
                               (named == "somebody")      &&
                               (out.empty())              &&
@@ -710,7 +710,7 @@ bool d_tests_cli_cpp_module_side()
                                    out,
                                    err);
 
-    return d_tests_cli_check( (made)                                  &&
+    return D_TESTS_CLI_CHECK( (made)                                  &&
                               (status == D_CLI_EXIT_OK)               &&
                               (module.verbosity() == 2)               &&
                               (!module.coloured(kit::stream::error))   &&
@@ -752,7 +752,7 @@ bool named_operands(
     program.output(kit::string_sink(out),
                    kit::string_sink(err));
 
-    bool held = d_tests_cli_check(
+    bool held = D_TESTS_CLI_CHECK(
                     (kit::named_operand(program,
                                         "example:uart_cr",
                                         "example",
@@ -770,7 +770,7 @@ bool named_operands(
                     "a named operand, and a file's name");
 
 #if (D_TESTS_ARG_FILES_POSIX == 1)
-    held = d_tests_cli_check(
+    held = D_TESTS_CLI_CHECK(
                (d_tests_arg_files_file(&_files,
                                        "example:x",
                                        "a file\n"))          &&
@@ -808,7 +808,7 @@ bool d_tests_cli_cpp_files()
     dj_tests_arg_files files;
     const std::string bytes("a\0b\r\n\xff", 6u);
     std::string       read("untouched");
-    bool              held = d_tests_cli_check(
+    bool              held = D_TESTS_CLI_CHECK(
                                  (static_cast<int>(kit::stream::error) ==
                                   static_cast<int>(D_CLI_STREAM_ERROR)) &&
                                  (static_cast<int>(kit::colour::automatic) ==
@@ -823,14 +823,14 @@ bool d_tests_cli_cpp_files()
                                  "the vocabulary, and the streams");
 
     // a scratch directory for the files
-    if (!d_tests_cli_check(d_tests_arg_files_enter(&files),
+    if (!D_TESTS_CLI_CHECK(d_tests_arg_files_enter(&files),
                            "F02",
                            "the scratch directory could not be made"))
     {
         return false;
     }
 
-    held = d_tests_cli_check( (kit::read_file("missing.txt",
+    held = D_TESTS_CLI_CHECK( (kit::read_file("missing.txt",
                                               read) == ENOENT)        &&
                               (read == "untouched")                   &&
                               (kit::write_file("bytes.bin",
@@ -960,7 +960,7 @@ bool edit_case(
                                        DEditWork(&edit,
                                                  &file,
                                                  &place));
-    bool                   held  = d_tests_cli_check(
+    bool                   held  = D_TESTS_CLI_CHECK(
                                        (edit_made(program, add, edit, file)) &&
                                        (d_tests_cli_file_write("notes.txt",
                                                                "one\n",
@@ -969,7 +969,7 @@ bool edit_case(
                                        "the program could not be made");
 
     held = (held) &&
-           (d_tests_cli_check( (run_line(program, _line, out, err) ==
+           (D_TESTS_CLI_CHECK( (run_line(program, _line, out, err) ==
                                 D_CLI_EXIT_OK)                         &&
                                (file == "notes.txt")                   &&
                                (place == _place),
@@ -979,7 +979,7 @@ bool edit_case(
     return (held)                       &&
            (same(_tag, "out", _out, out)) &&
            (same(_tag, "err", "", err))   &&
-           (d_tests_cli_check(d_tests_cli_file_holds("notes.txt",
+           (D_TESTS_CLI_CHECK(d_tests_cli_file_holds("notes.txt",
                                                      _notes,
                                                      std::strlen(_notes)),
                               _tag,
@@ -1000,7 +1000,7 @@ bool d_tests_cli_cpp_edits()
 {
     dj_tests_arg_files files;
     const kit::edit   none;
-    bool              held = d_tests_cli_check(
+    bool              held = D_TESTS_CLI_CHECK(
                                  (static_cast<int>(kit::edit_place::back) ==
                                   static_cast<int>(D_CLI_EDIT_BACK))     &&
                                  (static_cast<int>(kit::edit_place::out) ==
@@ -1019,7 +1019,7 @@ bool d_tests_cli_cpp_edits()
                                  "the vocabulary, and an edit made empty");
 
     // a scratch directory for the file
-    if (!d_tests_cli_check(d_tests_arg_files_enter(&files),
+    if (!D_TESTS_CLI_CHECK(d_tests_arg_files_enter(&files),
                            "D02",
                            "the scratch directory could not be made"))
     {
@@ -1077,7 +1077,7 @@ bool d_tests_cli_cpp_plugins()
     std::string       found;
     std::string       searched;
     std::string       why;
-    bool              held = d_tests_cli_check(
+    bool              held = D_TESTS_CLI_CHECK(
                                  (kit::executable_path(D_NULLPTR,
                                                        executable) == 0) &&
                                  (!executable.empty()),
@@ -1087,7 +1087,7 @@ bool d_tests_cli_cpp_plugins()
 #if (D_INTERNAL_CLI_PLUGIN_VARIABLE == 1)
     (void)d_tests_cli_setenv("PROG_PLUGIN_PATH",
                              MODULES.c_str());
-    held = d_tests_cli_check( (kit::find_plugin("prog",
+    held = D_TESTS_CLI_CHECK( (kit::find_plugin("prog",
                                                 "probe",
                                                 "",
                                                 found,
@@ -1107,7 +1107,7 @@ bool d_tests_cli_cpp_plugins()
     kit::program told("prog",
                       "1.2");
 
-    held = d_tests_cli_check( (told.plugin_path(MODULES).ok())             &&
+    held = D_TESTS_CLI_CHECK( (told.plugin_path(MODULES).ok())             &&
                               (told.kit().plugin_path != D_NULLPTR)        &&
                               (MODULES == told.kit().plugin_path)          &&
                               (&told.plugin_versions(
@@ -1124,7 +1124,7 @@ bool d_tests_cli_cpp_plugins()
 #if (D_INTERNAL_CLI_PLUGINS == 1)
     kit::DPluginModule module;
 
-    held = d_tests_cli_check( (module.load(found,
+    held = D_TESTS_CLI_CHECK( (module.load(found,
                                            "prog",
                                            "1.2",
                                            why).ok())                 &&
@@ -1135,7 +1135,7 @@ bool d_tests_cli_cpp_plugins()
                               (why.empty()),
                               "G03",
                               "PROBE loaded and held") && held;
-    held = d_tests_cli_check( (!module.load(MODULES + "/prog-other" + suffix,
+    held = D_TESTS_CLI_CHECK( (!module.load(MODULES + "/prog-other" + suffix,
                                             "prog",
                                             "1.2",
                                             why).ok())                &&
@@ -1240,7 +1240,7 @@ bool d_tests_cli_cpp_version()
     host.executable = "/x/prog";
     host.module     = "/x/prog-gui.so";
 
-    bool held = d_tests_cli_check(
+    bool held = D_TESTS_CLI_CHECK(
                     (program.made())                                      &&
                     (built_here(program))                                 &&
                     (program.add_build("window",
@@ -1263,7 +1263,7 @@ bool d_tests_cli_cpp_version()
 
     out.clear();
     err.clear();
-    held = d_tests_cli_check( (module.made())                         &&
+    held = D_TESTS_CLI_CHECK( (module.made())                         &&
                               (built_here(module))                    &&
                               (module.kit().host == &host)            &&
                               (run_line(module,
@@ -1288,25 +1288,51 @@ bool d_tests_cli_cpp_version()
 
 // d_tests_cli_cpp
 //   constant: the suite's sections, in the order they run.
-const dj_tests_section d_tests_cli_cpp[] =
+const struct dj_test_case_spec d_tests_cli_cpp[] =
 {
-    { "cli_cpp_program",     d_tests_cli_cpp_program     },
-    { "cli_cpp_halves",      d_tests_cli_cpp_halves      },
-    { "cli_cpp_reports",     d_tests_cli_cpp_reports     },
+    { "cli_cpp_program",
+      "a program made and run, its output to streams",
+      d_tests_cli_cpp_program },
+    { "cli_cpp_halves",
+      "parse_or_exit and dispatch, apart",
+      d_tests_cli_cpp_halves },
+    { "cli_cpp_reports",
+      "reports with a message given whole",
+      d_tests_cli_cpp_reports },
 #if (D_INTERNAL_ARG_PARSER_CPP_CATCH == 1)
-    { "cli_cpp_exceptions",  d_tests_cli_cpp_exceptions  },
+    { "cli_cpp_exceptions",
+      "a command's exception said as the program's error",
+      d_tests_cli_cpp_exceptions },
 #endif
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    { "cli_cpp_lambdas",     d_tests_cli_cpp_lambdas     },
+    { "cli_cpp_lambdas",
+      "commands as lambdas, kept and freed with the program",
+      d_tests_cli_cpp_lambdas },
 #endif
-    { "cli_cpp_module_side", d_tests_cli_cpp_module_side },
-    { "cli_cpp_files",       d_tests_cli_cpp_files       },
-    { "cli_cpp_edits",       d_tests_cli_cpp_edits       },
-    { "cli_cpp_plugins",     d_tests_cli_cpp_plugins     },
-    { "cli_cpp_version",     d_tests_cli_cpp_version     }
+    { "cli_cpp_module_side",
+      "a module's program made from its host",
+      d_tests_cli_cpp_module_side },
+    { "cli_cpp_files",
+      "files and named operands through std::string",
+      d_tests_cli_cpp_files },
+    { "cli_cpp_edits",
+      "edits by each rule, written back and out",
+      d_tests_cli_cpp_edits },
+    { "cli_cpp_plugins",
+      "modules found, loaded, refused and unloaded",
+      d_tests_cli_cpp_plugins },
+    { "cli_cpp_version",
+      "the build each program carries, and add_build",
+      d_tests_cli_cpp_version }
 };
 
-// d_tests_cli_cpp_count
-//   constant: how many sections d_tests_cli_cpp has.
-const std::size_t d_tests_cli_cpp_count =
-    sizeof(d_tests_cli_cpp) / sizeof(d_tests_cli_cpp[0]);
+// d_tests_cli_cpp_block
+//   constant: d_tests_cli_cpp as a block of the C face's spec form.
+const struct dj_test_block_spec d_tests_cli_cpp_block =
+{
+    "cpp",
+    "the C++ face, called from C++",
+    d_tests_cli_cpp,
+    sizeof(d_tests_cli_cpp) / sizeof(d_tests_cli_cpp[0])
+};
+

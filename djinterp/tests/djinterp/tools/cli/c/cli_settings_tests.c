@@ -34,7 +34,7 @@
 #include "../../../../../inc/djinterp/tools/cli/c/cli_plugin.h"  // dj_cli_plugin_versions
 #include "../../../../../inc/djinterp/tools/cli/c/cli_program.h"  // the program
 #include "../../../../../inc/djinterp/tools/cli/c/cli_settings.h"  // settings
-#include "../../../c/modules/parse/tests_section.h"  // dj_tests_section
+#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // specs
 #include "./cli_tests_support.h"  // cases, checks
 // re_std
 #include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // RE_STD_HAS_INT64
@@ -306,7 +306,7 @@ bool d_tests_cli_settings_taken(void)
 
     d_tests_cli_settings_unset();
 
-    return ( (d_tests_cli_check(d_tests_cli_settings_home(path, sizeof(path),
+    return ( (D_TESTS_CLI_CHECK(d_tests_cli_settings_home(path, sizeof(path),
                                                           NULL),
                                 "T00",
                                 "a scratch home for the user's settings")) &&
@@ -383,7 +383,7 @@ bool d_tests_cli_settings_refused(void)
 
     d_tests_cli_settings_unset();
 
-    return ( (d_tests_cli_check(d_tests_cli_settings_home(path, sizeof(path),
+    return ( (D_TESTS_CLI_CHECK(d_tests_cli_settings_home(path, sizeof(path),
                                                           NULL),
                                 "R00",
                                 "a scratch home for the user's settings")) &&
@@ -426,7 +426,7 @@ bool d_tests_cli_settings_file(void)
     bool                     held;
 
     d_tests_cli_settings_unset();
-    held = d_tests_cli_check(d_tests_cli_settings_home(path, sizeof(path),
+    held = D_TESTS_CLI_CHECK(d_tests_cli_settings_home(path, sizeof(path),
                                                        FILE_TEXT),
                              "F00",
                              "a scratch home holding the user's settings");
@@ -475,7 +475,7 @@ bool d_tests_cli_settings_file(void)
         // not a full path: the home's
         (void)d_tests_cli_setenv("XDG_CONFIG_HOME", "relative");
         (void)d_tests_cli_setenv("HOME", "/home/someone");
-        held = d_tests_cli_check(
+        held = D_TESTS_CLI_CHECK(
                    (d_cli_settings_file(path, sizeof(path)) ==
                     sizeof(WANT) - 1u) &&
                    (strcmp(path, WANT) == 0),
@@ -590,7 +590,7 @@ bool d_tests_cli_settings_reads(void)
     d_tests_cli_settings_unset();
     d_cli_settings_reset();
 
-    held = d_tests_cli_check(
+    held = D_TESTS_CLI_CHECK(
                (strcmp(d_cli_settings_plugin_search(),
                        D_CFG_CLI_PLUGIN_SEARCH) == 0) &&
                (d_cli_settings_plugin_path() == NULL) &&
@@ -610,7 +610,7 @@ bool d_tests_cli_settings_reads(void)
            (d_tests_cli_start(&program, &parser, d_tests_cli_settings_make,
                               &out, &err)) &&
            (held);
-    held = d_tests_cli_check(
+    held = D_TESTS_CLI_CHECK(
                (d_cli_program_run(&program, 2, SHOW) == D_CLI_EXIT_OK) &&
                (d_cli_settings_plugin_strict_version(
                     (int)D_CLI_PLUGIN_VERSIONS_WARN) == true),
@@ -634,26 +634,53 @@ bool d_tests_cli_settings_reads(void)
 
 // d_tests_cli_settings
 //   constant: the suite's sections, in the order they run.
-const struct dj_tests_section d_tests_cli_settings[] =
+const struct dj_test_case_spec d_tests_cli_settings[] =
 {
-    { "cli_settings_taken",       d_tests_cli_settings_taken       },
-    { "cli_settings_refused",     d_tests_cli_settings_refused     },
-    { "cli_settings_file",        d_tests_cli_settings_file        },
-    { "cli_settings_environment", d_tests_cli_settings_environment },
-    { "cli_settings_reads",       d_tests_cli_settings_reads       }
+    { "cli_settings_taken",
+      "settings taken from the command line, either side",
+      d_tests_cli_settings_taken },
+    { "cli_settings_refused",
+      "unknown names, bad values and bad --set refused",
+      d_tests_cli_settings_refused },
+    { "cli_settings_file",
+      "the user's file binds; its failures said by line",
+      d_tests_cli_settings_file },
+    { "cli_settings_environment",
+      "the environment binds; the command line wins",
+      d_tests_cli_settings_environment },
+    { "cli_settings_reads",
+      "each setting's knob, the program's say, the sources",
+      d_tests_cli_settings_reads }
 };
 
-// d_tests_cli_settings_count
-//   constant: how many sections d_tests_cli_settings has.
-const size_t d_tests_cli_settings_count =
-    sizeof(d_tests_cli_settings) / sizeof(d_tests_cli_settings[0]);
+// d_tests_cli_settings_block
+//   constant: d_tests_cli_settings as a block of the C face's spec form.
+const struct dj_test_block_spec d_tests_cli_settings_block =
+{
+    "settings",
+    "the settings the kit keeps (cli_settings.c)",
+    d_tests_cli_settings,
+    sizeof(d_tests_cli_settings) / sizeof(d_tests_cli_settings[0])
+};
+
 
 #else  // !D_TESTS_CLI_SETTINGS_ON
 
 // without the option core the kit keeps no settings, and outside testing a
 // run's cannot be let go of: the suite has no sections; a table holds one
 // entry, never run
-const struct dj_tests_section d_tests_cli_settings[1] = { { NULL, NULL } };
-const size_t                 d_tests_cli_settings_count = 0u;
+const struct dj_test_case_spec d_tests_cli_settings[1] =
+    { { NULL, NULL, NULL } };
+
+// d_tests_cli_settings_block
+//   constant: d_tests_cli_settings as a block of the C face's spec form:
+// empty.
+const struct dj_test_block_spec d_tests_cli_settings_block =
+{
+    "settings",
+    "the settings the kit keeps (cli_settings.c): none here",
+    d_tests_cli_settings,
+    0u
+};
 
 #endif  // D_TESTS_CLI_SETTINGS_ON

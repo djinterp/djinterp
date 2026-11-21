@@ -56,7 +56,7 @@
 #include "../../../../../inc/djinterp/tools/cli/c/cli_plugin.h"  // modules
 #include "../../../../../inc/djinterp/tools/cli/c/cli_program.h"  // the program
 #include "../../../c/modules/parse/cli/arg_parser/arg_tests_files.h"  // scratch directories
-#include "../../../c/modules/parse/tests_section.h"  // dj_tests_section
+#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // specs
 #include "./cli_tests_support.h"  // words, printing, values, the environment
 // re_std
 #include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t, uintptr_t
@@ -922,31 +922,40 @@ const char* d_tests_cli_sweep_fault(
 }
 
 /**
- * @brief Writes which allocations made the blocks a run left live, the
- *        first few of them.
+ * @brief Notes which allocations made the blocks a run left live, the
+ *        first few of them, on the test running.
  */
 static
 void d_tests_cli_sweep_name_live(void)
 {
+    char   line[160];
+    size_t used  = 0u;
     size_t named = 0u;
 
-    printf("        left live, made by allocation");
+    line[0] = '\0';
 
     for (size_t slot = 0u;
          (slot < D_TESTS_CLI_SWEEP_SLOTS) &&
-         (named < D_TESTS_CLI_SWEEP_SHOWN);
+         (named < D_TESTS_CLI_SWEEP_SHOWN) &&
+         (used < sizeof(line));
          ++slot)
     {
         if (d_tests_cli_sweep_blocks[slot].memory != NULL)
         {
-            printf(" %lu",
-                   (unsigned long)d_tests_cli_sweep_blocks[slot].made);
+            const int wrote = snprintf(line + used,
+                                       sizeof(line) - used,
+                                       " %lu",
+                                       (unsigned long)
+                                           d_tests_cli_sweep_blocks[slot].made);
+
+            used += (wrote > 0) ? (size_t)wrote : 0u;
             ++named;
         }
     }
 
-    printf("%s\n",
-           (d_tests_cli_sweep_book.live > named) ? " ..." : "");
+    (void)D_TEST_NOTE("    left live, made by allocation%s%s",
+                      line,
+                      (d_tests_cli_sweep_book.live > named) ? " ..." : "");
 
     return;
 }
@@ -971,16 +980,16 @@ void d_tests_cli_sweep_describe(
 {
     const struct dj_tests_cli_sweep_result* const now = &d_tests_cli_sweep_now;
 
-    printf("    [%s] refusing allocation %lu of %lu: %s\n"
-           "        status %d (clean %d); err: %.*s\n",
-           _case->tag,
-           (unsigned long)_at,
-           (unsigned long)_total,
-           _fault,
-           now->status,
-           d_tests_cli_sweep_clean.status,
-           (int)d_tests_cli_sweep_line(now->err.data),
-           now->err.data);
+    (void)D_TEST_NOTE("[%s] refusing allocation %lu of %lu: %s\n"
+                      "    status %d (clean %d); err: %.*s",
+                      _case->tag,
+                      (unsigned long)_at,
+                      (unsigned long)_total,
+                      _fault,
+                      now->status,
+                      d_tests_cli_sweep_clean.status,
+                      (int)d_tests_cli_sweep_line(now->err.data),
+                      now->err.data);
 
     if (d_tests_cli_sweep_book.live != 0u)
     {
@@ -1038,15 +1047,16 @@ bool d_tests_cli_sweep_clean_run(
         return true;
     }
 
-    printf("    [%s] the clean run: status %d, not %d; %lu blocks live; "
-           "%s\n        err: %.*s\n",
-           _case->tag,
-           clean->status,
-           _case->status,
-           (unsigned long)d_tests_cli_sweep_book.live,
-           (clean->broken != NULL) ? clean->broken : "nothing broken",
-           (int)d_tests_cli_sweep_line(clean->err.data),
-           clean->err.data);
+    (void)D_TEST_NOTE("[%s] the clean run: status %d, not %d; %lu blocks "
+                      "live; %s\n    err: %.*s",
+                      _case->tag,
+                      clean->status,
+                      _case->status,
+                      (unsigned long)d_tests_cli_sweep_book.live,
+                      (clean->broken != NULL) ? clean->broken
+                                              : "nothing broken",
+                      (int)d_tests_cli_sweep_line(clean->err.data),
+                      clean->err.data);
 
     return false;
 }
@@ -1064,12 +1074,16 @@ bool d_tests_cli_sweep_case(
     const struct dj_tests_cli_sweep_case* _case
 )
 {
-    size_t total = 0u;
-    size_t short_runs = 0u;
+    size_t     total      = 0u;
+    size_t     short_runs = 0u;
+    char       said[96];
+    const bool clean      = d_tests_cli_sweep_clean_run(_case,
+                                                        &total);
 
     // the clean run, which every other is held to
-    if (!d_tests_cli_sweep_clean_run(_case,
-                                     &total))
+    if (!D_TESTS_CLI_CHECK(clean,
+                           _case->tag,
+                           "the clean run"))
     {
         return false;
     }
@@ -1098,12 +1112,18 @@ bool d_tests_cli_sweep_case(
     }
 
     d_tests_cli_sweep_reset(0u);
-    printf("    %s: %lu allocations, each refused in turn; %lu fell short\n",
-           _case->tag,
-           (unsigned long)total,
-           (unsigned long)short_runs);
+    (void)snprintf(said,
+                   sizeof(said),
+                   "%lu allocations, each refused in turn; %lu fell short",
+                   (unsigned long)total,
+                   (unsigned long)short_runs);
+    (void)D_TEST_NOTE("[%s] %s",
+                      _case->tag,
+                      said);
 
-    return (short_runs == 0u);
+    return D_TESTS_CLI_CHECK(short_runs == 0u,
+                             _case->tag,
+                             said);
 }
 
 /**
@@ -3073,9 +3093,10 @@ bool d_tests_cli_sweep_files(void)
                                     strlen(D_TESTS_CLI_SWEEP_OLD)));
 #endif
 
-    if (!held)
+    if (!D_TESTS_CLI_CHECK(held,
+                           "files",
+                           "the scratch directory could not be made"))
     {
-        printf("    the scratch directory could not be made\n");
         d_tests_arg_files_leave(&files);
 
         return false;
@@ -3337,13 +3358,16 @@ bool d_tests_cli_sweep_plugins(void)
     bool                     held = d_tests_arg_files_enter(&files);
 
     // a scratch directory for the probe's reports
-    if ( (!held) ||
-         (!d_tests_arg_files_write(&files,
-                                   "report.txt",
-                                   "",
-                                   0u)) )
+    held = ( (held) &&
+             (d_tests_arg_files_write(&files,
+                                      "report.txt",
+                                      "",
+                                      0u)) );
+
+    if (!D_TESTS_CLI_CHECK(held,
+                           "plugins",
+                           "the scratch directory could not be made"))
     {
-        printf("    the scratch directory could not be made\n");
         d_tests_arg_files_leave(&files);
 
         return false;
@@ -3373,18 +3397,34 @@ bool d_tests_cli_sweep_plugins(void)
 // d_tests_cli_sweep
 //   constant: the suite's sections, in the order they run; modules swept
 // where the kit has a loader, as the plugin suite runs them.
-const struct dj_tests_section d_tests_cli_sweep[] =
+const struct dj_test_case_spec d_tests_cli_sweep[] =
 {
-    { "cli_sweep_making",  d_tests_cli_sweep_making  },
-    { "cli_sweep_endings", d_tests_cli_sweep_endings },
-    { "cli_sweep_work",    d_tests_cli_sweep_work    },
-    { "cli_sweep_files",   d_tests_cli_sweep_files   },
+    { "cli_sweep_making",
+      "every fixture made and released",
+      d_tests_cli_sweep_making },
+    { "cli_sweep_endings",
+      "each ending's line",
+      d_tests_cli_sweep_endings },
+    { "cli_sweep_work",
+      "each command's work",
+      d_tests_cli_sweep_work },
+    { "cli_sweep_files",
+      "files read and written",
+      d_tests_cli_sweep_files },
 #if (D_INTERNAL_CLI_PLUGINS == 1)
-    { "cli_sweep_plugins", d_tests_cli_sweep_plugins }
+    { "cli_sweep_plugins",
+      "modules found, loaded and run",
+      d_tests_cli_sweep_plugins }
 #endif
 };
 
-// d_tests_cli_sweep_count
-//   constant: how many sections d_tests_cli_sweep has.
-const size_t d_tests_cli_sweep_count =
-    sizeof(d_tests_cli_sweep) / sizeof(d_tests_cli_sweep[0]);
+// d_tests_cli_sweep_block
+//   constant: d_tests_cli_sweep as a block of the C face's spec form.
+const struct dj_test_block_spec d_tests_cli_sweep_block =
+{
+    "sweep",
+    "every allocation of the kit's cases refused in turn",
+    d_tests_cli_sweep,
+    sizeof(d_tests_cli_sweep) / sizeof(d_tests_cli_sweep[0])
+};
+

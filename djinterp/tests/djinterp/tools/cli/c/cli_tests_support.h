@@ -18,14 +18,17 @@
 * however wide. The runner sets NO_COLOR before the first section, so that
 * `--color`'s `auto` colours nothing even on a terminal; a case that wants
 * colour asks for it with `--color=always`.
-*   A check says what failed, under the case's tag, and returns whether it
-* held, so that a section can make every check and look once.
+*   Each section is a test of DTest's C face (c/modules/test/test_suite.h),
+* and every check here is one of its checks, recorded against the test
+* running: what failed is a note on it, under the case's tag. A check also
+* returns whether it held, so that a section can make every check and look
+* once.
 *
 *
 * path:      /tests/djinterp/tools/cli/c/cli_tests_support.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-*                                                            revised: 2026.10.24
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 /*
@@ -37,6 +40,7 @@ TABLE OF CONTENTS
          1.  D_TESTS_CLI_WORDS_MAX
          2.  D_TESTS_CLI_LINE_MAX
          3.  D_TESTS_CLI_WIDTH
+         4.  D_TESTS_CLI_NAME_MAX
     2.  Command lines
          1.  dj_tests_cli_words
     3.  Cases
@@ -55,6 +59,7 @@ TABLE OF CONTENTS
     4.  Checks
          1.  d_tests_cli_same
          2.  d_tests_cli_check
+         3.  D_TESTS_CLI_CHECK
     5.  The environment
          1.  d_tests_cli_setenv
     6.  A command's work
@@ -69,6 +74,8 @@ TABLE OF CONTENTS
          2.  d_tests_cli_restore
     9.  The version
          1.  d_tests_cli_kit_line
+    10. The runners
+         1.  d_tests_cli_take_modules
 */
 
 #ifndef DJINTERP_TOOLS_CLI_C_CLI_TESTS_SUPPORT_H
@@ -80,6 +87,7 @@ TABLE OF CONTENTS
 // djinterp
 #include "../../../../../inc/djinterp/c/djinterp.h"  // framework root
 #include "../../../../../inc/djinterp/env/c/env_vendor_attributes.h"  // D_FORMAT_PRINTF
+#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // checks
 #include "../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_command.h"  // dj_arg_command
 #include "../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_common.h"  // dj_arg_buffer
 #include "../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_parser.h"  // dj_arg_parser
@@ -108,6 +116,12 @@ TABLE OF CONTENTS
 // D_TESTS_CLI_WIDTH
 //   constant: the columns every program a case makes wraps its help to.
 #define D_TESTS_CLI_WIDTH     80
+
+// 1.1.4
+// D_TESTS_CLI_NAME_MAX
+//   constant: the room a text check's name, `[tag] what`, is written into;
+// a longer one is cut.
+#define D_TESTS_CLI_NAME_MAX  128
 
 // 1.2    Command lines
 //------------------------------------------------------------------------------
@@ -240,11 +254,13 @@ bool d_tests_cli_cases_run(
 // 2.4.1
 // d_tests_cli_same
 /**
- * @brief Compares text with what it should be.
+ * @brief Compares text with what it should be, as one check of the test
+ *        running, named `[tag] what`.
  *
- * @note A difference is said as the line it starts in, from each side,
- *       control characters escaped -- `\n`, `\033` -- after the tag and the
- *       name of what differs.
+ * @note Every byte counts. A difference is DTest's text check's note: the
+ *       first line that differs, the column, and both lines. A difference
+ *       only in a CR just before an LF, which that check passes over, fails
+ *       the check all the same, and the note names the byte.
  *
  * @param[in] _tag       the case's tag.
  * @param[in] _what      what the text is: `out`, `err`, a file's name.
@@ -263,13 +279,28 @@ bool d_tests_cli_same(
 
 // 2.4.2
 // d_tests_cli_check
-//   check: says `[tag] what` as a failure when `_held` is false; returns
-// `_held`.
+//   check: given a verdict already recorded as a check, notes `[tag] what`
+// on the test when it is false; returns it. Called through
+// D_TESTS_CLI_CHECK.
 bool d_tests_cli_check(
     bool        _held,
     const char* _tag,
     const char* _what
 );
+
+// 2.4.3
+// D_TESTS_CLI_CHECK
+//   macro: records whether _held holds, as D_TEST_EXPECT does -- its source
+// text, file and line, the test going on either way -- then notes `[tag]
+// what` when it does not. Evaluates each argument once; its value is the
+// verdict.
+#define D_TESTS_CLI_CHECK(_held, _tag, _what)                                 \
+    d_tests_cli_check(d_test_suite_require(((_held) ? true : false),          \
+                                           #_held,                            \
+                                           __FILE__,                          \
+                                           __LINE__),                         \
+                      (_tag),                                                 \
+                      (_what))
 
 // 2.5    The environment
 //------------------------------------------------------------------------------
@@ -393,6 +424,27 @@ void d_tests_cli_restore(
 void d_tests_cli_kit_line(
     char*  _text,
     size_t _size
+);
+
+// 2.10   The runners
+//------------------------------------------------------------------------------
+// 2.10.1
+// d_tests_cli_take_modules
+/**
+ * @brief Takes the probe modules' directory off a runner's command line,
+ *        so that what is left is DTest's (d_test_run_modules).
+ *
+ * @param[in,out] _argc  the argument count; one less when a directory is
+ *                       taken.
+ * @param[in,out] _argv  the arguments: the first after the program's name,
+ *                       when it does not begin with `-`, is the directory,
+ *                       and those after it move down one, the NULL after
+ *                       the last with them.
+ * @return the directory, or NULL when none was given.
+ */
+const char* d_tests_cli_take_modules(
+    int*   _argc,
+    char** _argv
 );
 
 D_EXTERN_C_END

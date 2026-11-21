@@ -26,7 +26,7 @@
 #include <stdbool.h>                   // bool
 #include <stddef.h>                    // size_t
 // djinterp
-#include "../../../c/modules/parse/tests_section.h"  // dj_tests_section
+#include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // specs
 
 
 // 1.  HELP
@@ -41,9 +41,9 @@ bool d_tests_cli_edit_writing(void);
 // 4.  NULLS
 bool d_tests_cli_edit_nulls(void);
 
-// the suite's sections, in the order they run
-extern const struct dj_tests_section d_tests_cli_edit[];
-extern const size_t                 d_tests_cli_edit_count;
+// the suite's sections, in the order they run, and the block they make
+extern const struct dj_test_case_spec  d_tests_cli_edit[];
+extern const struct dj_test_block_spec d_tests_cli_edit_block;
 
 
 #endif  // DJINTERP_TOOLS_CLI_C_CLI_EDIT_TESTS_H
