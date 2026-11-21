@@ -8,7 +8,7 @@
 * path:      /tests/djinterp/c/modules/parse/expr/expr_tests_parsing.c
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.18
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 #include "./expr_tests.h"  // corresponding header
 
@@ -34,7 +34,7 @@ struct dj_tests_expr_code_row
 
 static const struct dj_tests_expr_code_row D_TESTS_EXPR_CODE_ROWS[] =
 {
-    D_PARSE_EXPR_CODES(D_TESTS_EXPR_CODE_ROW)
+    D_PARSE_EXPR_CODES(D_TESTS_EXPR_CODE_ROW, parse_expr)
 };
 
 /*

@@ -26,7 +26,7 @@
 * path:      /src/djinterp/c/modules/parse/expr/parse.c
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.18
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/parse/expr/parse.h"  // corresponding header
 // std
@@ -177,10 +177,11 @@ struct dj_parse_expr_parser
 
 // 2.1    The code table, held to the enum
 //------------------------------------------------------------------------------
-// each row's module must be parse_expr, and its name names its constant, so
-// a row of another module, or a misspelt or misplaced name, does not
-// compile; and each row's number must be that constant's value
-#define D_INTERNAL_EXPR_MODULE_parse_expr    1
+// the table is expanded here with a token of its own for m, so a row that
+// writes a module of its own in place of m does not compile; each row's name
+// names its constant, so a misspelt or misplaced name does not compile; and
+// each row's number must be that constant's value
+#define D_INTERNAL_EXPR_MODULE_d_internal_m  1
 #define D_INTERNAL_EXPR_CODE_unexpected      D_PARSE_EXPR_DIAG_UNEXPECTED
 #define D_INTERNAL_EXPR_CODE_missing_operand D_PARSE_EXPR_DIAG_MISSING_OPERAND
 #define D_INTERNAL_EXPR_CODE_unclosed        D_PARSE_EXPR_DIAG_UNCLOSED
@@ -200,9 +201,11 @@ struct dj_parse_expr_parser
                                    _grade, _template, _facts)                 \
     + 1
 
-D_STATIC_ASSERT( (1 D_PARSE_EXPR_CODES(D_INTERNAL_EXPR_CODE_HOLDS)),
-                 "each row is parse_expr's, numbered as its constant" );
-D_STATIC_ASSERT( ( (0 D_PARSE_EXPR_CODES(D_INTERNAL_EXPR_CODE_COUNT)) ==
+D_STATIC_ASSERT( (1 D_PARSE_EXPR_CODES(D_INTERNAL_EXPR_CODE_HOLDS,
+                                        d_internal_m)),
+                 "each row writes m, numbered as its constant" );
+D_STATIC_ASSERT( ( (0 D_PARSE_EXPR_CODES(D_INTERNAL_EXPR_CODE_COUNT,
+                                          d_internal_m)) ==
                    ((int)D_PARSE_EXPR_DIAG_BAD_SIGNATURE + 1) ),
                  "the code table has a row for each code" );
 

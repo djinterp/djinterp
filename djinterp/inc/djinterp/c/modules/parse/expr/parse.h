@@ -20,7 +20,7 @@
 * path:      /inc/djinterp/c/modules/parse/expr/parse.h
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.18
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 /*
@@ -106,10 +106,11 @@ enum dj_parse_expr_diag
 // 1.1.2
 // D_PARSE_EXPR_CODES
 //   macro: parse.expr's code table, one row per code above, for the codes
-// manifest and the log, in the log's row form. A row is X(module, number,
-// name, class, grade, template, facts):
-//   - module: parse_expr, the module's token, so that the log can declare
-//     and define the table for its module from the rows alone;
+// manifest and the log, in the log's form: the log expands it as
+// D_PARSE_EXPR_CODES(ROW, parse_expr), so the module's token is written once,
+// where the table is declared and defined. A row is X(m, number, name,
+// class, grade, template, facts):
+//   - m: the module's token, as the table is given it;
 //   - number: the code, its value in dj_parse_expr_diag;
 //   - name: its name under parse.expr, as a token (#name is its text);
 //   - class: its class in the shared vocabulary, as a token, upper-cased
@@ -127,37 +128,37 @@ enum dj_parse_expr_diag
 //   6, unbounded:     "{items} items, where at least {min} are needed".
 // Row 8's message is the language's own, where its check gave one; its class
 // is constraint.violated, a rule the language adds past its grammar. The
-// table needs no header: it is text until expanded. parse.c holds each
-// row's module, name and number to this header at compile time.
-#define D_PARSE_EXPR_CODES(X)                                                 \
-    X(parse_expr, 0, unexpected,      SYNTAX_UNEXPECTED,   REJECTED,          \
+// table needs no header: it is text until expanded. parse.c holds each row's
+// m, name and number to this header at compile time.
+#define D_PARSE_EXPR_CODES(X, m)                                              \
+    X(m, 0, unexpected,      SYNTAX_UNEXPECTED,   REJECTED,                   \
       "unexpected {token}",                                                   \
       (token, after_operand))                                                 \
-    X(parse_expr, 1, missing_operand, SYNTAX_MISSING,      REJECTED,          \
+    X(m, 1, missing_operand, SYNTAX_MISSING,      REJECTED,                   \
       "an operand is missing before {token}",                                 \
       (token, at_end))                                                        \
-    X(parse_expr, 2, unclosed,        SYNTAX_UNBALANCED,   REJECTED,          \
+    X(m, 2, unclosed,        SYNTAX_UNBALANCED,   REJECTED,                   \
       "{open} is never closed",                                               \
       (open))                                                                 \
-    X(parse_expr, 3, unopened,        SYNTAX_UNBALANCED,   REJECTED,          \
+    X(m, 3, unopened,        SYNTAX_UNBALANCED,   REJECTED,                   \
       "{token} closes nothing that is open",                                  \
       (token))                                                                \
-    X(parse_expr, 4, mismatched,      SYNTAX_UNBALANCED,   REJECTED,          \
+    X(m, 4, mismatched,      SYNTAX_UNBALANCED,   REJECTED,                   \
       "{token} does not close {open}",                                        \
       (token, open, outer))                                                   \
-    X(parse_expr, 5, non_associative, SYNTAX_AMBIGUOUS,    REJECTED,          \
+    X(m, 5, non_associative, SYNTAX_AMBIGUOUS,    REJECTED,                   \
       "{second} cannot follow {first} without brackets",                      \
       (second, first))                                                        \
-    X(parse_expr, 6, arity,           SYNTAX_ARITY,        REJECTED,          \
+    X(m, 6, arity,           SYNTAX_ARITY,        REJECTED,                   \
       "{items} items, where {min} to {max} are taken",                        \
       (items, min, max, unbounded))                                           \
-    X(parse_expr, 7, too_deep,        QUANTITY_DEPTH,      REJECTED,          \
+    X(m, 7, too_deep,        QUANTITY_DEPTH,      REJECTED,                   \
       "the expression nests deeper than its limit",                           \
       (limit))                                                                \
-    X(parse_expr, 8, refused,         CONSTRAINT_VIOLATED, REJECTED,          \
+    X(m, 8, refused,         CONSTRAINT_VIOLATED, REJECTED,                   \
       "the language refuses this",                                            \
       ())                                                                     \
-    X(parse_expr, 9, bad_signature,   ARGUMENT_INVALID,    REJECTED,          \
+    X(m, 9, bad_signature,   ARGUMENT_INVALID,    REJECTED,                   \
       "{reason} ({id})",                                                      \
       (reason, id))
 
