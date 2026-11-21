@@ -122,7 +122,7 @@ otherwise, and do not abbreviate.
 | `cpp/djinterp.hpp`                        | `DJINTERP_CPP`                                |
 | `c/memory/dmemory.h`                      | `DJINTERP_C_MEMORY_DMEMORY_H`                 |
 | `c/modules/parse/charset.h`               | `DJINTERP_C_PARSE_CHARSET_H`                  |
-| `cpp/db/sqlite/sqlite_face.hpp`           | `DJINTERP_DB_SQLITE_FACE_HPP`                 |
+| `cpp/modules/db/sqlite/sqlite_face.hpp`   | `DJINTERP_DB_SQLITE_FACE_HPP`                 |
 | `cpp/modules/net/net.hpp`                 | `DJINTERP_NET_HPP`                            |
 | `config/c/filesys/cfg_file_common.h`      | `DJINTERP_CONFIG_C_FILESYS_CFG_FILE_COMMON_H` |
 | `env/env.h`                               | `DJINTERP_ENV_H`                              |
@@ -153,6 +153,7 @@ and `config.hpp`.
 | `djinterp/`             | `D_`         | no        | `djinterp` |
 | `c/`, `cpp/`            | none         | yes       | none       |
 | `core/`                 | none         | yes       | none       |
+| `modules/db/`           | `DB_`        | yes       | `db`       |
 | `modules/jit/` (C)      | `JIT_`       | no        | none       |
 | `modules/math/` (C++)   | `MATH_`      | no        | `math`     |
 | `modules/net/`          | `NET_`       | yes       | `net`      |
