@@ -53,7 +53,7 @@
 * path:      /inc/djinterp/cpp/text/markdown/markdown_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 /*
@@ -103,6 +103,7 @@ VII.  FREE HELPERS / FACTORIES
 #include <vector>
 // djinterp
 #include "../../djinterp.hpp"  // framework root
+#include "../detached.hpp"      // DDetached, the factories' handles
 #include "./markdown.hpp"          // DMarkdownBlockKind, DMarkdownInlineKind,
                                   // the markdown vocabulary
 
@@ -336,12 +337,62 @@ public:
         return (m_node != nullptr) ? m_node->list_loose : false;
     }
 
+    // set_loose
+    //   function: makes a list loose (a blank line between its items, and
+    // each item's text a paragraph) or tight.
+    void set_loose(
+        bool _loose
+    )
+    {
+        if (m_node != nullptr)
+        {
+            m_node->list_loose = _loose;
+        }
+
+        return;
+    }
+
 
     /// task list items
+
+    // is_task
+    //   function: true for a list item with a task's box (GFM).
+    bool is_task() const
+    {
+        return (m_node != nullptr) ? m_node->is_task : false;
+    }
 
     bool is_checked() const
     {
         return (m_node != nullptr) ? m_node->task_checked : false;
+    }
+
+    // set_task
+    //   function: gives a list item a task's box, ticked or not.
+    void set_task(
+        bool _checked
+    )
+    {
+        if (m_node != nullptr)
+        {
+            m_node->is_task      = true;
+            m_node->task_checked = _checked;
+        }
+
+        return;
+    }
+
+    // clear_task
+    //   function: takes a list item's box away, making it a plain item.
+    void clear_task()
+    {
+        if (m_node != nullptr)
+        {
+            m_node->is_task      = false;
+            m_node->task_checked = false;
+        }
+
+        return;
     }
 
 
@@ -351,6 +402,45 @@ public:
     {
         return (m_node != nullptr) ? m_node->column_alignments
                                    : s_empty_alignments();
+    }
+
+    // set_column_alignments
+    //   function: a table's alignment for each column, from the first. A
+    // column past the last given is unaligned (none).
+    void set_column_alignments(
+        const std::vector<DMarkdownTableAlignment>& _alignments
+    )
+    {
+        if (m_node != nullptr)
+        {
+            m_node->column_alignments = _alignments;
+        }
+
+        return;
+    }
+
+    // set_column_alignment
+    //   function: one column's alignment in a table, counted from 0. The
+    // columns before it that have none yet are unaligned (none).
+    void set_column_alignment(
+        std::size_t             _column,
+        DMarkdownTableAlignment _alignment
+    )
+    {
+        if (m_node == nullptr)
+        {
+            return;
+        }
+
+        if (m_node->column_alignments.size() <= _column)
+        {
+            m_node->column_alignments.resize(_column + 1u,
+                                             DMarkdownTableAlignment::none);
+        }
+
+        m_node->column_alignments[_column] = _alignment;
+
+        return;
     }
 
 
@@ -378,20 +468,18 @@ public:
     }
 
     // add_block
-    //   function: takes ownership of an existing detached
-    // block, appending it as a child of this block.
-    void add_block(
-        DMarkdownBlock<Backend>&& _child
+    //   function: makes the block a factory made this block's last child,
+    // taking it from its handle, and returns its facade. Only a handle is
+    // taken, so a block already in a tree can't be given a second parent.
+    // Refused, with an empty facade returned and the handle keeping its
+    // block, when this block or the handle is empty, or when this block is
+    // the handle's or lies under it.
+    DMarkdownBlock<Backend> add_block(
+        DDetached<DMarkdownBlock<Backend>>&& _child
     )
     {
-        if ((m_node == nullptr) || (!_child.valid()))
-        {
-            return;
-        }
-        node_type*  raw = _child.backend_handle();
-        raw->parent     = m_node;
-        m_node->children.push_back(
-            std::unique_ptr<node_type>(raw));
+        return DMarkdownBlock<Backend>(
+            ::djinterp::internal::detached_access::adopt(m_node, _child));
     }
 
     // inline_child_at
@@ -410,13 +498,13 @@ public:
     }
 
     // add_inline
-    //   function: takes ownership of an existing detached inline,
-    // appending it to this block's inline content: how text gets
-    // into a paragraph, a heading or a table cell. Like add_block,
-    // it needs a backend whose blocks and inlines are one node type,
-    // as the default backend's are.
-    void add_inline(
-        DMarkdownInline<Backend>&& _child
+    //   function: makes the inline a factory made the last of this block's
+    // inline content, taking it from its handle, and returns its facade:
+    // how text gets into a paragraph, a heading or a table cell. Refused as
+    // add_block is. It needs a backend whose blocks and inlines are one
+    // node type, as the default backend's are.
+    DMarkdownInline<Backend> add_inline(
+        DDetached<DMarkdownInline<Backend>>&& _child
     )
     {
         static_assert(std::is_same<typename Backend::inline_type,
@@ -424,14 +512,8 @@ public:
                       "add_inline needs a backend whose blocks and "
                       "inlines share one node type");
 
-        if ((m_node == nullptr) || (!_child.valid()))
-        {
-            return;
-        }
-        node_type*  raw = _child.backend_handle();
-        raw->parent     = m_node;
-        m_node->children.push_back(
-            std::unique_ptr<node_type>(raw));
+        return DMarkdownInline<Backend>(
+            ::djinterp::internal::detached_access::adopt(m_node, _child));
     }
 
 
@@ -591,18 +673,16 @@ public:
         return DMarkdownInline<Backend>(m_node->children[_index].get());
     }
 
-    void add_inline(
-        DMarkdownInline<Backend>&& _child
+    // add_inline
+    //   function: makes the inline a factory made this inline's last child
+    // (inside emphasis, strong, a link), taking it from its handle, and
+    // returns its facade. Refused as DMarkdownBlock::add_block is.
+    DMarkdownInline<Backend> add_inline(
+        DDetached<DMarkdownInline<Backend>>&& _child
     )
     {
-        if ((m_node == nullptr) || (!_child.valid()))
-        {
-            return;
-        }
-        node_type*  raw = _child.backend_handle();
-        raw->parent     = m_node;
-        m_node->children.push_back(
-            std::unique_ptr<node_type>(raw));
+        return DMarkdownInline<Backend>(
+            ::djinterp::internal::detached_access::adopt(m_node, _child));
     }
 
 
@@ -617,6 +697,19 @@ private:
 
     node_type*  m_node;
 };
+
+
+// DMarkdownDetachedBlock
+//   type: the handle Markdown's block factories return, owning a block made
+// outside a tree until DMarkdownBlock::add_block takes it.
+template<typename Backend>
+using DMarkdownDetachedBlock = DDetached<DMarkdownBlock<Backend>>;
+
+// DMarkdownDetachedInline
+//   type: the handle Markdown's inline factories return, owning an inline
+// made outside a tree until an add_inline takes it.
+template<typename Backend>
+using DMarkdownDetachedInline = DDetached<DMarkdownInline<Backend>>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2324,16 +2417,21 @@ DMarkdownDocument<Backend> make_markdown_document(
 
 
 // make_paragraph
-//   function: returns a new freestanding paragraph block.
+//   function: returns a new freestanding paragraph block. Like every factory
+// below, it returns the node in a handle (DMarkdownDetachedBlock, or
+// DMarkdownDetachedInline for an inline), which frees it unless add_block or
+// add_inline takes it; get() gives its facade, to build under it first.
 template<typename Backend>
 inline
-DMarkdownBlock<Backend> make_paragraph()
+DMarkdownDetachedBlock<Backend> make_paragraph()
 {
     using node_t = typename Backend::block_type;
-    node_t* n = new node_t;
+    DMarkdownDetachedBlock<Backend> made =
+        DMarkdownDetachedBlock<Backend>::make();
+    node_t* n = made.backend_handle();
     n->is_block   = true;
     n->block_kind = DMarkdownBlockKind::paragraph;
-    return DMarkdownBlock<Backend>(n);
+    return made;
 }
 
 
@@ -2342,18 +2440,20 @@ DMarkdownBlock<Backend> make_paragraph()
 // given level (1..6; clamped).
 template<typename Backend>
 inline
-DMarkdownBlock<Backend> make_heading(
+DMarkdownDetachedBlock<Backend> make_heading(
     int _level
 )
 {
     if (_level < 1) { _level = 1; }
     if (_level > 6) { _level = 6; }
     using node_t = typename Backend::block_type;
-    node_t* n = new node_t;
+    DMarkdownDetachedBlock<Backend> made =
+        DMarkdownDetachedBlock<Backend>::make();
+    node_t* n = made.backend_handle();
     n->is_block      = true;
     n->block_kind    = heading_kind_from_level(_level);
     n->heading_level = _level;
-    return DMarkdownBlock<Backend>(n);
+    return made;
 }
 
 
@@ -2362,19 +2462,21 @@ DMarkdownBlock<Backend> make_heading(
 // with the given language tag and code body.
 template<typename Backend>
 inline
-DMarkdownBlock<Backend> make_fenced_code_block(
+DMarkdownDetachedBlock<Backend> make_fenced_code_block(
     const DMarkdownString& _code,
     const DMarkdownString& _language = DMarkdownString()
 )
 {
     using node_t = typename Backend::block_type;
-    node_t* n = new node_t;
+    DMarkdownDetachedBlock<Backend> made =
+        DMarkdownDetachedBlock<Backend>::make();
+    node_t* n = made.backend_handle();
     n->is_block    = true;
     n->block_kind  = DMarkdownBlockKind::fenced_code_block;
     n->text        = _code;
     n->language    = _language;
     n->info_string = _language;
-    return DMarkdownBlock<Backend>(n);
+    return made;
 }
 
 
@@ -2382,13 +2484,15 @@ DMarkdownBlock<Backend> make_fenced_code_block(
 //   function: returns a new freestanding thematic break block.
 template<typename Backend>
 inline
-DMarkdownBlock<Backend> make_thematic_break()
+DMarkdownDetachedBlock<Backend> make_thematic_break()
 {
     using node_t = typename Backend::block_type;
-    node_t* n = new node_t;
+    DMarkdownDetachedBlock<Backend> made =
+        DMarkdownDetachedBlock<Backend>::make();
+    node_t* n = made.backend_handle();
     n->is_block   = true;
     n->block_kind = DMarkdownBlockKind::thematic_break;
-    return DMarkdownBlock<Backend>(n);
+    return made;
 }
 
 
@@ -2396,13 +2500,15 @@ DMarkdownBlock<Backend> make_thematic_break()
 //   function: returns a new freestanding block quote.
 template<typename Backend>
 inline
-DMarkdownBlock<Backend> make_block_quote()
+DMarkdownDetachedBlock<Backend> make_block_quote()
 {
     using node_t = typename Backend::block_type;
-    node_t* n = new node_t;
+    DMarkdownDetachedBlock<Backend> made =
+        DMarkdownDetachedBlock<Backend>::make();
+    node_t* n = made.backend_handle();
     n->is_block   = true;
     n->block_kind = DMarkdownBlockKind::block_quote;
-    return DMarkdownBlock<Backend>(n);
+    return made;
 }
 
 
@@ -2410,19 +2516,21 @@ DMarkdownBlock<Backend> make_block_quote()
 //   function: returns a new freestanding list block.
 template<typename Backend>
 inline
-DMarkdownBlock<Backend> make_list(
+DMarkdownDetachedBlock<Backend> make_list(
     bool _ordered = false,
     int  _start = 1
 )
 {
     using node_t = typename Backend::block_type;
-    node_t* n = new node_t;
+    DMarkdownDetachedBlock<Backend> made =
+        DMarkdownDetachedBlock<Backend>::make();
+    node_t* n = made.backend_handle();
     n->is_block     = true;
     n->block_kind   = _ordered ? DMarkdownBlockKind::ordered_list
                                : DMarkdownBlockKind::unordered_list;
     n->list_ordered = _ordered;
     n->list_start   = _start;
-    return DMarkdownBlock<Backend>(n);
+    return made;
 }
 
 
@@ -2430,14 +2538,106 @@ DMarkdownBlock<Backend> make_list(
 //   function: returns a new freestanding list item block.
 template<typename Backend>
 inline
-DMarkdownBlock<Backend> make_list_item()
+DMarkdownDetachedBlock<Backend> make_list_item()
 {
     using node_t = typename Backend::block_type;
-    node_t* n = new node_t;
+    DMarkdownDetachedBlock<Backend> made =
+        DMarkdownDetachedBlock<Backend>::make();
+    node_t* n = made.backend_handle();
     n->is_block    = true;
     n->block_kind  = DMarkdownBlockKind::list_item;
     n->list_bullet = D_MARKDOWN_DEFAULT_BULLET;
-    return DMarkdownBlock<Backend>(n);
+    return made;
+}
+
+
+// make_table
+//   function: returns a new freestanding table (GFM), with an alignment for
+// each column, from the first; a column past the last given is unaligned.
+// Its children are a header (make_table_header), then a body
+// (make_table_body), each holding rows.
+template<typename Backend>
+inline
+DMarkdownDetachedBlock<Backend> make_table(
+    const std::vector<DMarkdownTableAlignment>& _alignments =
+        std::vector<DMarkdownTableAlignment>()
+)
+{
+    using node_t = typename Backend::block_type;
+    DMarkdownDetachedBlock<Backend> made =
+        DMarkdownDetachedBlock<Backend>::make();
+    node_t* n = made.backend_handle();
+    n->is_block          = true;
+    n->block_kind        = DMarkdownBlockKind::table;
+    n->column_alignments = _alignments;
+    return made;
+}
+
+
+// make_table_header
+//   function: returns a new freestanding table header: the section holding
+// a table's first row, whose cells head their columns.
+template<typename Backend>
+inline
+DMarkdownDetachedBlock<Backend> make_table_header()
+{
+    using node_t = typename Backend::block_type;
+    DMarkdownDetachedBlock<Backend> made =
+        DMarkdownDetachedBlock<Backend>::make();
+    node_t* n = made.backend_handle();
+    n->is_block   = true;
+    n->block_kind = DMarkdownBlockKind::table_header;
+    return made;
+}
+
+
+// make_table_body
+//   function: returns a new freestanding table body: the section holding a
+// table's other rows.
+template<typename Backend>
+inline
+DMarkdownDetachedBlock<Backend> make_table_body()
+{
+    using node_t = typename Backend::block_type;
+    DMarkdownDetachedBlock<Backend> made =
+        DMarkdownDetachedBlock<Backend>::make();
+    node_t* n = made.backend_handle();
+    n->is_block   = true;
+    n->block_kind = DMarkdownBlockKind::table_body;
+    return made;
+}
+
+
+// make_table_row
+//   function: returns a new freestanding table row, holding cells.
+template<typename Backend>
+inline
+DMarkdownDetachedBlock<Backend> make_table_row()
+{
+    using node_t = typename Backend::block_type;
+    DMarkdownDetachedBlock<Backend> made =
+        DMarkdownDetachedBlock<Backend>::make();
+    node_t* n = made.backend_handle();
+    n->is_block   = true;
+    n->block_kind = DMarkdownBlockKind::table_row;
+    return made;
+}
+
+
+// make_table_cell
+//   function: returns a new freestanding table cell, whose content is
+// inlines (add_inline).
+template<typename Backend>
+inline
+DMarkdownDetachedBlock<Backend> make_table_cell()
+{
+    using node_t = typename Backend::block_type;
+    DMarkdownDetachedBlock<Backend> made =
+        DMarkdownDetachedBlock<Backend>::make();
+    node_t* n = made.backend_handle();
+    n->is_block   = true;
+    n->block_kind = DMarkdownBlockKind::table_cell;
+    return made;
 }
 
 
@@ -2445,16 +2645,18 @@ DMarkdownBlock<Backend> make_list_item()
 //   function: returns a new freestanding text inline.
 template<typename Backend>
 inline
-DMarkdownInline<Backend> make_text(
+DMarkdownDetachedInline<Backend> make_text(
     const DMarkdownString& _text
 )
 {
     using node_t = typename Backend::inline_type;
-    node_t* n = new node_t;
+    DMarkdownDetachedInline<Backend> made =
+        DMarkdownDetachedInline<Backend>::make();
+    node_t* n = made.backend_handle();
     n->is_block    = false;
     n->inline_kind = DMarkdownInlineKind::text;
     n->text        = _text;
-    return DMarkdownInline<Backend>(n);
+    return made;
 }
 
 
@@ -2462,13 +2664,15 @@ DMarkdownInline<Backend> make_text(
 //   function: returns a new freestanding emphasis inline.
 template<typename Backend>
 inline
-DMarkdownInline<Backend> make_emphasis()
+DMarkdownDetachedInline<Backend> make_emphasis()
 {
     using node_t = typename Backend::inline_type;
-    node_t* n = new node_t;
+    DMarkdownDetachedInline<Backend> made =
+        DMarkdownDetachedInline<Backend>::make();
+    node_t* n = made.backend_handle();
     n->is_block    = false;
     n->inline_kind = DMarkdownInlineKind::emphasis;
-    return DMarkdownInline<Backend>(n);
+    return made;
 }
 
 
@@ -2476,13 +2680,15 @@ DMarkdownInline<Backend> make_emphasis()
 //   function: returns a new freestanding strong inline.
 template<typename Backend>
 inline
-DMarkdownInline<Backend> make_strong()
+DMarkdownDetachedInline<Backend> make_strong()
 {
     using node_t = typename Backend::inline_type;
-    node_t* n = new node_t;
+    DMarkdownDetachedInline<Backend> made =
+        DMarkdownDetachedInline<Backend>::make();
+    node_t* n = made.backend_handle();
     n->is_block    = false;
     n->inline_kind = DMarkdownInlineKind::strong;
-    return DMarkdownInline<Backend>(n);
+    return made;
 }
 
 
@@ -2490,16 +2696,18 @@ DMarkdownInline<Backend> make_strong()
 //   function: returns a new freestanding code span inline.
 template<typename Backend>
 inline
-DMarkdownInline<Backend> make_code_span(
+DMarkdownDetachedInline<Backend> make_code_span(
     const DMarkdownString& _code
 )
 {
     using node_t = typename Backend::inline_type;
-    node_t* n = new node_t;
+    DMarkdownDetachedInline<Backend> made =
+        DMarkdownDetachedInline<Backend>::make();
+    node_t* n = made.backend_handle();
     n->is_block    = false;
     n->inline_kind = DMarkdownInlineKind::code_span;
     n->text        = _code;
-    return DMarkdownInline<Backend>(n);
+    return made;
 }
 
 
@@ -2507,18 +2715,20 @@ DMarkdownInline<Backend> make_code_span(
 //   function: returns a new freestanding link inline.
 template<typename Backend>
 inline
-DMarkdownInline<Backend> make_link(
+DMarkdownDetachedInline<Backend> make_link(
     const DMarkdownString& _url,
     const DMarkdownString& _title = DMarkdownString()
 )
 {
     using node_t = typename Backend::inline_type;
-    node_t* n = new node_t;
+    DMarkdownDetachedInline<Backend> made =
+        DMarkdownDetachedInline<Backend>::make();
+    node_t* n = made.backend_handle();
     n->is_block    = false;
     n->inline_kind = DMarkdownInlineKind::link;
     n->url         = _url;
     n->title       = _title;
-    return DMarkdownInline<Backend>(n);
+    return made;
 }
 
 
@@ -2526,20 +2736,22 @@ DMarkdownInline<Backend> make_link(
 //   function: returns a new freestanding image inline.
 template<typename Backend>
 inline
-DMarkdownInline<Backend> make_image(
+DMarkdownDetachedInline<Backend> make_image(
     const DMarkdownString& _url,
     const DMarkdownString& _alt = DMarkdownString(),
     const DMarkdownString& _title = DMarkdownString()
 )
 {
     using node_t = typename Backend::inline_type;
-    node_t* n = new node_t;
+    DMarkdownDetachedInline<Backend> made =
+        DMarkdownDetachedInline<Backend>::make();
+    node_t* n = made.backend_handle();
     n->is_block    = false;
     n->inline_kind = DMarkdownInlineKind::image;
     n->url         = _url;
     n->alt_text    = _alt;
     n->title       = _title;
-    return DMarkdownInline<Backend>(n);
+    return made;
 }
 
 
@@ -2547,16 +2759,18 @@ DMarkdownInline<Backend> make_image(
 //   function: returns a new freestanding autolink inline.
 template<typename Backend>
 inline
-DMarkdownInline<Backend> make_autolink(
+DMarkdownDetachedInline<Backend> make_autolink(
     const DMarkdownString& _url
 )
 {
     using node_t = typename Backend::inline_type;
-    node_t* n = new node_t;
+    DMarkdownDetachedInline<Backend> made =
+        DMarkdownDetachedInline<Backend>::make();
+    node_t* n = made.backend_handle();
     n->is_block    = false;
     n->inline_kind = DMarkdownInlineKind::autolink;
     n->url         = _url;
-    return DMarkdownInline<Backend>(n);
+    return made;
 }
 
 
@@ -2564,13 +2778,15 @@ DMarkdownInline<Backend> make_autolink(
 //   function: returns a new freestanding hard line break.
 template<typename Backend>
 inline
-DMarkdownInline<Backend> make_hard_break()
+DMarkdownDetachedInline<Backend> make_hard_break()
 {
     using node_t = typename Backend::inline_type;
-    node_t* n = new node_t;
+    DMarkdownDetachedInline<Backend> made =
+        DMarkdownDetachedInline<Backend>::make();
+    node_t* n = made.backend_handle();
     n->is_block    = false;
     n->inline_kind = DMarkdownInlineKind::hard_break;
-    return DMarkdownInline<Backend>(n);
+    return made;
 }
 
 

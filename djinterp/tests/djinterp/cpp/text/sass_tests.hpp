@@ -6,13 +6,14 @@
 * face (c/modules/test/test_suite.h).
 *   One entry point builds the module "sass" imperatively: a block per header
 * and a test per group of checks. The headers' floor is C++17, and below it a
-* group is skipped, saying why. The groups live in sass_tests_sheet.cpp.
+* group is skipped, saying why. The groups live in sass_tests_sheet.cpp
+* and sass_tests_detached.cpp.
 *
 *
 * path:      /tests/djinterp/cpp/text/sass_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_CPP_TEXT_SASS_TESTS_HPP
@@ -34,6 +35,8 @@ void d_tests_sass_vocabulary(void);
 void d_tests_sass_sheet_build(void);
 void d_tests_sass_sheet_scss(void);
 void d_tests_sass_sheet_indented(void);
+void d_tests_sass_detached_factories(void);
+void d_tests_sass_detached_adopt(void);
 void d_tests_sass_printer(void);
 #endif  // C++17
 

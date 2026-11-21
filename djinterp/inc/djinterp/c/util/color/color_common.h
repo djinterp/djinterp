@@ -16,7 +16,7 @@
 * path:      /inc/djinterp/c/util/color/color_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 /*
@@ -83,8 +83,10 @@ III.  SCALAR HELPERS
     #define D_COLOR_FN_RT           D_INLINE
 
     #if D_ENV_PP_HAS_VARIADIC_MACROS
+    D_ENV_PP_VARIADIC_QUIET_BEGIN
     // aggregate construction: T{ ... }
     #define D_COLOR_LITERAL(T, ...) T{ __VA_ARGS__ }
+    D_ENV_PP_VARIADIC_QUIET_END
     #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 #else
     #include "../../djinterp.h"
@@ -114,8 +116,10 @@ III.  SCALAR HELPERS
     #endif
 
     #if D_ENV_PP_HAS_VARIADIC_MACROS
+    D_ENV_PP_VARIADIC_QUIET_BEGIN
     // aggregate construction: (struct T){ ... }  (C99 compound literal)
     #define D_COLOR_LITERAL(T, ...) (struct T){ __VA_ARGS__ }
+    D_ENV_PP_VARIADIC_QUIET_END
     #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 #endif
 

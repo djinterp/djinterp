@@ -22,7 +22,7 @@
 * path:      /inc/djinterp/c/text/text_edit.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 /*
 TABLE OF CONTENTS
@@ -62,12 +62,16 @@ struct dj_text_edit;
 // 1.2    dj_text_edit_result
 //------------------------------------------------------------------------------
 // dj_text_edit_result
-//   enum: what became of a change.
+//   enum: what became of a change.  OVERLAPS is a real conflict with another
+// change; INVALID is a change no caller should make, so a computed-offset bug
+// shows as one.  INVALID comes last, so the others keep their values.
 enum dj_text_edit_result
 {
     D_TEXT_EDIT_ADDED = 0,  // it is kept, to be applied
-    D_TEXT_EDIT_OVERLAPS,   // it meets a change already made, or is no change
-    D_TEXT_EDIT_NO_MEMORY   // it could not be kept
+    D_TEXT_EDIT_OVERLAPS,   // it meets a change already made
+    D_TEXT_EDIT_NO_MEMORY,  // it could not be kept
+    D_TEXT_EDIT_INVALID     // no set, an end before its start, no text with
+                            // a length, or a change that changes nothing
 };
 
 // 1.3    dj_text_edit_fn_between
@@ -131,9 +135,11 @@ size_t d_text_edit_count(const struct dj_text_edit* _edit);
  *                         be NULL only when _length is 0.
  * @param[in]     _length  their count.
  * @return D_TEXT_EDIT_ADDED; D_TEXT_EDIT_OVERLAPS when it meets a change
- *         already made, or when _edit is NULL, _end precedes _start or
- *         _text is NULL with a length; D_TEXT_EDIT_NO_MEMORY when it could
- *         not be kept. Nothing is recorded unless it is added.
+ *         already made; D_TEXT_EDIT_INVALID when _edit is NULL, _end
+ *         precedes _start, _text is NULL with a length, or the change
+ *         changes nothing (an insertion of no bytes);
+ *         D_TEXT_EDIT_NO_MEMORY when it could not be kept. Nothing is
+ *         recorded unless it is added.
  */
 enum dj_text_edit_result d_text_edit_add(struct dj_text_edit* _edit,
                                          size_t               _start,

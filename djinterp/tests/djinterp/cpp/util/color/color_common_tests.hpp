@@ -13,7 +13,7 @@
 * path:      /tests/djinterp/cpp/util/color/color_common_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_COLOR_COMMON_TESTS_
@@ -155,7 +155,7 @@ struct cc_tag_member
 
 // I.   CHANNEL SCALAR          (color_common_tests_channel.cpp)
 bool tests_color_common_channel_is_floating_point();
-bool tests_color_common_channel_default_is_float();
+bool tests_color_common_channel_is_the_kernels_float();
 bool tests_color_common_channel_arithmetic_round_trips();
 bool tests_color_common_channel_holds_out_of_gamut_values();
 
@@ -224,10 +224,9 @@ dt::module_spec color_common_spec()
                     { "tests_color_common_channel_is_floating_point",
                       "channel_t is a floating-point arithmetic type",
                       &tests_color_common_channel_is_floating_point },
-                    { "tests_color_common_channel_default_is_float",
-                      "channel_t defaults to float when D_COLOR_CHANNEL_TYPE "
-                      "is not pre-defined",
-                      &tests_color_common_channel_default_is_float },
+                    { "tests_color_common_channel_is_the_kernels_float",
+                      "channel_t is float, the C kernel's channel",
+                      &tests_color_common_channel_is_the_kernels_float },
                     { "tests_color_common_channel_arithmetic_round_trips",
                       "exactly representable channel arithmetic round-trips "
                       "without drift",

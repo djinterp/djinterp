@@ -23,18 +23,17 @@
 * path:      /tests/djinterp/cpp/util/color/color_convert_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_COLOR_CONVERT_TESTS_
 #define DJINTERP_TESTS_COLOR_CONVERT_TESTS_ 1
 
 // std
-#include <cstdio>
-#include <limits>
-#include <type_traits>
+#include <cstdio>       // std::printf
+#include <type_traits>  // std::is_same, std::is_base_of
 // djinterp
-#include <djinterp/cpp/djinterp.hpp>
+#include <djinterp/cpp/djinterp.hpp>  // framework root
 #ifndef DTEST_SPEC_MODE
 #include "../../../../../inc/djinterp/cpp/util/color/color_convert.hpp"                    // the header under test
 #endif
@@ -224,6 +223,7 @@ bool tests_color_convert_routing_is_not_symmetric_in_precision();
 bool tests_color_convert_is_convertible_color_accepts_every_model_pair();
 bool tests_color_convert_is_convertible_color_rejects_non_models();
 bool tests_color_convert_is_convertible_color_v_matches_the_trait();
+bool tests_color_convert_is_convertible_color_has_integral_constant_shape();
 bool tests_color_convert_traits_strip_cv_and_reference();
 bool tests_color_convert_argument_order_differs_between_api_and_trait();
 bool tests_color_cast_deduces_the_source_type();
@@ -458,6 +458,11 @@ dt::module_spec color_convert_spec()
                       "the _v shorthand agrees with the trait it abbreviates "
                       "on every probe",
                       &tests_color_convert_is_convertible_color_v_matches_the_trait },
+                    { "tests_color_convert_is_convertible_color_has_integral_constant_shape",
+                      "the trait is a std::integral_constant, as "
+                      "is_color_model is: ::type, ::value_type, a constant "
+                      "bool conversion",
+                      &tests_color_convert_is_convertible_color_has_integral_constant_shape },
                     { "tests_color_convert_traits_strip_cv_and_reference",
                       "the trait answers the same for a model however it is "
                       "cv-ref qualified, because clean_t is applied first",

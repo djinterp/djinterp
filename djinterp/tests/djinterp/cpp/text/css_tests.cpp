@@ -8,7 +8,7 @@
 * path:      /tests/djinterp/cpp/text/css_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "css_tests.hpp"  // the suite's entry point, DTest's C face
 
@@ -56,6 +56,14 @@ d_tests_css_all(
         "statements, blocks, descriptors, keyframes and unknown at-rules "
         "with blocks",
         D_TESTS_TEXT_AT_CPP17(d_tests_css_sheet_at_rules), below17);
+    d_tests_text_run(_suite, "factories",
+        "each factory returns a handle owning what it names; an unadopted "
+        "one frees it",
+        D_TESTS_TEXT_AT_CPP17(d_tests_css_detached_factories), below17);
+    d_tests_text_run(_suite, "adopt",
+        "adopt takes a handle only, its module's or CSS's, and refuses an "
+        "empty parent or handle, or a cycle",
+        D_TESTS_TEXT_AT_CPP17(d_tests_css_detached_adopt), below17);
 
     (void)d_test_suite_block(_suite, "css/css_printer.hpp");
     d_tests_text_run(_suite, "printer",

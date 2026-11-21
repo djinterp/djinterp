@@ -8,15 +8,6 @@
 * carries no model_tag, so it is not a conversion-graph model. Conversions
 * are supplied by the color_convert facade.
 *
-*   NOTE (why this file exists): the snapshot under test shipped the PDF
-* VALIDATION SHIM of color_rgb.hpp - a standalone `struct rgb` that does not
-* derive from dj_color_rgb and cannot be constructed from one. color_convert.hpp
-* (the production facade) requires the production shape, because every kernel
-* dispatch returns a POD that must re-wrap:
-*     D_CONSTEXPR_INLINE rgb to_rgb(const hsl& _c)
-*     { return d_color_convert_hsl_to_rgb(_c); }   // dj_color_rgb -> rgb
-* This header restores that shape, mirroring color_cmyk.hpp exactly.
-*
 *
 * path:      /inc/djinterp/cpp/util/color/color_rgb.hpp
 * link(s):   TBA

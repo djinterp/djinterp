@@ -8,7 +8,7 @@
 * section translation units use; it defines no test bodies itself.
 *
 *   compress_options.hpp is pure, header-only data: eight categorical enums,
-* six per-codec option structs, and the compress_options aggregate, with all
+* seven per-codec option structs, and the compress_options aggregate, with all
 * defaults set in constructors.  There is no behavior to drive - so this suite
 * verifies the DATA CONTRACT the rest of the library relies on:
 *   - every field's default matches its documented sentinel (the whole
@@ -38,13 +38,14 @@
 *   - compress_options_tests_zstd.cpp        DZstdOptions
 *   - compress_options_tests_lz4.cpp         DLz4Options
 *   - compress_options_tests_brotli.cpp      DBrotliOptions
+*   - compress_options_tests_gzip.cpp        DGzipOptions
 *   - compress_options_tests_aggregate.cpp   compress_options
 *
 *
 * path:      /tests/djinterp/cpp/util/compress/compress_options_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_COMPRESS_OPTIONS_
@@ -163,6 +164,11 @@ bool tests_compress_options_lz4_layout();
 bool tests_compress_options_brotli_defaults();
 bool tests_compress_options_brotli_fields();
 bool tests_compress_options_brotli_layout();
+
+// -- compress_options_tests_gzip.cpp ------------------------------------------
+bool tests_compress_options_gzip_defaults();
+bool tests_compress_options_gzip_fields();
+bool tests_compress_options_gzip_layout();
 
 // -- compress_options_tests_aggregate.cpp -------------------------------------
 bool tests_compress_options_aggregate_level_default();

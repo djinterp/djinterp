@@ -25,6 +25,9 @@
 *                                   level / block-size clamp
 *   - compress_tests_throwing.cpp   the throwing convenience API and
 *                                   DCompressionError (gated on exceptions)
+*   - compress_tests_gzip.cpp       the gzip pair: gzip_header written and
+*                                   read back, by both the try_ and the
+*                                   throwing forms
 *
 *   BUILD-AGNOSTIC BY DESIGN:
 *   The facade compiles every codec but only the ones whose backend this build
@@ -42,7 +45,7 @@
 * path:      /tests/djinterp/cpp/util/compress/compress_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_COMPRESS_
@@ -139,6 +142,14 @@ bool tests_compress_throwing_throws_on_failure();
 bool tests_compress_throwing_what_message();
 bool tests_compress_throwing_error_type();
 bool tests_compress_throwing_decompress_throws();
+
+// -- gzip's header (compress_tests_gzip.cpp) ---------------------------------
+bool tests_compress_gzip_default_header();
+bool tests_compress_gzip_header_round_trip();
+bool tests_compress_gzip_names();
+bool tests_compress_gzip_os_choices();
+bool tests_compress_gzip_corrupt();
+bool tests_compress_gzip_throwing();
 
 
 NS_END  // testing

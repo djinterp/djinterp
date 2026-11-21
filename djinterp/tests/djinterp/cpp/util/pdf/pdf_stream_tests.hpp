@@ -11,12 +11,13 @@
 * TABLE OF CONTENTS
 * =================
 * 1.  ENTRY POINT
+* 2.  BLOCKS
 *
 *
 * path:      /tests/djinterp/cpp/util/pdf/pdf_stream_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.09
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_CPP_UTIL_PDF_PDF_STREAM_TESTS_HPP
@@ -36,6 +37,19 @@
  * @param[in,out] _suite  the suite; its tests and checks are added to it.
  */
 void d_tests_pdf_cpp_all(dj_test_suite* _suite);
+
+
+//==============================================================================
+// 2.  BLOCKS
+//==============================================================================
+
+/**
+ * @brief Adds the block for pdf_builtin_backend.hpp's stream compression
+ *        (pdf_stream_tests_compress.cpp) to the open module.
+ *
+ * @param[in,out] _suite  the suite; its tests and checks are added to it.
+ */
+void d_tests_pdf_compress_block(dj_test_suite* _suite);
 
 
 #endif  // DJINTERP_TESTS_CPP_UTIL_PDF_PDF_STREAM_TESTS_HPP

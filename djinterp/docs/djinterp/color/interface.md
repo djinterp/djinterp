@@ -27,11 +27,11 @@ From the agreement of 2026-11-13 until 12-11:
 | `cpp/util/color/color_common.hpp` | `channel_t`, the model tags and `is_color_model` |
 | `cpp/util/color/color_rgb.hpp`, `color_cmyk.hpp`, `color_hsv.hpp`, `color_hsl.hpp`, `color_ycbcr.hpp`, `color_cie_lab.hpp` | one model each, in C++, each deriving from its C struct |
 | `cpp/util/color/color_convert.hpp` | every model, plus `color_cast`, `is_convertible_color` and, from C++20, the concepts `color_model_type` and `convertible_color_type` |
+| `cpp/util/color/color.hpp` | the umbrella: `color_convert.hpp` and `c/util/color/color.h`, so every model, the facade and the C operations across models |
 
-`cpp/util/color/color.hpp` is a reduced header that the PDF and CSS layers
-include. It can't yet be included beside `color_cmyk.hpp` or
-`color_convert.hpp`; a program that needs the conversions includes
-`color_convert.hpp`.
+`color.hpp` defines nothing of its own, so it can be included beside any
+header it gathers, before or after it. A unit that needs one model can
+include that model's header alone.
 
 **Levels.** The C face needs C99. The C++ face needs C++14 (C++11 for
 `color_common.hpp`); below that its headers are empty rather than an error.
@@ -45,7 +45,9 @@ each. Defined before inclusion, `D_COLOR_HEADER_ONLY` makes every function
 
 ### Channels
 
-- **A channel is a `float`**, in C and in C++ (`channel_t`).
+- **A channel is a `float`**, in C and in C++ (`channel_t`). The setting
+  that once offered another, `D_COLOR_CHANNEL_TYPE`, is retired: defined as
+  anything but `float`, it stops the build with a message saying so.
 - RGB channels run from 0 to 1. Linear RGB may leave that range; nothing
   clamps unless asked (`clamp`, `d_color_rgb_clamp`), and `is_valid` says
   whether every channel is inside it.
@@ -76,8 +78,9 @@ each. Defined before inclusion, `D_COLOR_HEADER_ONLY` makes every function
 ### Conversion
 
 - `color_cast<To>(from)` converts between any two models, through RGB.
-  `is_convertible_color<From, To>` says whether a pair converts. A type
-  that isn't a model doesn't compile.
+  A type that isn't a model doesn't convert, except to itself.
+- `is_convertible_color<From, To>` says whether a pair converts. It is a
+  `std::integral_constant<bool, ...>`, as `is_color_model` is.
 
 ### The CIEDE2000 difference
 
@@ -90,11 +93,11 @@ each. Defined before inclusion, `D_COLOR_HEADER_ONLY` makes every function
 
 ## Who uses what
 
-On the tree of 2026-11-17:
+On the tree of 2026-11-17, with `color.hpp` the umbrella (Friday 11-20):
 
 | Where | What it uses |
 |---|---|
 | the UI kit's `types.hpp`, and the front ends that include it (`ui/frontends/imgui.hpp`) | `rgb`, `rgba` (channel constructors, `rgba(rgb, alpha)`, `to_rgb()`, members `r`, `g`, `b`, `a`, the transparent default), `channel_t`, `lerp` |
 | fonts (`cpp/text/font.hpp`) | `rgb`, the default font color |
-| the PDF layer (`pdf_primitives.hpp`), and DTest's PDF reports through it | `rgb`, `rgba`, `cmyk`, `channel_t`, `is_color_model`, `color_cast`, through `color.hpp` |
-| CSS (`cpp/text/css/css.hpp`) | `rgb`, `rgba`, `channel_t`, `is_color_model`, `color_cast`, through `color.hpp` |
+| the PDF layer (`pdf_primitives.hpp`), and DTest's PDF reports through it | `rgb`, `rgba`, `cmyk`, `channel_t`, `is_color_model`, `color_cast`, through `color.hpp`; `pdf_color` takes any model, keeping `cmyk` as DeviceCMYK and converting the rest to RGB |
+| CSS (`cpp/text/css/css.hpp`) | `rgb`, `rgba`, `channel_t`, `is_color_model`, `color_cast`, through `color.hpp`; `to_css_color` takes any model, through RGB |

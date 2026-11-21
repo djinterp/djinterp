@@ -44,7 +44,7 @@
 * path:      /inc/djinterp/cpp/text/css/sass/sass_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 /*
@@ -87,8 +87,9 @@ VI.   FREE HELPERS / FACTORIES
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../../djinterp.hpp"
-#include "../css_template.hpp"
+#include "../../../djinterp.hpp"  // framework root
+#include "../../detached.hpp"      // DDetached, the factories' handle
+#include "../css_template.hpp"     // the CSS rule / stylesheet templates
 #include "./sass.hpp"               // foundation + folded traits/concepts
 
 
@@ -535,11 +536,34 @@ public:
         return pre.substr(a, end - a);
     }
 
+    /// adoption
+
+    // adopt
+    //   function: css::DCssRule::adopt, giving the child's Sass facade.
+    template<typename Other>
+    typename std::enable_if<
+        is_detached_convertible<Other, base_type>::value,
+        DSassRule>::type
+    adopt(
+        DDetached<Other>&& _child
+    )
+    {
+        return DSassRule(base_type::adopt(std::move(_child)));
+    }
+
 
 private:
     // (no extra members -- the facade is pointer-only via the
     // CSS base class.)
 };
+
+
+// DSassDetached
+//   type: the handle Sass's factories return, owning a rule made outside a
+// tree until a rule's or a stylesheet's adopt takes it. It converts to
+// css::DCssDetached, so a CSS rule or stylesheet adopts it too.
+template<typename Backend>
+using DSassDetached = DDetached<DSassRule<Backend>>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1061,6 +1085,21 @@ public:
     }
 
 
+    // adopt
+    //   function: css::DCssStylesheet::adopt, giving the child's Sass facade.
+    // It takes a CSS rule's handle too.
+    template<typename Other>
+    typename std::enable_if<
+        is_detached_convertible<Other, typename base_type::rule_facade>::value,
+        rule_facade>::type
+    adopt(
+        DDetached<Other>&& _child
+    )
+    {
+        return rule_facade(base_type::adopt(std::move(_child)));
+    }
+
+
     /// rendering
 
     // render_to_scss_source
@@ -1217,17 +1256,20 @@ DSassStylesheet<Backend> make_sass_stylesheet(
 
 
 // make_variable
-//   function: returns a new freestanding variable declaration.
+//   function: returns a new freestanding variable declaration. Like every
+// factory below, it returns the rule in a handle (DSassDetached), which frees
+// it unless a rule or a stylesheet adopts it; get() gives its facade.
 template<typename Backend>
 inline
-DSassRule<Backend> make_variable(
+DSassDetached<Backend> make_variable(
     const DSassString& _name,
     const DSassString&   _value,
     bool                 _default = false
 )
 {
     using node_t = typename Backend::rule_type;
-    node_t* n = new node_t;
+    DSassDetached<Backend> made = DSassDetached<Backend>::make();
+    node_t* n = made.backend_handle();
     n->rule_kind = ::djinterp::css::DCssRuleKind::declaration_block;
     n->property  = ( (!_name.empty()) && (_name[0] == '$') )
         ? _name
@@ -1237,7 +1279,7 @@ DSassRule<Backend> make_variable(
     {
         n->importance = ::djinterp::css::DCssImportance::important;
     }
-    return DSassRule<Backend>(n);
+    return made;
 }
 
 
@@ -1245,13 +1287,14 @@ DSassRule<Backend> make_variable(
 //   function: returns a new freestanding @mixin rule.
 template<typename Backend>
 inline
-DSassRule<Backend> make_mixin(
+DSassDetached<Backend> make_mixin(
     const DSassString& _name,
     const DSassString& _parameters = DSassString()
 )
 {
     using node_t = typename Backend::rule_type;
-    node_t* n = new node_t;
+    DSassDetached<Backend> made = DSassDetached<Backend>::make();
+    node_t* n = made.backend_handle();
     n->at_keyword = at_keywords::mixin;
     n->rule_kind  = ::djinterp::css::DCssRuleKind::at_rule;
     n->prelude    = _name;
@@ -1261,7 +1304,7 @@ DSassRule<Backend> make_mixin(
         n->prelude += _parameters;
         n->prelude += ')';
     }
-    return DSassRule<Backend>(n);
+    return made;
 }
 
 
@@ -1269,13 +1312,14 @@ DSassRule<Backend> make_mixin(
 //   function: returns a new freestanding @include statement.
 template<typename Backend>
 inline
-DSassRule<Backend> make_include(
+DSassDetached<Backend> make_include(
     const DSassString& _target,
     const DSassString& _arguments = DSassString()
 )
 {
     using node_t = typename Backend::rule_type;
-    node_t* n = new node_t;
+    DSassDetached<Backend> made = DSassDetached<Backend>::make();
+    node_t* n = made.backend_handle();
     n->at_keyword = at_keywords::include;
     n->rule_kind  = ::djinterp::css::DCssRuleKind::at_rule;
     n->prelude    = _target;
@@ -1285,7 +1329,7 @@ DSassRule<Backend> make_include(
         n->prelude += _arguments;
         n->prelude += ')';
     }
-    return DSassRule<Backend>(n);
+    return made;
 }
 
 
@@ -1293,13 +1337,14 @@ DSassRule<Backend> make_include(
 //   function: returns a new freestanding @extend statement.
 template<typename Backend>
 inline
-DSassRule<Backend> make_extend(
+DSassDetached<Backend> make_extend(
     const DSassString&   _target,
     bool                 _optional = false
 )
 {
     using node_t = typename Backend::rule_type;
-    node_t* n = new node_t;
+    DSassDetached<Backend> made = DSassDetached<Backend>::make();
+    node_t* n = made.backend_handle();
     n->at_keyword = at_keywords::extend;
     n->rule_kind  = ::djinterp::css::DCssRuleKind::at_rule;
     n->prelude    = _target;
@@ -1307,7 +1352,7 @@ DSassRule<Backend> make_extend(
     {
         n->prelude += " !optional";
     }
-    return DSassRule<Backend>(n);
+    return made;
 }
 
 
@@ -1315,13 +1360,14 @@ DSassRule<Backend> make_extend(
 //   function: returns a new freestanding @use rule.
 template<typename Backend>
 inline
-DSassRule<Backend> make_use(
+DSassDetached<Backend> make_use(
     const DSassString& _url,
     const DSassString& _namespace = DSassString()
 )
 {
     using node_t = typename Backend::rule_type;
-    node_t* n = new node_t;
+    DSassDetached<Backend> made = DSassDetached<Backend>::make();
+    node_t* n = made.backend_handle();
     n->at_keyword = at_keywords::use;
     n->rule_kind  = ::djinterp::css::DCssRuleKind::at_rule;
     n->prelude    = DSassString("'") + _url + DSassString("'");
@@ -1330,7 +1376,7 @@ DSassRule<Backend> make_use(
         n->prelude += " as ";
         n->prelude += _namespace;
     }
-    return DSassRule<Backend>(n);
+    return made;
 }
 
 
@@ -1339,17 +1385,18 @@ DSassRule<Backend> make_use(
 // rule (`%name { ... }`).
 template<typename Backend>
 inline
-DSassRule<Backend> make_placeholder_rule(
+DSassDetached<Backend> make_placeholder_rule(
     const DSassString& _name
 )
 {
     using node_t = typename Backend::rule_type;
-    node_t* n = new node_t;
+    DSassDetached<Backend> made = DSassDetached<Backend>::make();
+    node_t* n = made.backend_handle();
     n->rule_kind = ::djinterp::css::DCssRuleKind::style_rule;
     n->selector  = ( (!_name.empty()) && (_name[0] == '%') )
         ? _name
         : DSassString("%") + _name;
-    return DSassRule<Backend>(n);
+    return made;
 }
 
 
@@ -1357,19 +1404,20 @@ DSassRule<Backend> make_placeholder_rule(
 //   function: returns a new freestanding @each rule.
 template<typename Backend>
 inline
-DSassRule<Backend> make_each(
+DSassDetached<Backend> make_each(
     const DSassString& _variable,
     const DSassString& _iterable
 )
 {
     using node_t = typename Backend::rule_type;
-    node_t* n = new node_t;
+    DSassDetached<Backend> made = DSassDetached<Backend>::make();
+    node_t* n = made.backend_handle();
     n->at_keyword = at_keywords::each;
     n->rule_kind  = ::djinterp::css::DCssRuleKind::at_rule;
     n->prelude    = _variable;
     n->prelude   += " in ";
     n->prelude   += _iterable;
-    return DSassRule<Backend>(n);
+    return made;
 }
 
 
@@ -1377,16 +1425,17 @@ DSassRule<Backend> make_each(
 //   function: returns a new freestanding @if rule.
 template<typename Backend>
 inline
-DSassRule<Backend> make_if(
+DSassDetached<Backend> make_if(
     const DSassString& _condition
 )
 {
     using node_t = typename Backend::rule_type;
-    node_t* n = new node_t;
+    DSassDetached<Backend> made = DSassDetached<Backend>::make();
+    node_t* n = made.backend_handle();
     n->at_keyword = at_keywords::if_;
     n->rule_kind  = ::djinterp::css::DCssRuleKind::at_rule;
     n->prelude    = _condition;
-    return DSassRule<Backend>(n);
+    return made;
 }
 
 

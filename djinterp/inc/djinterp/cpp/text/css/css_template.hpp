@@ -47,7 +47,7 @@
 * path:      /inc/djinterp/cpp/text/css/css_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 /*
@@ -94,6 +94,7 @@ VII.  FREE HELPERS / FACTORIES
 #include <vector>
 // djinterp
 #include "../../djinterp.hpp"
+#include "../detached.hpp"       // DDetached, the factories' handle
 #include "./css.hpp"             // foundation + folded traits/concepts
 
 
@@ -462,6 +463,28 @@ public:
         }
     }
 
+    // comment_text
+    //   function: a comment rule's text, without its delimiters.
+    const DCssString& comment_text() const
+    {
+        return (m_node != nullptr) ? m_node->comment_text : s_empty();
+    }
+
+    // set_comment_text
+    //   function: sets a comment rule's text. A star and a slash in it are
+    // written apart, so it can't end the comment early.
+    void set_comment_text(
+        const DCssString& _text
+    )
+    {
+        if (m_node != nullptr)
+        {
+            m_node->comment_text = _text;
+        }
+
+        return;
+    }
+
 
     /// declaration access
 
@@ -738,6 +761,41 @@ public:
         return DCssRule<Backend>(raw);
     }
 
+    // add_keyframe
+    //   function: appends a keyframe to a @keyframes rule (a vendor's
+    // prefixed one included), with its selector -- "from", "to", "50%", or
+    // several, "0%, 100%" -- and returns its facade, for its declarations.
+    DCssRule<Backend> add_keyframe(
+        const DCssString& _selector
+    )
+    {
+        DCssRule<Backend> frame = this->add_rule(DCssRuleKind::keyframe_rule);
+
+        frame.set_selector(_selector);
+
+        return frame;
+    }
+
+    // adopt
+    //   function: makes the rule a factory made this rule's last child (a
+    // style rule in @media, say), taking it from its handle, and returns its
+    // facade. It takes a Less or Sass rule's handle too, over the same
+    // backend. Only a handle is taken, so a rule already in a tree can't be
+    // given a second parent. Refused, with an empty facade returned and the
+    // handle keeping its rule, when this rule or the handle is empty, or when
+    // this rule is the handle's or lies under it.
+    template<typename Other>
+    typename std::enable_if<
+        is_detached_convertible<Other, DCssRule<Backend>>::value,
+        DCssRule<Backend>>::type
+    adopt(
+        DDetached<Other>&& _child
+    )
+    {
+        return DCssRule<Backend>(
+            ::djinterp::internal::detached_access::adopt(m_node, _child));
+    }
+
 
 private:
     static
@@ -757,6 +815,13 @@ private:
 
     node_type*  m_node;
 };
+
+
+// DCssDetached
+//   type: the handle CSS's factories return, owning a rule made outside a
+// tree until a rule's or a stylesheet's adopt takes it.
+template<typename Backend>
+using DCssDetached = DDetached<DCssRule<Backend>>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1235,6 +1300,23 @@ public:
         return rule_facade(raw);
     }
 
+    // adopt
+    //   function: makes the rule a factory made the stylesheet's last, taking
+    // it from its handle, and returns its facade. Refused as
+    // DCssRule::adopt is.
+    template<typename Other>
+    typename std::enable_if<
+        is_detached_convertible<Other, rule_facade>::value,
+        rule_facade>::type
+    adopt(
+        DDetached<Other>&& _child
+    )
+    {
+        return rule_facade(
+            ::djinterp::internal::detached_access::adopt(m_sheet.root.get(),
+                                                         _child));
+    }
+
 
     /// rendering
 
@@ -1386,19 +1468,22 @@ DCssStylesheet<Backend> make_stylesheet(
 
 
 // make_style_rule
-//   function: returns a new freestanding style rule with the
-// given selector.
+//   function: returns a new freestanding style rule with the given
+// selector. Like every factory below, it returns the rule in a handle
+// (DCssDetached), which frees it unless a rule or a stylesheet adopts it;
+// get() gives its facade, to build under it first.
 template<typename Backend>
 inline
-DCssRule<Backend> make_style_rule(
+DCssDetached<Backend> make_style_rule(
     const DCssString& _selector
 )
 {
     using node_t = typename Backend::rule_type;
-    node_t* n = new node_t;
+    DCssDetached<Backend> made = DCssDetached<Backend>::make();
+    node_t*               n    = made.backend_handle();
     n->rule_kind = DCssRuleKind::style_rule;
     n->selector  = _selector;
-    return DCssRule<Backend>(n);
+    return made;
 }
 
 
@@ -1407,18 +1492,19 @@ DCssRule<Backend> make_style_rule(
 // given keyword and prelude.
 template<typename Backend>
 inline
-DCssRule<Backend> make_at_rule(
+DCssDetached<Backend> make_at_rule(
     const DCssString& _keyword,
     const DCssString& _prelude = DCssString()
 )
 {
     using node_t = typename Backend::rule_type;
-    node_t* n = new node_t;
+    DCssDetached<Backend> made = DCssDetached<Backend>::make();
+    node_t*               n    = made.backend_handle();
     n->at_rule_kind = at_rule_kind_from_name(_keyword.c_str());
     n->rule_kind    = rule_kind_from_at_rule_kind(n->at_rule_kind);
     n->at_keyword   = _keyword;
     n->prelude      = _prelude;
-    return DCssRule<Backend>(n);
+    return made;
 }
 
 
@@ -1427,7 +1513,7 @@ DCssRule<Backend> make_at_rule(
 // _query)`.
 template<typename Backend>
 inline
-DCssRule<Backend> make_media_rule(
+DCssDetached<Backend> make_media_rule(
     const DCssString& _query
 )
 {
@@ -1439,7 +1525,7 @@ DCssRule<Backend> make_media_rule(
 //   function: convenience for `@supports`.
 template<typename Backend>
 inline
-DCssRule<Backend> make_supports_rule(
+DCssDetached<Backend> make_supports_rule(
     const DCssString& _condition
 )
 {
@@ -1451,7 +1537,7 @@ DCssRule<Backend> make_supports_rule(
 //   function: convenience for `@keyframes <name>`.
 template<typename Backend>
 inline
-DCssRule<Backend> make_keyframes_rule(
+DCssDetached<Backend> make_keyframes_rule(
     const DCssString& _name
 )
 {
@@ -1459,11 +1545,29 @@ DCssRule<Backend> make_keyframes_rule(
 }
 
 
+// make_keyframe
+//   function: returns a new freestanding keyframe, with its selector --
+// "from", "to", "50%", or several -- for a @keyframes rule to adopt.
+template<typename Backend>
+inline
+DCssDetached<Backend> make_keyframe(
+    const DCssString& _selector
+)
+{
+    using node_t = typename Backend::rule_type;
+    DCssDetached<Backend> made = DCssDetached<Backend>::make();
+    node_t*               n    = made.backend_handle();
+    n->rule_kind = DCssRuleKind::keyframe_rule;
+    n->selector  = _selector;
+    return made;
+}
+
+
 // make_font_face_rule
 //   function: convenience for `@font-face`.
 template<typename Backend>
 inline
-DCssRule<Backend> make_font_face_rule()
+DCssDetached<Backend> make_font_face_rule()
 {
     return make_at_rule<Backend>(at_rules::font_face);
 }
@@ -1473,7 +1577,7 @@ DCssRule<Backend> make_font_face_rule()
 //   function: convenience for `@import url(...)`.
 template<typename Backend>
 inline
-DCssRule<Backend> make_import_rule(
+DCssDetached<Backend> make_import_rule(
     const DCssString& _url
 )
 {
@@ -1485,7 +1589,7 @@ DCssRule<Backend> make_import_rule(
 //   function: convenience for `@charset "encoding"`.
 template<typename Backend>
 inline
-DCssRule<Backend> make_charset_rule(
+DCssDetached<Backend> make_charset_rule(
     const DCssString& _encoding
 )
 {
@@ -1502,15 +1606,16 @@ DCssRule<Backend> make_charset_rule(
 //   function: returns a new freestanding comment rule.
 template<typename Backend>
 inline
-DCssRule<Backend> make_comment(
+DCssDetached<Backend> make_comment(
     const DCssString& _text
 )
 {
     using node_t = typename Backend::rule_type;
-    node_t* n = new node_t;
+    DCssDetached<Backend> made = DCssDetached<Backend>::make();
+    node_t*               n    = made.backend_handle();
     n->rule_kind    = DCssRuleKind::comment;
     n->comment_text = _text;
-    return DCssRule<Backend>(n);
+    return made;
 }
 
 

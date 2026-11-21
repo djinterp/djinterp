@@ -18,7 +18,7 @@
 * path:      /tests/djinterp/cpp/util/archive/archive_options_tests_semantics.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 // djinterp
@@ -248,11 +248,12 @@ bool tests_comparator_detects_archive_fields()
 /*
 tests_comparator_detects_format_fields
   Verifies the shared comparator notices a change to every field of every
-per-format block -- all twenty of them across zip, tar, gz, sevenzip, and rar.
+per-format block -- all twenty-one of them across zip, tar, gz, sevenzip, and
+rar.
   Tests the following:
   - each DZipOptions field (method, encryption, password, zip64, utf8_names)
   - each DTarOptions field (format, numeric_owner)
-  - each DGzOptions field (store_name, store_mtime, original_name)
+  - each DGzOptions field (store_name, store_mtime, os, original_name)
   - each DSevenzipOptions field (method, solid, header_compression,
     header_encryption, password, threads)
   - each DRarOptions field (level, solid, recovery_record, password)
@@ -275,6 +276,7 @@ bool tests_comparator_detects_format_fields()
     // gz
     D_AO_MOVES(gz.store_name, 1);
     D_AO_MOVES(gz.store_mtime, 0);
+    D_AO_MOVES(gz.os, 3);
     D_AO_MOVES(gz.original_name, "n");
 
     // sevenzip

@@ -9,7 +9,7 @@
 * path:      /tests/djinterp/cpp/text/text_core_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "text_core_tests.hpp"  // the suite's entry point, DTest's C face
 
@@ -97,6 +97,36 @@ d_tests_text_core_pattern(
 
 
 /*
+d_tests_text_core_detached
+  The block for detached.hpp: the factories' handle, and adoption.
+*/
+static void
+d_tests_text_core_detached(
+    dj_test_suite* _suite
+)
+{
+    static const char* const below = "below C++11, detached.hpp's floor";
+
+    (void)d_test_suite_block(_suite, "detached.hpp");
+
+    d_tests_text_run(_suite, "own",
+        "a handle frees its node when it goes, on reset, or when a move "
+        "assignment replaces it; it moves and doesn't copy",
+        D_TESTS_TEXT_AT_CPP11(d_tests_text_core_detached_own), below);
+    d_tests_text_run(_suite, "convert",
+        "a handle becomes its base facade's, by move only, over the same "
+        "node type; the two traits",
+        D_TESTS_TEXT_AT_CPP11(d_tests_text_core_detached_convert), below);
+    d_tests_text_run(_suite, "adopt",
+        "adoption appends and sets the parent; an empty parent or handle, "
+        "or a cycle, is refused and the handle keeps its node",
+        D_TESTS_TEXT_AT_CPP11(d_tests_text_core_detached_adopt), below);
+
+    return;
+}
+
+
+/*
 d_tests_text_core_all
   Binds the suite, opens the module, then each header's block and its
 tests.
@@ -111,7 +141,8 @@ d_tests_text_core_all(
     (void)d_test_suite_module(_suite, "text_core");
     (void)d_test_suite_describe(_suite,
                                 "text's core C++ headers: alignment, "
-                                "templates and patterns");
+                                "templates, patterns and the factories' "
+                                "handle");
 
     (void)d_test_suite_block(_suite, "text_align.hpp");
     d_tests_text_run(_suite, "alignment",
@@ -121,6 +152,7 @@ d_tests_text_core_all(
 
     d_tests_text_core_template(_suite);
     d_tests_text_core_pattern(_suite);
+    d_tests_text_core_detached(_suite);
 
     d_tests_text_bind(NULL);
 

@@ -17,8 +17,8 @@
 *
 *   The double checks under de_DE.UTF-8 and ps_AF.UTF-8 are left out, with a
 * note, where those locales are not installed (localedef -i de_DE -f UTF-8
-* de_DE.UTF-8). The console check redirects stdout, so it runs on POSIX only
-* and is skipped elsewhere.
+* de_DE.UTF-8). The console check redirects stdout, and the append check forks
+* two writers, so both run on POSIX only and are skipped elsewhere.
 *
 *
 * path:      /tests/djinterp/c/util/ostream/ostream_tests.c
@@ -49,9 +49,10 @@
                                                 // uint64_t, UINT64_MAX
 
 #if (D_INTERNAL_OSTREAM_CONSOLE == D_CFG_OSTREAM_CONSOLE_POSIX)
-    #include <fcntl.h>    // open, O_WRONLY, O_CREAT, O_TRUNC
-    #include <pthread.h>  // pthread_create, pthread_join
-    #include <unistd.h>   // dup, dup2, close
+    #include <fcntl.h>     // open, O_WRONLY, O_CREAT, O_TRUNC
+    #include <pthread.h>   // pthread_create, pthread_join
+    #include <sys/wait.h>  // waitpid, WIFEXITED, WEXITSTATUS
+    #include <unistd.h>    // dup, dup2, close, fork, _exit
 
     // D_TESTS_OSTREAM_THREADS
     //   constant: 1 where the locale race can be run (POSIX threads).
@@ -1067,6 +1068,195 @@ d_tests_ostream_file(void)
     return true;
 }
 
+// D_TESTS_OSTREAM_APPEND_BUFFER
+//   constant: each appender's stream buffer, which every record fits.
+#define D_TESTS_OSTREAM_APPEND_BUFFER  65536u
+
+#if (D_TESTS_OSTREAM_THREADS == 1)
+
+/*
+d_tests_ostream_append_record
+  Fills _record with writer _tag's record number _seq: the tag, six digits,
+the tag repeated, and a newline, _size bytes in all.
+*/
+static void
+d_tests_ostream_append_record(
+    char*  _record,
+    size_t _size,
+    char   _tag,
+    size_t _seq
+)
+{
+    memset(_record, _tag, _size);
+    (void)snprintf(_record + 1, 7u, "%06lu", (unsigned long)(_seq % 1000000u));
+    _record[7]         = _tag;
+    _record[_size - 1] = '\n';
+
+    return;
+}
+
+/*
+d_tests_ostream_append_writer
+  One appending process: opens _path to append, and writes _count records of
+_size bytes, each written whole into the stream's buffer and then flushed.
+Never returns: _exit(0) when every record went, _exit(1) otherwise.
+*/
+static void
+d_tests_ostream_append_writer(
+    const char* _path,
+    char        _tag,
+    size_t      _count,
+    size_t      _size
+)
+{
+    struct dj_ostream os;
+    char* const       record = (char*)malloc(_size);
+    void* const       buffer = malloc(D_TESTS_OSTREAM_APPEND_BUFFER);
+    int               ok     = ( (record != NULL) &&
+                                 (buffer != NULL) &&
+                                 (d_ostream_open_file(&os, _path, 1) == 1) );
+
+    if (ok)
+    {
+        (void)d_ostream_set_buffer(&os, buffer, D_TESTS_OSTREAM_APPEND_BUFFER);
+
+        for (size_t i = 0u; ok && (i < _count); ++i)
+        {
+            d_tests_ostream_append_record(record, _size, _tag, i);
+            ok = ( (d_ostream_write(&os, record, _size) == 1) &&
+                   (d_ostream_flush(&os) == 1) );
+        }
+
+        ok = (d_ostream_close(&os) == 1) && ok;
+    }
+
+    _exit(ok ? 0 : 1);
+}
+
+/*
+d_tests_ostream_append_torn
+  Reads _path, written by two appenders of _count records of _size bytes
+each, and counts the records that are not whole: a wrong length, a mixed
+tag, or a record out of its writer's order.
+*/
+static size_t
+d_tests_ostream_append_torn(
+    const char* _path,
+    size_t      _count,
+    size_t      _size
+)
+{
+    FILE* const file   = fopen(_path, "rb");
+    char* const record = (char*)malloc(_size);
+    char* const want   = (char*)malloc(_size);
+    size_t      next[2] = { 0u, 0u };
+    size_t      whole   = 0u;
+
+    if ( (file != NULL) &&
+         (record != NULL) &&
+         (want != NULL) )
+    {
+        while (fread(record, 1u, _size, file) == _size)
+        {
+            const int writer = (record[0] == 'b') ? 1 : 0;
+
+            d_tests_ostream_append_record(want, _size, record[0],
+                                          next[writer]);
+
+            if ( ( (record[0] == 'a') || (record[0] == 'b') ) &&
+                 (memcmp(record, want, _size) == 0) )
+            {
+                ++next[writer];
+                ++whole;
+            }
+        }
+    }
+
+    if (file != NULL)
+    {
+        (void)fclose(file);
+    }
+
+    free(record);
+    free(want);
+
+    return (2u * _count) - whole;
+}
+
+#endif  // D_TESTS_OSTREAM_THREADS
+
+/*
+d_tests_ostream_append
+  Two processes appending to one file through d_ostream_open_file.
+  Tests the following:
+  - with each record written whole into a 64 KiB stream buffer and flushed,
+    no record is torn or mixed: neither 20,000-byte records, which stdio's
+    own buffer split before, nor 60,000-byte ones
+  - each writer's records arrive in its order, and every one arrives
+*/
+static bool
+d_tests_ostream_append(void)
+{
+#if (D_TESTS_OSTREAM_THREADS == 1)
+    static const size_t sizes[2]  = { 20000u, 60000u };
+    static const size_t counts[2] = { 200u, 60u };
+    const char* const   path      = "t_ostream_append.tmp";
+
+    for (size_t k = 0u; k < 2u; ++k)
+    {
+        pid_t  writer[2];
+        int    status  = 0;
+        int    exited  = 0;
+        size_t torn;
+
+        (void)remove(path);
+
+        for (int w = 0; w < 2; ++w)
+        {
+            writer[w] = fork();
+
+            if (writer[w] == 0)
+            {
+                d_tests_ostream_append_writer(path, (char)('a' + w),
+                                              counts[k], sizes[k]);
+            }
+        }
+
+        for (int w = 0; w < 2; ++w)
+        {
+            if ( (writer[w] > 0) &&
+                 (waitpid(writer[w], &status, 0) == writer[w]) &&
+                 WIFEXITED(status) &&
+                 (WEXITSTATUS(status) == 0) )
+            {
+                ++exited;
+            }
+        }
+
+        D_TESTS_OSTREAM_CHECK(exited == 2);
+        torn = d_tests_ostream_append_torn(path, counts[k], sizes[k]);
+        D_TESTS_OSTREAM_CHECK(torn == 0u);
+
+        if (torn != 0u)
+        {
+            (void)d_test_suite_note(d_tests_ostream_suite,
+                                    "%lu of %lu %lu-byte records torn",
+                                    (unsigned long)torn,
+                                    (unsigned long)(2u * counts[k]),
+                                    (unsigned long)sizes[k]);
+        }
+    }
+
+    (void)remove(path);
+#else
+    (void)d_test_suite_skip(d_tests_ostream_suite,
+                            "needs fork; run it on Windows once c/filesys "
+                            "opens O_APPEND with FILE_APPEND_DATA");
+#endif
+
+    return true;
+}
+
 /*
 d_tests_ostream_console
   The console, on POSIX: stdout redirected to a file for the check.
@@ -1830,6 +2020,9 @@ d_tests_ostream_all(
         { "ostream_file.h", "file",
           "the FILE* destinations",
           &d_tests_ostream_file },
+        { "ostream_file.h", "append",
+          "two processes appending to one file, no record torn",
+          &d_tests_ostream_append },
         { "ostream_console.h", "console",
           "the console, on POSIX, with stdout redirected to a file",
           &d_tests_ostream_console },

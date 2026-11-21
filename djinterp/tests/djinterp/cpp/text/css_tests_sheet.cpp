@@ -5,16 +5,15 @@
 * stylesheet through the facades, and its three renderings -- formatted,
 * minified and SCSS -- over style rules, nesting, comments and every form of
 * at-rule. Each expected text is written as CSS (and CSS Nesting) has it.
-*   The freestanding factories (make_style_rule and the rest) are not
-* called: each allocates a rule that nothing can adopt, so each leaks, until
-* that is settled. The facades' add_style_rule, add_at_rule and add_rule
-* make rules in place.
+*   The facades' add_style_rule, add_at_rule and add_rule make rules in
+* place. The freestanding factories (make_style_rule and the rest), and
+* adopt, are css_tests_detached.cpp's.
 *
 *
 * path:      /tests/djinterp/cpp/text/css_tests_sheet.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "css_tests.hpp"  // D_TESTS_TEXT_CHECK, the groups
 // std
@@ -121,7 +120,7 @@ d_tests_css_sheet_render(void)
     css_rule_facade comment = sheet.root_rule().add_rule(DCssRuleKind::comment);
     css_rule_facade rule    = sheet.add_style_rule(".a");
 
-    comment.backend_handle()->comment_text = "a */ b";
+    comment.set_comment_text("a */ b");
     rule.add_declaration("color", "red");
     rule.add_declaration("margin", "0", true);
     d_tests_css_child(rule, DCssRuleKind::style_rule, "&:hover")
@@ -174,12 +173,9 @@ d_tests_css_sheet_at_rules(void)
         .add_declaration("color", "black");
     sheet.add_at_rule("font-face").add_declaration("font-family", "X");
     frames = sheet.add_at_rule("keyframes", "spin");
-    d_tests_css_child(frames, DCssRuleKind::keyframe_rule, "from")
-        .add_declaration("opacity", "0");
-    d_tests_css_child(frames, DCssRuleKind::keyframe_rule, "to")
-        .add_declaration("opacity", "1");
-    d_tests_css_child(sheet.add_at_rule("-webkit-keyframes", "x"),
-                      DCssRuleKind::keyframe_rule, "50%")
+    frames.add_keyframe("from").add_declaration("opacity", "0");
+    frames.add_keyframe("to").add_declaration("opacity", "1");
+    sheet.add_at_rule("-webkit-keyframes", "x").add_keyframe("50%")
         .add_declaration("opacity", "0.5");
 
     D_TESTS_TEXT_CHECK(d_tests_text_same(

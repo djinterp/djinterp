@@ -8,7 +8,8 @@
 * header and a test per group of checks. Every header's floor is C++11, and
 * below it a group is skipped, saying why; the concepts are C++20's.
 *   The groups live in the section files: markdown_tests_vocabulary.cpp
-* (markdown.hpp), markdown_tests_tree.cpp (building a tree) and
+* (markdown.hpp), markdown_tests_tree.cpp (building a tree),
+* markdown_tests_detached.cpp (the factories' handles and adoption),
 * markdown_tests_render.cpp (its four renderings), and
 * markdown_tests_traits.cpp (the traits and the concepts).
 *
@@ -26,7 +27,7 @@
 * path:      /tests/djinterp/cpp/text/markdown_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_CPP_TEXT_MARKDOWN_TESTS_HPP
@@ -68,6 +69,9 @@ void d_tests_markdown_backends(void);
 
 // b.  markdown_template.hpp (markdown_tests_tree.cpp, _render.cpp)
 void d_tests_markdown_tree_build(void);
+void d_tests_markdown_detached_handles(void);
+void d_tests_markdown_detached_adopt(void);
+void d_tests_markdown_detached_setters(void);
 void d_tests_markdown_render_markdown(void);
 void d_tests_markdown_render_lists(void);
 void d_tests_markdown_render_html(void);
@@ -90,18 +94,23 @@ void d_tests_markdown_concepts(void);
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-// md_backend, md_document, md_block, md_inline
-//   the default backend's tree, shortly.
+// md_backend, md_document, md_block, md_inline, md_new_block, md_new_inline
+//   the default backend's tree, shortly: its facades, and the handles its
+// factories return.
 typedef djinterp::markdown::DMarkdownDefaultBackend       md_backend;
 typedef djinterp::markdown::DMarkdownDocument<md_backend> md_document;
 typedef djinterp::markdown::DMarkdownBlock<md_backend>    md_block;
 typedef djinterp::markdown::DMarkdownInline<md_backend>   md_inline;
+typedef djinterp::markdown::DMarkdownDetachedBlock<md_backend>
+    md_new_block;
+typedef djinterp::markdown::DMarkdownDetachedInline<md_backend>
+    md_new_inline;
 
 /*
 d_tests_markdown_text
   A text inline.
 */
-inline md_inline
+inline md_new_inline
 d_tests_markdown_text(
     const std::string& _text
 )
@@ -113,13 +122,13 @@ d_tests_markdown_text(
 d_tests_markdown_holding
   A block given one text inline: a paragraph's, a heading's or a cell's.
 */
-inline md_block
+inline md_new_block
 d_tests_markdown_holding(
-    md_block           _block,
+    md_new_block       _block,
     const std::string& _text
 )
 {
-    _block.add_inline(d_tests_markdown_text(_text));
+    _block->add_inline(d_tests_markdown_text(_text));
 
     return _block;
 }
@@ -128,7 +137,7 @@ d_tests_markdown_holding(
 d_tests_markdown_paragraph
   A paragraph of one text.
 */
-inline md_block
+inline md_new_block
 d_tests_markdown_paragraph(
     const std::string& _text
 )
@@ -141,14 +150,14 @@ d_tests_markdown_paragraph(
 d_tests_markdown_item
   A list item holding a paragraph of one text.
 */
-inline md_block
+inline md_new_block
 d_tests_markdown_item(
     const std::string& _text
 )
 {
-    md_block item = djinterp::markdown::make_list_item<md_backend>();
+    md_new_block item = djinterp::markdown::make_list_item<md_backend>();
 
-    item.add_block(d_tests_markdown_paragraph(_text));
+    item->add_block(d_tests_markdown_paragraph(_text));
 
     return item;
 }
@@ -157,7 +166,7 @@ d_tests_markdown_item(
 d_tests_markdown_list
   A list of items, each a paragraph of one text.
 */
-inline md_block
+inline md_new_block
 d_tests_markdown_list(
     bool                     _ordered,
     int                      _start,
@@ -165,12 +174,12 @@ d_tests_markdown_list(
     std::size_t              _count
 )
 {
-    md_block list = djinterp::markdown::make_list<md_backend>(_ordered,
-                                                              _start);
+    md_new_block list = djinterp::markdown::make_list<md_backend>(_ordered,
+                                                                  _start);
 
     for (std::size_t i = 0; i < _count; ++i)
     {
-        list.add_block(d_tests_markdown_item(_texts[i]));
+        list->add_block(d_tests_markdown_item(_texts[i]));
     }
 
     return list;

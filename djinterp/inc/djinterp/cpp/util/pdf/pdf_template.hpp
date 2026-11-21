@@ -54,7 +54,7 @@
 * path:      /inc/djinterp/cpp/util/pdf/pdf_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.25
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_PDF_PDF_TEMPLATE_HPP
@@ -113,7 +113,8 @@ public:
           m_body(),
           m_have_body(false),
           m_styles(),
-          m_meta()
+          m_meta(),
+          m_compression(DPdfCompression::by_default)
     {}
 
     explicit pdf_template(
@@ -129,7 +130,8 @@ public:
           m_body(),
           m_have_body(false),
           m_styles(),
-          m_meta()
+          m_meta(),
+          m_compression(DPdfCompression::by_default)
     {}
 
     // ------------------------------------------------------------------
@@ -217,9 +219,28 @@ public:
         return (*this);
     }
 
+    // compression
+    //   how the rendered document's streams are written (DPdfCompression).
+    // Left at by_default, the template changes nothing, and the document
+    // follows its own setting or the build's knob; anything else is set on
+    // the canvas's document at render time, the caller's canvas included.
+    pdf_template& compression(
+        DPdfCompression _compression
+    )
+    {
+        m_compression = _compression;
+
+        return (*this);
+    }
+
     D_NODISCARD const style_map& styles() const D_NOEXCEPT
     {
         return m_styles;
+    }
+
+    D_NODISCARD DPdfCompression compression() const D_NOEXCEPT
+    {
+        return m_compression;
     }
 
     // ------------------------------------------------------------------
@@ -302,6 +323,11 @@ private:
             _renderer.canvas().metadata(_it->first, _it->second);
         }
 
+        if (m_compression != DPdfCompression::by_default)
+        {
+            _renderer.canvas().document().set_compression(m_compression);
+        }
+
         if (m_have_body)
         {
             _renderer.set_body_style(m_body);
@@ -327,6 +353,7 @@ private:
     bool          m_have_body;
     style_map     m_styles;
     meta_map      m_meta;
+    DPdfCompression m_compression;
 };
 
 

@@ -9,7 +9,7 @@
 * path:      /src/djinterp/c/text/text_edit.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.16
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "../../../../inc/djinterp/c/text/text_edit.h"  // corresponding
                                                         // header
@@ -162,7 +162,9 @@ d_text_edit_count(
 
 /*
 d_text_edit_add
-  Records a change, unless it overlaps one already made.
+  Records a change, unless it overlaps one already made.  A change no caller
+should make is refused as such before any overlap is looked for, so a bad
+offset never reads as a conflict.
 */
 enum dj_text_edit_result
 d_text_edit_add(
@@ -179,12 +181,13 @@ d_text_edit_add(
     size_t                               bytes;
     size_t                               at;
 
-    // parameter validation first
-    if ( (!_edit)                       ||
-         (_end < _start)                ||
-         ( (!_text) && (_length > 0u) ) )
+    // parameter validation first: an insertion of no bytes changes nothing
+    if ( (!_edit)                               ||
+         (_end < _start)                        ||
+         ( (!_text) && (_length > 0u) )         ||
+         ( (_end == _start) && (_length == 0u) ) )
     {
-        return D_TEXT_EDIT_OVERLAPS;
+        return D_TEXT_EDIT_INVALID;
     }
 
     for (at = 0u; at < _edit->count; ++at)

@@ -11,7 +11,7 @@
 * path:      /tests/djinterp/c/text/text_source_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.17
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 /*
 TABLE OF CONTENTS
@@ -90,9 +90,11 @@ static const struct dj_test_case_spec d_tests_text_source_lifecycle_rows[] =
 static const struct dj_test_case_spec d_tests_text_source_line_rows[] =
 {
     D_TEST_CASE(d_tests_text_source_line_count,
-                "lines run to a newline or the end; no empty line after the last"),
+                "lines run to a newline or the end; no empty line after "
+                "the last"),
     D_TEST_CASE(d_tests_text_source_line_spans,
-                "each line's span excludes its newline; past the last is false"),
+                "each line's span excludes its newline; past the last is "
+                "false"),
     D_TEST_CASE(d_tests_text_source_line_crlf,
                 "a CR before a newline stays in the line")
 };

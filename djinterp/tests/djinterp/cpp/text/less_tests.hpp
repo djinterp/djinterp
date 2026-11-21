@@ -6,13 +6,14 @@
 * (c/modules/test/test_suite.h).
 *   One entry point builds the module "less" imperatively: a block per header
 * and a test per group of checks. Both headers' floor is C++17, and below it
-* a group is skipped, saying why. The groups live in less_tests_sheet.cpp.
+* a group is skipped, saying why. The groups live in less_tests_sheet.cpp
+* and less_tests_detached.cpp.
 *
 *
 * path:      /tests/djinterp/cpp/text/less_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_CPP_TEXT_LESS_TESTS_HPP
@@ -33,6 +34,8 @@ void d_tests_less_all(dj_test_suite* _suite);
 void d_tests_less_vocabulary(void);
 void d_tests_less_sheet_build(void);
 void d_tests_less_sheet_render(void);
+void d_tests_less_detached_factories(void);
+void d_tests_less_detached_adopt(void);
 #endif  // C++17
 
 

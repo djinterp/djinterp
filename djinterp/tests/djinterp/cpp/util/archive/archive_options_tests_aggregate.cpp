@@ -15,7 +15,7 @@
 * path:      /tests/djinterp/cpp/util/archive/archive_options_tests_aggregate.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 // djinterp
@@ -156,6 +156,7 @@ bool tests_archive_options_nested_blocks_default()
     D_AO_CHECK(o.zip.utf8_names  == archive_knob_unset);
     D_AO_CHECK(o.tar.format      == archive_knob_unset);
     D_AO_CHECK(o.gz.store_mtime  == archive_knob_unset);
+    D_AO_CHECK(o.gz.os           == archive_knob_unset);
     D_AO_CHECK(o.sevenzip.solid  == archive_knob_unset);
     D_AO_CHECK(o.sevenzip.method == archive_knob_unset);
     D_AO_CHECK(o.rar.level       == archive_knob_unset);

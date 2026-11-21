@@ -1,8 +1,9 @@
 # The output stream's benchmarks
 
 The stream's cost, measured, as the stream's delivery of 2026.10.28 left it
-(ruled by the owner on 2026.11.08: kept here, behind a CMake option lane A
-adds). Rerun them when the stream changes, and keep the results beside them.
+(ruled on 2026.11.08: kept here, behind the CMake option
+DJINTERP_BUILD_BENCHMARKS). Rerun them when the stream changes, and keep the
+results beside them.
 
 | File | What it measures |
 |---|---|
@@ -12,29 +13,17 @@ adds). Rerun them when the stream changes, and keep the results beside them.
 | `bench_template.c` | the template engine against hand-written lines, and the environment printer |
 | `results_2026.10.28.txt`, `results_template_2026.10.28.txt` | the figures of 2026.10.28 (GCC 13.3, -O2, 2 vCPUs) |
 
-Each figure is the best of seven runs. Until lane A's CMake option lands,
-build them from the tree's root:
+Each figure is the best of seven runs. Build them with the tree's CMake, from
+a build directory of their own, at -O2: RelWithDebInfo is GCC's and Clang's
+-O2, where Release is -O3.
 
 ```sh
-U="src/djinterp/c/util"
-C="$U/sink_common.c $U/ostream/ostream.c $U/ostream/ostream_string.c \
-   $U/ostream/ostream_file.c $U/ostream/ostream_console.c \
-   src/djinterp/c/text/ostream_format.c src/djinterp/c/dstring.c \
-   src/djinterp/c/string_fn.c src/djinterp/c/djinterp.c \
-   src/djinterp/c/memory/dmemory.c src/djinterp/c/filesys/file_open.c \
-   src/djinterp/c/filesys/file_common.c"
-E="src/djinterp/c/option/option_env.c src/djinterp/c/option/option_env_registry.c \
-   src/djinterp/c/option/option_set_common.c src/djinterp/c/option/option_common.c \
-   src/djinterp/env/env_printer.c src/djinterp/c/text/ostream_template.c"
-B="tests/bench/util/ostream"
-gcc -O2 -std=c11 -D_XOPEN_SOURCE=700 -Iinc $B/bench.c $C -o bench
-gcc -O2 -std=c11 -D_XOPEN_SOURCE=700 $B/bench_stdio.c -o bench_stdio
-gcc -O2 -std=c11 -D_XOPEN_SOURCE=700 -Iinc $B/bench_template.c $C $E -lm \
-    -o bench_template
-for u in $C; do gcc -O2 -std=c11 -D_XOPEN_SOURCE=700 -Iinc -c "$u" \
-    -o "$(basename "$u" .c).o"; done
-g++ -O2 -std=c++20 -D_XOPEN_SOURCE=700 -Iinc $B/bench_cpp.cpp *.o -o bench_cpp
+cmake -G Ninja <tree>/djinterp/build/cmake/config \
+      -DCMAKE_BUILD_TYPE=RelWithDebInfo -DDJINTERP_BUILD_BENCHMARKS=ON
+cmake --build . --target bench_ostream bench_cpp bench_stdio bench_template
 ```
+
+The four programs land in the build directory's `bench/`.
 
 On 2026.11.09 the C kernel's figures were within the 2026.10.28 ones or
 below (write_char 0.63 ns, write_long 6.75 ns, printf 64.5 ns), on the same

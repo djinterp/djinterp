@@ -13,15 +13,15 @@
 * D_TEXT_LINEUP_FLAG_*, and the buffer is the container module's
 * dj_text_buffer, read through its data and count. The suite's old section I
 * tested a text buffer API of the 2025 tree that the container module no
-* longer has (append, append_s, prepend, write_over); lane C's text_buffer
-* suites test the buffer, so section I is gone and the sections keep their
-* numbers.
+* longer has (append, append_s, prepend, write_over); the container's
+* text_buffer suites test the buffer, so section I is gone and the sections
+* keep their numbers.
 *
 *
 * path:      /tests/djinterp/c/text/text_lineup_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.01.01
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 #ifndef DJINTERP_TEXT_LINEUP_TESTS_STANDALONE_

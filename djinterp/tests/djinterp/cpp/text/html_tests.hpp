@@ -9,8 +9,9 @@
 * and below it is skipped, saying why: html.hpp is C++11, html_dialect.hpp
 * C++14, html_printer.hpp C++17 and html_template.hpp C++20.
 *   The groups live in the section files: html_tests_vocabulary.cpp (html.hpp
-* and html_dialect.hpp), html_tests_printer.cpp (html_printer.hpp) and
-* html_tests_tree.cpp (html_template.hpp). The tree's unit also includes
+* and html_dialect.hpp), html_tests_printer.cpp (html_printer.hpp),
+* html_tests_tree.cpp (html_template.hpp) and html_tests_detached.cpp (its
+* factories, and adopt). The tree's unit also includes
 * html_printer.hpp, and checks that the two can share a unit: the printed
 * documents are djinterp's, the trees djinterp::xml's and djinterp::html's.
 *
@@ -28,7 +29,7 @@
 * path:      /tests/djinterp/cpp/text/html_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_CPP_TEXT_HTML_TESTS_HPP
@@ -80,6 +81,12 @@ void d_tests_html_tree_documents(void);
 void d_tests_html_tree_write(void);
 void d_tests_html_tree_traits(void);
 void d_tests_html_tree_beside_printer(void);
+#endif  // C++20
+
+// e.  html_template.hpp's factories and adopt (html_tests_detached.cpp)
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+void d_tests_html_detached_factories(void);
+void d_tests_html_detached_adopt(void);
 #endif  // C++20
 
 

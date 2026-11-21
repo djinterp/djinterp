@@ -5,7 +5,7 @@
 * path:      /inc/djinterp/cpp/util/pdf/pdf_builtin_backend.hpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #ifndef DJINTERP_UTIL_PDF_PDF_BUILTIN_BACKEND_HPP
 #define DJINTERP_UTIL_PDF_PDF_BUILTIN_BACKEND_HPP 1
@@ -26,9 +26,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // djinterp
-#include "./pdf_backend.hpp"                  // DPdfBackend
+#include "./pdf_backend.hpp"                  // DPdfBackend, DPdfCompression
+#include "../../../c/util/compress/compress.h"  // d_compress, D_CODEC_ID_ZLIB
 #include "../../../c/util/ostream/ostream.h"  // d_ostream_init_fixed
 #include "../../../c/text/ostream_format.h"   // d_ostream_write_double
+#include "../../../config/cpp/util/pdf/cfg_pdf.h"  // D_INTERNAL_PDF_COMPRESS
 
 NS_DJINTERP
 
@@ -173,6 +175,162 @@ NS_INTERNAL
         return;
     }
 
+    // pdf_deflate
+    //   helper: _in in zlib's framing, which FlateDecode reads, at _level,
+    // into _out. False, with _out empty, when the build has no zlib or the
+    // kernel fails; the caller then writes the stream raw.
+    inline
+    bool pdf_deflate(
+        const std::string& _in,
+        int                _level,
+        std::string&       _out
+    )
+    {
+        const struct dj_compress_options options =
+            d_compress_at_level(static_cast<int32_t>(_level));
+        std::size_t bound = 0;
+        std::size_t size  = 0;
+
+        _out.clear();
+
+        if ( (d_compress_bound(D_CODEC_ID_ZLIB, _in.size(), &options,
+                               &bound) != D_PACK_STATUS_OK) ||
+             (bound == 0) )
+        {
+            return false;
+        }
+
+        _out.resize(bound);
+
+        if (d_compress(D_CODEC_ID_ZLIB, _in.data(), _in.size(), &options,
+                       &_out[0], _out.size(), &size) != D_PACK_STATUS_OK)
+        {
+            _out.clear();
+
+            return false;
+        }
+
+        _out.resize(size);
+
+        return true;
+    }
+
+    // pdf_png_paeth
+    //   helper: PNG's Paeth predictor: of the left, upper and upper-left
+    // bytes, the one nearest their sum less the upper-left.
+    inline
+    unsigned pdf_png_paeth(
+        unsigned _a,
+        unsigned _b,
+        unsigned _c
+    )
+    {
+        const int p  = static_cast<int>(_a + _b) - static_cast<int>(_c);
+        const int pa = (p > static_cast<int>(_a)) ? (p - static_cast<int>(_a))
+                                                  : (static_cast<int>(_a) - p);
+        const int pb = (p > static_cast<int>(_b)) ? (p - static_cast<int>(_b))
+                                                  : (static_cast<int>(_b) - p);
+        const int pc = (p > static_cast<int>(_c)) ? (p - static_cast<int>(_c))
+                                                  : (static_cast<int>(_c) - p);
+
+        if ( (pa <= pb) && (pa <= pc) )
+        {
+            return _a;
+        }
+
+        return (pb <= pc) ? _b : _c;
+    }
+
+    // pdf_png_filter_row
+    //   helper: one row through one of PNG's five filters (0 None, 1 Sub,
+    // 2 Up, 3 Average, 4 Paeth), _bpp bytes a pixel, into _out; returns the
+    // sum of the filtered bytes' magnitudes as signed bytes, the measure PNG
+    // writers choose a filter by.
+    inline
+    unsigned long pdf_png_filter_row(
+        unsigned             _filter,
+        const unsigned char* _row,
+        const unsigned char* _above,
+        std::size_t          _length,
+        std::size_t          _bpp,
+        unsigned char*       _out
+    )
+    {
+        unsigned long sum = 0;
+
+        for (std::size_t i = 0; i < _length; ++i)
+        {
+            const unsigned a = (i >= _bpp) ? _row[i - _bpp] : 0u;
+            const unsigned b = _above[i];
+            const unsigned c = (i >= _bpp) ? _above[i - _bpp] : 0u;
+            unsigned       predicted = 0u;
+            unsigned char  value;
+
+            switch (_filter)
+            {
+                case 1:  predicted = a;                           break;
+                case 2:  predicted = b;                           break;
+                case 3:  predicted = (a + b) / 2u;                break;
+                case 4:  predicted = pdf_png_paeth(a, b, c);      break;
+                default: predicted = 0u;                          break;
+            }
+
+            value   = static_cast<unsigned char>((_row[i] - predicted) & 0xffu);
+            _out[i] = value;
+            sum    += (value < 128u) ? value : (256u - value);
+        }
+
+        return sum;
+    }
+
+    // pdf_png_predict
+    //   helper: _height rows of _width pixels, _colors bytes each, as PNG
+    // predicts them for FlateDecode's /Predictor 15: each row led by the
+    // filter that gives it the least sum, then the row through it.
+    inline
+    std::string pdf_png_predict(
+        const std::string& _samples,
+        std::size_t        _width,
+        std::size_t        _height,
+        std::size_t        _colors
+    )
+    {
+        const std::size_t          stride = _width * _colors;
+        std::vector<unsigned char> above(stride, 0u);
+        std::vector<unsigned char> trial(stride + 1u, 0u);
+        std::vector<unsigned char> best(stride + 1u, 0u);
+        std::string                out;
+
+        out.reserve(_height * (stride + 1u));
+
+        for (std::size_t y = 0; y < _height; ++y)
+        {
+            const unsigned char* row = reinterpret_cast<const unsigned char*>(
+                                           _samples.data() + (y * stride));
+            unsigned long        least = 0;
+
+            for (unsigned filter = 0; filter < 5u; ++filter)
+            {
+                const unsigned long sum =
+                    pdf_png_filter_row(filter, row, above.data(), stride,
+                                       _colors, &trial[1]);
+
+                if ( (filter == 0u) || (sum < least) )
+                {
+                    least    = sum;
+                    trial[0] = static_cast<unsigned char>(filter);
+                    best.swap(trial);
+                }
+            }
+
+            out.append(reinterpret_cast<const char*>(best.data()),
+                       best.size());
+            above.assign(row, row + stride);
+        }
+
+        return out;
+    }
+
 NS_END  // internal
 
 
@@ -185,9 +343,11 @@ NS_END  // internal
 // PDF 1.4 document with the standard-14 fonts.  Drawing operations
 // are recorded per page and serialized on demand.  This backend
 // covers the common subset (text, lines, rectangles), vector paths,
-// graphics state, raster images (raw RGB / RGBA / gray, embedded
-// uncompressed), and metadata; it reports no font embedding,
-// outline, annotation, encryption, or compression support.
+// graphics state, raster images (RGB / RGBA / gray), and metadata.
+// Its streams are FlateDecode, an image's after PNG's predictors,
+// unless the build's knob (D_CFG_PDF_COMPRESS) or set_compression
+// says raw, or the build has no zlib; it reports no font embedding,
+// outline, annotation, or encryption support.
 class DBuiltinPdfBackend : public DPdfBackend
 {
 private:
@@ -280,7 +440,8 @@ public:
           m_meta(),
           m_images(),
           m_open(false),
-          m_page_open(false)
+          m_page_open(false),
+          m_compression(DPdfCompression::by_default)
     {}
 
 
@@ -547,9 +708,23 @@ public:
         caps.outlines        = false;
         caps.annotations     = false;
         caps.encryption      = false;
-        caps.compression     = false;
+        caps.compression     = compressing();
 
         return caps;
+    }
+
+    // set_compression
+    //   function: how the next document's streams are written: as the
+    // build's knob says (by_default), FlateDecode (flate), or raw (none).
+    // FlateDecode needs zlib in the build; without it streams are raw, and
+    // capabilities().compression says so.
+    void set_compression(
+        DPdfCompression _compression
+    ) D_OVERRIDE
+    {
+        m_compression = _compression;
+
+        return;
     }
 
 
@@ -673,105 +848,135 @@ private:
 
         for (std::size_t i = 0; i < _page.ops.size(); ++i)
         {
-            const DDrawOp& op = _page.ops[i];
-
-            if (op.kind == op_kind::text)
-            {
-                std::size_t fidx = font_index(
-                    _fonts, base_font_name(op.font));
-
-                s += "BT\n";
-                s += "/F" + internal::pdf_num(
-                    static_cast<double>(fidx)) + " " +
-                    internal::pdf_num(op.font_size) + " Tf\n";
-                s += internal::pdf_set_color(op.text_color, true);
-                s += "1 0 0 1 " +
-                     internal::pdf_num(op.text_at.x) + " " +
-                     internal::pdf_num(op.text_at.y) + " Tm\n";
-                s += "(" + internal::pdf_escape_text(op.text) +
-                     ") Tj\n";
-                s += "ET\n";
-
-                continue;
-            }
-
-            if (op.kind == op_kind::line)
-            {
-                s += internal::pdf_num(op.paint.line_width) + " w\n";
-                s += internal::pdf_set_color(op.paint.stroke, false);
-                s += internal::pdf_num(op.a.x) + " " +
-                     internal::pdf_num(op.a.y) + " m " +
-                     internal::pdf_num(op.b.x) + " " +
-                     internal::pdf_num(op.b.y) + " l S\n";
-
-                continue;
-            }
-
-            if (op.kind == op_kind::save_state)
-            {
-                s += "q\n";
-
-                continue;
-            }
-
-            if (op.kind == op_kind::restore_state)
-            {
-                s += "Q\n";
-
-                continue;
-            }
-
-            if (op.kind == op_kind::path)
-            {
-                emit_paint_setup(s, op.paint);
-                emit_path_geometry(s, op.path);
-                s += paint_suffix(op.paint);
-
-                continue;
-            }
-
-            if (op.kind == op_kind::image)
-            {
-                // place the image by mapping the unit square to the
-                // destination rectangle via the cm matrix, then
-                // invoking the XObject; q/Q isolates the transform
-                const DPdfRect& d = op.image_dest;
-
-                s += "q\n";
-                s += internal::pdf_num(d.width) + " 0 0 " +
-                     internal::pdf_num(d.height) + " " +
-                     internal::pdf_num(d.x) + " " +
-                     internal::pdf_num(d.y) + " cm\n";
-                s += "/Im" +
-                     internal::pdf_num(
-                         static_cast<double>(op.image_index)) +
-                     " Do\n";
-                s += "Q\n";
-
-                continue;
-            }
-
-            // rectangle
-            if (op.paint.do_fill)
-            {
-                s += internal::pdf_set_color(op.paint.fill, true);
-            }
-
-            if (op.paint.do_stroke)
-            {
-                s += internal::pdf_num(op.paint.line_width) + " w\n";
-                s += internal::pdf_set_color(op.paint.stroke, false);
-            }
-
-            s += internal::pdf_num(op.rect.x) + " " +
-                 internal::pdf_num(op.rect.y) + " " +
-                 internal::pdf_num(op.rect.width) + " " +
-                 internal::pdf_num(op.rect.height) + " re";
-
-            s += paint_suffix(op.paint);
+            emit_op(s, _page.ops[i], _fonts);
         }
 
         return s;
+    }
+
+    // emit_op
+    //   writes one recorded operation's operators.
+    static
+    void emit_op(
+        std::string&                    _s,
+        const DDrawOp&                  _op,
+        const std::vector<std::string>& _fonts
+    )
+    {
+        switch (_op.kind)
+        {
+            case op_kind::text:
+                emit_text_op(_s, _op, _fonts);
+                break;
+            case op_kind::line:
+                emit_line_op(_s, _op);
+                break;
+            case op_kind::save_state:
+                _s += "q\n";
+                break;
+            case op_kind::restore_state:
+                _s += "Q\n";
+                break;
+            case op_kind::path:
+                emit_paint_setup(_s, _op.paint);
+                emit_path_geometry(_s, _op.path);
+                _s += paint_suffix(_op.paint);
+                break;
+            case op_kind::image:
+                emit_image_op(_s, _op);
+                break;
+            default:
+                emit_rect_op(_s, _op);
+                break;
+        }
+
+        return;
+    }
+
+    // emit_text_op
+    //   writes a text run: BT, its font and size, its color, its
+    // position as a text matrix, the escaped string, ET.
+    static
+    void emit_text_op(
+        std::string&                    _s,
+        const DDrawOp&                  _op,
+        const std::vector<std::string>& _fonts
+    )
+    {
+        std::size_t fidx = font_index(_fonts, base_font_name(_op.font));
+
+        _s += "BT\n";
+        _s += "/F" + internal::pdf_num(static_cast<double>(fidx)) + " " +
+              internal::pdf_num(_op.font_size) + " Tf\n";
+        _s += internal::pdf_set_color(_op.text_color, true);
+        _s += "1 0 0 1 " +
+              internal::pdf_num(_op.text_at.x) + " " +
+              internal::pdf_num(_op.text_at.y) + " Tm\n";
+        _s += "(" + internal::pdf_escape_text(_op.text) + ") Tj\n";
+        _s += "ET\n";
+
+        return;
+    }
+
+    // emit_line_op
+    //   writes a stroked segment with its width and color.
+    static
+    void emit_line_op(
+        std::string&   _s,
+        const DDrawOp& _op
+    )
+    {
+        _s += internal::pdf_num(_op.paint.line_width) + " w\n";
+        _s += internal::pdf_set_color(_op.paint.stroke, false);
+        _s += internal::pdf_num(_op.a.x) + " " +
+              internal::pdf_num(_op.a.y) + " m " +
+              internal::pdf_num(_op.b.x) + " " +
+              internal::pdf_num(_op.b.y) + " l S\n";
+
+        return;
+    }
+
+    // emit_image_op
+    //   places an image by mapping the unit square to the destination
+    // rectangle via the cm matrix, then invoking the XObject; q/Q
+    // isolates the transform.
+    static
+    void emit_image_op(
+        std::string&   _s,
+        const DDrawOp& _op
+    )
+    {
+        const DPdfRect& d = _op.image_dest;
+
+        _s += "q\n";
+        _s += internal::pdf_num(d.width) + " 0 0 " +
+              internal::pdf_num(d.height) + " " +
+              internal::pdf_num(d.x) + " " +
+              internal::pdf_num(d.y) + " cm\n";
+        _s += "/Im" +
+              internal::pdf_num(static_cast<double>(_op.image_index)) +
+              " Do\n";
+        _s += "Q\n";
+
+        return;
+    }
+
+    // emit_rect_op
+    //   writes a rectangle with the paint's fill and stroke state.
+    static
+    void emit_rect_op(
+        std::string&   _s,
+        const DDrawOp& _op
+    )
+    {
+        emit_paint_setup(_s, _op.paint);
+        _s += internal::pdf_num(_op.rect.x) + " " +
+              internal::pdf_num(_op.rect.y) + " " +
+              internal::pdf_num(_op.rect.width) + " " +
+              internal::pdf_num(_op.rect.height) + " re";
+        _s += paint_suffix(_op.paint);
+
+        return;
     }
 
     // emit_paint_setup
@@ -874,63 +1079,105 @@ private:
         return " n\n";
     }
 
+    // compressing
+    //   function: true when this document's streams are written with
+    // FlateDecode: the setting asks for it, or leaves it to the knob
+    // and the knob does, and the build has zlib.
+    bool compressing() const
+    {
+        const bool wanted =
+            (m_compression == DPdfCompression::flate) ||
+            ( (m_compression == DPdfCompression::by_default) &&
+              (D_INTERNAL_PDF_COMPRESS != 0) );
+
+        return wanted && (d_codec_can_compress(D_CODEC_ID_ZLIB) != 0);
+    }
+
+    // image_samples
+    //   returns an image's samples as the stream holds them, and sets
+    // _colors and _space to match.  Gray and RGB embed directly; RGBA
+    // is composited over white into RGB (the built-in backend does not
+    // emit soft masks - a richer backend can override draw_image for
+    // true alpha).
+    static
+    std::string image_samples(
+        const DPdfImage& _img,
+        std::size_t&     _colors,
+        const char*&     _space
+    )
+    {
+        std::string data;
+        std::size_t px = _img.width * _img.height;
+
+        _colors = 3;
+        _space  = "/DeviceRGB";
+
+        if (_img.format == DPdfImageFormat::gray)
+        {
+            _colors = 1;
+            _space  = "/DeviceGray";
+            data.assign(
+                reinterpret_cast<const char*>(_img.samples.data()), px);
+
+            return data;
+        }
+
+        if (_img.format == DPdfImageFormat::rgb)
+        {
+            data.assign(
+                reinterpret_cast<const char*>(_img.samples.data()),
+                px * 3);
+
+            return data;
+        }
+
+        data.reserve(px * 3);
+
+        for (std::size_t i = 0; i < px; ++i)
+        {
+            unsigned r = _img.samples[(i * 4) + 0];
+            unsigned g = _img.samples[(i * 4) + 1];
+            unsigned b = _img.samples[(i * 4) + 2];
+            unsigned a = _img.samples[(i * 4) + 3];
+
+            // out = src*a + white*(1-a), all in 0..255
+            unsigned cr = (r * a + 255 * (255 - a)) / 255;
+            unsigned cg = (g * a + 255 * (255 - a)) / 255;
+            unsigned cb = (b * a + 255 * (255 - a)) / 255;
+
+            data.push_back(static_cast<char>(cr & 0xff));
+            data.push_back(static_cast<char>(cg & 0xff));
+            data.push_back(static_cast<char>(cb & 0xff));
+        }
+
+        return data;
+    }
+
     // emit_image_object
-    //   writes one image XObject as an uncompressed raw sample
-    // stream.  Gray and RGB images embed directly; RGBA is composited
-    // over white into RGB (the built-in backend does not emit soft
-    // masks - a richer backend can override draw_image for true
-    // alpha).  The stream is raw binary, written verbatim.
+    //   writes one image XObject.  With _flate its samples go through
+    // PNG's predictors, a filter chosen per row, then Flate, and the
+    // dictionary says how to undo both; without it, or if Flate fails,
+    // the samples are written raw.
     static
     void emit_image_object(
         std::string&              _out,
         std::vector<std::size_t>& _offsets,
         int                       _obj_num,
-        const DPdfImage&          _img
+        const DPdfImage&          _img,
+        bool                      _flate
     )
     {
-        char buf[128];
+        char        buf[160];
+        std::size_t colors = 3;
+        const char* cs     = "/DeviceRGB";
+        std::string data   = image_samples(_img, colors, cs);
+        std::string packed;
 
-        // resolve color space and assemble the raw sample payload
-        std::string         data;
-        const char*         cs = "/DeviceRGB";
-        std::size_t         px = _img.width * _img.height;
-
-        if (_img.format == DPdfImageFormat::gray)
-        {
-            cs = "/DeviceGray";
-            data.assign(
-                reinterpret_cast<const char*>(_img.samples.data()),
-                px);
-        }
-        else if (_img.format == DPdfImageFormat::rgb)
-        {
-            data.assign(
-                reinterpret_cast<const char*>(_img.samples.data()),
-                px * 3);
-        }
-        else
-        {
-            // RGBA: composite each pixel over a white background and
-            // store as RGB, since this backend emits no soft mask
-            data.reserve(px * 3);
-
-            for (std::size_t i = 0; i < px; ++i)
-            {
-                unsigned r = _img.samples[(i * 4) + 0];
-                unsigned g = _img.samples[(i * 4) + 1];
-                unsigned b = _img.samples[(i * 4) + 2];
-                unsigned a = _img.samples[(i * 4) + 3];
-
-                // out = src*a + white*(1-a), all in 0..255
-                unsigned cr = (r * a + 255 * (255 - a)) / 255;
-                unsigned cg = (g * a + 255 * (255 - a)) / 255;
-                unsigned cb = (b * a + 255 * (255 - a)) / 255;
-
-                data.push_back(static_cast<char>(cr & 0xff));
-                data.push_back(static_cast<char>(cg & 0xff));
-                data.push_back(static_cast<char>(cb & 0xff));
-            }
-        }
+        _flate = _flate &&
+                 internal::pdf_deflate(
+                     internal::pdf_png_predict(data, _img.width,
+                                               _img.height, colors),
+                     D_INTERNAL_PDF_COMPRESS_LEVEL, packed);
 
         internal::pdf_begin_object(_out, _offsets, _obj_num);
         _out += "<< /Type /XObject /Subtype /Image";
@@ -940,7 +1187,20 @@ private:
         _out += buf;
         _out += " /ColorSpace ";
         _out += cs;
-        _out += " /BitsPerComponent 8 /Length ";
+        _out += " /BitsPerComponent 8";
+
+        if (_flate)
+        {
+            std::snprintf(buf, sizeof(buf),
+                          " /Filter /FlateDecode /DecodeParms << /Predictor"
+                          " 15 /Colors %zu /BitsPerComponent 8 /Columns %zu"
+                          " >>",
+                          colors, _img.width);
+            _out += buf;
+            data.swap(packed);
+        }
+
+        _out += " /Length ";
         std::snprintf(buf, sizeof(buf), "%zu", data.size());
         _out += buf;
         _out += " >>\n";
@@ -952,108 +1212,155 @@ private:
         return;
     }
 
+    // emit_content_object
+    //   writes a page's content stream object.  With _flate it is
+    // compressed, and ends with an end-of-line before endstream, as
+    // compressed bytes need; raw, it is written as it always was.
+    static
+    void emit_content_object(
+        std::string&              _out,
+        std::vector<std::size_t>& _offsets,
+        int                       _obj_num,
+        const std::string&        _content,
+        bool                      _flate
+    )
+    {
+        char        buf[64];
+        std::string packed;
+
+        _flate = _flate &&
+                 internal::pdf_deflate(_content,
+                                       D_INTERNAL_PDF_COMPRESS_LEVEL, packed);
+
+        internal::pdf_begin_object(_out, _offsets, _obj_num);
+        _out += "<< /Length ";
+        std::snprintf(buf, sizeof(buf), "%zu",
+                      _flate ? packed.size() : _content.size());
+        _out += buf;
+        _out += _flate ? " /Filter /FlateDecode >>\n" : " >>\n";
+        _out += "stream\n";
+        _out += _flate ? packed : _content;
+        _out += _flate ? "\nendstream\n" : "endstream\n";
+        _out += "endobj\n";
+
+        return;
+    }
+
 
     // =================================================================
     //  internal: document assembly
     // =================================================================
 
-    // build_document
-    //   assembles the full PDF.  Object layout: 1 Catalog, 2 Pages,
-    // 3 Info, then F font objects, then a (page-dict, content) pair
-    // per page.  Byte offsets feed a cross-reference table.
-    std::string build_document() const
+    // DLayout
+    //   struct: a document's object numbering and its shared resource
+    // dictionaries.  Object layout: 1 Catalog, 2 Pages, 3 Info, then F
+    // font objects, then I image XObjects, then a (page-dict, content)
+    // pair per page.
+    struct DLayout
     {
-        std::vector<std::string> fonts = collect_fonts();
+        std::size_t font_count;
+        std::size_t image_count;
+        std::size_t page_count;
+        bool        synth_page;
+        int         first_font_obj;
+        int         first_image_obj;
+        int         first_page_obj;
+        std::size_t total_objs;
+        std::string res_fonts;
+        std::string res_xobjects;
+    };
 
-        std::size_t font_count = fonts.size();
-        std::size_t page_count = m_pages.size();
+    // plan_layout
+    //   numbers the objects, and builds the Font and XObject resource
+    // sub-dictionaries every page shares; image names match the /ImN
+    // the content streams use (N is the global image index).  A
+    // document with no pages gets one blank letter page.
+    DLayout plan_layout(
+        const std::vector<std::string>& _fonts
+    ) const
+    {
+        DLayout layout;
+        char    buf[64];
 
-        // ensure a valid document even with no pages
-        bool synth_page = (page_count == 0);
+        layout.font_count      = _fonts.size();
+        layout.image_count     = m_images.size();
+        layout.synth_page      = m_pages.empty();
+        layout.page_count      = layout.synth_page ? 1 : m_pages.size();
+        layout.first_font_obj  = 4;
+        layout.first_image_obj = static_cast<int>(4 + layout.font_count);
+        layout.first_page_obj  =
+            static_cast<int>(4 + layout.font_count + layout.image_count);
+        layout.total_objs = 3 + layout.font_count + layout.image_count +
+                            (2 * layout.page_count);
 
-        if (synth_page)
+        for (std::size_t f = 0; f < layout.font_count; ++f)
         {
-            page_count = 1;
+            std::snprintf(buf, sizeof(buf), "/F%zu %d 0 R ", (f + 1),
+                          layout.first_font_obj + static_cast<int>(f));
+            layout.res_fonts += buf;
         }
 
-        // object numbering: 1 Catalog, 2 Pages, 3 Info, then F font
-        // objects, then I image XObjects, then a (page-dict, content)
-        // pair per page
-        std::size_t image_count   = m_images.size();
-        int   info_obj            = 3;
-        int   first_font_obj      = 4;
-        int   first_image_obj     =
-            static_cast<int>(4 + font_count);
-        int   first_page_obj      =
-            static_cast<int>(4 + font_count + image_count);
-        std::size_t total_objs =
-            3 + font_count + image_count + (2 * page_count);
-
-        std::string              out;
-        std::string              kids;
-        std::string              res_fonts;
-        std::string              res_xobjects;
-        std::vector<std::size_t> offsets(total_objs + 1, 0);
-        char                     buf[256];
-
-        // header with binary marker
-        out += "%PDF-1.4\n";
-        out += "%\xE2\xE3\xCF\xD3\n";
-
-        // build the shared Font resource sub-dictionary
-        for (std::size_t f = 0; f < font_count; ++f)
+        for (std::size_t im = 0; im < layout.image_count; ++im)
         {
-            int fobj = first_font_obj + static_cast<int>(f);
-
-            std::snprintf(buf, sizeof(buf),
-                          "/F%zu %d 0 R ", (f + 1), fobj);
-            res_fonts += buf;
+            std::snprintf(buf, sizeof(buf), "/Im%zu %d 0 R ", im,
+                          layout.first_image_obj + static_cast<int>(im));
+            layout.res_xobjects += buf;
         }
 
-        // build the shared XObject resource sub-dictionary; image
-        // names match the /ImN emitted in the content stream (N is
-        // the global image index)
-        for (std::size_t im = 0; im < image_count; ++im)
+        return layout;
+    }
+
+    // emit_catalog_and_tree
+    //   writes object 1, the catalog, and object 2, the page tree with a
+    // kid for each page dictionary.
+    static
+    void emit_catalog_and_tree(
+        std::string&              _out,
+        std::vector<std::size_t>& _offsets,
+        const DLayout&            _layout
+    )
+    {
+        std::string kids;
+        char        buf[64];
+
+        internal::pdf_begin_object(_out, _offsets, 1);
+        _out += "<< /Type /Catalog /Pages 2 0 R >>\n";
+        _out += "endobj\n";
+
+        for (std::size_t p = 0; p < _layout.page_count; ++p)
         {
-            int iobj = first_image_obj + static_cast<int>(im);
-
-            std::snprintf(buf, sizeof(buf),
-                          "/Im%zu %d 0 R ", im, iobj);
-            res_xobjects += buf;
-        }
-
-        // object 1: catalog
-        internal::pdf_begin_object(out, offsets, 1);
-        out += "<< /Type /Catalog /Pages 2 0 R >>\n";
-        out += "endobj\n";
-
-        // build Kids referencing each page dict
-        for (std::size_t p = 0; p < page_count; ++p)
-        {
-            int page_obj =
-                first_page_obj + static_cast<int>(2 * p);
-
-            std::snprintf(buf, sizeof(buf), "%d 0 R ", page_obj);
+            std::snprintf(buf, sizeof(buf), "%d 0 R ",
+                          _layout.first_page_obj + static_cast<int>(2 * p));
             kids += buf;
         }
 
-        // object 2: page tree
-        internal::pdf_begin_object(out, offsets, 2);
-        out += "<< /Type /Pages /Kids [";
-        out += kids;
-        out += "] /Count ";
-        std::snprintf(buf, sizeof(buf), "%zu", page_count);
-        out += buf;
-        out += " >>\n";
-        out += "endobj\n";
+        internal::pdf_begin_object(_out, _offsets, 2);
+        _out += "<< /Type /Pages /Kids [";
+        _out += kids;
+        _out += "] /Count ";
+        std::snprintf(buf, sizeof(buf), "%zu", _layout.page_count);
+        _out += buf;
+        _out += " >>\n";
+        _out += "endobj\n";
 
-        // object 3: document information dictionary
-        internal::pdf_begin_object(out, offsets, info_obj);
-        out += "<< /Producer (djinterp pdf)";
+        return;
+    }
+
+    // emit_info
+    //   writes object 3, the document information dictionary: the
+    // producer, each recognized metadata key with its PDF name (an
+    // unknown key is skipped, to keep the dictionary well-formed), and
+    // the creation date.
+    void emit_info(
+        std::string&              _out,
+        std::vector<std::size_t>& _offsets
+    ) const
+    {
+        internal::pdf_begin_object(_out, _offsets, 3);
+        _out += "<< /Producer (djinterp pdf)";
+
         for (std::size_t i = 0; i < m_meta.size(); ++i)
         {
-            // emit recognized keys with their PDF names; unknown
-            // keys are skipped to keep the Info dict well-formed
             std::string pdfkey = info_key_name(m_meta[i].key);
 
             if (pdfkey.empty())
@@ -1061,107 +1368,163 @@ private:
                 continue;
             }
 
-            out += " /" + pdfkey + " (" +
-                   internal::pdf_escape_text(m_meta[i].value) + ")";
+            _out += " /" + pdfkey + " (" +
+                    internal::pdf_escape_text(m_meta[i].value) + ")";
         }
-        out += " /CreationDate (" +
-               internal::pdf_creation_date() + ") >>\n";
-        out += "endobj\n";
 
-        // font objects
-        for (std::size_t f = 0; f < font_count; ++f)
+        _out += " /CreationDate (" +
+                internal::pdf_creation_date() + ") >>\n";
+        _out += "endobj\n";
+
+        return;
+    }
+
+    // emit_fonts
+    //   writes a Type1 font object for each collected base font.
+    static
+    void emit_fonts(
+        std::string&                    _out,
+        std::vector<std::size_t>&       _offsets,
+        const DLayout&                  _layout,
+        const std::vector<std::string>& _fonts
+    )
+    {
+        for (std::size_t f = 0; f < _layout.font_count; ++f)
         {
-            int fobj = first_font_obj + static_cast<int>(f);
-
-            internal::pdf_begin_object(out, offsets, fobj);
-            out += "<< /Type /Font /Subtype /Type1 /BaseFont /";
-            out += fonts[f];
-            out += " /Encoding /WinAnsiEncoding >>\n";
-            out += "endobj\n";
+            internal::pdf_begin_object(
+                _out, _offsets, _layout.first_font_obj + static_cast<int>(f));
+            _out += "<< /Type /Font /Subtype /Type1 /BaseFont /";
+            _out += _fonts[f];
+            _out += " /Encoding /WinAnsiEncoding >>\n";
+            _out += "endobj\n";
         }
 
-        // image XObject objects (uncompressed raw samples)
-        for (std::size_t im = 0; im < image_count; ++im)
+        return;
+    }
+
+    // emit_page
+    //   writes page _p's dictionary, sharing the layout's resources, and
+    // its content stream object after it.
+    void emit_page(
+        std::string&                    _out,
+        std::vector<std::size_t>&       _offsets,
+        const DLayout&                  _layout,
+        const std::vector<std::string>& _fonts,
+        std::size_t                     _p,
+        bool                            _flate
+    ) const
+    {
+        const int   page_obj    =
+            _layout.first_page_obj + static_cast<int>(2 * _p);
+        const int   content_obj = page_obj + 1;
+        DPdfSize    sz          = _layout.synth_page
+                                      ? DPdfSize(612.0, 792.0)
+                                      : m_pages[_p].size;
+        std::string content;
+        char        buf[64];
+
+        if (!_layout.synth_page)
         {
-            int iobj = first_image_obj + static_cast<int>(im);
-
-            emit_image_object(out, offsets, iobj, m_images[im]);
+            content = build_content_stream(m_pages[_p], _fonts);
         }
 
-        // page objects
-        for (std::size_t p = 0; p < page_count; ++p)
+        internal::pdf_begin_object(_out, _offsets, page_obj);
+        _out += "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ";
+        _out += internal::pdf_num(sz.width) + " " +
+                internal::pdf_num(sz.height);
+        _out += "] /Resources << /Font << ";
+        _out += _layout.res_fonts;
+        _out += ">>";
+
+        if (!_layout.res_xobjects.empty())
         {
-            int page_obj =
-                first_page_obj + static_cast<int>(2 * p);
-            int content_obj = page_obj + 1;
-
-            DPdfSize sz =
-                synth_page ? DPdfSize(612.0, 792.0) : m_pages[p].size;
-
-            std::string content;
-
-            if (!synth_page)
-            {
-                content = build_content_stream(m_pages[p], fonts);
-            }
-
-            // page dictionary
-            internal::pdf_begin_object(out, offsets, page_obj);
-            out += "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ";
-            out += internal::pdf_num(sz.width) + " " +
-                   internal::pdf_num(sz.height);
-            out += "] /Resources << /Font << ";
-            out += res_fonts;
-            out += ">>";
-            if (!res_xobjects.empty())
-            {
-                out += " /XObject << ";
-                out += res_xobjects;
-                out += ">>";
-            }
-            out += " >> /Contents ";
-            std::snprintf(buf, sizeof(buf), "%d 0 R", content_obj);
-            out += buf;
-            out += " >>\n";
-            out += "endobj\n";
-
-            // content stream object
-            internal::pdf_begin_object(out, offsets, content_obj);
-            out += "<< /Length ";
-            std::snprintf(buf, sizeof(buf), "%zu", content.size());
-            out += buf;
-            out += " >>\n";
-            out += "stream\n";
-            out += content;
-            out += "endstream\n";
-            out += "endobj\n";
+            _out += " /XObject << ";
+            _out += _layout.res_xobjects;
+            _out += ">>";
         }
 
-        // cross-reference table
-        std::size_t xref_offset = out.size();
+        _out += " >> /Contents ";
+        std::snprintf(buf, sizeof(buf), "%d 0 R", content_obj);
+        _out += buf;
+        _out += " >>\n";
+        _out += "endobj\n";
 
-        out += "xref\n";
-        std::snprintf(buf, sizeof(buf), "0 %zu\n", (total_objs + 1));
-        out += buf;
-        out += "0000000000 65535 f \n";
+        emit_content_object(_out, _offsets, content_obj, content, _flate);
 
-        for (std::size_t n = 1; n <= total_objs; ++n)
+        return;
+    }
+
+    // emit_xref_and_trailer
+    //   writes the cross-reference table from the recorded offsets, the
+    // trailer, and startxref.
+    static
+    void emit_xref_and_trailer(
+        std::string&                    _out,
+        const std::vector<std::size_t>& _offsets,
+        std::size_t                     _total_objs
+    )
+    {
+        const std::size_t xref_offset = _out.size();
+        char              buf[64];
+
+        _out += "xref\n";
+        std::snprintf(buf, sizeof(buf), "0 %zu\n", (_total_objs + 1));
+        _out += buf;
+        _out += "0000000000 65535 f \n";
+
+        for (std::size_t n = 1; n <= _total_objs; ++n)
         {
             std::snprintf(buf, sizeof(buf), "%010zu 00000 n \n",
-                          offsets[n]);
-            out += buf;
+                          _offsets[n]);
+            _out += buf;
         }
 
-        // trailer
-        out += "trailer\n";
-        out += "<< /Size ";
-        std::snprintf(buf, sizeof(buf), "%zu", (total_objs + 1));
-        out += buf;
-        out += " /Root 1 0 R /Info 3 0 R >>\n";
-        out += "startxref\n";
+        _out += "trailer\n";
+        _out += "<< /Size ";
+        std::snprintf(buf, sizeof(buf), "%zu", (_total_objs + 1));
+        _out += buf;
+        _out += " /Root 1 0 R /Info 3 0 R >>\n";
+        _out += "startxref\n";
         std::snprintf(buf, sizeof(buf), "%zu\n", xref_offset);
-        out += buf;
-        out += "%%EOF\n";
+        _out += buf;
+        _out += "%%EOF\n";
+
+        return;
+    }
+
+    // build_document
+    //   assembles the full PDF: the header with its binary marker, the
+    // catalog and page tree, the information dictionary, the fonts,
+    // the images, each page with its content, then the cross-reference
+    // table that the recorded byte offsets feed.
+    std::string build_document() const
+    {
+        const std::vector<std::string> fonts  = collect_fonts();
+        const DLayout                  layout = plan_layout(fonts);
+        const bool                     flate  = compressing();
+        std::vector<std::size_t>       offsets(layout.total_objs + 1, 0);
+        std::string                    out;
+
+        out += "%PDF-1.4\n";
+        out += "%\xE2\xE3\xCF\xD3\n";
+
+        emit_catalog_and_tree(out, offsets, layout);
+        emit_info(out, offsets);
+        emit_fonts(out, offsets, layout, fonts);
+
+        for (std::size_t im = 0; im < layout.image_count; ++im)
+        {
+            emit_image_object(out, offsets,
+                              layout.first_image_obj + static_cast<int>(im),
+                              m_images[im], flate);
+        }
+
+        for (std::size_t p = 0; p < layout.page_count; ++p)
+        {
+            emit_page(out, offsets, layout, fonts, p, flate);
+        }
+
+        emit_xref_and_trailer(out, offsets, layout.total_objs);
 
         return out;
     }
@@ -1193,6 +1556,7 @@ private:
     std::vector<DPdfImage>   m_images;
     bool                     m_open;
     bool                     m_page_open;
+    DPdfCompression          m_compression;
 };
 
 

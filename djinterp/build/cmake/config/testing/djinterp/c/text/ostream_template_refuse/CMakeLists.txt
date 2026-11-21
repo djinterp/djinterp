@@ -18,9 +18,9 @@ djinterp_add_test_executable(c_ostream_template_refuse_tests
         "${CMAKE_CURRENT_SOURCE_DIR}/ostream_template_refuse_tests_runner.c"
         "${_tests_dir}/ostream_template_refuse_tests.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/text/ostream_template.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/memory/dmemory.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/modules/test/test_suite.c"
     DEFINES
         D_CFG_OSTREAM_TEMPLATE_UTF8=1
+    LIBRARIES
+        djinterp_c_test
     INCLUDES
         "${_tests_dir}")

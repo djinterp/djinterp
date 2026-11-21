@@ -6,6 +6,9 @@
 * and a .tar.gz from the gz knobs.  The defaults store neither, and stay byte
 * for byte what the GZIP codec writes.  A file written by `gzip -N` is read
 * back with its name and time.
+*   The OS byte is 255, RFC 1952's "unknown", on every machine unless a
+* header, the option sets' gzip.os and gz.os, or the build choose another, and
+* "zlib's" is one of the choices.
 *
 *
 * path:      /tests/djinterp/c/util/archive/archive_kernel_tests_gzip.c
@@ -20,6 +23,9 @@
 // djinterp
 #include "../../../../../inc/djinterp/c/util/compress/compress_common.h"
                                          // dj_gzip_header, the gzip pair
+#if D_INTERNAL_COMPRESS_DEFLATE
+#include <zlib.h>  // deflate*: the byte zlib writes of its own choosing
+#endif
 
 
 // d_tests_ak_gzip_n
@@ -124,7 +130,7 @@ d_tests_ak_gzip_codec
   Tests the following:
   - a null header, and one with no name or time, write exactly what the GZIP
     codec writes, OS byte included
-  - a name and a time come back as written, with the OS byte zlib chose
+  - a name and a time come back as written, with the codec's OS byte
   - an OS byte given is written as given
   - `gzip -N`'s file reads back with its name, time and OS byte
   - a name longer than the buffer is cut, NUL-terminated, and flagged; with
@@ -418,6 +424,229 @@ d_tests_ak_gzip_tar_gz(void)
 
 
 /*
+d_tests_ak_gzip_zlib_os
+  The OS byte zlib writes when it writes a header of its own choosing, from
+the header of an empty stream; D_GZIP_OS_UNKNOWN when there is no zlib.
+*/
+static int
+d_tests_ak_gzip_zlib_os(void)
+{
+    int os = D_GZIP_OS_UNKNOWN;
+#if D_INTERNAL_COMPRESS_DEFLATE
+    unsigned char out[32];
+    z_stream      zs;
+
+    memset(&zs, 0, sizeof(zs));
+
+    if (deflateInit2(&zs, Z_DEFAULT_COMPRESSION, Z_DEFLATED, MAX_WBITS + 16,
+                     8, Z_DEFAULT_STRATEGY) == Z_OK)
+    {
+        zs.next_out  = out;
+        zs.avail_out = (uInt)sizeof(out);
+
+        if (deflate(&zs, Z_FINISH) == Z_STREAM_END)
+        {
+            os = (int)out[9];
+        }
+
+        (void)deflateEnd(&zs);
+    }
+#endif
+
+    return os;
+}
+
+/*
+d_tests_ak_gzip_os_byte
+  The byte the GZIP codec writes under _options, with _header (may be null)
+through the gzip pair; -1 when it fails.
+*/
+static int
+d_tests_ak_gzip_os_byte(
+    const struct dj_compress_options* _options,
+    const struct dj_gzip_header*      _header
+)
+{
+    return ( (d_compress_gzip_to_sink(d_tests_ak_gzip_text,
+                                      strlen(d_tests_ak_gzip_text), _options,
+                                      _header, d_tests_ak_gzip_sink(),
+                                      NULL) == D_PACK_STATUS_OK) &&
+             (d_tests_ak_gzip_size > 9u) )
+         ? (int)d_tests_ak_gzip_bytes[9]
+         : -1;
+}
+
+/*
+d_tests_ak_gzip_os_codec
+  The OS byte through the compress kernel: the gzip.os knob, its default and
+its choices.
+  Tests the following:
+  - by default the GZIP codec, and the gzip pair with no header or an empty
+    one, write 255 ("unknown"), so the bytes are the same on every machine
+  - resolving for GZIP pins gzip.os at the build's 255; resolving for
+    another codec leaves it unset
+  - gzip.os set to 3 is written as 3; a header's os of 7 wins over it; a
+    header's D_GZIP_OS_DEFAULT takes it
+  - D_GZIP_OS_ZLIB, in the option set or the header, writes zlib's own byte
+  - gzip.os is knob 50, "gzip.os", the GZIP codec's
+  - validation refuses 256 and -3 for gzip.os, and the gzip pair refuses a
+    header os of -3
+*/
+static void
+d_tests_ak_gzip_os_codec(void)
+{
+    struct dj_compress_options opt;
+    struct dj_compress_options res;
+    struct dj_gzip_header      header = D_GZIP_HEADER_NONE;
+    enum dj_compress_knob      knob   = D_COMPRESS_KNOB_LEVEL;
+    const int                  zlib_os = d_tests_ak_gzip_zlib_os();
+
+    d_tests_ak_open("gzip_os_codec",
+                    "the GZIP codec's OS byte is 255 by default, and gzip.os "
+                    "or a header chooses another, zlib's included");
+
+    // the default, every way the codec is reached
+    D_TESTS_AK_CHECK( (d_compress_to_sink(D_CODEC_ID_GZIP,
+                                          d_tests_ak_gzip_text,
+                                          strlen(d_tests_ak_gzip_text), NULL,
+                                          d_tests_ak_gzip_sink(),
+                                          NULL) == D_PACK_STATUS_OK) &&
+                      (d_tests_ak_gzip_bytes[9] == 255u) );
+    D_TESTS_AK_CHECK(d_tests_ak_gzip_os_byte(NULL, NULL) == 255);
+    D_TESTS_AK_CHECK(d_tests_ak_gzip_os_byte(NULL, &header) == 255);
+
+    // resolution
+    D_TESTS_AK_CHECK( (d_compress_options_resolve(D_CODEC_ID_GZIP, NULL,
+                                                  &res) == D_PACK_STATUS_OK) &&
+                      (res.gzip.os == D_GZIP_OS_UNKNOWN) );
+    D_TESTS_AK_CHECK( (d_compress_options_resolve(D_CODEC_ID_ZLIB, NULL,
+                                                  &res) == D_PACK_STATUS_OK) &&
+                      (res.gzip.os == D_COMPRESS_KNOB_UNSET) );
+
+    // the knob, and a header over it
+    d_compress_options_init(&opt);
+    opt.gzip.os = 3;
+    D_TESTS_AK_CHECK(d_tests_ak_gzip_os_byte(&opt, NULL) == 3);
+    D_TESTS_AK_CHECK(d_tests_ak_gzip_os_byte(&opt, &header) == 3);
+    header.os = 7;
+    D_TESTS_AK_CHECK(d_tests_ak_gzip_os_byte(&opt, &header) == 7);
+
+    // zlib's own
+    opt.gzip.os = D_GZIP_OS_ZLIB;
+    D_TESTS_AK_CHECK(d_tests_ak_gzip_os_byte(&opt, NULL) == zlib_os);
+    d_compress_options_init(&opt);
+    header.os = D_GZIP_OS_ZLIB;
+    D_TESTS_AK_CHECK(d_tests_ak_gzip_os_byte(&opt, &header) == zlib_os);
+
+    // the knob table
+    D_TESTS_AK_CHECK( (D_COMPRESS_KNOB_GZIP_OS == 50) &&
+                      (D_COMPRESS_KNOB_COUNT == 51) );
+    D_TESTS_AK_CHECK(strcmp(d_compress_knob_name(D_COMPRESS_KNOB_GZIP_OS),
+                            "gzip.os") == 0);
+    D_TESTS_AK_CHECK(d_compress_knob_from_name("gzip.os", &knob) &&
+                     (knob == D_COMPRESS_KNOB_GZIP_OS));
+    D_TESTS_AK_CHECK(d_compress_knob_codec(D_COMPRESS_KNOB_GZIP_OS) ==
+                     D_CODEC_ID_GZIP);
+
+    // refusals
+    opt.gzip.os = 256;
+    D_TESTS_AK_CHECK( (d_compress_options_validate(D_CODEC_ID_GZIP, &opt,
+                                                   &knob) !=
+                       D_PACK_STATUS_OK) &&
+                      (knob == D_COMPRESS_KNOB_GZIP_OS) );
+    opt.gzip.os = -3;
+    D_TESTS_AK_CHECK(d_compress_options_validate(D_CODEC_ID_GZIP, &opt,
+                                                 NULL) != D_PACK_STATUS_OK);
+    header.os = -3;
+    D_TESTS_AK_CHECK(d_compress_gzip_to_sink(d_tests_ak_gzip_text, 1u, NULL,
+                                             &header, d_tests_ak_gzip_sink(),
+                                             NULL) ==
+                     D_PACK_STATUS_INVALID_ARGUMENT);
+
+    return;
+}
+
+/*
+d_tests_ak_gzip_os_archive
+  The OS byte through the archive kernel: gz.os over the codec block's
+gzip.os, in a .gz and a .tar.gz.
+  Tests the following:
+  - by default a .gz and a .tar.gz carry 255
+  - the codec block's gzip.os is used when gz.os is unset, and gz.os wins
+    when set; D_GZIP_OS_ZLIB gives zlib's byte
+  - d_archive_reproducible fixes gz.os at 255
+  - gz.os is "gz.os", before gz.original_name in the knob index
+  - validation refuses gz.os 300 for a .gz, naming gz.os
+*/
+static void
+d_tests_ak_gzip_os_archive(void)
+{
+    struct dj_archive_entry   entry;
+    struct dj_archive_options opt;
+    enum dj_archive_knob      offender = D_ARCHIVE_KNOB_LEVEL;
+    enum dj_pack_status       status;
+    unsigned char*            out;
+    size_t                    size = 0u;
+    size_t                    n = strlen(d_tests_ak_gzip_text);
+
+    d_tests_ak_open("gzip_os_archive",
+                    "a .gz and a .tar.gz carry OS 255 by default; gz.os wins "
+                    "over the codec block's gzip.os");
+
+    entry = d_tests_ak_file("a.txt", d_tests_ak_gzip_text, n);
+    d_archive_options_init(&opt);
+
+    // the defaults
+    out = d_tests_ak_create(D_FORMAT_ID_GZ, &entry, 1u, &opt, &size,
+                            &status);
+    D_TESTS_AK_CHECK( (out != NULL) && (size > 9u) && (out[9] == 255u) );
+    free(out);
+    out = d_tests_ak_create(D_FORMAT_ID_TAR_GZ, &entry, 1u, &opt, &size,
+                            &status);
+    D_TESTS_AK_CHECK( (out != NULL) && (size > 9u) && (out[9] == 255u) );
+    free(out);
+
+    // the codec block's, then gz.os over it
+    opt.codec.gzip.os = 3;
+    out = d_tests_ak_create(D_FORMAT_ID_GZ, &entry, 1u, &opt, &size,
+                            &status);
+    D_TESTS_AK_CHECK( (out != NULL) && (size > 9u) && (out[9] == 3u) );
+    free(out);
+    opt.gz.os = 11;
+    out = d_tests_ak_create(D_FORMAT_ID_GZ, &entry, 1u, &opt, &size,
+                            &status);
+    D_TESTS_AK_CHECK( (out != NULL) && (size > 9u) && (out[9] == 11u) );
+    free(out);
+    opt.gz.os = 0;
+    out = d_tests_ak_create(D_FORMAT_ID_TAR_GZ, &entry, 1u, &opt, &size,
+                            &status);
+    D_TESTS_AK_CHECK( (out != NULL) && (size > 9u) && (out[9] == 0u) );
+    free(out);
+    opt.gz.os = D_GZIP_OS_ZLIB;
+    out = d_tests_ak_create(D_FORMAT_ID_GZ, &entry, 1u, &opt, &size,
+                            &status);
+    D_TESTS_AK_CHECK( (out != NULL) && (size > 9u) &&
+                      ((int)out[9] == d_tests_ak_gzip_zlib_os()) );
+    free(out);
+
+    // the reproducible preset, the index, and a refusal
+    D_TESTS_AK_CHECK(d_archive_reproducible().gz.os == D_GZIP_OS_UNKNOWN);
+    D_TESTS_AK_CHECK(strcmp(d_archive_knob_name(D_ARCHIVE_KNOB_GZ_OS),
+                            "gz.os") == 0);
+    D_TESTS_AK_CHECK( (D_ARCHIVE_KNOB_GZ_OS + 1 ==
+                       D_ARCHIVE_KNOB_GZ_ORIGINAL_NAME) &&
+                      (!d_archive_knob_is_text(D_ARCHIVE_KNOB_GZ_OS)) );
+    opt.gz.os = 300;
+    D_TESTS_AK_CHECK( (d_archive_options_validate(D_FORMAT_ID_GZ, &opt,
+                                                  &offender) ==
+                       D_PACK_STATUS_INVALID_ARGUMENT) &&
+                      (offender == D_ARCHIVE_KNOB_GZ_OS) );
+
+    return;
+}
+
+
+/*
 d_tests_ak_gzip
   The section: gzip's header, in the codec and in the archive kernel.
 */
@@ -427,6 +656,8 @@ d_tests_ak_gzip(void)
     d_tests_ak_gzip_codec();
     d_tests_ak_gzip_gz();
     d_tests_ak_gzip_tar_gz();
+    d_tests_ak_gzip_os_codec();
+    d_tests_ak_gzip_os_archive();
 
     return;
 }

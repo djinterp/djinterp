@@ -16,7 +16,7 @@
 * path:      /tests/djinterp/cpp/util/pdf/pdf_stream_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "pdf_stream_tests.hpp"  // the suite's entry point, DTest's C face
 // std
@@ -124,7 +124,8 @@ static void d_tests_pdf_parity()
 d_tests_pdf_document
   Tests the following:
   - a document written under de_DE.UTF-8 has its coordinates with '.': a
-    line from (1.5, 2.25) shows "1.5 2.25 m", and no "1,5" anywhere
+    line from (1.5, 2.25) shows "1.5 2.25 m", and no "1,5" anywhere (its
+    streams raw, so the content can be read)
   - save_to a std::string through a DOutputStream writes to_bytes()'s bytes,
     and leaves the stream healthy
 */
@@ -141,6 +142,7 @@ static void d_tests_pdf_document()
 
     djinterp::DPdfDocument doc;
 
+    doc.set_compression(djinterp::DPdfCompression::none);
     doc.add_page();
     doc.line(djinterp::DPdfPoint(1.5, 2.25), djinterp::DPdfPoint(100.5, 2.25));
 
@@ -180,8 +182,8 @@ d_tests_pdf_cpp_all(
 
     (void)d_test_suite_module(_suite, "pdf_stream_cpp");
     (void)d_test_suite_describe(_suite,
-                                "the C++ PDF writer's numbers and save_to on "
-                                "the output stream");
+                                "the C++ PDF writer's numbers, save_to on "
+                                "the output stream, and its compression");
     (void)d_test_suite_block(_suite, "pdf_document.hpp");
 
     (void)d_test_suite_test(_suite, "pdf_num against d_pdf_num");
@@ -203,6 +205,8 @@ d_tests_pdf_cpp_all(
 #else
     (void)d_test_suite_skip(_suite, "below C++17, the PDF module's floor");
 #endif
+
+    d_tests_pdf_compress_block(_suite);
 
     g_suite = NULL;
 

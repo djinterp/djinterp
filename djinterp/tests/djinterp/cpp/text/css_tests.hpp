@@ -7,8 +7,8 @@
 * and a test per group of checks. Every header's floor is C++17, and below it
 * a group is skipped, saying why.
 *   The groups live in the section files: css_tests_vocabulary.cpp
-* (css.hpp), css_tests_sheet.cpp (css_template.hpp) and
-* css_tests_printer.cpp (css_printer.hpp).
+* (css.hpp), css_tests_sheet.cpp and css_tests_detached.cpp
+* (css_template.hpp), and css_tests_printer.cpp (css_printer.hpp).
 *
 *
 * TABLE OF CONTENTS
@@ -23,7 +23,7 @@
 * path:      /tests/djinterp/cpp/text/css_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_CPP_TEXT_CSS_TESTS_HPP
@@ -56,10 +56,12 @@ void d_tests_css_rules(void);
 void d_tests_css_at_rules(void);
 void d_tests_css_names(void);
 
-// b.  css_template.hpp (css_tests_sheet.cpp)
+// b.  css_template.hpp (css_tests_sheet.cpp, css_tests_detached.cpp)
 void d_tests_css_sheet_build(void);
 void d_tests_css_sheet_render(void);
 void d_tests_css_sheet_at_rules(void);
+void d_tests_css_detached_factories(void);
+void d_tests_css_detached_adopt(void);
 
 // c.  css_printer.hpp (css_tests_printer.cpp)
 void d_tests_css_printer(void);

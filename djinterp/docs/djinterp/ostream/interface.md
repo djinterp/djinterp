@@ -105,6 +105,35 @@ The knobs, each fixed when compiling:
 - Every stream lowers back to a sink (`d_ostream_as_sink`), for producers
   that take only a sink.
 
+### Appending to a file
+
+`d_ostream_open_file` with `_append` set opens the file on a descriptor of
+its own, opened to append, and hands the system each flush in one write.
+
+**The guarantee:** a record no larger than the stream's buffer, written and
+then flushed, reaches a local file whole, however many processes append to
+the file at once. No other process's bytes land inside it.
+
+- **Why it holds.** The stream drains its whole buffer in one call at a
+  flush, and that call is one system write. The system appends each write
+  whole: POSIX's `O_APPEND`, and on Windows a handle opened with
+  `FILE_APPEND_DATA` and not `FILE_WRITE_DATA`.
+- **Where it doesn't.**
+  - A record larger than the buffer goes in more than one write.
+  - A short write, which a full disk can cause, leaves part of a record;
+    the stream writes the rest, but another process may come between.
+  - Appends to a network file system such as NFS aren't atomic, whatever
+    the program does.
+  - A build whose file layer has no descriptors (the ISO C one) appends
+    through stdio, and promises nothing.
+- **On Windows,** the guarantee needs the file layer's `d_file_open` to open
+  `O_APPEND` with `FILE_APPEND_DATA` alone. Until it does, Windows appends as
+  the C runtime does: it moves to the end, then writes, and another process
+  can come between the two.
+- A file opened to append is created, when it doesn't exist, with
+  `D_CFG_FILE_WRITE_CREATE_MODE` (0644 under the umask), as every file the
+  file layer writes.
+
 ### Formatting
 
 - **Numbers for machines don't follow the locale.**
@@ -191,10 +220,12 @@ On the tree of 2026-11-17:
 | the log | everything desc uses; the console (`d_ostream_init_console`, `D_OSTREAM_CONSOLE_ERR`), `d_ostream_open_file`, `_set_buffer` and `_flush`; templates (`d_ostream_template_compile`, `_template_render`, `D_OSTREAM_TEMPLATE_OK` and `_INVALID`), for its codes' templates, in the template language (`{name}`, `{name!json}`, `{name:spec}`, `{?name}...{:}...{/}`); the values `d_ostream_value_long`, `_ulong`, `_uint64` and `_size` |
 | the argument parser, C and C++ | `struct dj_pack_sink`, `d_sink_emit`; `struct dj_pack_text` throughout its public headers, and `D_PACK_TEXT_NONE`; `d_pack_text_from_cstr` and `d_pack_text_equal` in its suites |
 | vparse's command line | `struct dj_pack_sink`, `struct dj_pack_text` |
-| the CLI kit (`tools/cli`), in its public headers and their C++ faces | `struct dj_pack_sink`, `dj_pack_sink_write_fn`, `struct dj_pack_text`, `D_PACK_TEXT_NONE`, `d_pack_text_from_cstr`, `d_pack_text_equal` |
-| the djinterp program | `struct dj_pack_sink`, `d_sink_emit`, `struct dj_pack_text` |
-| bitwisedom's command line, the interpreter's `djin.c` and `djin.h` | `struct dj_pack_sink`, `d_sink_emit` |
-| the interpreter's suite | `struct dj_pack_buffer_sink`, `d_pack_buffer_sink_init`, `d_pack_sink_from_buffer` |
+| the CLI kit (`tools/cli`): its headers and their C++ faces | `struct dj_pack_sink` |
+| the CLI kit's sources and suites | `struct dj_pack_sink`, `dj_pack_sink_write_fn`, `struct dj_pack_text`, `D_PACK_TEXT_NONE`, `d_pack_text_from_cstr`, `d_pack_text_equal` |
+| the djinterp program | `struct dj_pack_sink`, `d_sink_emit`, `struct dj_pack_text`; from Fri 11-20, for `describe --format=json` through desc, `struct dj_ostream`, `d_ostream_init` over a sink, `d_ostream_set_buffer`, `d_ostream_flush`, `d_ostream_close`, `d_ostream_is_ok` and `d_ostream_last_errno` |
+| bitwisedom's command line | `struct dj_pack_sink` |
+| the interpreter's `djin.c` and `djin.h` | `struct dj_pack_sink`, `d_sink_emit` |
+| the interpreter's suite | `struct dj_pack_sink`, `struct dj_pack_buffer_sink`, `d_pack_buffer_sink_init`, `d_pack_sink_from_buffer` |
 | net, C and C++, throughout (its root, `codec`, `curl`, `ftp`, `http`, `imap`, `pop`, `sftp`, `smtp`, `ssh`, `ssl`, `starttls`, `tcp`, `tls`) | `struct dj_pack_text`, `struct dj_pack_bytes`, `struct dj_pack_sink`, `d_pack_text_from_cstr`; `d_pack_text_from_span` in `imap`'s suite; `d_sink_emit` in `pop` and `imap` |
 | compression and archiving | `struct dj_pack_sink`, `d_sink_emit`, the counting and buffer sinks |
 

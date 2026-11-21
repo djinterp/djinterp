@@ -1,14 +1,20 @@
 /*******************************************************************************
-* djinterp [cpp]                                  color_common_tests_channel.cpp
+* djinterp [test]                                 color_common_tests_channel.cpp
+*
+*   The color_common suite's channel block: channel_t is floating point, the
+* C kernel's float, keeps arithmetic's results, and holds values outside the
+* gamut.
 *
 *
 * path:      /tests/djinterp/cpp/util/color/color_common_tests_channel.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 // djinterp
-#include "color_common_tests.hpp"
+#include "color_common_tests.hpp"  // the suite's declarations
+// djinterp
+#include "../../../../../inc/djinterp/c/util/color/color_rgb.h"  // dj_color_rgb
 
 NS_DJINTERP
 NS_TESTING
@@ -35,23 +41,21 @@ bool tests_color_common_channel_is_floating_point()
 }
 
 /*
-tests_color_common_channel_default_is_float
-  Verifies channel_t defaults to float when D_COLOR_CHANNEL_TYPE is not
-  pre-defined by the includer.
+tests_color_common_channel_is_the_kernels_float
+  Verifies channel_t is float, the C kernel's channel, which every model
+  stores. (D_COLOR_CHANNEL_TYPE, which once offered to change it, is retired:
+  defined as anything but float it stops the build.)
   Tests the following:
-  - the alias resolves to float
-  - the override macro is nevertheless defined (the hook exists)
-  - the macro and the alias agree
+  - the alias is float
+  - it is the type of the C structs' channels
 */
-bool tests_color_common_channel_default_is_float()
+bool tests_color_common_channel_is_the_kernels_float()
 {
-#ifndef D_COLOR_CHANNEL_TYPE
-    D_CC_CHECK(false && "D_COLOR_CHANNEL_TYPE must be defined by the header");
-#endif
-
-    D_CC_CHECK(std::is_same<channel_t, D_COLOR_CHANNEL_TYPE>::value);
     D_CC_CHECK(std::is_same<channel_t, float>::value);
-    D_CC_CHECK(sizeof(channel_t) == sizeof(float));
+    D_CC_CHECK((std::is_same<channel_t,
+                             decltype(dj_color_rgb::r)>::value));
+    D_CC_CHECK((std::is_same<channel_t,
+                             decltype(dj_color_rgba::a)>::value));
 
     return true;
 }

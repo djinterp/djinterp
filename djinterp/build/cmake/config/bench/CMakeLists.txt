@@ -4,19 +4,21 @@
 # The benchmarks, built when DJINTERP_BUILD_BENCHMARKS is ON (the root
 # CMakeLists.txt, section 5). They are timing programs: they print figures
 # and never fail, so they are not tests and CTest does not run them.
-#     tests/bench/util/ostream     lane D's output stream benchmarks, linked
+#     tests/bench/util/ostream     the output stream's benchmarks, linked
 #                                  as their README builds them:
 #         bench_ostream    the stream's C kernel (bench.c)
 #         bench_stdio      stdio, for scale (bench_stdio.c)
 #         bench_template   the template engine and the environment printer
 #                          (bench_template.c)
 #         bench_cpp        the C++ face (bench_cpp.cpp), at C++20
-# Their figures are meant at -O2: configure with -DCMAKE_BUILD_TYPE=Release.
+# Their figures are meant at -O2: configure with
+# -DCMAKE_BUILD_TYPE=RelWithDebInfo, which is GCC's and Clang's -O2 (Release
+# is -O3).
 #
 # path:      /build/cmake/config/bench/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.09
-#                                                            revised: 2026.11.09
+#                                                            revised: 2026.11.17
 #*******************************************************************************
 
 set(_bench "${DJINTERP_TESTS_ROOT}/bench/util/ostream")
@@ -34,8 +36,14 @@ add_library(djinterp_bench_stream STATIC
     "${_c}/string_fn.c"
     "${_c}/djinterp.c"
     "${_c}/memory/dmemory.c"
+    "${_c}/memory/mem_common.c"
+    "${_c}/memory/mem_source.c"
     "${_c}/filesys/file_open.c"
     "${_c}/filesys/file_common.c"
+    "${_c}/filesys/file_desc.c"
+    "${_c}/filesys/file_io.c"
+    "${_c}/filesys/file_seek.c"
+    "${_c}/filesys/file_stat.c"
 )
 target_include_directories(djinterp_bench_stream PUBLIC "${DJINTERP_INC_ROOT}")
 target_compile_definitions(djinterp_bench_stream PUBLIC _XOPEN_SOURCE=700)

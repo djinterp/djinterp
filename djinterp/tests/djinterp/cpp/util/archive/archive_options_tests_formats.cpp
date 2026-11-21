@@ -15,7 +15,7 @@
 * path:      /tests/djinterp/cpp/util/archive/archive_options_tests_formats.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.22
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 // djinterp
@@ -72,10 +72,13 @@ bool tests_tar_options_defaults()
 /*
 tests_gz_options_defaults
   Verifies the gzip header block says nothing until set, and resolves to a
-reproducible header: no name, no time.
+reproducible header: no name, no time, and the codec block's OS byte.
   Tests the following:
-  - store_name and store_mtime are archive_knob_unset, original_name empty
-  - resolved for gz: store_name and store_mtime off
+  - store_name, store_mtime and os are archive_knob_unset, original_name
+    empty
+  - resolved for gz: store_name and store_mtime off, os the codec block's
+    (D_GZIP_OS_DEFAULT)
+  - a set os is lowered to the kernel's gz.os
   - setting original_name does not implicitly raise store_name -- the two
     are independent, as the header documents
 */
@@ -86,6 +89,7 @@ bool tests_gz_options_defaults()
 
     D_AO_CHECK(g.store_name  == archive_knob_unset);
     D_AO_CHECK(g.store_mtime == archive_knob_unset);
+    D_AO_CHECK(g.os          == archive_knob_unset);
     D_AO_CHECK(g.original_name.empty());
 
     {
@@ -94,6 +98,14 @@ bool tests_gz_options_defaults()
 
         D_AO_CHECK(r.gz.store_name  == 0);
         D_AO_CHECK(r.gz.store_mtime == 0);
+        D_AO_CHECK(r.gz.os          == D_GZIP_OS_DEFAULT);
+    }
+    {
+        archive_options o;
+        o.gz.os = 3;
+
+        D_AO_CHECK(o.lower().gz.os == 3);
+        D_AO_CHECK(resolved_for(format_id_gz, o).gz.os == 3);
     }
     {
         archive_options o;

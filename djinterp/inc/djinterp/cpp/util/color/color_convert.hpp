@@ -23,7 +23,7 @@
 * path:      /inc/djinterp/cpp/util/color/color_convert.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.20
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -58,8 +58,8 @@ V.    CONCEPTS (C++20)
       b. convertible_color_type
 */
 
-#ifndef DJINTERP_UTIL_COLOR_COLOR_CONVERT_HPP
-#define DJINTERP_UTIL_COLOR_COLOR_CONVERT_HPP 1
+#ifndef DJINTERP_UTIL_COLOR_CONVERT_HPP
+#define DJINTERP_UTIL_COLOR_CONVERT_HPP 1
 
 // FLOOR, FOR NOW: below C++14 this file is empty, rather than an error (round
 // 2's rule). The owner's ruling: compile at every level first; port down only
@@ -67,16 +67,18 @@ V.    CONCEPTS (C++20)
 #include "../../../env/env.h"  // D_ENV_LANG_*
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
 
+// std
+#include <type_traits>  // std::integral_constant
 // djinterp
-#include "../../djinterp.hpp"
-#include "../../../c/util/color/color_convert.h"
-#include "./color_common.hpp"
-#include "./color_rgb.hpp"
-#include "./color_cmyk.hpp"
-#include "./color_hsv.hpp"
-#include "./color_hsl.hpp"
-#include "./color_ycbcr.hpp"
-#include "./color_cie_lab.hpp"
+#include "../../djinterp.hpp"                    // framework root
+#include "../../../c/util/color/color_convert.h" // the C conversion kernel
+#include "./color_common.hpp"   // channel_t, the model tags
+#include "./color_rgb.hpp"      // rgb, the hub
+#include "./color_cmyk.hpp"     // cmyk
+#include "./color_hsv.hpp"      // hsv
+#include "./color_hsl.hpp"      // hsl
+#include "./color_ycbcr.hpp"    // ycbcr
+#include "./color_cie_lab.hpp"  // cie_xyz, cie_lab
 
 
 NS_DJINTERP
@@ -379,14 +381,15 @@ NS_INTERNAL
 NS_END  // internal
 
 // is_convertible_color
-//   trait: true if a conversion from From to To is supported.
+//   trait: true if a conversion from From to To is supported.  An
+// integral_constant, like is_color_model, so it has ::type and ::value_type,
+// converts to bool, and composes with the standard library's traits.
 template<typename From,
          typename To>
 struct is_convertible_color
-{
-    D_STATIC_CONSTEXPR bool value =
-        internal::color_convert_impl<From, To>::value;
-};
+    : std::integral_constant<bool,
+                             internal::color_convert_impl<From, To>::value>
+{};
 
 // is_convertible_color_v
 //   constant: convenience accessor for
@@ -421,4 +424,4 @@ NS_END  // djinterp
 
 #endif  // floor, for now
 
-#endif  // DJINTERP_UTIL_COLOR_COLOR_CONVERT_HPP
+#endif  // DJINTERP_UTIL_COLOR_CONVERT_HPP

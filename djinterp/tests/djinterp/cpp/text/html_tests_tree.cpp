@@ -5,9 +5,8 @@
 * documents, the text write() produces, and the tree's own types against
 * html.hpp's protocol. Until 11-13 no DHtmlDocument could be instantiated: it
 * called a backend_document() its base didn't have.
-*   The freestanding factories (make_div and the rest) are not called here:
-* each allocates a node that nothing can adopt, so each leaks, until that is
-* settled.
+*   The freestanding factories (make_div and the rest) and adopt are
+* html_tests_detached.cpp's.
 *   It also includes html_printer.hpp, whose printed documents (djinterp's
 * DHtmlDocument and DXmlDocument) share their names with the trees
 * (djinterp::html's and djinterp::xml's), to check they share a unit.
@@ -16,7 +15,7 @@
 * path:      /tests/djinterp/cpp/text/html_tests_tree.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "html_tests.hpp"  // D_TESTS_TEXT_CHECK, the groups
 // std

@@ -21,8 +21,9 @@ djinterp_add_test_executable(c_ostream_format_null_tests
         "${DJINTERP_SRC_ROOT}/djinterp/c/memory/mem_source.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/memory/mem_common.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/memory/dmemory.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/modules/test/test_suite.c"
     DEFINES
         D_CFG_MEM_SOURCE_DEFAULT=1
+    LIBRARIES
+        djinterp_c_test
     INCLUDES
         "${_tests_dir}")

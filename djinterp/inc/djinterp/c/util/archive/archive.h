@@ -55,7 +55,7 @@
 * path:      /inc/djinterp/c/util/archive/archive.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.29
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 /*
@@ -279,6 +279,8 @@ VII.  ITERATION                 (entries, formats)
         (_name), (_data), (_size), (_is_dir), (_mode), (_mtime)))
 
 #if D_ENV_PP_HAS_VARIADIC_MACROS
+D_ENV_PP_VARIADIC_QUIET_BEGIN
+
 // D_ARCHIVE_ENTRIES
 //   macro: an entry array as an expression, for passing a whole list inline:
 //     d_archive_create(D_FORMAT_ID_ZIP,
@@ -291,6 +293,8 @@ VII.  ITERATION                 (entries, formats)
 // derives the count from the declaration and cannot drift.
 #define D_ARCHIVE_ENTRIES(...)                                                 \
     ((const struct dj_archive_entry[]){ __VA_ARGS__ })
+
+D_ENV_PP_VARIADIC_QUIET_END
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 
 // =============================================================================
@@ -365,9 +369,10 @@ struct dj_archive_options d_archive_store_only(void)
 
 // d_archive_reproducible
 //   function: a pristine set tuned so two runs over identical entries produce
-// identical bytes.  Clears the gzip header's name and timestamp, drops owner
-// names in tar in favour of numeric ids, and stops recording permissions and
-// mtimes -- the four places a container otherwise absorbs the environment.
+// identical bytes.  Clears the gzip header's name and timestamp and fixes its
+// OS byte at 255 ("unknown") whatever the build's default, drops owner names
+// in tar in favour of numeric ids, and stops recording permissions and mtimes
+// -- the five places a container otherwise absorbs the environment.
 //   Worth a named builder because every one of those is silent: the archive is
 // valid either way, and only a byte comparison across two machines reveals it.
 D_INLINE
@@ -380,6 +385,7 @@ struct dj_archive_options d_archive_reproducible(void)
     opt.tar.numeric_owner    = 1;
     opt.gz.store_name        = 0;
     opt.gz.store_mtime       = 0;
+    opt.gz.os                = D_GZIP_OS_UNKNOWN;
 
     return opt;
 }

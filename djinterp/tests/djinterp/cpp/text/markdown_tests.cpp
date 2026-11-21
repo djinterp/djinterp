@@ -9,7 +9,7 @@
 * path:      /tests/djinterp/cpp/text/markdown_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "markdown_tests.hpp"  // the suite's entry point, DTest's C face
 
@@ -31,6 +31,18 @@ d_tests_markdown_template_block(
         "the factories make what they name; blocks and inlines adopt them, "
         "and the facades read them back",
         D_TESTS_TEXT_AT_CPP11(d_tests_markdown_tree_build), below11);
+    d_tests_text_run(_suite, "handles",
+        "the block factories, tables' included, return a block's handle, the "
+        "inline ones an inline's; an unadopted one frees its node",
+        D_TESTS_TEXT_AT_CPP11(d_tests_markdown_detached_handles), below11);
+    d_tests_text_run(_suite, "adopt",
+        "add_block and add_inline take their own kind's handle only, and "
+        "refuse an empty parent or handle, or a cycle",
+        D_TESTS_TEXT_AT_CPP11(d_tests_markdown_detached_adopt), below11);
+    d_tests_text_run(_suite, "setters",
+        "a table's alignments, a list's looseness, a task item's box: set, "
+        "read back, and ignored on an empty facade",
+        D_TESTS_TEXT_AT_CPP11(d_tests_markdown_detached_setters), below11);
     d_tests_text_run(_suite, "markdown",
         "text, code, links and blocks written to read back as the same "
         "tree: escaping, fences, destinations",

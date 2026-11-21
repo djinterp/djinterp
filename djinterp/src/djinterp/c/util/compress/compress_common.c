@@ -341,8 +341,8 @@ d_codec_id_from_name(
 // =============================================================================
 // III. THE KNOB TABLE
 // =============================================================================
-//   Fifty entries, one per knob, in declaration order.  Every option operation
-// below is a loop over this table, which is the point: the fifty-field walk
+//   Fifty-one entries, one per knob, in declaration order.  Every option
+// operation below is a loop over this table, which is the point: the walk
 // exists once here instead of once per boundary.
 
 // d_internal_knob_names
@@ -368,7 +368,8 @@ static const char* const d_internal_knob_names[D_COMPRESS_KNOB_COUNT] =
     "lz4.level", "lz4.block_size", "lz4.block_mode", "lz4.content_checksum",
     "lz4.block_checksum", "lz4.store_content_size", "lz4.favor_dec_speed",
     "brotli.quality", "brotli.window_bits", "brotli.block_bits",
-    "brotli.mode", "brotli.large_window"
+    "brotli.mode", "brotli.large_window",
+    "gzip.os"
 };
 
 // d_internal_knob_codecs
@@ -405,7 +406,8 @@ static const unsigned char d_internal_knob_codecs[D_COMPRESS_KNOB_COUNT] =
     (unsigned char)D_CODEC_ID_LZ4,
     (unsigned char)D_CODEC_ID_BROTLI, (unsigned char)D_CODEC_ID_BROTLI,
     (unsigned char)D_CODEC_ID_BROTLI, (unsigned char)D_CODEC_ID_BROTLI,
-    (unsigned char)D_CODEC_ID_BROTLI
+    (unsigned char)D_CODEC_ID_BROTLI,
+    (unsigned char)D_CODEC_ID_GZIP
 };
 
 /*
@@ -436,9 +438,10 @@ d_compress_knob_offset
   The knob's byte offset within a dj_compress_options.
 
   There is no stored offset table, because there does not need to be one: the
-struct is asserted in the header to be exactly fifty int32_t with no padding,
-so the offset IS the index scaled by the element size.  A stored table would
-be a second description of the same layout, free to drift from the first.
+struct is asserted in the header to be exactly fifty-one int32_t with no
+padding, so the offset IS the index scaled by the element size.  A stored
+table would be a second description of the same layout, free to drift from the
+first.
 
 Parameter(s):
   _knob: the knob to locate.
@@ -822,7 +825,9 @@ static const int32_t d_internal_knob_defaults[D_COMPRESS_KNOB_COUNT] =
     0, D_LZ4_BLOCK_SIZE_DEFAULT,                    // lz4.level, .block_size
     D_LZ4_BLOCK_MODE_LINKED, 1, 0, 1, 0,            // lz4 framing flags
 
-    11, 22, 24, D_BROTLI_MODE_GENERIC, 0            // brotli
+    11, 22, 24, D_BROTLI_MODE_GENERIC, 0,           // brotli
+
+    D_INTERNAL_COMPRESS_GZIP_OS                     // gzip.os
 };
 
 /*
@@ -1135,7 +1140,9 @@ d_internal_knob_ranges[] =
     { D_COMPRESS_KNOB_ZSTD_STRATEGY,          1,   9 },
     { D_COMPRESS_KNOB_BROTLI_QUALITY,         0,  11 },
     { D_COMPRESS_KNOB_BROTLI_WINDOW_BITS,    10,  24 },
-    { D_COMPRESS_KNOB_BROTLI_MODE,            0,   2 }
+    { D_COMPRESS_KNOB_BROTLI_MODE,            0,   2 },
+    // a byte, or D_GZIP_OS_DEFAULT (-1) or D_GZIP_OS_ZLIB (-2)
+    { D_COMPRESS_KNOB_GZIP_OS,               -2, 255 }
 };
 
 /*
@@ -1961,26 +1968,70 @@ d_internal_zlib_default_os(void)
 }
 
 /*
+d_internal_gzip_os_byte
+  The OS byte a gzip header gets.  Each level defers to the next with
+D_GZIP_OS_DEFAULT: the header's own byte, then the option set's gzip.os, then
+the build's D_CFG_COMPRESS_GZIP_OS.  D_GZIP_OS_ZLIB means zlib's byte, and so
+does a gzip.os left UNSET, which only a build with D_CFG_COMPRESS_PIN_DEFAULTS
+off leaves: that build leaves every default to the backend.
+
+Parameter(s):
+  _header_os: the header's os.
+  _options:   the resolved option set.
+Return:
+  The byte, 0 to 255.
+*/
+static int
+d_internal_gzip_os_byte(
+    int32_t                           _header_os,
+    const struct dj_compress_options* _options
+)
+{
+    int32_t os = _header_os;
+
+    if (os == D_GZIP_OS_DEFAULT)
+    {
+        os = d_compress_options_knob_get(_options, D_COMPRESS_KNOB_GZIP_OS);
+    }
+
+    if (os == D_GZIP_OS_DEFAULT)
+    {
+        os = D_INTERNAL_COMPRESS_GZIP_OS;
+    }
+
+    if ( (os == D_GZIP_OS_ZLIB) ||
+         (os < 0) ||
+         (os > 255) )
+    {
+        return d_internal_zlib_default_os();
+    }
+
+    return (int)os;
+}
+
+/*
 d_internal_zlib_set_header
   Hand zlib the gzip header to write, after deflateInit2 and before the first
 deflate.  zlib reads _gh and the name while it writes the header, so both
 must outlive the deflate calls.
 
 Parameter(s):
-  _zs:     the deflate stream, initialised for gzip.
-  _header: the header asked for; its name has no NUL (checked by the caller).
-  _gh:     receives zlib's header record.
-  _name:   receives a NUL-terminated copy of the name, to free after deflate;
-           NULL when there is no name.
+  _zs:      the deflate stream, initialised for gzip.
+  _header:  the header asked for; its name has no NUL (checked by the caller).
+  _options: the resolved option set, for the OS byte's gzip.os.
+  _gh:      receives zlib's header record.
+  _name:    receives a NUL-terminated copy of the name, to free after
+            deflate; NULL when there is no name.
 Return:
   D_PACK_STATUS_OK, D_PACK_STATUS_NO_MEMORY, or D_PACK_STATUS_BACKEND_ERROR.
 */
 static enum dj_pack_status
 d_internal_zlib_set_header(
-    z_stream*                    _zs,
-    const struct dj_gzip_header* _header,
-    gz_header*                   _gh,
-    char**                       _name
+    z_stream*                         _zs,
+    const struct dj_gzip_header*      _header,
+    const struct dj_compress_options* _options,
+    gz_header*                        _gh,
+    char**                            _name
 )
 {
     memset(_gh, 0, sizeof(*_gh));
@@ -2001,9 +2052,7 @@ d_internal_zlib_set_header(
     }
 
     _gh->time = (uLong)_header->mtime;
-    _gh->os   = (_header->os == D_GZIP_OS_DEFAULT)
-              ? d_internal_zlib_default_os()
-              : (int)_header->os;
+    _gh->os   = d_internal_gzip_os_byte(_header->os, _options);
 
     return (deflateSetHeader(_zs, _gh) == Z_OK)
          ? D_PACK_STATUS_OK
@@ -2129,6 +2178,7 @@ d_internal_zlib_compress(
     const struct dj_gzip_header*      _header
 )
 {
+    static const struct dj_gzip_header none = D_GZIP_HEADER_NONE;
     unsigned char       stage[D_INTERNAL_COMPRESS_CHUNK];
     z_stream            zs;
     gz_header           gh;
@@ -2157,9 +2207,17 @@ d_internal_zlib_compress(
              : D_PACK_STATUS_BACKEND_ERROR;
     }
 
-    if (_header != NULL)
+    // gzip always writes its header through zlib's record, so the OS byte is
+    // the option set's and not zlib's: with no header asked for, the record
+    // is one with no name and no time, which changes that byte and no other
+    if (_codec == D_CODEC_ID_GZIP)
     {
-        status = d_internal_zlib_set_header(&zs, _header, &gh, &name);
+        status = d_internal_zlib_set_header(
+            &zs,
+            (_header != NULL) ? _header : &none,
+            _options,
+            &gh,
+            &name);
 
         if (status != D_PACK_STATUS_OK)
         {
@@ -3259,7 +3317,7 @@ Parameter(s):
   _out_size: receives the number of bytes produced; may be null.
 Return:
   D_PACK_STATUS_OK; D_PACK_STATUS_INVALID_ARGUMENT for a name with a NUL, or
-an OS byte outside 0 to 255 and not D_GZIP_OS_DEFAULT; otherwise as
+an OS byte outside 0 to 255 that isn't a D_GZIP_OS_* choice; otherwise as
 d_compress_to_sink.
 */
 enum dj_pack_status
@@ -3285,7 +3343,7 @@ d_compress_gzip_to_sink(
            (_header->name.length != 0u) ) ||
          ( (_header->name.length != 0u) &&
            (memchr(_header->name.data, '\0', _header->name.length) != NULL) ) ||
-         (_header->os < D_GZIP_OS_DEFAULT) ||
+         (_header->os < D_GZIP_OS_ZLIB) ||
          (_header->os > 255) )
     {
         return D_PACK_STATUS_INVALID_ARGUMENT;

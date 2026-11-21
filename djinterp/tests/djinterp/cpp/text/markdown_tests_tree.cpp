@@ -3,14 +3,14 @@
 *
 *   The group for building a tree with markdown/markdown_template.hpp: the
 * factories, adoption by blocks and inlines, and the facades that read the
-* nodes back. Every node a factory makes is adopted, so none leaks: what
-* adoption can't guard against is the subject of a decision in waiting.
+* nodes back. The handles the factories return, and what adoption refuses,
+* are markdown_tests_detached.cpp's.
 *
 *
 * path:      /tests/djinterp/cpp/text/markdown_tests_tree.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "markdown_tests.hpp"  // D_TESTS_TEXT_CHECK, the groups, builders
 
@@ -25,8 +25,8 @@ d_tests_markdown_tree_build
   - each factory makes the kind it names, with the fields it's given
   - add_block and add_inline adopt: the child is counted, reached by
     index, and knows its parent
-  - a null facade reads as empty, and adopting into or from one does
-    nothing
+  - a null facade reads as empty; adopting into one, or an empty handle,
+    is refused, with an empty facade
 */
 void
 d_tests_markdown_tree_build(void)
@@ -71,11 +71,11 @@ d_tests_markdown_tree_build(void)
     D_TESTS_TEXT_CHECK(text.backend_handle()->parent ==
                        para.backend_handle());
 
-    md_inline link = make_link<md_backend>("https://example.com/", "T");
+    md_new_inline link = make_link<md_backend>("https://example.com/", "T");
 
-    link.add_inline(d_tests_markdown_text("site"));
-    D_TESTS_TEXT_CHECK((link.url() == "https://example.com/") &&
-                       (link.title() == "T") && (link.child_count() == 1u));
+    link->add_inline(d_tests_markdown_text("site"));
+    D_TESTS_TEXT_CHECK((link->url() == "https://example.com/") &&
+                       (link->title() == "T") && (link->child_count() == 1u));
     para.add_inline(std::move(link));
     D_TESTS_TEXT_CHECK(para.child_count() == 2u);
 
@@ -84,8 +84,8 @@ d_tests_markdown_tree_build(void)
     D_TESTS_TEXT_CHECK(!nothing.valid() && (nothing.child_count() == 0u) &&
                        nothing.text().empty() &&
                        !nothing.block_child_at(0).valid());
-    nothing.add_block(md_block());
-    root.add_block(md_block());
+    D_TESTS_TEXT_CHECK(!nothing.add_block(md_new_block()).valid());
+    D_TESTS_TEXT_CHECK(!root.add_block(md_new_block()).valid());
     D_TESTS_TEXT_CHECK(root.child_count() == 4u);
     D_TESTS_TEXT_CHECK(!root.block_child_at(4).valid() &&
                        !root.inline_child_at(9).valid());

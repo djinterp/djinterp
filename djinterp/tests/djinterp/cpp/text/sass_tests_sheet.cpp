@@ -5,14 +5,13 @@
 * css/sass/sass_printer.hpp, on the default backend: the vocabulary, a
 * stylesheet built through the facades and read back through them, its SCSS
 * and indented sources, and the printer. The freestanding factories
-* (make_variable and the rest) are not called: each allocates a rule that
-* nothing can adopt, so each leaks, until that is settled.
+* (make_variable and the rest), and adopt, are sass_tests_detached.cpp's.
 *
 *
 * path:      /tests/djinterp/cpp/text/sass_tests_sheet.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "sass_tests.hpp"  // D_TESTS_TEXT_CHECK, the groups
 // std

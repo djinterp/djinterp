@@ -1,26 +1,11 @@
 /*******************************************************************************
 * djinterp [cpp]                                                color_common.hpp
 *
-*   VALIDATION SHIM - not the production color subframework.
-*
-*   A self-contained stand-in for the real color foundation, provided so the
-* report / PDF stack (test_report_runner -> test_report -> test_render_pdf ->
-* pdf -> color) can be COMPILED and exercised WITHOUT the few-dozen real color
-* headers + their C kernels in the tree.  It reproduces exactly the surface the
-* PDF layer consumes across the whole closure and nothing more: the channel
-* scalar, the model-tag hierarchy, and the is_color_model detection trait.  The
-* real subframework layers each wrapper on a C kernel (color_common.h, ...) and
-* routes a D_COLOR_* macro layer; NONE of that is reachable from the PDF stack
-* (verified: no D_COLOR_* token appears outside the color headers themselves),
-* so the shim needs none of it and is pure C++.
-*
-*   Drop this directory in at inc/djinterp/cpp/util/color/ for a color-free
-* build of the report/PDF layer; the real headers supersede it in a full tree.
-*
-*   Surface consumed by the PDF stack (font.hpp, pdf_primitives.hpp):
-*     channel_t, rgb{r,g,b}, rgba{r,g,b,a}, cmyk{c,m,y,k},
-*     color_cast<To>(from)  (identity + cmyk->rgb are the live paths),
-*     is_color_model<T>::value.
+*   The foundation of the C++ color module, which every model's header
+* includes: the channel scalar (channel_t, the C kernel's float), the
+* model-tag hierarchy, the is_color_model detection trait, and two scalar
+* helpers (clamp_channel, approx_equal).  Each model's header layers a C++
+* type on its C kernel's struct; color.hpp gathers them all.
 *
 *
 * path:      /inc/djinterp/cpp/util/color/color_common.hpp
@@ -29,8 +14,8 @@
 *                                                            revised: 2026.11.17
 *******************************************************************************/
 
-#ifndef DJINTERP_UTIL_COLOR_COLOR_COMMON_HPP
-#define DJINTERP_UTIL_COLOR_COLOR_COMMON_HPP 1
+#ifndef DJINTERP_UTIL_COLOR_COMMON_HPP
+#define DJINTERP_UTIL_COLOR_COMMON_HPP 1
 
 // FLOOR, FOR NOW: below C++11 this file is empty, rather than an error (round
 // 2's rule). The owner's ruling: compile at every level first; port down only
@@ -39,7 +24,7 @@
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // std
-#include <type_traits>
+#include <type_traits>  // std::is_same
 // djinterp
 #include "../../djinterp.hpp"   // framework root
 
@@ -48,16 +33,22 @@ NS_DJINTERP
 
 
 // channel_t
-//   the scalar every model stores.  Overridable, exactly as the real header,
-// by defining D_COLOR_CHANNEL_TYPE before inclusion.
-#ifndef D_COLOR_CHANNEL_TYPE
-#  define D_COLOR_CHANNEL_TYPE float
+//   the scalar every model stores: the C kernel's float, since each model
+// derives from its C struct.  D_COLOR_CHANNEL_TYPE once offered to change it,
+// which those structs make impossible; it is retired, and defined as anything
+// but float it stops the build, saying why.
+using channel_t = float;
+
+#ifdef D_COLOR_CHANNEL_TYPE
+static_assert(std::is_same<D_COLOR_CHANNEL_TYPE, float>::value,
+              "D_COLOR_CHANNEL_TYPE is retired: channel_t is the C color "
+              "kernel's float, which every color model stores. Remove the "
+              "definition.");
 #endif
-using channel_t = D_COLOR_CHANNEL_TYPE;
 
 
 // clamp_channel / approx_equal
-//   the two generic scalar helpers the real foundation exposes.  Single-return
+//   the two generic scalar helpers the foundation exposes.  Single-return
 // so they stay constant-expression-safe down to C++11.
 template <typename Type>
 D_CONSTEXPR_INLINE
@@ -131,7 +122,7 @@ struct is_color_model
 {};
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-// C++14+ variable-template shorthand (gated, matching the real header).
+// C++14+ variable-template shorthand (gated).
 template <typename Type>
 D_CONSTEXPR bool is_color_model_v = is_color_model<Type>::value;
 #endif
@@ -141,4 +132,4 @@ NS_END   // djinterp
 
 #endif  // floor, for now
 
-#endif // DJINTERP_UTIL_COLOR_COLOR_COMMON_HPP
+#endif // DJINTERP_UTIL_COLOR_COMMON_HPP

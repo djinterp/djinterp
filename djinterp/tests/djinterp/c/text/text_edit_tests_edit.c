@@ -8,7 +8,7 @@
 * path:      /tests/djinterp/c/text/text_edit_tests_edit.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.17
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "./text_edit_tests.h"  // corresponding header
 
@@ -198,10 +198,14 @@ d_tests_text_edit_touching(void)
 
 /*
 d_tests_text_edit_bad_arguments
-  Changes that cannot be kept.
+  Changes no caller should make: refused as D_TEXT_EDIT_INVALID, never as an
+  overlap, and nothing kept.
   Tests the following:
-  - no set, or an end before its start, is D_TEXT_EDIT_OVERLAPS
-  - NULL text with a length is D_TEXT_EDIT_OVERLAPS; NULL with none deletes
+  - no set, or an end before its start, is D_TEXT_EDIT_INVALID
+  - NULL text with a length is D_TEXT_EDIT_INVALID; NULL with none deletes
+  - an insertion of no bytes changes nothing, and is D_TEXT_EDIT_INVALID,
+    even where it would fall inside a replacement already made
+  - INVALID came last: the other results keep their values
 */
 bool
 d_tests_text_edit_bad_arguments(void)
@@ -210,15 +214,29 @@ d_tests_text_edit_bad_arguments(void)
 
     D_TEST_REQUIRE(edit != NULL);
     D_TEST_EXPECT(d_text_edit_add(NULL, 0u, 1u, "x", 1u) ==
-                  D_TEXT_EDIT_OVERLAPS);
+                  D_TEXT_EDIT_INVALID);
     D_TEST_EXPECT(d_text_edit_add(edit, 3u, 2u, "x", 1u) ==
-                  D_TEXT_EDIT_OVERLAPS);
+                  D_TEXT_EDIT_INVALID);
     D_TEST_EXPECT(d_text_edit_add(edit, 0u, 1u, NULL, 1u) ==
-                  D_TEXT_EDIT_OVERLAPS);
+                  D_TEXT_EDIT_INVALID);
+    D_TEST_EXPECT(d_text_edit_add(edit, 2u, 2u, "", 0u) ==
+                  D_TEXT_EDIT_INVALID);
+    D_TEST_EXPECT(d_text_edit_add(edit, 2u, 2u, NULL, 0u) ==
+                  D_TEXT_EDIT_INVALID);
     D_TEST_EXPECT(d_text_edit_count(edit) == 0u);
+    D_TEST_EXPECT( (D_TEXT_EDIT_ADDED == 0)     &&
+                   (D_TEXT_EDIT_OVERLAPS == 1)  &&
+                   (D_TEXT_EDIT_NO_MEMORY == 2) &&
+                   (D_TEXT_EDIT_INVALID == 3) );
     D_TEST_EXPECT(d_text_edit_add(edit, 0u, 1u, NULL, 0u) ==
                   D_TEXT_EDIT_ADDED);
     D_TEST_EXPECT(d_tests_text_edit_gives(edit, "xyz", NULL, NULL, "yz"));
+
+    // where the deletion just kept starts, an empty insertion is still no
+    // change, not an overlap
+    D_TEST_EXPECT(d_text_edit_add(edit, 0u, 0u, "", 0u) ==
+                  D_TEXT_EDIT_INVALID);
+    D_TEST_EXPECT(d_text_edit_count(edit) == 1u);
     d_text_edit_free(edit);
 
     return true;

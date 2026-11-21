@@ -5,7 +5,7 @@
 * path:      /inc/djinterp/cpp/util/pdf/pdf_backend.hpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #ifndef DJINTERP_UTIL_PDF_PDF_BACKEND_HPP
 #define DJINTERP_UTIL_PDF_PDF_BACKEND_HPP 1
@@ -62,6 +62,18 @@ struct DPdfCapabilities
           encryption(false),
           compression(false)
     {}
+};
+
+// DPdfCompression
+//   enum: how a backend writes its streams. by_default follows the build's
+// knob (D_CFG_PDF_COMPRESS, on unless a build turns it off); flate writes
+// each stream with FlateDecode, where the build has zlib; none writes each
+// raw, as for a diff.
+enum class DPdfCompression
+{
+    by_default = 0,
+    flate      = 1,
+    none       = 2
 };
 
 
@@ -288,6 +300,18 @@ public:
     {
         (void)_image;
         (void)_dest;
+    }
+
+    // set_compression
+    //   function: how the backend writes its streams from here on. Default
+    // no-op, for a backend that never compresses; capabilities().compression
+    // says whether its streams will be.
+    virtual
+    void set_compression(
+        DPdfCompression _compression
+    )
+    {
+        (void)_compression;
     }
 
     // introspection

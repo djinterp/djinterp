@@ -4,7 +4,7 @@
 *   Codec tuning knobs for the C++ facade -- RE-BASED onto the shared kernel.
 *
 *   WHAT CHANGED, AND WHY IT HAD TO:
-*   This header used to define the fifty-knob option set itself, in parallel
+*   This header used to define the knob set itself, in parallel
 * with the C fork's own copy.  Two definitions of one formal object make parity
 * a coincidence: nothing stops one side gaining a knob, reordering a block, or
 * choosing a different default.  The struct now DERIVES from
@@ -53,7 +53,7 @@
 * path:      /inc/djinterp/cpp/util/compress/compress_options.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_COMPRESS_COMPRESS_OPTIONS_HPP
@@ -129,6 +129,15 @@ D_STATIC const DLz4BlockMode lz4_block_mode_linked      =
 D_STATIC const DLz4BlockMode lz4_block_mode_independent =
     D_LZ4_BLOCK_MODE_INDEPENDENT;
 
+// gzip_os_*
+//   constant: the OS byte's choices beside a byte 0 to 255 (D_GZIP_OS_* in
+// compress_common.h): defer to the next level (a header to the option set,
+// the option set to the build), zlib's own byte, and "unknown", which the
+// build gives unless it was changed.
+D_STATIC const int32_t gzip_os_default = D_GZIP_OS_DEFAULT;
+D_STATIC const int32_t gzip_os_zlib    = D_GZIP_OS_ZLIB;
+D_STATIC const int32_t gzip_os_unknown = D_GZIP_OS_UNKNOWN;
+
 typedef enum dj_brotli_mode DBrotliMode;
 D_STATIC const DBrotliMode brotli_mode_generic = D_BROTLI_MODE_GENERIC;
 D_STATIC const DBrotliMode brotli_mode_text    = D_BROTLI_MODE_TEXT;
@@ -148,6 +157,7 @@ typedef struct dj_lzma_options    DLzmaOptions;
 typedef struct dj_zstd_options    DZstdOptions;
 typedef struct dj_lz4_options     DLz4Options;
 typedef struct dj_brotli_options  DBrotliOptions;
+typedef struct dj_gzip_options    DGzipOptions;
 
 // compress_options
 //   struct: the whole codec-tuning surface.  Derives from the core struct and
@@ -300,6 +310,21 @@ bool brotli_options_equal(
 
     ca.brotli = _a;
     cb.brotli = _b;
+
+    return (d_compress_options_equal(&ca, &cb) != 0);
+}
+
+inline
+bool gzip_options_equal(
+    const DGzipOptions& _a,
+    const DGzipOptions& _b
+)
+{
+    compress_options ca;
+    compress_options cb;
+
+    ca.gzip = _a;
+    cb.gzip = _b;
 
     return (d_compress_options_equal(&ca, &cb) != 0);
 }

@@ -2,7 +2,7 @@
 * djinterp [test]                           compress_options_tests_aggregate.cpp
 *
 *   Tests for compress_options itself (compress_options.hpp section II): the
-* generic effort, the six blocks composed together, value semantics and ==,
+* generic effort, the seven blocks composed together, value semantics and ==,
 * the layout it shares with the core, and the UNSET sentinel.
 *
 *
@@ -39,7 +39,7 @@ bool tests_compress_options_aggregate_level_default()
 /*
 tests_compress_options_aggregate_subobjects_defaulted
   Confirms the constructor leaves no knob uninitialised: every one of the
-  fifty, generic effort and all six blocks, is UNSET, walked through the
+  fifty-one, generic effort and all seven blocks, is UNSET, walked through the
   core's own knob table so a knob added later is covered without an edit
   here.
   Tests the following:

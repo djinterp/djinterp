@@ -4,14 +4,13 @@
 *   The groups for css/less/less.hpp and css/less/less_template.hpp, on the
 * default backend: the vocabulary, a stylesheet built through the facades and
 * read back through them, and its Less source. The freestanding factories
-* (make_variable and the rest) are not called: each allocates a rule that
-* nothing can adopt, so each leaks, until that is settled.
+* (make_variable and the rest), and adopt, are less_tests_detached.cpp's.
 *
 *
 * path:      /tests/djinterp/cpp/text/less_tests_sheet.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "less_tests.hpp"  // D_TESTS_TEXT_CHECK, the groups
 // std
@@ -176,11 +175,10 @@ d_tests_less_sheet_render(void)
 
     auto comment = sheet.root_rule().add_rule(DCssRuleKind::comment);
     auto frames  = sheet.add_at_rule("keyframes", "k");
-    auto frame   = frames.add_rule(DCssRuleKind::keyframe_rule);
+    auto frame   = frames.add_keyframe("to");
     auto outer   = sheet.add_style_rule(".a");
 
-    comment.backend_handle()->comment_text = "x */ y";
-    frame.set_selector("to");
+    comment.set_comment_text("x */ y");
     frame.add_declaration("opacity", "1");
     (void)sheet.add_at_rule("layer", "base");
     outer.add_rule(DCssRuleKind::style_rule).set_selector("&:hover");

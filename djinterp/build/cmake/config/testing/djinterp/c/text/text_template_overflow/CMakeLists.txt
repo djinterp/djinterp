@@ -5,8 +5,8 @@
 #   Test leaf for text_template.c's overflow suite, in DTest's C face: the
 # runner in this directory and the suite's translation unit, which includes
 # text_template.c whole (so it is not listed here), the units text_template.c
-# needs, and DTest's C face. Run it under -fsanitize=address as well, as
-# lane A is asked to in scripts/ci/check_ckd.sh.
+# needs, and DTest's C face, from djinterp_c_test. Run it under
+# -fsanitize=address as well, as scripts/ci/check_ckd.sh does.
 #
 # author(s): Samuel 'teer' Neal-Blim                            date: 2026.11.09
 # =============================================================================
@@ -20,8 +20,7 @@ djinterp_add_test_executable(c_text_template_overflow_tests
         "${CMAKE_CURRENT_SOURCE_DIR}/text_template_overflow_tests_runner.c"
         ${_sections}
         "${DJINTERP_SRC_ROOT}/djinterp/c/text/str_interp.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/string_fn.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/memory/dmemory.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/modules/test/test_suite.c"
+    LIBRARIES
+        djinterp_c_test
     INCLUDES
         "${_tests_dir}")

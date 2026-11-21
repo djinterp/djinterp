@@ -12,7 +12,7 @@
 * path:      /build/cmake/config/testing/djinterp/cpp/util/compress_options/compress_options_tests_runner.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 // std
@@ -92,6 +92,11 @@ int main()
     D_CO_RUN(tests_compress_options_brotli_defaults);
     D_CO_RUN(tests_compress_options_brotli_fields);
     D_CO_RUN(tests_compress_options_brotli_layout);
+
+    // -- DGzipOptions ---------------------------------------------------------
+    D_CO_RUN(tests_compress_options_gzip_defaults);
+    D_CO_RUN(tests_compress_options_gzip_fields);
+    D_CO_RUN(tests_compress_options_gzip_layout);
 
     // -- compress_options (aggregate) -----------------------------------------
     D_CO_RUN(tests_compress_options_aggregate_level_default);

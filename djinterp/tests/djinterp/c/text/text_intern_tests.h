@@ -9,7 +9,7 @@
 * path:      /tests/djinterp/c/text/text_intern_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.17
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 /*
 TABLE OF CONTENTS
@@ -92,7 +92,8 @@ static const struct dj_test_case_spec d_tests_text_intern_add_rows[] =
 static const struct dj_test_case_spec d_tests_text_intern_read_rows[] =
 {
     D_TEST_CASE(d_tests_text_intern_text,
-                "text and length give the name back, terminated; unknown is \"\""),
+                "text and length give the name back, terminated; "
+                "unknown is \"\""),
     D_TEST_CASE(d_tests_text_intern_embedded_nul,
                 "a name holding a NUL is its own, and length counts past it")
 };

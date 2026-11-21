@@ -32,7 +32,7 @@
 * path:      /inc/djinterp/c/text/symbol/emoji/emoji.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.09.22
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 #ifndef DJINTERP_C_TEXT_SYMBOL_EMOJI_H
@@ -1421,12 +1421,16 @@ D_EXTERN_C_END
     (d_text_emoji_utf8((uint32_t)(cp_)))
 
 #if D_ENV_PP_HAS_VARIADIC_MACROS
+D_ENV_PP_VARIADIC_QUIET_BEGIN
+
 // D_EMOJI_SEQ
 //   macro: a list of code points as one string, through
 // d_text_emoji_utf8_seq(); the list becomes a C99 compound literal.
 #define D_EMOJI_SEQ(...)  \
     ( d_text_emoji_utf8_seq((const uint32_t[]){ __VA_ARGS__ },  \
      ( sizeof((const uint32_t[]){ __VA_ARGS__ }) / sizeof(uint32_t) ) ) )
+
+D_ENV_PP_VARIADIC_QUIET_END
 #endif  // D_ENV_PP_HAS_VARIADIC_MACROS
 
 #endif  // D_THREAD_LOCAL_AVAILABLE

@@ -4,8 +4,8 @@
 #   Test leaf for c/util/color -- color.h's CIEDE2000 difference -- in the C
 # spec form: the runner in this directory, the section translation units
 # globbed from the tests tree, every color model's source (color.h includes
-# them all, and each .c emits its model's out-of-line definitions), and
-# DTest's C face.
+# them all, and each .c emits its model's out-of-line definitions), and DTest's
+# C face, from djinterp_c_test.
 #
 # author(s): Samuel 'teer' Neal-Blim                            date: 2026.11.17
 # =============================================================================
@@ -27,10 +27,7 @@ djinterp_add_test_executable(c_color_tests
         "${DJINTERP_SRC_ROOT}/djinterp/c/util/color/color_lab.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/util/color/color_rgb.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/util/color/color_ycbcr.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/memory/dmemory.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/modules/test/test_suite.c"
-    INCLUDES
-        "${_tests_dir}"
-    # libm, until djinterp_c_runtime links it (a request to lane A)
     LIBRARIES
-        "$<$<NOT:$<C_COMPILER_ID:MSVC>>:m>")
+        djinterp_c_test
+    INCLUDES
+        "${_tests_dir}")

@@ -25,7 +25,7 @@
 * path:      /inc/djinterp/config/c/util/compress/cfg_compress.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.30
-*                                                            revised: 2026.11.09
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #ifndef DJINTERP_CONFIG_C_UTIL_COMPRESS_CFG_COMPRESS_H
@@ -45,7 +45,8 @@ TABLE OF CONTENTS
       1.    Aggregate                    (D_CFG_COMPRESS_ALL)
       2.    Per-codec enables            (D_CFG_COMPRESS_CODEC_*)
       3.    Determinism                  (D_CFG_COMPRESS_PIN_*)
-      4.    Sizes and defaults           (D_CFG_COMPRESS_CHUNK, _DEFAULT_LEVEL)
+      4.    Sizes and defaults           (D_CFG_COMPRESS_CHUNK, _DEFAULT_LEVEL,
+                                         _GZIP_OS)
       5.    Validation                   (D_CFG_COMPRESS_VALIDATE)
       6.    C++ surface                  (D_CFG_COMPRESS_EXCEPTIONS)
       7.    Validation of the knobs
@@ -173,6 +174,17 @@ TABLE OF CONTENTS
 #   define D_CFG_COMPRESS_DEFAULT_LEVEL 6
 #endif
 
+// D_CFG_COMPRESS_GZIP_OS
+//   brief: the OS byte a gzip header gets when neither the header nor the
+// option set chooses one. Default 255, RFC 1952's "unknown".
+//   255 makes the same input give the same bytes on every machine, which is
+// what a build or a test that pins a hash needs. Set 0 to 255 for a fixed byte
+// (3 matches GNU gzip on Unix), or -2, D_GZIP_OS_ZLIB, for the byte zlib picks
+// on each platform, as djinterp wrote before 2026-11-20.
+#ifndef D_CFG_COMPRESS_GZIP_OS
+#   define D_CFG_COMPRESS_GZIP_OS 255
+#endif
+
 
 // --- 0.5  Validation ---
 
@@ -216,7 +228,7 @@ TABLE OF CONTENTS
 // --- 0.7  Validation of the knobs ---
 //   Boolean knobs are checked as LITERALS, not arithmetically: `-DKNOB=yes`
 // normalizes to 0 and would silently disable something the user asked to
-// enable. The two numeric knobs are range-checked instead.
+// enable. The three numeric knobs are range-checked instead.
 
 #if !D_CFG_IS_BOOL(D_CFG_COMPRESS_ALL)
 #   error "D_CFG_COMPRESS_ALL must be 0 or 1"
@@ -259,6 +271,11 @@ TABLE OF CONTENTS
       (D_CFG_NORM(D_CFG_COMPRESS_DEFAULT_LEVEL) > 9) )
 #   error "D_CFG_COMPRESS_DEFAULT_LEVEL must be on the 0-9 generic scale"
 #endif
+#if ( (D_CFG_NORM(D_CFG_COMPRESS_GZIP_OS) < -2)  ||                           \
+      (D_CFG_NORM(D_CFG_COMPRESS_GZIP_OS) == -1) ||                           \
+      (D_CFG_NORM(D_CFG_COMPRESS_GZIP_OS) > 255) )
+#   error "D_CFG_COMPRESS_GZIP_OS must be a byte, 0 to 255, or -2 for zlib's"
+#endif
 
 
 // --- 0.8  Derived values (D_INTERNAL_*) ---
@@ -293,8 +310,8 @@ TABLE OF CONTENTS
 //   brief: 1 when compress_common.c has the codec's leaf. Neither has one yet,
 // so neither codec is available whatever is detected: a codec the kernel
 // reports available must round-trip, and one it cannot run is UNAVAILABLE,
-// said up front rather than after the call (lane D, 2026.11.09). Each becomes
-// 1 with its leaf.
+// said up front rather than after the call (2026.11.09). Each becomes 1 with
+// its leaf.
 #define D_INTERNAL_COMPRESS_ZSTD_LEAF  0
 #define D_INTERNAL_COMPRESS_LZ4_LEAF   0
 #define D_INTERNAL_COMPRESS_BROTLI                                             \
@@ -362,11 +379,12 @@ TABLE OF CONTENTS
 #   define D_INTERNAL_COMPRESS_EXCEPTIONS 0
 #endif
 
-// D_INTERNAL_COMPRESS_CHUNK / _DEFAULT_LEVEL
+// D_INTERNAL_COMPRESS_CHUNK / _DEFAULT_LEVEL / _GZIP_OS
 //   brief: the numeric knobs, passed through after range validation so the
 // module reads one name rather than a knob plus a bounds check.
 #define D_INTERNAL_COMPRESS_CHUNK           D_CFG_COMPRESS_CHUNK
 #define D_INTERNAL_COMPRESS_DEFAULT_LEVEL   D_CFG_COMPRESS_DEFAULT_LEVEL
+#define D_INTERNAL_COMPRESS_GZIP_OS         D_CFG_COMPRESS_GZIP_OS
 
 
 #endif  // DJINTERP_CONFIG_C_UTIL_COMPRESS_CFG_COMPRESS_H

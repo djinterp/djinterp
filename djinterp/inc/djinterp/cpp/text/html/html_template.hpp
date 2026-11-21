@@ -26,7 +26,7 @@
 * path:      /inc/djinterp/cpp/text/html/html_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.08
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 /*
@@ -62,6 +62,7 @@ IV.   FREE HELPERS / FACTORIES
 #include <vector>
 // djinterp
 #include "../../djinterp.hpp"     // framework root
+#include "../detached.hpp"           // DDetached, the factories' handle
 #include "../xml/xml_template.hpp"   // the XML node / document templates
 #include "./html.hpp"                // DHtmlDefaultBackendTag, the HTML
                                      // vocabulary and backend traits
@@ -399,7 +400,34 @@ public:
         }
         this->set_attribute(attrs::class_, joined);
     }
+
+
+    /// adoption
+
+    // adopt
+    //   function: makes the node a factory made this element's last child,
+    // taking it from its handle, and returns the child's facade. Only a
+    // handle is taken, so a node already in a tree can't be given a second
+    // parent. Refused, with an empty facade returned and the handle keeping
+    // its node, when this element or the handle is empty, or when this
+    // element is the handle's node or lies under it.
+    DHtmlElement adopt(
+        DDetached<DHtmlElement>&& _child
+    )
+    {
+        return DHtmlElement(
+            ::djinterp::internal::detached_access::adopt(
+                this->backend_handle(),
+                _child));
+    }
 };
+
+
+// DHtmlDetached
+//   type: the handle HTML's factories return, owning an element made
+// outside a tree until DHtmlElement::adopt takes it.
+template<typename Backend>
+using DHtmlDetached = DDetached<DHtmlElement<Backend>>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -966,24 +994,24 @@ DHtmlDocument<Backend> make_xhtml_document(
 
 
 // make_div
-//   function: returns a new freestanding `<div>` element wrapped
-// in an `DHtmlElement` facade. The backend storage node is
-// allocated via `new`; ownership transfers to whichever parent
-// later adopts it via `add_child` (when using the default
-// backend, that path moves the unique_ptr in).
+//   function: returns a new freestanding `<div>` element. Like every
+// factory below, it returns the element in a handle (DHtmlDetached), which
+// frees it unless an element adopts it (DHtmlElement::adopt); get() gives
+// its facade, to build under it first.
 template<typename Backend>
 inline
-DHtmlElement<Backend> make_div(
+DHtmlDetached<Backend> make_div(
     const DXmlString& _id = DXmlString(),
     const DXmlString& _class = DXmlString()
 )
 {
     using node_t = typename Backend::node_type;
-    node_t* n = new node_t;
+    DHtmlDetached<Backend> made = DHtmlDetached<Backend>::make();
+    node_t*                n    = made.backend_handle();
     n->kind   = ::djinterp::DXmlNodeKind::element;
     n->name   = tags::div_;
 
-    DHtmlElement<Backend>  e(n);
+    DHtmlElement<Backend>  e = made.get();
     if (!_id.empty())
     {
         e.set_id(_id);
@@ -992,7 +1020,7 @@ DHtmlElement<Backend> make_div(
     {
         e.add_class(_class);
     }
-    return e;
+    return made;
 }
 
 
@@ -1000,23 +1028,24 @@ DHtmlElement<Backend> make_div(
 //   function: returns a new freestanding `<span>` element.
 template<typename Backend>
 inline
-DHtmlElement<Backend> make_span(
+DHtmlDetached<Backend> make_span(
     const DXmlString& _text = DXmlString(),
     const DXmlString& _class = DXmlString()
 )
 {
     using node_t = typename Backend::node_type;
-    node_t* n = new node_t;
+    DHtmlDetached<Backend> made = DHtmlDetached<Backend>::make();
+    node_t*                n    = made.backend_handle();
     n->kind   = ::djinterp::DXmlNodeKind::element;
     n->name   = tags::span_;
     n->text   = _text;
 
-    DHtmlElement<Backend>  e(n);
+    DHtmlElement<Backend>  e = made.get();
     if (!_class.empty())
     {
         e.add_class(_class);
     }
-    return e;
+    return made;
 }
 
 
@@ -1025,20 +1054,21 @@ DHtmlElement<Backend> make_span(
 // given `href` and inner text.
 template<typename Backend>
 inline
-DHtmlElement<Backend> make_anchor(
+DHtmlDetached<Backend> make_anchor(
     const DXmlString& _href,
     const DXmlString& _text
 )
 {
     using node_t = typename Backend::node_type;
-    node_t* n = new node_t;
+    DHtmlDetached<Backend> made = DHtmlDetached<Backend>::make();
+    node_t*                n    = made.backend_handle();
     n->kind   = ::djinterp::DXmlNodeKind::element;
     n->name   = tags::a;
     n->text   = _text;
 
-    DHtmlElement<Backend>  e(n);
+    DHtmlElement<Backend>  e = made.get();
     e.set_attribute(attrs::href, _href);
-    return e;
+    return made;
 }
 
 
@@ -1046,23 +1076,24 @@ DHtmlElement<Backend> make_anchor(
 //   function: returns a new freestanding `<img>` (void) element.
 template<typename Backend>
 inline
-DHtmlElement<Backend> make_image(
+DHtmlDetached<Backend> make_image(
     const DXmlString& _src,
     const DXmlString& _alt = DXmlString()
 )
 {
     using node_t = typename Backend::node_type;
-    node_t* n = new node_t;
+    DHtmlDetached<Backend> made = DHtmlDetached<Backend>::make();
+    node_t*                n    = made.backend_handle();
     n->kind   = ::djinterp::DXmlNodeKind::element;
     n->name   = tags::img;
 
-    DHtmlElement<Backend>  e(n);
+    DHtmlElement<Backend>  e = made.get();
     e.set_attribute(attrs::src, _src);
     if (!_alt.empty())
     {
         e.set_attribute(attrs::alt, _alt);
     }
-    return e;
+    return made;
 }
 
 
@@ -1071,16 +1102,17 @@ DHtmlElement<Backend> make_image(
 // given inner text.
 template<typename Backend>
 inline
-DHtmlElement<Backend> make_paragraph(
+DHtmlDetached<Backend> make_paragraph(
     const DXmlString& _text = DXmlString()
 )
 {
     using node_t = typename Backend::node_type;
-    node_t* n = new node_t;
+    DHtmlDetached<Backend> made = DHtmlDetached<Backend>::make();
+    node_t*                n    = made.backend_handle();
     n->kind   = ::djinterp::DXmlNodeKind::element;
     n->name   = tags::p;
     n->text   = _text;
-    return DHtmlElement<Backend>(n);
+    return made;
 }
 
 
@@ -1089,7 +1121,7 @@ DHtmlElement<Backend> make_paragraph(
 // must be in [1,6]; values outside that range default to h1.
 template<typename Backend>
 inline
-DHtmlElement<Backend> make_heading(
+DHtmlDetached<Backend> make_heading(
     int                 _level,
     const DXmlString&   _text = DXmlString()
 )
@@ -1102,11 +1134,12 @@ DHtmlElement<Backend> make_heading(
                     :                 tags::h1;
 
     using node_t = typename Backend::node_type;
-    node_t* n = new node_t;
+    DHtmlDetached<Backend> made = DHtmlDetached<Backend>::make();
+    node_t*                n    = made.backend_handle();
     n->kind   = ::djinterp::DXmlNodeKind::element;
     n->name   = tag;
     n->text   = _text;
-    return DHtmlElement<Backend>(n);
+    return made;
 }
 
 
@@ -1116,15 +1149,16 @@ DHtmlElement<Backend> make_heading(
 // builders that walk an element-kind enum.
 template<typename Backend>
 inline
-DHtmlElement<Backend> make_element_by_kind(
+DHtmlDetached<Backend> make_element_by_kind(
     DHtmlElementKind _kind
 )
 {
     using node_t = typename Backend::node_type;
-    node_t* n = new node_t;
+    DHtmlDetached<Backend> made = DHtmlDetached<Backend>::make();
+    node_t*                n    = made.backend_handle();
     n->kind   = ::djinterp::DXmlNodeKind::element;
     n->name   = name_from_html_kind(_kind);
-    return DHtmlElement<Backend>(n);
+    return made;
 }
 
 

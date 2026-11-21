@@ -6,11 +6,18 @@
 * so the stream interleaves correctly with anything else writing the same
 * FILE* once it is flushed.
 *
-*   NO OS HERE. Opening and closing go through c/filesys (d_file_open_stream,
-* d_file_close_stream), which made every platform decision once; this unit
+*   NO OS HERE. Opening, writing and closing go through c/filesys
+* (d_file_open_stream and d_file_close_stream; d_file_open, d_file_write_fd
+* and d_file_close_fd), which made every platform decision once; this unit
 * adds only the stream. A file opened here is opened in binary mode, so no C
 * library rewrites a byte of it. A borrowed FILE*'s mode is the caller's, and
 * its query calls it binary-safe only where no C library translates newlines.
+*
+*   APPENDING KEEPS RECORDS WHOLE. A file opened here to append is not a
+* FILE*: it is a descriptor opened O_APPEND, written once per flush, so a
+* record no larger than the stream's buffer, written and then flushed,
+* reaches the file whole however many processes append to it.  stdio's own
+* buffer would split a record larger than it into several writes.
 *
 *   GIVE IT A BUFFER. stdio already buffers, but every fwrite still takes the
 * FILE's lock and copies; with a buffer (d_ostream_set_buffer) the stream
@@ -21,7 +28,7 @@
 * path:      /inc/djinterp/c/util/ostream/ostream_file.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.07
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -74,6 +81,14 @@ int32_t d_ostream_init_file(struct dj_ostream* _os,
 /**
  * @brief Opens a file for writing, in binary mode, as a stream that owns it.
  *
+ * @note To append, the file is opened on a descriptor, O_APPEND, and each
+ *       flush is one write: a record no larger than the stream's buffer,
+ *       written and then flushed, reaches a local file whole, whatever other
+ *       processes append to it.  Give the stream a buffer
+ *       (d_ostream_set_buffer) as large as the largest record.  On Windows
+ *       this holds once c/filesys opens O_APPEND with FILE_APPEND_DATA alone;
+ *       where c/filesys has no descriptors, appending goes through stdio and
+ *       promises nothing.
  * @note When the open fails the stream is left D_OSTREAM_FAILED with the
  *       open's errno, readable through d_ostream_last_errno(); a null _path is
  *       D_OSTREAM_INVALID.

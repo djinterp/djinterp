@@ -5,7 +5,7 @@
 * path:      /inc/djinterp/cpp/util/pdf/pdf_document.hpp
 * link(s):   TBA
 * author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.11.05
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #ifndef DJINTERP_UTIL_PDF_PDF_DOCUMENT_HPP
 #define DJINTERP_UTIL_PDF_PDF_DOCUMENT_HPP 1
@@ -291,6 +291,20 @@ public:
         }
 
         m_backend->set_metadata(_key, _value);
+
+        return;
+    }
+
+    // set_compression
+    //   how the document's streams are written: as the build's knob says
+    // (DPdfCompression::by_default), FlateDecode (flate), or raw (none).
+    // The backend decides what it can do; capabilities().compression on a
+    // built-in backend says whether its streams will be compressed.
+    void set_compression(
+        DPdfCompression _compression
+    )
+    {
+        m_backend->set_compression(_compression);
 
         return;
     }

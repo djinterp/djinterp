@@ -62,7 +62,7 @@
 * path:      /inc/djinterp/cpp/util/compress/compress.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.10.31
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_COMPRESS_COMPRESS_HPP
@@ -385,6 +385,67 @@ namespace internal
 
 
 // =============================================================================
+// VI-b. GZIP'S HEADER
+// =============================================================================
+//   RFC 1952 lets a gzip stream carry the original file's name (FNAME), its
+// modification time (MTIME) and the system that wrote it (OS). codecs::gzip
+// writes no name and no time, and reads past all three, so its output is the
+// same on every machine; the gzip pair below writes and reads them, through
+// the kernel's d_compress_gzip_to_sink and d_decompress_gzip_to_sink. With a
+// default gzip_header, writing gives codecs::gzip's bytes exactly.
+
+// gzip_name_max
+//   constant: the longest name read back whole, in bytes. A longer one is cut
+// to it, and the header says name_truncated.
+D_STATIC const std::size_t gzip_name_max = 65536u;
+
+// gzip_header
+//   struct: the parts of a gzip header a caller chooses and reads back.
+// `name` is FNAME, empty for none; it is written as the bytes given, and
+// can't hold a NUL, since the field ends at one. `mtime` is MTIME, seconds
+// since 1970-01-01 UTC, 0 for none. `os` is the OS byte, 0 to 255; writing,
+// it may be gzip_os_default (the options' gzip.os) or gzip_os_zlib.
+// `name_truncated` is set by reading, for a name past gzip_name_max.
+struct gzip_header
+{
+    std::string name;
+    uint32_t    mtime;
+    int32_t     os;
+    bool        name_truncated;
+
+    gzip_header()
+        : name(),
+          mtime(0u),
+          os(D_GZIP_OS_DEFAULT),
+          name_truncated(false)
+    {}
+};
+
+namespace internal
+{
+    // compress_gzip_buffer
+    //   function: [_in, _in + _n) in gzip with _header, into _out.
+    status compress_gzip_buffer(
+        const char*             _in,
+        std::size_t             _n,
+        const compress_options& _opt,
+        const gzip_header&      _header,
+        byte_blob&              _out
+    );
+
+    // decompress_gzip_buffer
+    //   function: a gzip stream's first member into _out, its header into
+    // _header.
+    status decompress_gzip_buffer(
+        const char*  _in,
+        std::size_t  _n,
+        gzip_header& _header,
+        byte_blob&   _out
+    );
+}  // namespace internal
+
+
+// =============================================================================
 // VII. NON-THROWING TEMPLATE API
 // =============================================================================
 
@@ -426,6 +487,37 @@ template<typename Codec>
 bool codec_is_available()
 {
     return internal::codec_available(codec_traits<Codec>::id());
+}
+
+// try_compress_gzip
+//   function: compresses _in into _out as gzip, writing _header's name, time
+// and OS byte. returns a status; never throws. A name holding a NUL is
+// status_invalid_argument.
+inline
+status try_compress_gzip(
+    const byte_blob&        _in,
+    byte_blob&              _out,
+    const gzip_header&      _header,
+    const compress_options& _opt = compress_options()
+)
+{
+    return internal::compress_gzip_buffer(_in.data(), _in.size(), _opt,
+                                          _header, _out);
+}
+
+// try_decompress_gzip
+//   function: decompresses a gzip stream's first member into _out, and reads
+// its name, time and OS byte into _header. returns a status; never throws.
+// On failure _header is a default one.
+inline
+status try_decompress_gzip(
+    const byte_blob& _in,
+    byte_blob&       _out,
+    gzip_header&     _header
+)
+{
+    return internal::decompress_gzip_buffer(_in.data(), _in.size(),
+                                            _header, _out);
 }
 
 
@@ -491,6 +583,49 @@ byte_blob decompress(
                                 + codec_traits<Codec>::name()
                                 + ">: "
                                 + status_message(s));
+    }
+
+    return out;
+}
+
+// compress_gzip
+//   function: compresses _in as gzip with _header and returns the stream.
+// throws DCompressionError on failure.
+inline
+byte_blob compress_gzip(
+    const byte_blob&        _in,
+    const gzip_header&      _header,
+    const compress_options& _opt = compress_options()
+)
+{
+    byte_blob    out;
+    const status s = try_compress_gzip(_in, out, _header, _opt);
+
+    if (s != status_ok)
+    {
+        throw DCompressionError(std::string("compress_gzip: ") +
+                                status_message(s));
+    }
+
+    return out;
+}
+
+// decompress_gzip
+//   function: decompresses a gzip stream's first member, reading its header
+// into _header, and returns the bytes. throws DCompressionError on failure.
+inline
+byte_blob decompress_gzip(
+    const byte_blob& _in,
+    gzip_header&     _header
+)
+{
+    byte_blob    out;
+    const status s = try_decompress_gzip(_in, out, _header);
+
+    if (s != status_ok)
+    {
+        throw DCompressionError(std::string("decompress_gzip: ") +
+                                status_message(s));
     }
 
     return out;

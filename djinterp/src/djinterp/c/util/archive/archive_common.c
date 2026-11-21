@@ -351,7 +351,7 @@ d_internal_archive_knob_names[D_ARCHIVE_KNOB_COUNT] =
     "zip.method", "zip.encryption", "zip.zip64", "zip.utf8_names",
     "zip.password",
     "tar.format", "tar.numeric_owner",
-    "gz.store_name", "gz.store_mtime", "gz.original_name",
+    "gz.store_name", "gz.store_mtime", "gz.os", "gz.original_name",
     "sevenzip.method", "sevenzip.solid", "sevenzip.header_compression",
     "sevenzip.header_encryption", "sevenzip.threads", "sevenzip.password",
     "rar.level", "rar.solid", "rar.recovery_record", "rar.password"
@@ -470,6 +470,7 @@ d_internal_archive_knob_value(
         }
         case D_ARCHIVE_KNOB_GZ_STORE_NAME:  { return _options->gz.store_name; }
         case D_ARCHIVE_KNOB_GZ_STORE_MTIME: { return _options->gz.store_mtime; }
+        case D_ARCHIVE_KNOB_GZ_OS:          { return _options->gz.os; }
         case D_ARCHIVE_KNOB_SEVENZIP_METHOD:
         {
             return _options->sevenzip.method;
@@ -847,14 +848,17 @@ void d_internal_resolve_blocks(
             {
                 d_internal_knob_default(&_work->gz.store_name,  0);
                 d_internal_knob_default(&_work->gz.store_mtime, 0);
+                d_internal_knob_default(&_work->gz.os, D_GZIP_OS_DEFAULT);
             }
 
             break;
         }
         case D_FORMAT_ID_GZ:
         {
+            // an unset OS byte is the codec block's gzip.os
             d_internal_knob_default(&_work->gz.store_name,  0);
             d_internal_knob_default(&_work->gz.store_mtime, 0);
+            d_internal_knob_default(&_work->gz.os, D_GZIP_OS_DEFAULT);
             break;
         }
         case D_FORMAT_ID_SEVENZIP:
@@ -1130,6 +1134,20 @@ d_archive_options_validate(
     {
         return d_internal_zip_method_check(_options->zip.method,
                                            _out_offender);
+    }
+    // the OS byte: a byte, or a D_GZIP_OS_* choice
+    if ( ( (_format == D_FORMAT_ID_GZ) ||
+           (_format == D_FORMAT_ID_TAR_GZ) )                &&
+         (_options->gz.os != D_ARCHIVE_KNOB_UNSET)           &&
+         ( (_options->gz.os < D_GZIP_OS_ZLIB) ||
+           (_options->gz.os > 255) ) )
+    {
+        if (_out_offender != NULL)
+        {
+            *_out_offender = D_ARCHIVE_KNOB_GZ_OS;
+        }
+
+        return D_PACK_STATUS_INVALID_ARGUMENT;
     }
     if ( (_format == D_FORMAT_ID_TAR) ||
          (_format == D_FORMAT_ID_TAR_GZ) )
@@ -5173,10 +5191,12 @@ d_internal_archive_prepare(
 /*
 d_internal_gz_header_of
   The gzip header a create call writes, from the gz knobs.  With neither
-store flag set there is none at all, so the output stays byte-reproducible.
-A stored name is gz.original_name when it is set, and otherwise the last
-component of _name, as GNU gzip stores it.  A stored time is _mtime, when
-RFC 1952's field can hold it (1970 to 2106); otherwise none.
+store flag set and gz.os the codec's, there is none to ask for: the codec
+writes no name and no time, and its own OS byte.  A stored name is
+gz.original_name when it is set, and otherwise the last component of _name,
+as GNU gzip stores it.  A stored time is _mtime, when RFC 1952's field can
+hold it (1970 to 2106); otherwise none.  The OS byte is gz.os, or the codec
+block's gzip.os when gz.os is unset or D_GZIP_OS_DEFAULT.
 
 Parameter(s):
   _options: the archive options; their gz block is read.
@@ -5184,7 +5204,7 @@ Parameter(s):
   _mtime:   the time to store, in seconds since 1970; 0 for none.
   _header:  receives the header.
 Return:
-  1 when a header is to be written; 0 when the stream keeps zlib's own.
+  1 when a header is to be written; 0 when the codec's own will do.
 */
 static int
 d_internal_gz_header_of(
@@ -5199,8 +5219,14 @@ d_internal_gz_header_of(
 
     *_header = none;
 
-    if ( (!_options->gz.store_name) &&
-         (!_options->gz.store_mtime) )
+    if (_options->gz.os != D_ARCHIVE_KNOB_UNSET)
+    {
+        _header->os = _options->gz.os;
+    }
+
+    if ( (!_options->gz.store_name)  &&
+         (!_options->gz.store_mtime) &&
+         (_header->os == D_GZIP_OS_DEFAULT) )
     {
         return 0;
     }

@@ -49,7 +49,7 @@
 * path:      /inc/djinterp/cpp/util/pdf/pdf_options.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.06.25
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_PDF_PDF_OPTIONS_HPP
@@ -186,6 +186,10 @@ struct pdf_options
     std::string    subject;
     std::string    creator;
 
+    // -- output --------------------------------------------------------------
+    DPdfCompression compression;   // streams: by_default (the build's knob,
+                                   // D_CFG_PDF_COMPRESS), flate, or none
+
     pdf_options()
         : page(DPdfPageSize::letter()),
           margin_left(54.0),
@@ -197,7 +201,8 @@ struct pdf_options
           text_color(pdf_color::black()),
           align(DPdfTextAlign::left),
           leading(14.0),
-          indent_cells(0)
+          indent_cells(0),
+          compression(DPdfCompression::by_default)
     {}
 
     // -- fluent setters (return *this so calls chain) ------------------------
@@ -268,6 +273,18 @@ struct pdf_options
         return *this;
     }
 
+    // set_compression
+    //   how the streams are written: by_default (the build's knob), flate,
+    // or none (raw, as for a diff).
+    pdf_options& set_compression(
+        DPdfCompression _compression
+    )
+    {
+        compression = _compression;
+
+        return *this;
+    }
+
     // -- projections (the views the targets consume) -------------------------
 
     // font
@@ -332,6 +349,11 @@ struct pdf_options
         if (!subject.empty()) { _tpl.metadata("Subject", subject); }
         if (!creator.empty()) { _tpl.metadata("Creator", creator); }
 
+        if (compression != DPdfCompression::by_default)
+        {
+            _tpl.compression(compression);
+        }
+
         return;
     }
 
@@ -348,6 +370,11 @@ struct pdf_options
         if (!author.empty())  { _doc.metadata("Author",  author);  }
         if (!subject.empty()) { _doc.metadata("Subject", subject); }
         if (!creator.empty()) { _doc.metadata("Creator", creator); }
+
+        if (compression != DPdfCompression::by_default)
+        {
+            _doc.set_compression(compression);
+        }
 
         return;
     }

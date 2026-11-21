@@ -35,7 +35,7 @@
 * path:      /inc/djinterp/cpp/text/css/less/less_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.10
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 /*
@@ -76,6 +76,7 @@ V.    FREE HELPERS / FACTORIES
 #include <vector>
 // djinterp
 #include "../../../djinterp.hpp"  // framework root
+#include "../../detached.hpp"        // DDetached, the factories' handle
 #include "../css_template.hpp"       // the CSS rule / stylesheet templates
 #include "./less.hpp"                // DLessRuleKind, DLessAtRuleKind,
                                      // DLessDialect, DLessString, the
@@ -539,10 +540,33 @@ public:
         return pre;
     }
 
+    /// adoption
+
+    // adopt
+    //   function: css::DCssRule::adopt, giving the child's Less facade.
+    template<typename Other>
+    typename std::enable_if<
+        is_detached_convertible<Other, base_type>::value,
+        DLessRule>::type
+    adopt(
+        DDetached<Other>&& _child
+    )
+    {
+        return DLessRule(base_type::adopt(std::move(_child)));
+    }
+
 
 private:
     // (no extra members)
 };
+
+
+// DLessDetached
+//   type: the handle Less's factories return, owning a rule made outside a
+// tree until a rule's or a stylesheet's adopt takes it. It converts to
+// css::DCssDetached, so a CSS rule or stylesheet adopts it too.
+template<typename Backend>
+using DLessDetached = DDetached<DLessRule<Backend>>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -835,6 +859,21 @@ public:
     }
 
 
+    // adopt
+    //   function: css::DCssStylesheet::adopt, giving the child's Less facade.
+    // It takes a CSS rule's handle too.
+    template<typename Other>
+    typename std::enable_if<
+        is_detached_convertible<Other, typename base_type::rule_facade>::value,
+        rule_facade>::type
+    adopt(
+        DDetached<Other>&& _child
+    )
+    {
+        return rule_facade(base_type::adopt(std::move(_child)));
+    }
+
+
     /// rendering
 
     // render_to_less_source
@@ -934,22 +973,25 @@ DLessStylesheet<Backend> make_less_stylesheet()
 
 
 // make_variable
-//   function: returns a new freestanding variable declaration.
+//   function: returns a new freestanding variable declaration. Like every
+// factory below, it returns the rule in a handle (DLessDetached), which frees
+// it unless a rule or a stylesheet adopts it; get() gives its facade.
 template<typename Backend>
 inline
-DLessRule<Backend> make_variable(
+DLessDetached<Backend> make_variable(
     const DLessString& _name,
     const DLessString& _value
 )
 {
     using node_t = typename Backend::rule_type;
-    node_t* n = new node_t;
+    DLessDetached<Backend> made = DLessDetached<Backend>::make();
+    node_t* n = made.backend_handle();
     n->rule_kind = ::djinterp::css::DCssRuleKind::declaration_block;
     n->property  = ( (!_name.empty()) && (_name[0] == '@') )
         ? _name
         : DLessString("@") + _name;
     n->value = _value;
-    return DLessRule<Backend>(n);
+    return made;
 }
 
 
@@ -957,14 +999,15 @@ DLessRule<Backend> make_variable(
 //   function: returns a new freestanding mixin definition.
 template<typename Backend>
 inline
-DLessRule<Backend> make_mixin(
+DLessDetached<Backend> make_mixin(
     const DLessString& _selector,
     const DLessString& _parameters = DLessString(),
     const DLessString& _guard = DLessString()
 )
 {
     using node_t = typename Backend::rule_type;
-    node_t* n = new node_t;
+    DLessDetached<Backend> made = DLessDetached<Backend>::make();
+    node_t* n = made.backend_handle();
     n->rule_kind = ::djinterp::css::DCssRuleKind::style_rule;
     n->selector  = _selector;
     n->selector += '(';
@@ -976,7 +1019,7 @@ DLessRule<Backend> make_mixin(
         n->selector += _guard;
         n->selector += ')';
     }
-    return DLessRule<Backend>(n);
+    return made;
 }
 
 
@@ -984,19 +1027,20 @@ DLessRule<Backend> make_mixin(
 //   function: returns a new freestanding mixin call statement.
 template<typename Backend>
 inline
-DLessRule<Backend> make_mixin_call(
+DLessDetached<Backend> make_mixin_call(
     const DLessString& _selector,
     const DLessString& _arguments = DLessString()
 )
 {
     using node_t = typename Backend::rule_type;
-    node_t* n = new node_t;
+    DLessDetached<Backend> made = DLessDetached<Backend>::make();
+    node_t* n = made.backend_handle();
     n->rule_kind = ::djinterp::css::DCssRuleKind::style_rule;
     n->selector  = _selector;
     n->selector += '(';
     n->selector += _arguments;
     n->selector += ')';
-    return DLessRule<Backend>(n);
+    return made;
 }
 
 
@@ -1004,13 +1048,14 @@ DLessRule<Backend> make_mixin_call(
 //   function: returns a new freestanding @import rule.
 template<typename Backend>
 inline
-DLessRule<Backend> make_import(
+DLessDetached<Backend> make_import(
     const DLessString&   _url,
     unsigned             _options = lio_none
 )
 {
     using node_t = typename Backend::rule_type;
-    node_t* n = new node_t;
+    DLessDetached<Backend> made = DLessDetached<Backend>::make();
+    node_t* n = made.backend_handle();
     n->at_keyword = at_keywords::import_;
     n->rule_kind  = ::djinterp::css::DCssRuleKind::at_rule;
     DLessString&    pre = n->prelude;
@@ -1037,7 +1082,7 @@ DLessRule<Backend> make_import(
     pre.push_back('\'');
     pre += _url;
     pre.push_back('\'');
-    return DLessRule<Backend>(n);
+    return made;
 }
 
 
@@ -1045,16 +1090,17 @@ DLessRule<Backend> make_import(
 //   function: returns a new freestanding @plugin rule.
 template<typename Backend>
 inline
-DLessRule<Backend> make_plugin(
+DLessDetached<Backend> make_plugin(
     const DLessString& _url
 )
 {
     using node_t = typename Backend::rule_type;
-    node_t* n = new node_t;
+    DLessDetached<Backend> made = DLessDetached<Backend>::make();
+    node_t* n = made.backend_handle();
     n->at_keyword = at_keywords::plugin;
     n->rule_kind  = ::djinterp::css::DCssRuleKind::at_rule;
     n->prelude    = DLessString("'") + _url + DLessString("'");
-    return DLessRule<Backend>(n);
+    return made;
 }
 
 

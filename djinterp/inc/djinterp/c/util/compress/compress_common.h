@@ -69,9 +69,9 @@
 * `opt.store_only = true`) continue to compile unchanged through the ordinary
 * integral conversion.
 *
-*   Consequently struct dj_compress_options is exactly int32_t[50] with no
+*   Consequently struct dj_compress_options is exactly int32_t[51] with no
 * padding, which is asserted below and is what lets the knob table be a dense
-* offset table rather than fifty hand-written cases.
+* offset table rather than fifty-one hand-written cases.
 *
 *   PRISTINE MEANS UNSET, AND THE CORE RESOLVES IT:
 *   Every knob defaults to D_COMPRESS_KNOB_UNSET rather than to a number.  A
@@ -128,6 +128,7 @@ TABLE OF CONTENTS
          6.  dj_lz4_block_size
          7.  dj_lz4_block_mode
          8.  dj_brotli_mode
+         9.  D_GZIP_OS_*
 4.  OPTION LAYOUT
     -------------
     1.  Option blocks
@@ -137,8 +138,9 @@ TABLE OF CONTENTS
          4.  dj_zstd_options
          5.  dj_lz4_options
          6.  dj_brotli_options
-         7.  dj_compress_options
-         8.  D_COMPRESS_OPTIONS_INIT
+         7.  dj_gzip_options
+         8.  dj_compress_options
+         9.  D_COMPRESS_OPTIONS_INIT
     2.  Layout assertions
 5.  THE KNOB TABLE
     --------------
@@ -434,14 +436,32 @@ enum dj_brotli_mode
     D_BROTLI_MODE_FONT    = 2
 };
 
+// 3.2.9
+// D_GZIP_OS_*
+//   constant: values of the gzip OS byte (RFC 1952's OS), for the gzip.os
+// knob and for dj_gzip_header's os.  Any byte 0 to 255 is written as given;
+// RFC 1952 lists them (3 is Unix, 11 NTFS).  The two negatives choose rather
+// than name a byte:
+//     D_GZIP_OS_DEFAULT  in a header, the option set's gzip.os; in an option
+//                        set, the build's D_CFG_COMPRESS_GZIP_OS.
+//     D_GZIP_OS_ZLIB     the byte zlib writes on this platform when it writes
+//                        a header of its own: 3 on Unix, other values on
+//                        Windows and macOS that have changed between zlib
+//                        versions.
+//   The build's default is D_GZIP_OS_UNKNOWN, so the same input gives the same
+// bytes on every machine.
+#define D_GZIP_OS_DEFAULT  (-1)
+#define D_GZIP_OS_ZLIB     (-2)
+#define D_GZIP_OS_UNKNOWN  255
+
 
 //==============================================================================
 // 4.  OPTION LAYOUT
 //==============================================================================
-//   Fifty knobs: one generic effort plus six per-codec blocks of 3, 4, 11, 19,
-// 7 and 5.  Declaration order is normative -- it is the knob-table order, the
-// diff-report order, and the serialisation order, and the C++ face's field
-// list must match it member for member.
+//   Fifty-one knobs: one generic effort plus seven per-codec blocks of 3, 4,
+// 11, 19, 7, 5 and 1.  Declaration order is normative -- it is the knob-table
+// order, the diff-report order, and the serialisation order, and the C++
+// face's field list must match it member for member.
 
 // 4.1    Option blocks
 //------------------------------------------------------------------------------
@@ -546,6 +566,16 @@ struct dj_brotli_options
 };
 
 // 4.1.7
+// dj_gzip_options
+//   struct: the gzip framing block (1 knob), read only by the GZIP codec.
+// `os` is the header's OS byte: 0 to 255, or a D_GZIP_OS_* choice.  It comes
+// last so that every knob before it kept its index when it was added.
+struct dj_gzip_options
+{
+    int32_t os;
+};
+
+// 4.1.8
 // dj_compress_options
 //   struct: the whole codec-tuning surface -- the generic effort plus every
 // per-codec block.  Plain data, no allocation, trivially copyable, and
@@ -560,9 +590,10 @@ struct dj_compress_options
     struct dj_zstd_options       zstd;
     struct dj_lz4_options        lz4;
     struct dj_brotli_options     brotli;
+    struct dj_gzip_options       gzip;
 };
 
-// 4.1.8
+// 4.1.9
 // D_COMPRESS_OPTIONS_INIT
 //   macro: the pristine initialiser -- every knob UNSET.  Written as a nested
 // brace initialiser so a caller may declare a const option set at file scope
@@ -589,7 +620,8 @@ struct dj_compress_options
       D_COMPRESS_KNOB_UNSET, D_COMPRESS_KNOB_UNSET, D_COMPRESS_KNOB_UNSET,     \
       D_COMPRESS_KNOB_UNSET },                                                 \
     { D_COMPRESS_KNOB_UNSET, D_COMPRESS_KNOB_UNSET, D_COMPRESS_KNOB_UNSET,     \
-      D_COMPRESS_KNOB_UNSET, D_COMPRESS_KNOB_UNSET }                           \
+      D_COMPRESS_KNOB_UNSET, D_COMPRESS_KNOB_UNSET },                          \
+    { D_COMPRESS_KNOB_UNSET }                                                  \
 }
 
 // 4.2    Layout assertions
@@ -616,7 +648,9 @@ D_STATIC_ASSERT(sizeof(struct dj_lz4_options) == (7 * sizeof(int32_t)),
                 "dj_lz4_options: layout drift");
 D_STATIC_ASSERT(sizeof(struct dj_brotli_options) == (5 * sizeof(int32_t)),
                 "dj_brotli_options: layout drift");
-D_STATIC_ASSERT(sizeof(struct dj_compress_options) == (50 * sizeof(int32_t)),
+D_STATIC_ASSERT(sizeof(struct dj_gzip_options) == (1 * sizeof(int32_t)),
+                "dj_gzip_options: layout drift");
+D_STATIC_ASSERT(sizeof(struct dj_compress_options) == (51 * sizeof(int32_t)),
                 "dj_compress_options: not densely packed; knob table is stale");
 
 D_STATIC_ASSERT(offsetof(struct dj_compress_options, level) == 0,
@@ -639,6 +673,9 @@ D_STATIC_ASSERT(offsetof(struct dj_compress_options, lz4) ==
 D_STATIC_ASSERT(offsetof(struct dj_compress_options, brotli) ==
                 (45 * sizeof(int32_t)),
                 "dj_compress_options: field drift at brotli");
+D_STATIC_ASSERT(offsetof(struct dj_compress_options, gzip) ==
+                (50 * sizeof(int32_t)),
+                "dj_compress_options: field drift at gzip");
 
 
 //==============================================================================
@@ -646,9 +683,9 @@ D_STATIC_ASSERT(offsetof(struct dj_compress_options, brotli) ==
 //==============================================================================
 //   A dense index over the flat option set.  It exists so that comparison,
 // "is this pristine?", diff reporting, serialisation and CLI binding are each
-// ONE loop over fifty entries instead of fifty hand-written cases -- the
-// fifty-field walk test_compress_options.hpp records as re-derived by hand at
-// every boundary.  A diff is a fold over this table.
+// ONE loop over fifty-one entries instead of fifty-one hand-written cases --
+// the field-by-field walk test_compress_options.hpp records as re-derived by
+// hand at every boundary.  A diff is a fold over this table.
 //
 //   Enumerator order MUST match declaration order in section 4.1; the layout
 // assertions above are what guarantee the correspondence is dense.
@@ -658,7 +695,8 @@ D_STATIC_ASSERT(offsetof(struct dj_compress_options, brotli) ==
 // both languages, whereas casting the struct to int32_t* and indexing relies on
 // an aliasing guarantee C++ does not give.
 //
-//   Because the struct is asserted to be exactly fifty int32_t with no padding,
+//   Because the struct is asserted to be exactly fifty-one int32_t with no
+// padding,
 // the offset table is the IDENTITY -- knob k lives at byte offset
 // k * sizeof(int32_t), verified: D_COMPRESS_KNOB_ZSTD_WINDOW_LOG is 20 and
 // offsetof(struct dj_compress_options, zstd.window_log) is 80.  So
@@ -730,16 +768,18 @@ enum dj_compress_knob
     D_COMPRESS_KNOB_BROTLI_WINDOW_BITS          = 46,
     D_COMPRESS_KNOB_BROTLI_BLOCK_BITS           = 47,
     D_COMPRESS_KNOB_BROTLI_MODE                 = 48,
-    D_COMPRESS_KNOB_BROTLI_LARGE_WINDOW         = 49
+    D_COMPRESS_KNOB_BROTLI_LARGE_WINDOW         = 49,
+
+    D_COMPRESS_KNOB_GZIP_OS                     = 50
 };
 
 // 5.1.2
 // D_COMPRESS_KNOB_COUNT
 //   constant: the number of knobs in a dj_compress_options.  Asserted against
 // the struct's size in 4.2.
-#define D_COMPRESS_KNOB_COUNT   50
+#define D_COMPRESS_KNOB_COUNT   51
 
-D_STATIC_ASSERT((D_COMPRESS_KNOB_BROTLI_LARGE_WINDOW + 1) ==
+D_STATIC_ASSERT((D_COMPRESS_KNOB_GZIP_OS + 1) ==
                 D_COMPRESS_KNOB_COUNT,
                 "dj_compress_knob: index set is not dense");
 
@@ -971,9 +1011,10 @@ enum dj_pack_status d_decompress_to_sink(
 //------------------------------------------------------------------------------
 //   RFC 1952 lets a gzip stream carry the original file's name (FNAME), its
 // modification time (MTIME) and the system that wrote it (OS).  The GZIP codec
-// above writes none of them, and reads past them: that is what makes its
-// output byte-reproducible.  These two functions write and read them, through
-// zlib's own header support.
+// above writes no name and no time, and the OS byte its gzip.os knob gives,
+// 255 ("unknown") by default; it reads past all three.  That is what makes its
+// output the same bytes on every machine.  These two functions write and read
+// them, through zlib's own header support.
 //
 //   Writing with a null header is exactly d_compress_to_sink under GZIP, byte
 // for byte.  A header's name is written as the bytes given: RFC 1952 calls the
@@ -985,21 +1026,12 @@ enum dj_pack_status d_decompress_to_sink(
 // NUL all the same, and sets name_truncated.  Only the first member of a
 // multi-member stream is read, as d_decompress_to_sink does.
 
-// D_GZIP_OS_DEFAULT
-//   constant: as dj_gzip_header's os, the byte zlib writes on this platform
-// when it writes no header of its own choosing.  Storing a name or a time then
-// changes those bytes and no others.
-#define D_GZIP_OS_DEFAULT  (-1)
-
-// D_GZIP_OS_UNKNOWN
-//   constant: RFC 1952's OS byte for "unknown".
-#define D_GZIP_OS_UNKNOWN  255
-
 // dj_gzip_header
 //   struct: the parts of a gzip header a caller can choose and read back.
 // `name` is FNAME, empty for none; `mtime` is MTIME, seconds since 1970-01-01
-// UTC, 0 for none; `os` is the OS byte, 0 to 255, or D_GZIP_OS_DEFAULT when
-// writing.  `name_truncated` is set by reading only.
+// UTC, 0 for none; `os` is the OS byte, 0 to 255, or when writing a
+// D_GZIP_OS_* choice (3.2.9), D_GZIP_OS_DEFAULT taking the option set's.
+// `name_truncated` is set by reading only.
 struct dj_gzip_header
 {
     struct dj_pack_text name;

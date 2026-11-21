@@ -1,14 +1,18 @@
 /*******************************************************************************
-* djinterp [cpp]                                  color_convert_tests_traits.cpp
+* djinterp [test]                                 color_convert_tests_traits.cpp
+*
+*   The color_convert suite, block "traits": which pairs are convertible, the
+* trait's shape and _v form, qualifier stripping, the two argument orders,
+* color_cast's deduction, and the C++20 concepts.
 *
 *
 * path:      /tests/djinterp/cpp/util/color/color_convert_tests_traits.cpp
 * link(s):   TBA
-* author(s): TBA                                                    created: TBA
-*                                                            revised: 2026.09.21
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.19
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 // djinterp
-#include "color_convert_tests.hpp"
+#include "color_convert_tests.hpp"  // the suite
 
 NS_DJINTERP
 NS_TESTING
@@ -129,6 +133,40 @@ bool tests_color_convert_is_convertible_color_v_matches_the_trait()
 
     D_CX_CHECK((is_convertible_color_v<rgb, hsl>));
     D_CX_CHECK(!(is_convertible_color_v<rgba, rgb>));
+
+    return true;
+}
+
+/*
+tests_color_convert_is_convertible_color_has_integral_constant_shape
+  Verifies the trait is a std::integral_constant, as is_color_model is, so it
+  has ::type and ::value_type, converts to bool, and composes with the
+  standard library's traits.
+  Tests the following:
+  - a model pair derives from integral_constant<bool, true>; rgba from
+    integral_constant<bool, false>
+  - value_type is bool, and ::type is the integral_constant itself
+  - an instance converts to bool in a constant expression
+  - std::is_same<..., std::true_type> holds through ::type
+*/
+bool tests_color_convert_is_convertible_color_has_integral_constant_shape()
+{
+    D_CX_CHECK((std::is_base_of<std::integral_constant<bool, true>,
+                                is_convertible_color<hsl, cie_lab> >::value));
+    D_CX_CHECK((std::is_base_of<std::integral_constant<bool, false>,
+                                is_convertible_color<rgba, rgb> >::value));
+
+    D_CX_CHECK((std::is_same<is_convertible_color<rgb, cmyk>::value_type,
+                             bool>::value));
+    D_CX_CHECK((std::is_same<is_convertible_color<rgb, cmyk>::type,
+                             std::true_type>::value));
+    D_CX_CHECK((std::is_same<is_convertible_color<int, rgb>::type,
+                             std::false_type>::value));
+
+    D_CONSTEXPR bool as_value = is_convertible_color<ycbcr, hsv>();
+
+    D_CX_CHECK(as_value);
+    D_CX_CHECK(!(is_convertible_color<rgb, rgba>()));
 
     return true;
 }

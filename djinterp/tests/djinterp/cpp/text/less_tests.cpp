@@ -8,7 +8,7 @@
 * path:      /tests/djinterp/cpp/text/less_tests.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 #include "less_tests.hpp"  // the suite's entry point, DTest's C face
 
@@ -47,6 +47,14 @@ d_tests_less_all(
         "the Less source: declarations, guards, quoted URLs, comments, "
         "keyframes and at-rules",
         D_TESTS_TEXT_AT_CPP17(d_tests_less_sheet_render), below17);
+    d_tests_text_run(_suite, "factories",
+        "each factory returns a handle owning what it names; an unadopted "
+        "one frees it",
+        D_TESTS_TEXT_AT_CPP17(d_tests_less_detached_factories), below17);
+    d_tests_text_run(_suite, "adopt",
+        "adopt takes a handle only, its module's or CSS's, and refuses an "
+        "empty parent or handle, or a cycle",
+        D_TESTS_TEXT_AT_CPP17(d_tests_less_detached_adopt), below17);
 
     d_tests_text_bind(NULL);
 

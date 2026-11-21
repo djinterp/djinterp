@@ -5,7 +5,8 @@
 #   Test leaf for the output stream's suite, in DTest's C face: the runner in
 # this directory, the suite's translation units globbed from the tests tree,
 # the stream's units djinterp_c_runtime does not carry (its destinations, and
-# what the string and file ones need), and DTest's C face.
+# what the string and file ones need), and DTest's C face, from
+# djinterp_c_test.
 #
 # author(s): Samuel 'teer' Neal-Blim                            date: 2026.11.09
 # =============================================================================
@@ -29,12 +30,14 @@ djinterp_add_test_executable(c_ostream_tests
         "${DJINTERP_SRC_ROOT}/djinterp/c/util/ostream/ostream_file.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/util/ostream/ostream_console.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/dstring.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/string_fn.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/memory/dmemory.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/filesys/file_open.c"
         "${DJINTERP_SRC_ROOT}/djinterp/c/filesys/file_common.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/modules/test/test_suite.c"
+        "${DJINTERP_SRC_ROOT}/djinterp/c/filesys/file_desc.c"
+        "${DJINTERP_SRC_ROOT}/djinterp/c/filesys/file_io.c"
+        "${DJINTERP_SRC_ROOT}/djinterp/c/filesys/file_seek.c"
+        "${DJINTERP_SRC_ROOT}/djinterp/c/filesys/file_stat.c"
     INCLUDES
         "${_tests_dir}"
     LIBRARIES
+        djinterp_c_test
         ${_threads})

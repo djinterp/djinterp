@@ -9,7 +9,7 @@
 * path:      /tests/djinterp/c/text/text_edit_tests.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.17
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 /*
 TABLE OF CONTENTS
@@ -85,7 +85,8 @@ static const struct dj_test_case_spec d_tests_text_edit_change_rows[] =
     D_TEST_CASE(d_tests_text_edit_touching,
                 "changes that only touch, or insert at an edge, are kept"),
     D_TEST_CASE(d_tests_text_edit_bad_arguments,
-                "no set, an end before the start, or no text: refused")
+                "no set, an end before the start, no text, or no "
+                "change: refused as invalid")
 };
 
 // d_tests_text_edit_apply_rows

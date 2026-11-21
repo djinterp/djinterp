@@ -5,7 +5,7 @@
 #   Test leaf for str_interp.h's suite, in DTest's C face (converted from the
 # standalone tier on 2026.11.09): the runner in this directory, the suite's
 # translation units globbed from the tests tree, the unit under test, and
-# DTest's C face.
+# DTest's C face, from djinterp_c_test.
 #
 # author(s): Samuel 'teer' Neal-Blim                            date: 2026.11.09
 # =============================================================================
@@ -19,8 +19,7 @@ djinterp_add_test_executable(c_str_interp_tests
         "${CMAKE_CURRENT_SOURCE_DIR}/str_interp_tests_runner.c"
         ${_sections}
         "${DJINTERP_SRC_ROOT}/djinterp/c/text/str_interp.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/string_fn.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/memory/dmemory.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/modules/test/test_suite.c"
+    LIBRARIES
+        djinterp_c_test
     INCLUDES
         "${_tests_dir}")

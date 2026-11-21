@@ -48,7 +48,7 @@
 * path:      /inc/djinterp/cpp/util/archive/archive_options.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #ifndef DJINTERP_UTIL_ARCHIVE_ARCHIVE_OPTIONS_HPP
@@ -155,16 +155,20 @@ struct DTarOptions
 // DGzOptions
 //   struct: the gzip header block.  Clearing store_name and store_mtime is
 // what produces a byte-reproducible .gz, since RFC 1952 otherwise records the
-// source filename and the current time.
+// source filename and the current time.  `os` is the header's OS byte, 0 to
+// 255 or a gzip_os_* choice; unset, it is the codec block's gzip.os, 255
+// ("unknown") unless that or the build changes it.
 struct DGzOptions
 {
     int          store_name;
     int          store_mtime;
+    int          os;
     std::string  original_name;
 
     DGzOptions()
         : store_name(D_ARCHIVE_KNOB_UNSET),
-          store_mtime(D_ARCHIVE_KNOB_UNSET)
+          store_mtime(D_ARCHIVE_KNOB_UNSET),
+          os(D_ARCHIVE_KNOB_UNSET)
     {}
 };
 
@@ -271,6 +275,7 @@ struct archive_options
 
         out.gz.store_name          = (int32_t)gz.store_name;
         out.gz.store_mtime         = (int32_t)gz.store_mtime;
+        out.gz.os                  = (int32_t)gz.os;
         out.gz.original_name       = span(gz.original_name);
 
         out.sevenzip.method             = (int32_t)sevenzip.method;

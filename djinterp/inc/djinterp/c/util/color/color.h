@@ -4,8 +4,8 @@
 *   Umbrella header for the djinterp color module (C). Including this single
 * header pulls in every color model, the shared conversion kernel, and the
 * cross-model operations defined below. C translation units should include
-* this; C++ translation units should include color.hpp (which includes this
-* and adds the ergonomic and polymorphic layers).
+* this; C++ translation units should include color.hpp, which includes this
+* and adds the C++ models and the conversion facade.
 *
 *   The operations here are the ones that span more than one color space:
 * HSL-mediated saturation/brightness/hue manipulation of RGB, and the

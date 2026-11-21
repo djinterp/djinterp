@@ -18,12 +18,13 @@
 * 2.  GROUPS
 *     a.  text_align.hpp and text_template.hpp
 *     b.  text_pattern.hpp
+*     c.  detached.hpp
 *
 *
 * path:      /tests/djinterp/cpp/text/text_core_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_CPP_TEXT_TEXT_CORE_TESTS_HPP
@@ -71,6 +72,13 @@ void d_tests_text_core_pattern_match(void);
 void d_tests_text_core_pattern_find(void);
 void d_tests_text_core_pattern_render(void);
 void d_tests_text_core_pattern_compose(void);
+#endif  // C++11
+
+// c.  detached.hpp (text_core_tests_detached.cpp)
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+void d_tests_text_core_detached_own(void);
+void d_tests_text_core_detached_convert(void);
+void d_tests_text_core_detached_adopt(void);
 #endif  // C++11
 
 

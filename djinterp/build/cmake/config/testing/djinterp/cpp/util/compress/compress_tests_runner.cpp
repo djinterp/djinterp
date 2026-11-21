@@ -11,7 +11,7 @@
 * path:      /build/cmake/config/testing/djinterp/cpp/util/compress/compress_tests_runner.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.21
-*                                                            revised: 2026.11.10
+*                                                            revised: 2026.11.18
 *******************************************************************************/
 
 // std
@@ -107,6 +107,14 @@ int main()
     D_CP_RUN(tests_compress_throwing_what_message);
     D_CP_RUN(tests_compress_throwing_error_type);
     D_CP_RUN(tests_compress_throwing_decompress_throws);
+
+    // -- gzip's header --------------------------------------------------------
+    D_CP_RUN(tests_compress_gzip_default_header);
+    D_CP_RUN(tests_compress_gzip_header_round_trip);
+    D_CP_RUN(tests_compress_gzip_names);
+    D_CP_RUN(tests_compress_gzip_os_choices);
+    D_CP_RUN(tests_compress_gzip_corrupt);
+    D_CP_RUN(tests_compress_gzip_throwing);
 
     std::printf("passed: %d   failed: %d\n", g_passed, g_failed);
     return (g_failed == 0) ? 0 : 1;

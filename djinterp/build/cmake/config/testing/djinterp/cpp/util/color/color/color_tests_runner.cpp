@@ -43,6 +43,7 @@ int main()
     return dt::run_module(
         tt::color_spec(),
         "color",
-        "The umbrella header: foundation, rgb/rgba, cmyk, and the minimal graph",
+        "The umbrella: every model, the facade and the C operations, in one "
+        "include",
         opts);
 }

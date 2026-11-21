@@ -2,7 +2,7 @@
 * djinterp [test]                                archive_options_tests_codec.cpp
 *
 *   Tests for the embedded codec (archive_options HAS-A compress_options):
-* its fifty knobs are pristine until set; resolution tunes only the format's
+* its fifty-one knobs are pristine until set; resolution tunes only the format's
 * own codec, and gives its level the archive's unless the codec block set its
 * own; and the codec surface and the container surface are separate data.
 *
@@ -28,7 +28,7 @@ NS_TESTING
 tests_codec_block_defaults
   Verifies the embedded codec is pristine, and how it resolves.
   Tests the following:
-  - every one of the 50 codec knobs is unset, walked through the kernel's
+  - every one of the 51 codec knobs is unset, walked through the kernel's
     knob table, and the shared codec_is_default predicate agrees
   - resolved for zip, DEFLATE's own knobs are given values while another
     codec's (zstd's) stay unset: only the format's codec is tuned

@@ -302,10 +302,14 @@ struct dj_tar_options
 // `original_name` is the name recorded instead, and the only name a .tar.gz
 // records.  A time RFC 1952 can't hold (before 1970, after 2106) is recorded
 // as none.  Reading a .gz gives its entry the name and time it carries.
+// `os` is the header's OS byte, as the codec block's gzip.os (0 to 255, or a
+// D_GZIP_OS_* choice); unset, it is the codec block's, which is 255
+// ("unknown") unless that or the build changes it.
 struct dj_gz_options
 {
     int32_t             store_name;
     int32_t             store_mtime;
+    int32_t             os;
     struct dj_pack_text  original_name;
 };
 
@@ -340,7 +344,7 @@ struct dj_rar_options
 // embedded codec tuning, and one block per format.  `codec` is a full
 // dj_compress_options: a container's stream tuning IS codec tuning, and
 // embedding it rather than restating it is what keeps one definition of the
-// fifty codec knobs.
+// fifty-one codec knobs.
 //
 //   `level` and `codec.level` are deliberately distinct.  The archive-level
 // value is the container's effort; the codec-level value tunes the stream
@@ -376,7 +380,8 @@ struct dj_archive_options
     { D_ARCHIVE_KNOB_UNSET, D_ARCHIVE_KNOB_UNSET, D_ARCHIVE_KNOB_UNSET,        \
       D_ARCHIVE_KNOB_UNSET, D_PACK_TEXT_NONE },                                \
     { D_ARCHIVE_KNOB_UNSET, D_ARCHIVE_KNOB_UNSET },                            \
-    { D_ARCHIVE_KNOB_UNSET, D_ARCHIVE_KNOB_UNSET, D_PACK_TEXT_NONE },          \
+    { D_ARCHIVE_KNOB_UNSET, D_ARCHIVE_KNOB_UNSET, D_ARCHIVE_KNOB_UNSET,        \
+      D_PACK_TEXT_NONE },                                                      \
     { D_ARCHIVE_KNOB_UNSET, D_ARCHIVE_KNOB_UNSET, D_ARCHIVE_KNOB_UNSET,        \
       D_ARCHIVE_KNOB_UNSET, D_ARCHIVE_KNOB_UNSET, D_PACK_TEXT_NONE },          \
     { D_ARCHIVE_KNOB_UNSET, D_ARCHIVE_KNOB_UNSET, D_ARCHIVE_KNOB_UNSET,        \
@@ -570,8 +575,8 @@ D_STATIC_ASSERT(sizeof(struct dj_archive_layout) == (2 * sizeof(size_t)),
 //
 //   THE DIFF IS COARSE ON THE CODEC, ON PURPOSE.  d_archive_options_diff
 // reports the embedded codec block as a SINGLE difference
-// (D_ARCHIVE_KNOB_CODEC) rather than expanding it into fifty codec knobs.  A
-// call site tuning a container rarely cares which of nineteen zstd knobs
+// (D_ARCHIVE_KNOB_CODEC) rather than expanding it into fifty-one codec knobs.
+// A call site tuning a container rarely cares which of nineteen zstd knobs
 // moved, and a caller that does care passes _a->codec and _b->codec to
 // d_compress_options_diff directly.  Two granularities, one for each question,
 // neither reimplementing the other.
@@ -600,25 +605,26 @@ enum dj_archive_knob
 
     D_ARCHIVE_KNOB_GZ_STORE_NAME            = 13,
     D_ARCHIVE_KNOB_GZ_STORE_MTIME           = 14,
-    D_ARCHIVE_KNOB_GZ_ORIGINAL_NAME         = 15,
+    D_ARCHIVE_KNOB_GZ_OS                    = 15,
+    D_ARCHIVE_KNOB_GZ_ORIGINAL_NAME         = 16,
 
-    D_ARCHIVE_KNOB_SEVENZIP_METHOD          = 16,
-    D_ARCHIVE_KNOB_SEVENZIP_SOLID           = 17,
-    D_ARCHIVE_KNOB_SEVENZIP_HEADER_COMP     = 18,
-    D_ARCHIVE_KNOB_SEVENZIP_HEADER_ENCRYPT  = 19,
-    D_ARCHIVE_KNOB_SEVENZIP_THREADS         = 20,
-    D_ARCHIVE_KNOB_SEVENZIP_PASSWORD        = 21,
+    D_ARCHIVE_KNOB_SEVENZIP_METHOD          = 17,
+    D_ARCHIVE_KNOB_SEVENZIP_SOLID           = 18,
+    D_ARCHIVE_KNOB_SEVENZIP_HEADER_COMP     = 19,
+    D_ARCHIVE_KNOB_SEVENZIP_HEADER_ENCRYPT  = 20,
+    D_ARCHIVE_KNOB_SEVENZIP_THREADS         = 21,
+    D_ARCHIVE_KNOB_SEVENZIP_PASSWORD        = 22,
 
-    D_ARCHIVE_KNOB_RAR_LEVEL                = 22,
-    D_ARCHIVE_KNOB_RAR_SOLID                = 23,
-    D_ARCHIVE_KNOB_RAR_RECOVERY_RECORD      = 24,
-    D_ARCHIVE_KNOB_RAR_PASSWORD             = 25
+    D_ARCHIVE_KNOB_RAR_LEVEL                = 23,
+    D_ARCHIVE_KNOB_RAR_SOLID                = 24,
+    D_ARCHIVE_KNOB_RAR_RECOVERY_RECORD      = 25,
+    D_ARCHIVE_KNOB_RAR_PASSWORD             = 26
 };
 
 // D_ARCHIVE_KNOB_COUNT
 //   constant: the number of knobs in a dj_archive_options, counting the
 // embedded codec as one.
-#define D_ARCHIVE_KNOB_COUNT    26
+#define D_ARCHIVE_KNOB_COUNT    27
 
 D_STATIC_ASSERT((D_ARCHIVE_KNOB_RAR_PASSWORD + 1) == D_ARCHIVE_KNOB_COUNT,
                 "dj_archive_knob: index set is not dense");

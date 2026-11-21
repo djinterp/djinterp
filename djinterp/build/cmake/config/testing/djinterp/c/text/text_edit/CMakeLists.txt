@@ -1,10 +1,10 @@
 # =============================================================================
 # djinterp [test]  --  build/cmake/config/testing/djinterp/c/text/text_edit/CMakeLists.txt
 #
-#   Test leaf for c/text/text_edit.h, changes to a text, kept apart until applied, in the C spec form: the runner in
-# this directory, the section translation units globbed from the tests tree,
-# the source under test, and DTest's C face, which djinterp_c_runtime does
-# not yet carry.
+#   Test leaf for c/text/text_edit.h, changes to a text, kept apart until
+# applied, in the C spec form: the runner in this directory, the section
+# translation units globbed from the tests tree, the source under test, and
+# DTest's C face, from djinterp_c_test.
 #
 # author(s): Samuel 'teer' Neal-Blim                            date: 2026.11.17
 # =============================================================================
@@ -18,8 +18,7 @@ djinterp_add_test_executable(c_text_edit_tests
         "${CMAKE_CURRENT_SOURCE_DIR}/text_edit_tests_runner.c"
         ${_sections}
         "${DJINTERP_SRC_ROOT}/djinterp/c/text/text_edit.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/string_fn.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/memory/dmemory.c"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/modules/test/test_suite.c"
+    LIBRARIES
+        djinterp_c_test
     INCLUDES
         "${_tests_dir}")

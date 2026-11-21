@@ -6,7 +6,8 @@
 # markdown/markdown_template.hpp and its traits and concepts), in DTest's C
 # face: the runner in this directory, the suite's translation units globbed
 # from the tests tree, the check and run text's C++ suites share
-# (text_tests_common.cpp), and DTest's C face. The headers are header-only.
+# (text_tests_common.cpp), and DTest's C face, from djinterp_c_test. The
+# headers are header-only.
 #
 # author(s): Samuel 'teer' Neal-Blim                            date: 2026.11.13
 # =============================================================================
@@ -20,6 +21,7 @@ djinterp_add_test_executable(markdown_tests
         "${CMAKE_CURRENT_SOURCE_DIR}/markdown_tests_runner.cpp"
         ${_sections}
         "${_tests_dir}/text_tests_common.cpp"
-        "${DJINTERP_SRC_ROOT}/djinterp/c/modules/test/test_suite.c"
+    LIBRARIES
+        djinterp_c_test
     INCLUDES
         "${_tests_dir}")
