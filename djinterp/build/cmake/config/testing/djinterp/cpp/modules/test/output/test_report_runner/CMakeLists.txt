@@ -41,4 +41,7 @@ djinterp_add_test_executable(test_report_runner_tests
 # section with it.
 target_compile_definitions(test_report_runner_tests
     PRIVATE
-        D_TEST_REPORT_ENABLE_ARCHIVE=1)
+        D_TEST_REPORT_ENABLE_ARCHIVE=1
+        # the checks read a report's text in its PDF's bytes, so the PDF
+        # writer's streams stay raw here
+        D_CFG_PDF_COMPRESS=0)
