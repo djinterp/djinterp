@@ -27,14 +27,14 @@
 * path:      /src/djinterp/c/modules/test/test_suite.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-*                                                            revised: 2026.11.15
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 #include "../../../../../inc/djinterp/c/modules/test/test_suite.h"  // corresponding header
 
 // std
 #include <errno.h>   // errno
 #include <stdlib.h>  // malloc, realloc, free
-#include <string.h>  // memchr, memcpy, strerror, strlen, strncmp, strstr
+#include <string.h>  // memchr, memcpy, strerror(_s), strlen, strncmp, strstr
 // djinterp
 #include "../../../../../inc/djinterp/c/dckdint.h"  // d_ckd_mul, d_ckd_add
 
@@ -524,9 +524,10 @@ d_internal_test_suite_put_count(
 {
     char digits[24] = {0};
 
-    sprintf(digits,
-            "%lu",
-            (unsigned long)_count);
+    snprintf(digits,
+             sizeof(digits),
+             "%lu",
+             (unsigned long)_count);
     d_internal_test_suite_puts(_writer,
                                digits);
 
@@ -595,9 +596,10 @@ d_internal_test_suite_put_quoted(
         else if ( (byte < 0x20) ||
                   (byte == 0x7f) )
         {
-            sprintf(escape,
-                    "\\x%02x",
-                    (unsigned int)byte);
+            snprintf(escape,
+                     sizeof(escape),
+                     "\\x%02x",
+                     (unsigned int)byte);
             d_internal_test_suite_puts(_writer,
                                        escape);
         }
@@ -2092,9 +2094,10 @@ d_internal_test_suite_print_table(
         char number[24] = {0};
 
         n++;
-        sprintf(number,
-                "%lu",
-                (unsigned long)n);
+        snprintf(number,
+                 sizeof(number),
+                 "%lu",
+                 (unsigned long)n);
 
         // the number column
         if (strlen(number) > width[1])
@@ -2163,9 +2166,10 @@ d_internal_test_suite_print_table(
         char number[24] = {0};
 
         n++;
-        sprintf(number,
-                "%lu",
-                (unsigned long)n);
+        snprintf(number,
+                 sizeof(number),
+                 "%lu",
+                 (unsigned long)n);
         d_internal_test_suite_cell(_out,
                                    d_internal_test_suite_verdict(node),
                                    width[0]);
@@ -2505,8 +2509,23 @@ d_internal_test_suite_read(
 {
     errno = 0;
 
+#if D_ENV_COMPILER_MSVC_FAMILY
+    // the Microsoft runtime deprecates fopen (an error under /sdl); fopen_s
+    // returns the errno fopen would have set
+    FILE*         file   = NULL;
+    const errno_t opened = fopen_s(&file,
+                                   _side->path,
+                                   "rb");
+
+    if (opened != 0)
+    {
+        errno = opened;
+        file  = NULL;
+    }
+#else
     FILE* const file = fopen(_side->path,
                              "rb");
+#endif
 
     // a file that cannot be opened
     if (!file)
@@ -3028,8 +3047,22 @@ d_internal_test_suite_put_unread(
     {
         d_internal_test_suite_puts(_note,
                                    ": ");
+#if D_ENV_COMPILER_MSVC_FAMILY
+        {
+            // the Microsoft runtime deprecates strerror (an error under
+            // /sdl); strerror_s writes the same text, cut to the room
+            char reason[128] = {0};
+
+            (void)strerror_s(reason,
+                             sizeof(reason),
+                             _side->error);
+            d_internal_test_suite_puts(_note,
+                                       reason);
+        }
+#else
         d_internal_test_suite_puts(_note,
                                    strerror(_side->error));
+#endif
     }
 
     return;
