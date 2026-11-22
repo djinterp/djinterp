@@ -10,14 +10,14 @@
 * path:      /src/djinterp/env/util/archive/env_archive.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.11.20
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 #include "../../../../../inc/djinterp/env/util/archive/env_archive.h"
 #include "../../../../../inc/djinterp/env/util/compress/env_compress_link.h"
 
 // std
 #include <stdio.h>   // printf
-#include <stdlib.h>  // getenv
+#include <stdlib.h>  // getenv, or _dupenv_s and free (the Microsoft runtime)
 #include <string.h>  // memcpy, strchr, strlen
 #if D_INTERNAL_ENV_ARCHIVE_OS_WINDOWS
     #include <io.h>      // _access
@@ -116,34 +116,17 @@ int internal_tool_exists_at(
     return (D_INTERNAL_ENV_ARCHIVE_ACCESS(path) == 0) ? 1 : 0;
 }
 
-// d_env_archive_has_tool
-//   function: probe PATH for an executable named `tool_name`. returns 1 if
-// found and executable, 0 otherwise. on Windows, common executable suffixes
-// are tried when the name carries no extension.
-int d_env_archive_has_tool(
+// internal_tool_on_path
+//   function: walk a PATH list for a directory holding an executable named
+// `tool_name`. returns 1 if one does, 0 otherwise. on Windows, common
+// executable suffixes are tried when the name carries no extension.
+static
+int internal_tool_on_path(
+    const char* path_env,
     const char* tool_name
 )
 {
-    const char* path_env;
     const char* cursor;
-
-    if ((tool_name == NULL) || (tool_name[0] == '\0'))
-    {
-        return 0;
-    }
-
-    /* an explicit path (contains a separator) is tested directly */
-    if (strchr(tool_name, '/') != NULL ||
-        strchr(tool_name, '\\') != NULL)
-    {
-        return (D_INTERNAL_ENV_ARCHIVE_ACCESS(tool_name) == 0) ? 1 : 0;
-    }
-
-    path_env = getenv("PATH");
-    if (path_env == NULL)
-    {
-        return 0;
-    }
 
     cursor = path_env;
     while (*cursor != '\0')
@@ -179,6 +162,55 @@ int d_env_archive_has_tool(
     }
 
     return 0;
+}
+
+// d_env_archive_has_tool
+//   function: probe PATH for an executable named `tool_name`. returns 1 if
+// found and executable, 0 otherwise. on Windows, common executable suffixes
+// are tried when the name carries no extension. the Microsoft runtime
+// deprecates getenv (an error under /sdl), so there PATH is read through
+// _dupenv_s's copy, as the argument parser reads a variable.
+int d_env_archive_has_tool(
+    const char* tool_name
+)
+{
+    if ((tool_name == NULL) || (tool_name[0] == '\0'))
+    {
+        return 0;
+    }
+
+    /* an explicit path (contains a separator) is tested directly */
+    if (strchr(tool_name, '/') != NULL ||
+        strchr(tool_name, '\\') != NULL)
+    {
+        return (D_INTERNAL_ENV_ARCHIVE_ACCESS(tool_name) == 0) ? 1 : 0;
+    }
+
+#if D_ENV_COMPILER_MSVC_FAMILY
+    {
+        char*  path_env = NULL;
+        size_t length   = 0u;
+        int    found;
+
+        if ( (_dupenv_s(&path_env, &length, "PATH") != 0) ||
+             (path_env == NULL) )
+        {
+            return 0;
+        }
+
+        found = internal_tool_on_path(path_env, tool_name);
+        free(path_env);
+
+        return found;
+    }
+#else
+    {
+        const char* path_env = getenv("PATH");
+
+        return (path_env != NULL) ? internal_tool_on_path(path_env, tool_name)
+                                  : 0;
+    }
+#endif
 }
 
 // d_env_archive_print_info
