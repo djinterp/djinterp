@@ -50,7 +50,9 @@
 #                                  all)
 #            --changed REV         only the units changed since REV (and the
 #                                  new ones git does not track yet), with
-#                                  the units that include a changed header
+#                                  the units that include a changed header,
+#                                  and those whose punch lines (--known) a
+#                                  change since REV took off or narrowed
 #            --known FILE          the punch list a run is held to
 #            --write-known FILE    write this run's failures as the list
 #            --json FILE           every result, with its diagnostics
@@ -68,7 +70,7 @@
 # path:      /scripts/ci/ladder.py
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.05
-#                                                            revised: 2026.11.20
+#                                                            revised: 2026.11.21
 #*******************************************************************************
 import argparse
 import collections
@@ -186,9 +188,10 @@ def includers(units):
     return by_header
 
 
-def changed_units(units, revision):
-    """The units changed since a revision, and those including a changed
-    header."""
+def changed_units(units, revision, known_path=None):
+    """The units changed since a revision, those including a changed header,
+    and those whose punch lines a change since the revision took off or
+    narrowed: a line goes only when its unit passes, so that unit runs."""
     result = subprocess.run(['git', 'diff', '--name-only', '--relative',
                              revision, '--', '.'],
                             cwd=TREE, stdout=subprocess.PIPE,
@@ -212,8 +215,31 @@ def changed_units(units, revision):
 
     for path in changed:
         wanted |= by_header.get(path, set())
+    wanted |= punch_lines_gone(known_path, revision)
 
     return [unit for unit in units if unit[2] in wanted]
+
+
+def punch_lines_gone(known_path, revision):
+    """The units whose lines in the punch list at a revision are gone from it
+    now, or allow fewer rungs; none when the list is outside the tree or new
+    since the revision."""
+    if not known_path:
+        return set()
+    relative = os.path.relpath(os.path.abspath(known_path), TREE)
+    if relative.startswith('..'):
+        return set()
+    result = subprocess.run(['git', 'show',
+                             revision + ':./' + relative.replace(os.sep, '/')],
+                            cwd=TREE, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
+    if result.returncode != 0:
+        return set()
+    before = parse_known(result.stdout.decode('utf-8').splitlines())
+    now = read_known(known_path)
+
+    return set(key[0] for key, pairs in before.items()
+               if not pairs <= now.get(key, set()))
 
 
 class Compiler(object):
@@ -349,16 +375,21 @@ def compile_one(compiler, scratch, unit, rung, mode):
 def read_known(path):
     """The punch list: unit and language, to the rungs and modes allowed to
     fail."""
+    with open(path, encoding='utf-8') as handle:
+        return parse_known(handle)
+
+
+def parse_known(lines):
+    """A punch list's lines, read as read_known reads its file."""
     known = {}
 
-    with open(path, encoding='utf-8') as handle:
-        for line in handle:
-            line = line.rstrip('\r\n')
-            if not line or line.startswith('#'):
-                continue
-            fields = line.split('\t')
-            key = (fields[0], fields[1])
-            known[key] = set(fields[2].split(',')) if len(fields) > 2 else set()
+    for line in lines:
+        line = line.rstrip('\r\n')
+        if not line or line.startswith('#'):
+            continue
+        fields = line.split('\t')
+        key = (fields[0], fields[1])
+        known[key] = set(fields[2].split(',')) if len(fields) > 2 else set()
 
     return known
 
@@ -457,7 +488,7 @@ def main():
                 listed.append(item.replace('\\', '/'))
         units = [unit for unit in units if unit[2] in set(listed)]
     if options.changed:
-        units = changed_units(units, options.changed)
+        units = changed_units(units, options.changed, options.known)
     languages = ('c', 'cpp') if options.lang == 'both' else (options.lang,)
     units = [unit for unit in units if unit[1] in languages]
 
