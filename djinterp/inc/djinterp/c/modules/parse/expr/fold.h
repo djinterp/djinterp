@@ -18,7 +18,7 @@
 * path:      /inc/djinterp/c/modules/parse/expr/fold.h
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -182,7 +182,7 @@ int  d_parse_expr_fold(const struct dj_parse_expr_term* _term,
  * @param[in] _term   the term, verified or parsed.
  * @param[in] _root   the subtree's root.
  * @param[in] _enter  called before a node's children; may be NULL.
- * @param[in] _leave  called after them; may be NULL.
+ * @param[in] _after  called after them; may be NULL.
  * @param[in] _ctx    their context.
  * @return true when the walk ran to its end or was stopped by a visit; false
  *         where an argument is wrong or the stack could not grow.
@@ -190,7 +190,7 @@ int  d_parse_expr_fold(const struct dj_parse_expr_term* _term,
 bool d_parse_expr_walk(const struct dj_parse_expr_term* _term,
                        uint32_t                         _root,
                        dj_parse_expr_visit_fn           _enter,
-                       dj_parse_expr_visit_fn           _leave,
+                       dj_parse_expr_visit_fn           _after,
                        void*                            _ctx);
 
 // 2.3    Digesting

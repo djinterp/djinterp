@@ -11,7 +11,7 @@
 * path:      /src/djinterp/c/modules/parse/expr/fold.c
 * link(s):   /docs/djinterp/parse/expression_core_v2.md
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.04
-*                                                            revised: 2026.11.12
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 #include "../../../../../../inc/djinterp/c/modules/parse/expr/fold.h"  // corresponding header
 // std
@@ -284,7 +284,7 @@ d_parse_expr_walk(
     const struct dj_parse_expr_term* _term,
     uint32_t                         _root,
     dj_parse_expr_visit_fn           _enter,
-    dj_parse_expr_visit_fn           _leave,
+    dj_parse_expr_visit_fn           _after,
     void*                            _ctx
 )
 {
@@ -349,8 +349,8 @@ d_parse_expr_walk(
             continue;
         }
 
-        stopped = ( (_leave) &&
-                    (_leave(_ctx, _term, top->node, top->parent) ==
+        stopped = ( (_after) &&
+                    (_after(_ctx, _term, top->node, top->parent) ==
                      D_PARSE_EXPR_WALK_STOP) );
         --count;
     }
