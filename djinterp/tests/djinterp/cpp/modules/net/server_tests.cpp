@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                            server_tests.cpp
+* djinterp [cpp][net]                                           server_tests.cpp
 *
 * Tests of net/server.hpp.
 *   A server answers on a loopback port, its run() on a thread of dmutex.h's;

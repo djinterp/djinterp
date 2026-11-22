@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                              cartesian.hpp
+* djinterp [cpp][math]                                             cartesian.hpp
 *
 * Compile-time N-dimensional Cartesian coordinate system.
 *   Provides the Cartesian coordinate system type, point representation,

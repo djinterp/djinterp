@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                                  expr.hpp
+* djinterp [cpp][parse]                                                 expr.hpp
 *
 * Expression core v2's C++ face (design section 13): the umbrella. One
 * include for the whole face, `djinterp::parse::expr`: the term and its

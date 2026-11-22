@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                               functional_common.h
+* djinterp [c][functional]                                   functional_common.h
 *
 * Common types, macros, and utilities for the functional programming module.
 *   Provides function pointer type definitions (predicates, transformers,

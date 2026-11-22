@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               t_option_env.cpp
+* djinterp [cpp][option]                                        t_option_env.cpp
 *
 *   option_env's C++ face's harness (cpp/option/option_env.hpp), at every
 * level from C++98: DOptionEnvView over a frame C made -- finding, typed

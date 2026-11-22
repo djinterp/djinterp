@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                         env_vendor_attributes.h
+* djinterp [c][env]                                      env_vendor_attributes.h
 *
 * djinterp portable wrappers for vendor-specific attributes.
 *   D_* macros for compiler attributes and builtins that have no standard

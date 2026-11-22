@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                           sorted_container_traits_tests.hpp
+* djinterp [cpp][container]                    sorted_container_traits_tests.hpp
 *
 * Unit tests for sorted_container_traits.hpp:
 *   Declarations, fixtures and assertion plumbing for the sortedness-axis trait

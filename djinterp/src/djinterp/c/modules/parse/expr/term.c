@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                      term.c
+* djinterp [c][parse]                                                     term.c
 *
 * Expression core v2: definitions for term.h, the arena and its builders.
 *   Growth goes through the foundation's one policy, d_parse_grow, and every

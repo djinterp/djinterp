@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                sqlite_table.hpp
+* djinterp [cpp][db]                                            sqlite_table.hpp
 *
 * A table of an SQLite database held in memory: database_table over an
 * sqlite_connection, with what SQLite adds.

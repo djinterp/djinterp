@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 dump_lex_cpp.c
+* djinterp [c][parse]                                             dump_lex_cpp.c
 *
 * Exercises `lex_cpp.h`.
 *

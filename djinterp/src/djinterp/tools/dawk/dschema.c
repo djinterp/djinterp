@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                     dschema.c
+* djinterp [c][tools]                                                  dschema.c
 *
 * Definitions for the non-inline declarations in dschema.h.
 *   A binding is an array indexed by symbol, sized to the table when bound:

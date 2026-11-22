@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                      decode.hpp
+* djinterp [cpp][binary]                                              decode.hpp
 *
 *   The foundational half of the SERIALIZATION externalisation axis on the READ
 * side: the DECODER.  Where encode.hpp casts a value out to the flat medium B*

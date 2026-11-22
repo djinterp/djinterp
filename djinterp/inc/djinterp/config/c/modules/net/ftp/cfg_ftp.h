@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                    cfg_ftp.h
+* djinterp [c][net]                                                    cfg_ftp.h
 *
 * Configuration of the FTP client.
 *   The sizes of the buffers a dj_ftp_client holds: the reply text it keeps,

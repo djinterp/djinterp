@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                   color_cmyk_tests_runner.cpp
+* djinterp [cpp][utility]                            color_cmyk_tests_runner.cpp
 *
 *   Test runner for the color_cmyk suite.  Compiled with DTEST_SPEC_MODE
 * defined, so the suite header presents its spec face: the section translation

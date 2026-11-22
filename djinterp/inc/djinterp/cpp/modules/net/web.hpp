@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                                     web.hpp
+* djinterp [cpp][net]                                                    web.hpp
 *
 *   Foundational, library-agnostic web module for the djinterp framework. It
 * is the backbone every web backend (libcurl, and future transports) builds

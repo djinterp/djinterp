@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               option_compose_tests_compose.cpp
+* djinterp [cpp][option]                        option_compose_tests_compose.cpp
 *
 *   Section IV of the option_compose.hpp suite: build a set from empty.
 *

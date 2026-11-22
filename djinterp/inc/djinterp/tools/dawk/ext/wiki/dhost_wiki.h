@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  dhost_wiki.h
+* djinterp [c][tools]                                               dhost_wiki.h
 *
 * The wiki extension: a wiki's pages, read and changed from awk.
 *   A page is opened from its file, or made from text, and named by a handle,
@@ -18,6 +18,7 @@
 *   Names: a page's name from its file's and back, whether two names name
 * one page, a title's anchor; and the files of a directory, to find pages
 * and what a program makes pages from.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/wiki/dhost_wiki.h
 * link(s):   TBA

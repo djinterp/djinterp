@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                          arg_config_tests.h
+* djinterp [c][parse]                                         arg_config_tests.h
 *
 * The suite of configuration files (arg_config.c, arg_config_read.c,
 * arg_config_write.c, arg_process_config.c): CLI11's ConfigBase reading TOML

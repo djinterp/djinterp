@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                   comparator_tests_pipeline.cpp
+* djinterp [cpp][functional]                       comparator_tests_pipeline.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/comparator_tests_pipeline.cpp

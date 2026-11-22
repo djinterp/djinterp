@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                         arg_process_tests.c
+* djinterp [c][parse]                                        arg_process_tests.c
 *
 * The suite of the processing that ends the argument parser's parse,
 * declared in arg_process_tests.h.

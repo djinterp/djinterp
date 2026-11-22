@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                cfg_env_ssh.h
+* djinterp [c][env]                                                cfg_env_ssh.h
 *
 * Configuration for env_ssh.h, the SSH library detection header under
 * env/net/ssh/.

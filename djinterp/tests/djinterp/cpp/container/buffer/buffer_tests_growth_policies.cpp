@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               buffer_tests_growth_policies.cpp
+* djinterp [cpp][container]                     buffer_tests_growth_policies.cpp
 *
 *   Unit tests for the four growth-policy structs (section III of buffer.hpp):
 * fixed_growth_policy, DLinearGrowthPolicy, exponential_growth_policy, and

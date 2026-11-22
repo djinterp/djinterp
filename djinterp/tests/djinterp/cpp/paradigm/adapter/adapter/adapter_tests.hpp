@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              adapter_tests.hpp
+* djinterp [cpp][paradigm]                                     adapter_tests.hpp
 *
 *   Unit-test suite header for inc/djinterp/paradigm/adapter/adapter.hpp.  Two
 * faces, selected by DTEST_SPEC_MODE:

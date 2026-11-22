@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                mariadb_settings.c
+* djinterp [c][db]                                            mariadb_settings.c
 *
 * Implementation of mariadb_settings.h.
 *   Each setter is a SET SESSION, or the client's own call where the client

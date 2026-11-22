@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   color_hsl.hpp
+* djinterp [cpp][utility]                                          color_hsl.hpp
 *
 *   C++ ergonomic layer for the HSL color model. `hsl` derives from the
 * shared-kernel POD (color_hsl.h) without adding state, providing constexpr

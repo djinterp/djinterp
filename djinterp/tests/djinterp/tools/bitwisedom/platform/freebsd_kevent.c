@@ -1,10 +1,11 @@
 /*******************************************************************************
-* bitwisedom [tests]                                            freebsd_kevent.c
+* djinterp [c][tools]                                           freebsd_kevent.c
 *
 * The kevent example against sys/event.h: the filters, as the
 * negative numbers they are, and the flags, compared with the
 * platform's own at compile time. Built where the build targets
 * FreeBSD.
+*
 *
 * path:      /tests/djinterp/tools/bitwisedom/platform/freebsd_kevent.c
 * link(s):   TBA

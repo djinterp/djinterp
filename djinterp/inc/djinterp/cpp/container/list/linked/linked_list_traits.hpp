@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                          linked_list_traits.hpp
+* djinterp [cpp][container]                               linked_list_traits.hpp
 *
 * Compile-time SFINAE detection for linked-list node and container shapes.
 *   Provides structural traits for every permutation along the linked-list

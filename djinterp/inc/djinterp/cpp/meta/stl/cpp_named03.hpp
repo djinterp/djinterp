@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 cpp_named03.hpp
+* djinterp [cpp][meta]                                           cpp_named03.hpp
 *
 * C++03 named requirement type traits:
 *   C++03 introduced no new metaprogramming capabilities relevant to named

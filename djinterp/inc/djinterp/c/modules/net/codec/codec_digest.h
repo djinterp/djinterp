@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                codec_digest.h
+* djinterp [c][net]                                               codec_digest.h
 *
 * Message digests for net's protocols: MD5, SHA-1 and SHA-256, HMAC over each,
 * and the two operations a digest of a secret needs.

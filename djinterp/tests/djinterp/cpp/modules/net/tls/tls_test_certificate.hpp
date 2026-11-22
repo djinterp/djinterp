@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                    tls_test_certificate.hpp
+* djinterp [cpp][net]                                   tls_test_certificate.hpp
 *
 * The certificate the TLS tests serve: P-256, self-signed for localhost and
 * 127.0.0.1, valid until 2126, and its private key, both in PEM. The TLS

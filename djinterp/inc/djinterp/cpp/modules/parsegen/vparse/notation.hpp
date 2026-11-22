@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                           notation.hpp
+* djinterp [cpp][parsegen]                                          notation.hpp
 *
 *   The grammar language and its metacircular front-end.  meta_grammar() is the
 * grammar of grammars -- the notation's own syntax, expressed as a ruleset, so

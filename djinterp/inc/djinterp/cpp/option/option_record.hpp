@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               option_record.hpp
+* djinterp [cpp][option]                                       option_record.hpp
 *
 * A runtime option record: string keys, scalar values, and a cascade.
 *   option_set (option_set.hpp) is the compile-time face of options: a typed

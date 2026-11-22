@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                        container_metadata_tests_carrier.cpp
+* djinterp [cpp][container]                 container_metadata_tests_carrier.cpp
 *
 *   The carrier section of container_metadata's suite: DMetadataCarrier, the
 * mixin by which a container carries a metadata object, and the

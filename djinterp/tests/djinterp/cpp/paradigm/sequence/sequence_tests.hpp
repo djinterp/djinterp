@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             sequence_tests.hpp
+* djinterp [cpp][paradigm]                                    sequence_tests.hpp
 *
 *   Unit-test suite header for inc/djinterp/cpp/paradigm/sequence/sequence.hpp
 * - the ordered, contiguous linear element sequence and its make_sequence

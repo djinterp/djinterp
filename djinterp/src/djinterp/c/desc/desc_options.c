@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    desc_options.c
+* djinterp [c][desc]                                              desc_options.c
 *
 *   desc's djin, "desc", and what the units engine asks of it: the ring and
 * the layers in force. Without the djin, the knobs answer.

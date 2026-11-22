@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                       arg_completion_pwsh.c
+* djinterp [c][parse]                                      arg_completion_pwsh.c
 *
 * The completion script for PowerShell, declared in arg_internal.h (11.2.4).
 *   The script runs in a block of its own, whose variables hold the model --

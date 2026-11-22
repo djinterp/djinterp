@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    consumer_tests_adapters.cpp
+* djinterp [cpp][functional]                         consumer_tests_adapters.cpp
 *
 *   Tests for consumer.hpp Section II adapters: filtered (predicate
 * gate) and mapped (contramap / input transform).  Covers pass-through

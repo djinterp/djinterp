@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      str_interp.h
+* djinterp [c][text]                                                str_interp.h
 *
 *   Pure key-value string interpolation engine. Maps named specifiers to
 * replacement values and performs batch find-and-replace substitution on

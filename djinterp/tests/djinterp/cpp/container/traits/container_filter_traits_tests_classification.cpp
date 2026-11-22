@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]            container_filter_traits_tests_classification.cpp
+* djinterp [cpp][container]     container_filter_traits_tests_classification.cpp
 *
 *   Section VI - DContainerFilterClass, the assembled Filterability of a
 * container (capability, realization, stage, and preserved invariants), checked

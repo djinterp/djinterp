@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                             tests_section.h
+* djinterp [c][parse]                                            tests_section.h
 *
 * One named test section, as the parse and parsegen suites list them.
 *   A suite is a table of these, defined beside the sections themselves. That

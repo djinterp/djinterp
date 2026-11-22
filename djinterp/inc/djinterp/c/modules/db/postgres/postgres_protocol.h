@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                               postgres_protocol.h
+* djinterp [c][db]                                           postgres_protocol.h
 *
 * What PostgreSQL's protocol offers beyond a statement and its reply: rows
 * copied in, notifications, statements sent without waiting, their rows read

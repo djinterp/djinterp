@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                  arg_validator_unit_tests.c
+* djinterp [c][parse]                                 arg_validator_unit_tests.c
 *
 * The suite of CLI11's numbers with units, declared in
 * arg_validator_unit_tests.h.

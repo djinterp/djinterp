@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                              compress_options_tests_runner.cpp
+* djinterp [cpp][utility]                      compress_options_tests_runner.cpp
 *
 *   Entry point for the compress_options.hpp unit-test suite.  It includes the
 * test header and calls every tests_* function the section translation units

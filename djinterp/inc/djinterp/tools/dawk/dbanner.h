@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                  dbanner.h
+* djinterp [c][tools]                                                  dbanner.h
 *
 * Banner extension:
 *   Builds the node tree for one header's banner.  This is the reference

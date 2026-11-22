@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               publisher_tests_status_token.cpp
+* djinterp [cpp][paradigm]                      publisher_tests_status_token.cpp
 *
 *   Tests of publisher.hpp's status codes (section I) and subscription token
 * (section II).

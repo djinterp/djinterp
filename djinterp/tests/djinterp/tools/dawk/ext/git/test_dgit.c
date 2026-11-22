@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                   test_dgit.c
+* djinterp [c][tools]                                                test_dgit.c
 *
 * Exercises `dgit_text.h`, `dgit_doc.h` and `dgit_repo.h`: ignore files,
 * attribute files and configurations read line by line as git reads them;
@@ -27,6 +27,7 @@
 *   test_dgit --oracle <path> <command> [argument]...
 *                                        as git's command answers, of the
 *                                        repository the path is in
+*
 *
 * path:      /tests/djinterp/tools/dawk/ext/git/test_dgit.c
 * link(s):   TBA

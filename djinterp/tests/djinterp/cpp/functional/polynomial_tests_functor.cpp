@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    polynomial_tests_functor.cpp
+* djinterp [cpp][functional]                        polynomial_tests_functor.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/polynomial_tests_functor.cpp

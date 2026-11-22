@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                               sftp_transfer.c
+* djinterp [c][net]                                              sftp_transfer.c
 *
 * Implementation of the SFTP client declared in sftp_client.h: the
 * pipelined transfers.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                     arg_formatter_command.c
+* djinterp [c][parse]                                    arg_formatter_command.c
 *
 * The default steps for a command's help, declared in arg_formatter.h (4.2
 * and 4.3).

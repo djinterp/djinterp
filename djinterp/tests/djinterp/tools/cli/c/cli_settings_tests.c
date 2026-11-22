@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                          cli_settings_tests.c
+* djinterp [c][tools]                                       cli_settings_tests.c
 *
 * The suite of the command-line kit's settings, declared in
 * cli_settings_tests.h.

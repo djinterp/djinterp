@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                           arg_parse_tests.h
+* djinterp [c][parse]                                          arg_parse_tests.h
 *
 * The suite of the argument parser's parse (arg_parse.c, arg_parse_option.c,
 * arg_parse_positional.c): how arguments are told apart and cut; what a

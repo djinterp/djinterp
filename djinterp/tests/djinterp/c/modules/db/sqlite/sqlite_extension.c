@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             sqlite_extension.c
+* djinterp [c][db]                                            sqlite_extension.c
 *
 *   A loadable SQLite extension, for the checks of extension loading in
 * c/modules/db/sqlite's suite and in the C++ harnesses over the layer: it adds

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                           container_filter_traits_tests.hpp
+* djinterp [cpp][container]                    container_filter_traits_tests.hpp
 *
 *   Declarations, shared helpers, and helper container TYPES for the
 * container_filter_traits.hpp unit-test suite.  The section translation units

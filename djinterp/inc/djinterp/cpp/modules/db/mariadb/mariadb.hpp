@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     mariadb.hpp
+* djinterp [cpp][db]                                                 mariadb.hpp
 *
 * djinterp MariaDB connection module:
 *   The MariaDB connection, mariadb_connection, over the MariaDB layer's C++

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                               cpp_dom.hpp
+* djinterp [cpp][parse]                                              cpp_dom.hpp
 *
 * C++ DOM Tree:
 *   This header defines the complete DOM tree system for representing

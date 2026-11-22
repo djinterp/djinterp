@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                         cli_common.cpp
+* djinterp [cpp][tools]                                           cli_common.cpp
 *
 * What the command line's sources share: sheets read and written back, rows
 * and values as a command line names them, and output.
@@ -17,6 +17,7 @@
 * ruling 25 has it by default (window_sheet_opens). An example is a named
 * operand, `example:NAME`, read through the kit, which says so when a file
 * has the operand's name too (ruling 11).
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/cli/cli_common.cpp
 * link(s):   TBA

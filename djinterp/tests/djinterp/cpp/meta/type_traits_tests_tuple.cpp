@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    type_traits_tests_tuple.cpp
+* djinterp [cpp][meta]                               type_traits_tests_tuple.cpp
 *
 *   Unit tests for the tuple-meta traits in Section III of type_traits.hpp.
 * These four traits were moved out of dtuple.hpp because type_traits.hpp's

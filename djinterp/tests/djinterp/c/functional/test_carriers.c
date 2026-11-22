@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                          test_carriers.c
+* djinterp [c][functional]                                       test_carriers.c
 *
 *
 * path:      /tests/djinterp/c/functional/test_carriers.c

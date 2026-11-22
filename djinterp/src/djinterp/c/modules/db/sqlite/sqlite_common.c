@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   sqlite_common.c
+* djinterp [c][db]                                               sqlite_common.c
 *
 * Implementation of sqlite_common.h.
 *   Feature answers come from the library loaded at run time: its version for

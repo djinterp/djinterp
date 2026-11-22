@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    color_hsv_tests_clamping.cpp
+* djinterp [cpp][utility]                           color_hsv_tests_clamping.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/color/color_hsv_tests_clamping.cpp

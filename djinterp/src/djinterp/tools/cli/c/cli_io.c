@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                      cli_io.c
+* djinterp [c][tools]                                                   cli_io.c
 *
 * The command-line kit's streams, terminals and files, declared in cli_io.h.
 *   The sinks hand their bytes to cli_system.c, which knows a console from a

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                         t_ascii.c
+* djinterp [c][text]                                                   t_ascii.c
 *
 *   Conformance harness for ascii.h: every function against <ctype.h> in the
 * "C" locale, for all 256 byte values -- which also pins down that no byte

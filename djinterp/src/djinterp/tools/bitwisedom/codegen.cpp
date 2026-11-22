@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                            codegen.cpp
+* djinterp [cpp][tools]                                              codegen.cpp
 *
 * The C/C++ header generator.
 *   The header is built as a list of lines. A first walk over the tree
@@ -14,6 +14,7 @@
 * written over several lines keeps them, and their indentation; a head too
 * long for its line spreads its parameters one to a line, aligned after its
 * parenthesis.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/codegen.cpp
 * link(s):   TBA

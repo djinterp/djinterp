@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                                    http.hpp
+* djinterp [cpp][net]                                                   http.hpp
 *
 * HTTP's semantics in C++, over net/http/http.h.
 *   Enumerations defined from the C ones and scoped in structs (decision 3.4:

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                     plugin.cpp
+* djinterp [cpp][tools]                                               plugin.cpp
 *
 * The window's module: what `bitwisedom gui` loads (GRAMMAR.md, section 7).
 *   The module is a program of its own, made from the host that runs it --
@@ -26,6 +26,7 @@
 *   Nothing escapes the run function: the program's work is guarded by the
 * kit, and what is made before it -- the options, the request they fill --
 * here.
+*
 *
 * path:      /src/ui/bitwisedom/plugin.cpp
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 ssh_session.c
+* djinterp [c][net]                                                ssh_session.c
 *
 *   Definitions for ssh_session.h: setting a session up, the handshake,
 * host-key ordering and verification, and teardown.

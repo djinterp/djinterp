@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             document_writer.hpp
+* djinterp [cpp][utility]                                    document_writer.hpp
 *
 *   Builds a document tree incrementally through stable, position-holding
 * cursors. The tree is stored in a flat, append-only arena

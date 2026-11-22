@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           css_tests_runner.cpp
+* djinterp [cpp][text]                                      css_tests_runner.cpp
 *
 * The runner for css's suite: options, then the module.
 *

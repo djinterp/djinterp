@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                      env_smtp.h
+* djinterp [c][env]                                                   env_smtp.h
 *
 * djinterp SMTP environment detection.
 *   Compile-time detection of what the SMTP modules can do here, expressed

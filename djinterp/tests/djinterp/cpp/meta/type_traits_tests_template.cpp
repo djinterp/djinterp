@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 type_traits_tests_template.cpp
+* djinterp [cpp][meta]                            type_traits_tests_template.cpp
 *
 *   Unit tests for the template-detection traits in Section III of
 * type_traits.hpp:

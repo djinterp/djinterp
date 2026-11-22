@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                            ftp_interop_test.c
+* djinterp [c][net]                                           ftp_interop_test.c
 *
 * FTP interop tests: the net/ftp/ client against a real FTP server, plain
 * and over TLS through the SSL kernel's OpenSSL engine.

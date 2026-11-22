@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    passthrough_tests_marker.cpp
+* djinterp [cpp][meta]                              passthrough_tests_marker.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/passthrough_tests_marker.cpp

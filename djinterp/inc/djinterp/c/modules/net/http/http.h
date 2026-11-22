@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                        http.h
+* djinterp [c][net]                                                       http.h
 *
 * HTTP's semantics, as RFC 9110 defines them, in C.
 *   The vocabulary every HTTP version shares, and nothing tied to one wire

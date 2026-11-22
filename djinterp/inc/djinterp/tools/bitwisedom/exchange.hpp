@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                           exchange.hpp
+* djinterp [cpp][tools]                                             exchange.hpp
 *
 * A bitfield as JSON for other programs, and from them.
 *   Three shapes of JSON are read, and two of them written:
@@ -24,6 +24,7 @@
 * that range, by its own name or its macro name, and is placed once every
 * row has been read.
 *   docs/json.md describes the three, key by key.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/exchange.hpp
 * link(s):   TBA

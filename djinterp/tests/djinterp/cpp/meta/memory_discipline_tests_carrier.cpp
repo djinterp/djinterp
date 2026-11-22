@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                             memory_discipline_tests_carrier.cpp
+* djinterp [cpp][meta]                       memory_discipline_tests_carrier.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/memory_discipline_tests_carrier.cpp

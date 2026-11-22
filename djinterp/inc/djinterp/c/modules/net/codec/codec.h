@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                       codec.h
+* djinterp [c][net]                                                      codec.h
 *
 * net's codec: the byte-level algorithms more than one protocol needs.
 *   Every module that once carried its own copy of one of these now calls the

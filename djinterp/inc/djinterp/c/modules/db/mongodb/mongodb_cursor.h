@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  mongodb_cursor.h
+* djinterp [c][db]                                              mongodb_cursor.h
 *
 * Reading a query's documents a page at a time, and watching changes as they
 * happen.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                            persist.hpp
+* djinterp [cpp][tools]                                              persist.hpp
 *
 * Saving and loading sheets, as JSON.
 *   A sheet file is one JSON object: the sheet's own fields, its rows as a
@@ -11,6 +11,7 @@
 * a file from an older version still opens. It is strict where it must be:
 * a file that is not JSON, or not a sheet, or from a newer version, is
 * refused with the reason.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/persist.hpp
 * link(s):   TBA

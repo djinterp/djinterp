@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                      lifetime_tests_algebra.cpp
+* djinterp [cpp][meta]                                lifetime_tests_algebra.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/lifetime_tests_algebra.cpp

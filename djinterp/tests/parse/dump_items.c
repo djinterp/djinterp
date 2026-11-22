@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                   dump_items.c
+* djinterp [c][parse]                                               dump_items.c
 *
 * Print the items of a source, indented by item nesting, for inspection.
 *

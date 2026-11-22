@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                          buffer_common_tests_validation.c
+* djinterp [c][container]                       buffer_common_tests_validation.c
 *
 *
 * path:      /tests/djinterp/c/container/buffer/buffer_common_tests_validation.c

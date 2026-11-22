@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                    ftp_fact.c
+* djinterp [c][net]                                                   ftp_fact.c
 *
 * Implementation of the file facts declared in ftp_fact.h.
 *   Calendar arithmetic follows Howard Hinnant's civil-date algorithms, so the

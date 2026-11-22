@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                         cfg_mariadb_common.h
+* djinterp [c][db]                                          cfg_mariadb_common.h
 *
 * Build-time configuration shared by every module of djinterp's MariaDB/MySQL
 * layer (c/modules/db/mariadb/mariadb_*.h).

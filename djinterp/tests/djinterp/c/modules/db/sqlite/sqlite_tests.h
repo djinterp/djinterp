@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 sqlite_tests.h
+* djinterp [c][db]                                                sqlite_tests.h
 *
 *   The suite of c/modules/db/sqlite: the layer against SQLite, in DTest's C
 * face. It has one section, its entry point, and the runner in its CMake leaf

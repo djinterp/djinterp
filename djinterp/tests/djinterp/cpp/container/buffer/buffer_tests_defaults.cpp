@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      buffer_tests_defaults.cpp
+* djinterp [cpp][container]                            buffer_tests_defaults.cpp
 *
 *   Unit tests for the default policy aliases declared in section
 * VIII of buffer.hpp:

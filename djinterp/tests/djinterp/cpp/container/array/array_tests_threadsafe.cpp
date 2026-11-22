@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     array_tests_threadsafe.cpp
+* djinterp [cpp][container]                           array_tests_threadsafe.cpp
 *
 *   DThreadsafeArray tests: construction, the lock-free queries, locked
 * single operations, bulk operations, locked handles, snapshots, copy

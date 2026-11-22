@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        t_option_env_registry.c
+* djinterp [c][option]                                   t_option_env_registry.c
 *
 *   The djin registry's C harness (c/option/option_env_registry.h): the
 * program's registry, ready before main; a registry of the harness's own,

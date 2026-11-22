@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                    dnode.h
+* djinterp [c][tools]                                                    dnode.h
 *
 * Node tree:
 *   The tree a selector matches against.  A node carries an interned type, a

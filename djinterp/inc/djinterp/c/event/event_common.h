@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    event_common.h
+* djinterp [c][event]                                             event_common.h
 *
 * Event foundations -- the shared C core (tier 0):
 *   The alphabet layer of the event system, declared once in C and compiled by

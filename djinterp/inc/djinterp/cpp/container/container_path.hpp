@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              container_path.hpp
+* djinterp [cpp][container]                                   container_path.hpp
 *
 * Path resolution over indexed containers:
 *   This header provides templated path traversal and construction for any

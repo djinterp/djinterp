@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                   codec_hex.h
+* djinterp [c][net]                                                  codec_hex.h
 *
 * Hexadecimal for net's protocols: digests rendered and read back (APOP,
 * CRAM-MD5, certificate pins), percent-encoding's escapes, and IPv6's groups.

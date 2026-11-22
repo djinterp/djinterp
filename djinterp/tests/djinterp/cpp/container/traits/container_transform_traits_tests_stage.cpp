@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                  container_transform_traits_tests_stage.cpp
+* djinterp [cpp][container]           container_transform_traits_tests_stage.cpp
 *
 *   Section III - the stage at which a container admits mapping: compile-time when
 * its data are compile-staged (a literal type, the map assumed statically

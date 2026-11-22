@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                database_connection_template.hpp
+* djinterp [cpp][db]                            database_connection_template.hpp
 *
 * Each vendor's compile-time identity, and the connection base that carries
 * it.

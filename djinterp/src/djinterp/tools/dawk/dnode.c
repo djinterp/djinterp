@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                       dnode.c
+* djinterp [c][tools]                                                    dnode.c
 *
 * Node tree:
 *   Growable arrays of nodes and attributes plus an intern table, all indexed

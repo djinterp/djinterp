@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                   desc_tests.c
+* djinterp [c][desc]                                                desc_tests.c
 *
 *   The suite of c/desc's core (desc.h), in DTest's C face. A collecting
 * machine keeps every fact, level and word it is sent, so each test can read

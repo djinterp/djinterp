@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        html_tests_detached.cpp
+* djinterp [cpp][text]                                   html_tests_detached.cpp
 *
 *   The groups for html/html_template.hpp's factories and DHtmlElement::adopt,
 * on the default backend. Each factory returns its element in a handle

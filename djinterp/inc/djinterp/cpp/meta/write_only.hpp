@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  write_only.hpp
+* djinterp [cpp][meta]                                            write_only.hpp
 *
 *   The WRITE_ONLY access-capability tag: a handle that grants modification but
 * NOT observation of element values - a sink.  It is the corner of the access

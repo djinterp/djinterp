@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            text_core_tests.cpp
+* djinterp [cpp][text]                                       text_core_tests.cpp
 *
 *   The module "text_core": its entry point, which opens a block per header
 * and a test per group, and runs each group or skips it below its header's

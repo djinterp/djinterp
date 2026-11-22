@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                   profunctor_tests_protocol.cpp
+* djinterp [cpp][functional]                       profunctor_tests_protocol.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/profunctor_tests_protocol.cpp

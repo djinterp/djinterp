@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                     drepair.h
+* djinterp [c][tools]                                                  drepair.h
 *
 * Repairs a rule states for its own findings.
 *   A rule whose every match is a finding declares `violation`. That names no
@@ -37,6 +37,7 @@
 * from the last line up, so that no edit moves a line another still has to
 * find. This is the edit collection dedit.h says its single-line path would
 * one day need.
+*
 *
 * path:      /inc/djinterp/tools/dawk/drepair.h
 * link(s):   TBA

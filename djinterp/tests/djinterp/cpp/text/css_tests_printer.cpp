@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          css_tests_printer.cpp
+* djinterp [cpp][text]                                     css_tests_printer.cpp
 *
 *   The group for css/css_printer.hpp: a printer writes a stylesheet's
 * rendering to its sink, in the mode it is given or set to; the string and

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     alternative_tests_asum.cpp
+* djinterp [cpp][functional]                          alternative_tests_asum.cpp
 *
 *   Section II.3 of the alternative.hpp suite: asum, which folds a Foldable of
 * alternatives with alt from aempty ("take the first that succeeds").  Covers

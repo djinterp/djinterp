@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     archive.cpp
+* djinterp [cpp][utility]                                            archive.cpp
 *
 *   The C++ facade's dispatch leaves -- four adapters, and nothing else.
 *

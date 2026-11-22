@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                           net_tests_url.cpp
+* djinterp [cpp][net]                                          net_tests_url.cpp
 *
 * Tests of net/net_url.hpp, the C++ layer over net/net_url.h.
 *   Values are checked against the C foundation, whose own suite checks them

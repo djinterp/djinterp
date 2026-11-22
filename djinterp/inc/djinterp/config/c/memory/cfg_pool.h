@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                   cfg_pool.h
+* djinterp [c][memory]                                                cfg_pool.h
 *
 *   Configuration for the fixed-slot pool. Selects which release policies are
 * compiled at all, how free slots are threaded, how wide a slot index and a

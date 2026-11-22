@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    sqlite_query.c
+* djinterp [c][db]                                                sqlite_query.c
 *
 * Implementation of sqlite_query.h.
 *   The scalar queries prepare with sqlite3_prepare_v2 and hand the statement

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  mongodb_schema.c
+* djinterp [c][db]                                              mongodb_schema.c
 *
 * Implementation of mongodb_schema.h.
 *   What a name is, a collection or a view or neither, is asked of

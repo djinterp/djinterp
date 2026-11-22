@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                              summation.hpp
+* djinterp [cpp][math]                                             summation.hpp
 *
 * Sums, products, limits and Taylor series of terms; roadmap Phase 4's third
 * item, 4c.

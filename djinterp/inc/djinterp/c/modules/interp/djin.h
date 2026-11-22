@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                            djin.h
+* djinterp [c][interp]                                                    djin.h
 *
 *   Djins: the named, versioned units of djinterp a program can list,
 * describe, configure and run (docs/djinterp/interp/DESIGN.md, section 6). A

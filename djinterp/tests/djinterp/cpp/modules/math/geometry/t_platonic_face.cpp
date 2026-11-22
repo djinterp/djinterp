@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                        t_platonic_face.cpp
+* djinterp [cpp][math]                                       t_platonic_face.cpp
 *
 *   Tests for geometry/platonic.hpp, at every level from C++98, per family:
 * the five solids of unit circumradius -- their known volumes, every vertex

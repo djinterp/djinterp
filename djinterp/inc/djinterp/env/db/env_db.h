@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                        env_db.h
+* djinterp [c][env]                                                     env_db.h
 *
 * djinterp database environment detection.
 *   Compile-time identification of the database system a translation unit

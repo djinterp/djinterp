@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     archive_kernel_tests_pax.c
+* djinterp [c][utility]                               archive_kernel_tests_pax.c
 *
 *   The tar writer's pax extended headers.  Under the default format (pax) a
 * member whose name, size or timestamp ustar cannot hold is written with a pax

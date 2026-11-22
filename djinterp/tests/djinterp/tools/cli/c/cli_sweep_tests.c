@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                             cli_sweep_tests.c
+* djinterp [c][tools]                                          cli_sweep_tests.c
 *
 * The command-line kit's allocation sweep, declared in cli_sweep_tests.h.
 *   malloc, calloc, realloc and free are wrapped at link time (--wrap), and

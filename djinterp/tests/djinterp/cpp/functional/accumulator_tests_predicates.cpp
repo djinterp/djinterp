@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                accumulator_tests_predicates.cpp
+* djinterp [cpp][functional]                    accumulator_tests_predicates.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/accumulator_tests_predicates.cpp

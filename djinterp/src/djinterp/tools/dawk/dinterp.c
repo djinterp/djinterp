@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                     dinterp.c
+* djinterp [c][tools]                                                  dinterp.c
 *
 *   Definitions for the non-inline declarations in dinterp.h.
 *     Two flags carry the lazy field discipline. `fields_valid` says the record

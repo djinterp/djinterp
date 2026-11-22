@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                            dhost_articulate.h
+* djinterp [c][tools]                                         dhost_articulate.h
 *
 * The Articulate Storyline driver of the storyline extension.
 *   A .story file is a ZIP package of XML parts and media, in the manner of
@@ -24,6 +24,7 @@
 *   Not known yet, so not changed: anything recording a clip's duration. A
 * replacement of a different length may need its timeline adjusted in
 * Storyline.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/story/dhost_articulate.h
 * link(s):   TBA

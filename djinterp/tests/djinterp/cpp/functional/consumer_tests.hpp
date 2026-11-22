@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                       consumer_tests.hpp
+* djinterp [cpp][functional]                                  consumer_tests.hpp
 *
 *   DTest declarations and shared helper types for the consumer.hpp unit
 * test suite.  Each like-group semantic section of consumer.hpp maps to

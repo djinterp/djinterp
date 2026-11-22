@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                      t_quaternion_face.cpp
+* djinterp [cpp][math]                                     t_quaternion_face.cpp
 *
 *   Tests for the one quaternion, math::quaternion, by both its names -- its
 * header, math/quaternion.hpp, and math/linear_algebra/quaternion.hpp, whose

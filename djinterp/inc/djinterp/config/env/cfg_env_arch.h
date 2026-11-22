@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                               cfg_env_arch.h
+* djinterp [c][env]                                               cfg_env_arch.h
 *
 * Configuration for env_arch.h, the CPU architecture detection section of env.h.
 *   Resolves D_CFG_ENV_ARCH_ENABLED, which chooses between that section's

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                dsettings.h
+* djinterp [c][tools]                                                dsettings.h
 *
 * Settings registry:
 *   Every runtime flag and setting dawk has, in one place: its name, its type,

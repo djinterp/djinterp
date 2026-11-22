@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                               mariadb_statement.h
+* djinterp [c][db]                                           mariadb_statement.h
 *
 * Prepared statements on a MariaDB or MySQL connection: SQL the server
 * compiles once, values bound to its parameters, and run as often as needed.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                            persist.cpp
+* djinterp [cpp][tools]                                              persist.cpp
 *
 * Saving and loading sheets.
 *   Each enumeration has one table of words, used both ways, so a value
@@ -8,6 +8,7 @@
 *   A file that cannot be read or written is said in the commands' words,
 * `cannot read 'PATH': REASON`, so the window's status bar and standard
 * error agree.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/persist.cpp
 * link(s):   TBA

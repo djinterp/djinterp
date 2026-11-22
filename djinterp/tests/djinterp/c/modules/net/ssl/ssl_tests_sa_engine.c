@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                         ssl_tests_sa_engine.c
+* djinterp [c][net]                                        ssl_tests_sa_engine.c
 *
 * Tests of what the SSL kernel hands an engine, and of how it holds one to
 * its contract.

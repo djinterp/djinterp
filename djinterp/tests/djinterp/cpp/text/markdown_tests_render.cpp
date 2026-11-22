@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      markdown_tests_render.cpp
+* djinterp [cpp][text]                                 markdown_tests_render.cpp
 *
 *   The groups for markdown/markdown_template.hpp's four renderings of a tree
 * built on its default backend: Markdown that reads back as the same tree,

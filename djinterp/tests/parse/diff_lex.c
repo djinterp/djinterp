@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                     diff_lex.c
+* djinterp [c][parse]                                                 diff_lex.c
 *
 * Self-consistency differential: extents must tile the source, and the.
 *

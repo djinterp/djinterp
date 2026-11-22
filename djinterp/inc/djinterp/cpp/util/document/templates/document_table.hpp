@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              document_table.hpp
+* djinterp [cpp][utility]                                     document_table.hpp
 *
 *   A dialect-agnostic TABLE for documents.  DDocumentTable is a pure content
 * model -- columns (each a header plus alignment / width / style hints) and rows

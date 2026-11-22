@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 writer_stream_tests_runner.cpp
+* djinterp [cpp][text]                            writer_stream_tests_runner.cpp
 *
 * The runner for writer_stream's suite: options, then the module.
 *

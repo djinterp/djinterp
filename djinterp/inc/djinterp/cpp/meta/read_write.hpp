@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  read_write.hpp
+* djinterp [cpp][meta]                                            read_write.hpp
 *
 *   The READ_WRITE access-capability tag: a handle that grants BOTH observation
 * and modification.  It is the top of the small access lattice

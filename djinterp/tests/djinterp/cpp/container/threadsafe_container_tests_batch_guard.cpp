@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                     threadsafe_container_tests_batch_guard.cpp
+* djinterp [cpp][container]           threadsafe_container_tests_batch_guard.cpp
 *
 *   Layer 7 - DBatchGuard, the write-lock-held multi-operation transaction
 * guard.  Defines the "DBatchGuard" block.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                            postgres_transaction.h
+* djinterp [c][db]                                        postgres_transaction.h
 *
 * Transactions and savepoints on a PostgreSQL connection.
 *   Outside a transaction every statement commits on its own. Inside one,

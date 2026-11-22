@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                container_metadata_tests.hpp
+* djinterp [cpp][container]                         container_metadata_tests.hpp
 *
 *   Unit-test suite for cpp/container/container_metadata.hpp: the
 * DContainerMetadata key-value store, its is_container_metadata trait and its

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                            postgres_maintenance.h
+* djinterp [c][db]                                        postgres_maintenance.h
 *
 * Upkeep of a PostgreSQL database: vacuum, analyze, reindex, checkpoint, and
 * the sizes the server's storage reaches.

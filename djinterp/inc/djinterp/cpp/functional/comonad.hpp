@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     comonad.hpp
+* djinterp [cpp][functional]                                         comonad.hpp
 *
 * Comonad protocol: extract, extend, duplicate -- the dual of Monad (C++).
 *   Where a monad lets you put a value into a context (unit) and sequence

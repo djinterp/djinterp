@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     byte_size_tests_public.cpp
+* djinterp [cpp][meta]                                byte_size_tests_public.cpp
 *
 *   Section V of byte_size.hpp: the public functions dynamic_byte_size and
 * total_byte_size, viewed as a whole rather than by internal branch.

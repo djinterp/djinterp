@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  comparator.hpp
+* djinterp [cpp][functional]                                      comparator.hpp
 *
 * First-class comparators with composable combinators (C++).
 *   A comparator is a binary callable returning true when its first

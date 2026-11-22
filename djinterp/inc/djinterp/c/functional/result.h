@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                          result.h
+* djinterp [c][functional]                                              result.h
 *
 * The `result` carrier: one value, or one error, never both and never neither.
 *   Table 7.2 gives `result<T,E>` as a kind `* -> * -> *` carrier modelling

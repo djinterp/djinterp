@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                   ftp_reply.c
+* djinterp [c][net]                                                  ftp_reply.c
 *
 * Implementation of the reply handling declared in ftp_reply.h.
 *   The parser holds each line's first four bytes back until the line shows

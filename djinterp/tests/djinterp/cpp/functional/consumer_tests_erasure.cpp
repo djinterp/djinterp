@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     consumer_tests_erasure.cpp
+* djinterp [cpp][functional]                          consumer_tests_erasure.cpp
 *
 *   Tests for consumer.hpp Section III type erasure: DBoxedConsumer<T>
 * and box<T>(consumer).  Covers boxing each kind of consumer (primitive,

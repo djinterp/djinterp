@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                               render3d.hpp
+* djinterp [cpp][render]                                            render3d.hpp
 *
 *   Umbrella for the render3d subframework: an orbit camera, projective view
 * transforms, a runtime render mesh, and box projection, all built on the math

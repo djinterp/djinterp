@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 table_shape.hpp
+* djinterp [cpp][container]                                      table_shape.hpp
 *
 *   The type-level SHAPE of a table -- the structural half of the table model
 * both declaration front ends (table_builder, table_parser) fold their input

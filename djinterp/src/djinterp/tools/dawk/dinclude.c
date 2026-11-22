@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                 dinclude.c
+* djinterp [c][tools]                                                 dinclude.c
 *
 * Include extension:
 *   A line is an include row only if it is `#include`, optional blanks, a

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                          functional_config.h
+* djinterp [cpp][functional]                                 functional_config.h
 *
 * Feature configuration for the djinterp functional module.
 *

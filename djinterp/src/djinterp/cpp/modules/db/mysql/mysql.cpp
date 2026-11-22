@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                       mysql.cpp
+* djinterp [cpp][db]                                                   mysql.cpp
 *
 * Definitions for mysql.hpp: mysql_connection's constructors, configuration,
 * query attributes and hooks, and the MySQL family's members instantiated

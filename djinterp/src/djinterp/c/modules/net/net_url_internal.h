@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                            net_url_internal.h
+* djinterp [c][net]                                           net_url_internal.h
 *
 * Private helpers shared by the net_url sources.
 *   RFC 3986's character classes, text views, and a writer that counts every

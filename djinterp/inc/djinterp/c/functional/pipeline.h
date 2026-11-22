@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                        pipeline.h
+* djinterp [c][functional]                                            pipeline.h
 *
 * Function pipeline for chaining operations in the functional module.
 *   Provides a pipeline struct that holds intermediate results and supports

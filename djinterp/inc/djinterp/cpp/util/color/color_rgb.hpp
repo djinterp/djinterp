@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   color_rgb.hpp
+* djinterp [cpp][utility]                                          color_rgb.hpp
 *
 *   C++ ergonomic layer for the RGB color model. `rgb` derives from the
 * shared-kernel POD (color_rgb.h) without adding state, providing constexpr

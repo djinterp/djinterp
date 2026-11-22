@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                               shape_2d.hpp
+* djinterp [cpp][math]                                              shape_2d.hpp
 *
 * General-purpose 2D shape composers.
 *   Provides the four ways a user can describe an arbitrary planar

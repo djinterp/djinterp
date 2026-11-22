@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                             net_url_resolve.c
+* djinterp [c][net]                                            net_url_resolve.c
 *
 * URLs resolved and normalized: net_url.h's section 3.
 *   Resolution is RFC 3986's strict algorithm (5.2): the target's components

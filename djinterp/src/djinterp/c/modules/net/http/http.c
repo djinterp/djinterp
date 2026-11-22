@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                        http.c
+* djinterp [c][net]                                                       http.c
 *
 * HTTP's semantics: http.h's definitions.
 *   Names come from tables in the enumerations' order, reason phrases from a

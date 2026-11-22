@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                      atomic.hpp
+* djinterp [cpp][sync]                                                atomic.hpp
 *
 * Atomic utilities for the thread-safe framework.
 *   Provides semantic wrappers around std::atomic for common metadata

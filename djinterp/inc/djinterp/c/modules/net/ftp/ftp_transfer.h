@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                ftp_transfer.h
+* djinterp [c][net]                                               ftp_transfer.h
 *
 * FTP transfer parameters and ASCII line-ending conversion.
 *   TYPE, STRU, and MODE arguments (RFC 959 3.1 and 3.4) in both directions,

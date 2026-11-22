@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                             mariadb_maintenance.h
+* djinterp [c][db]                                         mariadb_maintenance.h
 *
 * Upkeep of the tables on a MariaDB or MySQL server.
 *   Each statement here reports through rows rather than an error number:

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                                cli.hpp
+* djinterp [cpp][tools]                                                  cli.hpp
 *
 * bitwisedom's command line.
 *   `bitwisedom COMMAND ...` reads, writes and changes sheets without the
@@ -18,6 +18,7 @@
 * the run ending in trouble when it closes (window_sheet_opens, the default);
 * or by the commands' rules, so that `bitwisedom gui` refuses what they
 * refuse, in their words, before any window opens (window_sheet_of).
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/cli.hpp
 * link(s):   TBA

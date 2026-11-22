@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                  ftp_common.h
+* djinterp [c][net]                                                 ftp_common.h
 *
 * Shared vocabulary of the FTP protocol foundation.
 *   Well-known ports, the CR LF terminator, the buffer type every module

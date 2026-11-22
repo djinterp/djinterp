@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        maybe_tests_monadic.cpp
+* djinterp [cpp][functional]                             maybe_tests_monadic.cpp
 *
 * Monadic / fluent method tests for maybe<T> (section I methods that thread or
 * gate the contained value).

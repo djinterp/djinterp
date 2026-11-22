@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    pipeline.hpp
+* djinterp [cpp][functional]                                        pipeline.hpp
 *
 * Template function pipeline for chaining operations (C++).
 *   Provides a fully typed, SFINAE-constrained pipeline that holds

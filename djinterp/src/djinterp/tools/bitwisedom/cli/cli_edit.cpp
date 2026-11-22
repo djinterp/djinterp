@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                           cli_edit.cpp
+* djinterp [cpp][tools]                                             cli_edit.cpp
 *
 * The commands that make a sheet or a row: new, import, add and change.
 *   A changing command reads its sheet, changes it in memory, and writes it
@@ -15,6 +15,7 @@
 * of its own -- a range's width, a value's number, a macro's parameters --
 * and keeps whatever it is not given. An option counts as given when it is
 * on the command line at all, so `--note=` clears a note.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/cli/cli_edit.cpp
 * link(s):   TBA

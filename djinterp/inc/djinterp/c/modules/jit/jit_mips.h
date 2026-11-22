@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/jit]                                                    jit_mips.h
+* djinterp [c][jit]                                                   jit_mips.h
 *
 * djinterp MIPS (MIPS32 / MIPS64) JIT encoder (fixed-width 32-bit words):
 *   The MIPS half of the djinterp JIT. As with RISC-V, the MIPS32 and MIPS64

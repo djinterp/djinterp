@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                       imap_tests_sa_support.c
+* djinterp [c][net]                                      imap_tests_sa_support.c
 *
 * The IMAP suite's helpers: a sink that keeps what it is given up to a limit
 * and refuses the rest, and comparisons of what it holds, and of spans, with

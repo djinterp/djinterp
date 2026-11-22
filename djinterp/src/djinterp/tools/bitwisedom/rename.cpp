@@ -1,11 +1,12 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                             rename.cpp
+* djinterp [cpp][tools]                                               rename.cpp
 *
 * Renaming a row, and everything that refers to it.
 *   The sheet is resolved once, before the rename, and every reference is
 * judged by that resolution: a name in a row means the symbol the row would
 * have found by it. Each text is rewritten from its last reference to its
 * first, so the offsets the scan found stay true while it is rewritten.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/rename.cpp
 * link(s):   TBA

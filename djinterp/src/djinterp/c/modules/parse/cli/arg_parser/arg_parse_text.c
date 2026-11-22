@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                            arg_parse_text.c
+* djinterp [c][parse]                                           arg_parse_text.c
 *
 * Parsing arguments that arrive as text, declared in arg_parser.h (4.1.3, 4.2
 * and 4.3).

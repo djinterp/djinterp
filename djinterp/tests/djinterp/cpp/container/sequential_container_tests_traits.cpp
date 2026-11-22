@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                       sequential_container_tests_traits.cpp
+* djinterp [cpp][container]                sequential_container_tests_traits.cpp
 *
 *   Section TU: the is_sequential_container verdict and the DSequentialKind /
 * sequential_kind storage classifier, both defined in the header under test.

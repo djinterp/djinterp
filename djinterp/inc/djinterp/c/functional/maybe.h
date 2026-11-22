@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                           maybe.h
+* djinterp [c][functional]                                               maybe.h
 *
 * The `maybe` carrier: nothing, or exactly one value.
 *   Table 7.2 of functional_types.tex gives `maybe<T>` as a kind `* -> *`

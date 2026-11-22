@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    extractor_tests_pipeline.cpp
+* djinterp [cpp][functional]                        extractor_tests_pipeline.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/extractor_tests_pipeline.cpp

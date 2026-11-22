@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parsegen]                                               analysis.h
+* djinterp [c][parsegen]                                              analysis.h
 *
 * What a grammar means, as opposed to what it says.
 *   A frontend records syntax: this rule has these alternatives, that one

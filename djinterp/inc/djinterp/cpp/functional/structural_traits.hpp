@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                           structural_traits.hpp
+* djinterp [cpp][functional]                               structural_traits.hpp
 *
 * Structural detection traits for functional dataflow:
 *   This header extends the functional-traits surface with structural checks

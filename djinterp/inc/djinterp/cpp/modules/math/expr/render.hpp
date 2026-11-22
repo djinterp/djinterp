@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                 render.hpp
+* djinterp [cpp][math]                                                render.hpp
 *
 * The fold to text: a term written back as math text; the fourth layer's
 * second half.

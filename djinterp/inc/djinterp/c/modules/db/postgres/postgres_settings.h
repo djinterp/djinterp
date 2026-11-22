@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                               postgres_settings.h
+* djinterp [c][db]                                           postgres_settings.h
 *
 * Session settings on a PostgreSQL connection, in pairs: each set_ has its
 * get_.

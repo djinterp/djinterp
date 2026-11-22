@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                 element_relation_traits_tests_container.cpp
+* djinterp [cpp][container]          element_relation_traits_tests_container.cpp
 *
 *   Section IV - the container as a whole, the observational reading.
 * has_container_equality / has_container_less detect the operators the container

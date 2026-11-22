@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       color_lab.c
+* djinterp [c][utility]                                              color_lab.c
 *
 *   External-definition unit for color_lab.h. The CIE XYZ and L*a*b* bodies
 * live in the header as `inline`; this unit re-declares their prototypes so

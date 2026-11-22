@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           optionator_tests.hpp
+* djinterp [cpp][option]                                    optionator_tests.hpp
 *
 *   Shared surface for the optionator.hpp unit suite.  optionator is the bridge
 * from the options subframework to the functional dataflow trio: an

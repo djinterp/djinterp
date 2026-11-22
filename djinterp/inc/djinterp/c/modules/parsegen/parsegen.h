@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parsegen]                                               parsegen.h
+* djinterp [c][parsegen]                                              parsegen.h
 *
 * The umbrella for the parser-GENERATOR subsystem.
 *   Owns the subsystem keyword and the generator's diagnostic domains, and

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                          bubble_sort_common.hpp
+* djinterp [cpp][utility]                                 bubble_sort_common.hpp
 *
 *   The primitives every bubble sort is built from, sequential or concurrent.
 * A bubble sort is a driver wrapped around two operations: exchange an adjacent

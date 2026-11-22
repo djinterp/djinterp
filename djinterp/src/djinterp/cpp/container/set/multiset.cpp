@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    multiset.cpp
+* djinterp [cpp][container]                                         multiset.cpp
 *
 * Definitions for `multiset.hpp`.
 *   The container is a template and its definitions live in the header, so this

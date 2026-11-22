@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                  codec_line.c
+* djinterp [c][net]                                                 codec_line.c
 *
 * Definitions for codec_line.h: lines found in a text and a text split into
 * lines, the checks for line breaks, and the line buffer.

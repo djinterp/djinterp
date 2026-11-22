@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                           notation.cpp
+* djinterp [cpp][parsegen]                                          notation.cpp
 *
 * Definitions for `notation.hpp`.
 *

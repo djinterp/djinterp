@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                               program.hpp
+* djinterp [cpp][parse]                                              program.hpp
 *
 *   The C++ face of the instruction stream declared in program.h.
 *   `instr` is an ALIAS, not a derived type.  That is deliberate: a program is

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                type_traits_tests_detection.cpp
+* djinterp [cpp][meta]                           type_traits_tests_detection.cpp
 *
 *   Unit tests for Section 0.2 of type_traits.hpp:
 *     - nonesuch (sanity)

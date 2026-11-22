@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               lock_policy_c.hpp
+* djinterp [cpp][sync]                                         lock_policy_c.hpp
 *
 * C-backed lock policies for the thread-safe framework.
 *   Provides lock policies that use platform C APIs (pthreads on POSIX,

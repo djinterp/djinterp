@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                 value_wide.h
+* djinterp [c][math]                                                value_wide.h
 *
 * The wide integer as a boxed kind of the generic value: wide.h's signed
 * integers of 256 bits, registered with value.h through a table of their own,

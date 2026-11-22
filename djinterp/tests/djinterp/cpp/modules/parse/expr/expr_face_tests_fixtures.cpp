@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                              expr_face_tests_fixtures.cpp
+* djinterp [cpp][parse]                             expr_face_tests_fixtures.cpp
 *
 * The face suite's fixtures: the calculator built by the C API and by the
 * face, the texts the parity block reads, the scanner's classes, and the

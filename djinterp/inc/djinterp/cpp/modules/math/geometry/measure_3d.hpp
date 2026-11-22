@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                             measure_3d.hpp
+* djinterp [cpp][math]                                            measure_3d.hpp
 *
 * 3D measurements with closed-form / numerical dispatch.
 *   Provides free function templates that compute geometric quantities

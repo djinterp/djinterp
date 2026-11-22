@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                    dconfig.h
+* djinterp [c][config]                                                 dconfig.h
 *
 *   Configuration umbrella. Including this file resolves the ENTIRE config
 * graph up front. Use it when you want cross-cutting deductions applied

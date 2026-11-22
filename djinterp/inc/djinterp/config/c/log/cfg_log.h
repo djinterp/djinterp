@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                    cfg_log.h
+* djinterp [c][log]                                                    cfg_log.h
 *
 * Configuration for c/log: what a build of the log has. Each knob is a default
 * that a build overrides with -D; an option of the log's djin, "log", chooses

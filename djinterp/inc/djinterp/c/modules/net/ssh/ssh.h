@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                         ssh.h
+* djinterp [c][net]                                                        ssh.h
 *
 * SSH common module: the part of SSH every SSH module shares.
 *   SSH runs each service -- a remote command, a shell, SFTP, SCP, a

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   text_core_tests_detached.cpp
+* djinterp [cpp][text]                              text_core_tests_detached.cpp
 *
 *   The groups for detached.hpp: the owning handle the markup modules'
 * factories return, and the adoption they share. The handle is tested over a

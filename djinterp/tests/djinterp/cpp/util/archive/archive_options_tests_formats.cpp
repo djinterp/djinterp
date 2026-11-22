@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                              archive_options_tests_formats.cpp
+* djinterp [cpp][utility]                      archive_options_tests_formats.cpp
 *
 *   Tests for the tar, gz, 7z and rar blocks (sections II.ii-v of
 * archive_options.hpp): each fresh block is pristine, every numeric knob unset

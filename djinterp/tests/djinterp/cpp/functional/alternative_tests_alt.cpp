@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      alternative_tests_alt.cpp
+* djinterp [cpp][functional]                           alternative_tests_alt.cpp
 *
 *   Section II.2 of the alternative.hpp suite: alt, the associative choice
 * (Haskell's <|>) that delegates to the instance's choice().  Covers the basic

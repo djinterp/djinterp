@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                           document_renderer.hpp
+* djinterp [cpp][utility]                                  document_renderer.hpp
 *
 *   The DIALECT BOUNDARY of the document-template subframework.  A document
 * template (table, title page, table of contents, update section) is a pure

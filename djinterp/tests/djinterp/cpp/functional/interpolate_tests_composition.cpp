@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                              interpolate_tests_composition.cpp
+* djinterp [cpp][functional]                   interpolate_tests_composition.cpp
 *
 * Section III (composition) -- DChainResolver (try A, else B; first hit wins,
 * second consulted only on a miss) and DWhenResolver (gate a resolver on a key

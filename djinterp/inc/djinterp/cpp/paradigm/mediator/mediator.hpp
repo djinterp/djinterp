@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    mediator.hpp
+* djinterp [cpp][paradigm]                                          mediator.hpp
 *
 * Mediator Pattern Module:
 *   Provides a comprehensive, abstract, version-portable foundation for the

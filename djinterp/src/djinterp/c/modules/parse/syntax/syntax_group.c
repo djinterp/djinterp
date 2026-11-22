@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                              syntax_group.c
+* djinterp [c][parse]                                             syntax_group.c
 *
 * Definitions for the non-inline declarations in syntax_group.h.
 *   One forward pass.  `open` names the innermost unclosed group, and

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                write_only_container_tests.hpp
+* djinterp [cpp][container]                       write_only_container_tests.hpp
 *
 *   Suite header for write_only_container.hpp - the append-only sink, the
 * strictest member of the access trio.  Declares every test body, supplies the

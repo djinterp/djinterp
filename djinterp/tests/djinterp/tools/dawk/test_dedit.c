@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  test_dedit.c
+* djinterp [c][tools]                                               test_dedit.c
 *
 * Exercises `dedit.h`'s runs of lines: d_edit_replace_lines,
 * d_edit_may_shift_lines and d_edit_shift_lines, which drepair.c's repairs
@@ -10,6 +10,7 @@
 * was not asked about. A refused edit must leave the file as it was.
 *
 *   test_dedit [directory]    the directory holds the files the test writes
+*
 *
 * path:      /tests/djinterp/tools/dawk/test_dedit.c
 * link(s):   TBA

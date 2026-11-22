@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                        imap.c
+* djinterp [c][net]                                                       imap.c
 *
 * Definitions for the IMAP common module declared in `imap.h`.
 *   Everything here is a pure function of its arguments: no allocation, no I/O,

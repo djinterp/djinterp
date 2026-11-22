@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   bifunctor_tests_onesided.cpp
+* djinterp [cpp][functional]                        bifunctor_tests_onesided.cpp
 *
 *   Sections II.2 - II.3 of the bifunctor.hpp suite: map_first and map_second,
 * derived as bimap with the identity helper on the untouched side.  Covers

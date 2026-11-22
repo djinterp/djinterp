@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  archive_kernel_tests_staged.c
+* djinterp [c][utility]                            archive_kernel_tests_staged.c
 *
 *   The staged create and tar.gz's read path.  tar.gz is written through a
 * caller's stage -- by the archive.h macros from named arrays, and by the

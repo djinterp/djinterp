@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                                gen.hpp
+* djinterp [cpp][parsegen]                                               gen.hpp
 *
 *   The virtual parser GENERATOR: an operator family whose voperators emit and
 * back-patch instructions of an OUTPUT program instead of consuming input.  A

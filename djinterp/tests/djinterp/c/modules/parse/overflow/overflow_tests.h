@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                            overflow_tests.h
+* djinterp [c][parse]                                           overflow_tests.h
 *
 * The upgrade audit's allocation sites in parse and parsegen (lane A's
 * addendum of 2026.11.04, 22 sites) in DTest's C face (c/modules/test/

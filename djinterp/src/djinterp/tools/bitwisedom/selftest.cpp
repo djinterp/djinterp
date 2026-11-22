@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                           selftest.cpp
+* djinterp [cpp][tools]                                             selftest.cpp
 *
 * A header's self-test.
 *   A narrow sheet's is assertions alone, each a typedef of an array whose
@@ -8,6 +8,7 @@
 * should hold, and a main that fills, sets, clears and compares, naming the
 * checks that fail by number. Moved here from bitwisedom-gen, which wrote
 * them alone until `bitwisedom gen` wrote them too.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/selftest.cpp
 * link(s):   TBA

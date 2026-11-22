@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [parsegen]                                foundation_c_tests_runner.c
+* djinterp [c][parsegen]                             foundation_c_tests_runner.c
 *
 * Entry point for the parse/parsegen foundation's C suites.
 *   Built as C and linked against the same library the C++ suites use; the two

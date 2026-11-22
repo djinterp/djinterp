@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                          preprocessor.hpp
+* djinterp [cpp][parse]                                         preprocessor.hpp
 *
 * Preprocessor directive classification:
 *   This header defines the symbol kinds for preprocessor directives,

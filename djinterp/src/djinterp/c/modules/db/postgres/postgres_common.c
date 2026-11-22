@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 postgres_common.c
+* djinterp [c][db]                                             postgres_common.c
 *
 * Implementation of postgres_common.h.
 *   Results are SQLSTATEs packed as the server packs them, so reading one

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                         buffer_tests_buffer_base_lifecycle.cpp
+* djinterp [cpp][container]               buffer_tests_buffer_base_lifecycle.cpp
 *
 *   Unit tests for DBufferBase's lifecycle and capacity surface:
 *     - reset()              - zero cursors, retain storage bytes

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  selection_sort.c
+* djinterp [c][utility]                                         selection_sort.c
 *
 * TBA
 *

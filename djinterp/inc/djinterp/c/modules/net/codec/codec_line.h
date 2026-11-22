@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                  codec_line.h
+* djinterp [c][net]                                                 codec_line.h
 *
 * Line framing for net's line-oriented protocols: POP3, SMTP, the STARTTLS
 * negotiations, FTP's replies and listings.

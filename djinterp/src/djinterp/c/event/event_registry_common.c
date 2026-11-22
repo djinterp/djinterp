@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                           event_registry_common.c
+* djinterp [c][event]                                    event_registry_common.c
 *
 * The registry and its folds -- tier 0 definitions.
 *   Implements event_registry_common.h. The registry is one table, so most of

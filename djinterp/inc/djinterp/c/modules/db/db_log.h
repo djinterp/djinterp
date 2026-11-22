@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                          db_log.h
+* djinterp [c][db]                                                      db_log.h
 *
 * db's codes for the log: its own results, "db", and the kinds a vendor's
 * failure is sorted into, "db.vendor" (the log's decisions 75 to 77).

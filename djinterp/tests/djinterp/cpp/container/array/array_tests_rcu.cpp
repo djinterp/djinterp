@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            array_tests_rcu.cpp
+* djinterp [cpp][container]                                  array_tests_rcu.cpp
 *
 *   rcu_array tests: construction, guarded reads, copy-modify-publish
 * writes, value snapshots, and a reader thread that never sees a half-written

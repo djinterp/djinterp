@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                               postgres_protocol.c
+* djinterp [c][db]                                           postgres_protocol.c
 *
 * Implementation of postgres_protocol.h.
 *   libpq's own calls, each result read by the layer's rules: a COPY with the

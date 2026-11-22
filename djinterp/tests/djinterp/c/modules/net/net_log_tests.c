@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                net_log_tests.c
+* djinterp [c][net]                                              net_log_tests.c
 *
 *   The suite of net's codes for the log (net_log.h), in DTest's C face: the
 * table's rows against dj_net_error and against the classes and grades

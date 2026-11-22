@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]               container_storage_traits_tests_predicates.cpp
+* djinterp [cpp][container]        container_storage_traits_tests_predicates.cpp
 *
 *   Section III - the boolean projections of storage_duration_of.  The exclusive
 * predicates (is_static / is_dynamic / is_hybrid) ask whether the siting is

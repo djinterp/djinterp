@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                      dss.h
+* djinterp [c][tools]                                                      dss.h
 *
 * DSS front end:
 *   Parses the declarative subset of djinterp-dss.peg -- at-rules, style rules,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                              color_rgb_tests_interpolation.cpp
+* djinterp [cpp][utility]                      color_rgb_tests_interpolation.cpp
 *
 *   The interpolation block for color_rgb.hpp: lerp on rgb and on rgba. lerp
 * forwards to the C kernel's d_color_rgb_lerp and d_color_rgba_lerp, which

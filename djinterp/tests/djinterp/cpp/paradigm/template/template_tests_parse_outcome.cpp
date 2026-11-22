@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                template_tests_parse_outcome.cpp
+* djinterp [cpp][paradigm]                      template_tests_parse_outcome.cpp
 *
 *
 * path:      /tests/djinterp/cpp/paradigm/template/template_tests_parse_outcome.cpp

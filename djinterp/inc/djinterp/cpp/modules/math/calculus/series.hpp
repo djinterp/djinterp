@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                 series.hpp
+* djinterp [cpp][math]                                                series.hpp
 *
 * Series and summation.
 *   Finite summation of a callable, partial sums over any sequence, the usual

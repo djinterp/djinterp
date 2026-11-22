@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                            resolve.cpp
+* djinterp [cpp][tools]                                              resolve.cpp
 *
 * Resolving a sheet: three passes over its rows.
 *   The first walks the tree and lays out what the tree alone decides --
@@ -9,6 +9,7 @@
 * as the chain it is. The third, in reverse order, gathers each group's
 * union and then checks the sheet as a whole: duplicate names, overlapping
 * allocations, and the usage of every bit.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/resolve.cpp
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                 matrix.hpp
+* djinterp [cpp][math]                                                matrix.hpp
 *
 * Fixed-size, row-major matrix for the linear-algebra subframework.
 *   matrix<Type, Rows, Cols> stores its entries by value in a flat array

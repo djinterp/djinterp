@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]               container_overlay_traits_tests_overlay_of.cpp
+* djinterp [cpp][container]        container_overlay_traits_tests_overlay_of.cpp
 *
 *   Section IV - overlay_of, the overlay a container actually wears, assembled
 * from the per-axis verdicts (mu from multiplicity; gamma / delta from

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    interpolate_tests_brace.cpp
+* djinterp [cpp][functional]                         interpolate_tests_brace.cpp
 *
 * Section II.i -- DBraceScanner: the `{key}` syntax.  Exercises the full edge
 * surface: plain literals, single / trimmed / interleaved / adjacent keys, the

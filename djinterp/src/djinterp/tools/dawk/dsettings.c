@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                dsettings.c
+* djinterp [c][tools]                                                dsettings.c
 *
 * Settings registry:
 *   Entries live in a flat array in registration order; names and aliases live

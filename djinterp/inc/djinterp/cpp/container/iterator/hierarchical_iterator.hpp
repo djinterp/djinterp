@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                       hierarchical_iterator.hpp
+* djinterp [cpp][container]                            hierarchical_iterator.hpp
 *
 *   The foundational HIERARCHICAL iterator: a flattening traversal that
 * unfolds

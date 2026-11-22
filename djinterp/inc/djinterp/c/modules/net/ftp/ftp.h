@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                         ftp.h
+* djinterp [c][net]                                                        ftp.h
 *
 * Umbrella header for the FTP protocol foundation.
 *   Includes every net/ftp/ module; include one module instead to take only

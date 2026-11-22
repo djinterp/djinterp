@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               member_traits.hpp
+* djinterp [cpp][meta]                                         member_traits.hpp
 *
 *   DEPRECATED - TRANSITIONAL SHIM.  The contents of this header moved:
 *     - the nested-typedef detection macro and the extract-or-fallback macro

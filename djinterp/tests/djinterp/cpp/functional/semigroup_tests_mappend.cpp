@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                     semigroup_tests_mappend.cpp
+* djinterp [cpp][functional]                         semigroup_tests_mappend.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/semigroup_tests_mappend.cpp

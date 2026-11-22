@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      file_space.h
+* djinterp [c][filesys]                                             file_space.h
 *
 * Filesystem capacity.
 *   Three numbers, and the middle one is a trap. `free` is every unallocated

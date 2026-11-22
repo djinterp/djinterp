@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                    env_curses.c
+* djinterp [c][env]                                                 env_curses.c
 *
 * Implementation of curses library detection functions.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        less_template_traits.hpp
+* djinterp [cpp][text]                                  less_template_traits.hpp
 *
 *   Structural SFINAE detection traits for Less extension-specific
 * accessors. Layered on top of `css_template_traits.hpp`: any Less

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                    element_relation_traits_tests_degree.cpp
+* djinterp [cpp][container]             element_relation_traits_tests_degree.cpp
 *
 *   Section III - the comparison degree, the strongest rung a type reaches:
 * none < equality < partial_order < total_order < three_way.  comparison_degree_name

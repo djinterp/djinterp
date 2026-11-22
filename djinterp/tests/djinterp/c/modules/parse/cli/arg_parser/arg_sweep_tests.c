@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                           arg_sweep_tests.c
+* djinterp [c][parse]                                          arg_sweep_tests.c
 *
 * The argument parser's allocation sweep, declared in arg_sweep_tests.h.
 *   malloc, calloc, realloc and free are wrapped at link time (--wrap), and

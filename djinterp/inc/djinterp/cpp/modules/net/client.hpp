@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                                  client.hpp
+* djinterp [cpp][net]                                                 client.hpp
 *
 *   Foundational client-side module for the net subframework. A client is, at
 * its core, a factory that produces a live connection to an endpoint. This

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          buffer_common_tests.h
+* djinterp [c][container]                                  buffer_common_tests.h
 *
 *   Unit test declarations for `buffer_common.h` module.
 *   Provides comprehensive testing of all d_buffer_common functions including

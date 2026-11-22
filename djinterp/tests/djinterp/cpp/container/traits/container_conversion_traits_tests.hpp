@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                       container_conversion_traits_tests.hpp
+* djinterp [cpp][container]                container_conversion_traits_tests.hpp
 *
 *   Declarations, shared helper functions, and helper container TYPES for the
 * container_conversion_traits.hpp unit-test suite.  The section translation

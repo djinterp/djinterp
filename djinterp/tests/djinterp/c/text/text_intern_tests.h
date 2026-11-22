@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            text_intern_tests.h
+* djinterp [c][text]                                         text_intern_tests.h
 *
 * The suite for c/text/text_intern.h, in DTest's C spec form: making and
 * freeing a table, adding and finding names, and reading them back, one

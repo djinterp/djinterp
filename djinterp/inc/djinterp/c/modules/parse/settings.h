@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                  settings.h
+* djinterp [c][parse]                                                 settings.h
 *
 * Parse's settings group: the djin `parse`, whose rows are the settings an
 * option of 0 stands for (lane E's knob-and-option pattern, knob_and_option.md

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cli]                                              test_cli_unix_sa.c
+* djinterp [c][cli]                                           test_cli_unix_sa.c
 *
 *
 * path:      /tests/djinterp/c/cli/test_cli_unix_sa.c

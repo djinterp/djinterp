@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                             cfg_functional.h
+* djinterp [cpp][functional]                                    cfg_functional.h
 *
 *   Feature configuration for the djinterp functional module (cpp/functional).
 * It defines no knobs yet.

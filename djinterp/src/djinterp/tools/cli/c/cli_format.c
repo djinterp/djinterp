@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  cli_format.c
+* djinterp [c][tools]                                               cli_format.c
 *
 * Help as GNU programs lay it out, declared in cli_format.h.
 *   One step builds the whole page: the usage line, the description as a

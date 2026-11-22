@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                         event_registry_tests_bind_dispatch.cpp
+* djinterp [cpp][event]                   event_registry_tests_bind_dispatch.cpp
 *
 *   Section III (bind + dispatch) -- typed registration and the inner fold.
 * bind type-erases a compatible callable, stores it under the event's key, and

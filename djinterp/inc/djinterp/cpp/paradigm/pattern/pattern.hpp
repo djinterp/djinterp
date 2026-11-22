@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     pattern.hpp
+* djinterp [cpp][paradigm]                                           pattern.hpp
 *
 *   Type-agnostic pattern primitive.  A pattern is a four-faced view
 * of a structural specification:

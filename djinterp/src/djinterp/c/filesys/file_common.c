@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     file_common.c
+* djinterp [c][filesys]                                            file_common.c
 *
 * Implementation of the notification hook, the allocation funnel, the Win32
 * error translation and the path conversions declared in file_common.h.

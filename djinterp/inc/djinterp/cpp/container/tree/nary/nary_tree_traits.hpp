@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            nary_tree_traits.hpp
+* djinterp [cpp][container]                                 nary_tree_traits.hpp
 *
 * N-ary Tree SFINAE Detection Traits:
 *   Comprehensive compile-time structural detection and classification

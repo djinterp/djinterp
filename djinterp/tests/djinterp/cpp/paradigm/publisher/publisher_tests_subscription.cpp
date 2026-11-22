@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               publisher_tests_subscription.cpp
+* djinterp [cpp][paradigm]                      publisher_tests_subscription.cpp
 *
 *   Tests of publisher.hpp's subscription handles (section III) and their
 * revocation model.

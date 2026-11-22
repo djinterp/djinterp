@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                  sorted_container_tests.hpp
+* djinterp [cpp][container]                           sorted_container_tests.hpp
 *
 *   DTest suite header for sorted_container.hpp - the SORTEDNESS axis.  Two
 * faces gated by DTEST_SPEC_MODE: normal mode exposes the SFINAE-probe trait

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                            swap.h
+* djinterp [c][utility]                                                   swap.h
 *
 *   Byte-wise exchange of two objects of equal size.
 * The operation memcpy leaves out: a swap is neither a copy nor a move, and

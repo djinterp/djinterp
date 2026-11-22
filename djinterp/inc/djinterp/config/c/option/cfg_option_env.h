@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                             cfg_option_env.h
+* djinterp [c][option]                                          cfg_option_env.h
 *
 * Configuration for option_env.h and option_env_registry.h: the room the
 * program's djin registry has, and what an import does with a value it could

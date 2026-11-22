@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 option_diff.hpp
+* djinterp [cpp][option]                                         option_diff.hpp
 *
 *   Diff and merge utilities for option_set<>, expressible in BOTH of the
 * two shapes option_set itself dispatches over (see option_set.hpp):

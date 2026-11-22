@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                         cfg_mongodb_common.h
+* djinterp [c][db]                                          cfg_mongodb_common.h
 *
 * Build-time configuration shared by every module of djinterp's MongoDB layer
 * (c/modules/db/mongodb/mongodb_*.h).

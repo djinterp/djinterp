@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                 signature.h
+* djinterp [c][parse]                                                signature.h
 *
 * Expression core v2: the signature, a language's operators and roles.
 *   An OPERATOR says what it builds and how tightly it binds: its form

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                             env_compress_link.h
+* djinterp [c][env]                                          env_compress_link.h
 *
 * djinterp auto-link directives for detected third-party libraries.
 *   env_compress.h and env_archive.h detect codec and archive libraries by

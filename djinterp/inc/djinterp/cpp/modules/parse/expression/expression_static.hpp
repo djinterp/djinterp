@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                     expression_static.hpp
+* djinterp [cpp][parse]                                    expression_static.hpp
 *
 *   The compile-time face of an expression: the term encoded in the *type*,
 * for the zero-overhead path.  Where expression.hpp's term is a heap-backed

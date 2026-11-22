@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                              compress_options_tests_brotli.cpp
+* djinterp [cpp][utility]                      compress_options_tests_brotli.cpp
 *
 *   Tests for the Brotli block (DBrotliOptions): quality, window and block bits,
 * mode and the large-window flag (compress_options.hpp section II).

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                         tcp.h
+* djinterp [c][net]                                                        tcp.h
 *
 * The TCP transport: stream sockets behind net.h's connection.
 *   A dj_tcp_connection embeds dj_net_connection as its first member, so all of

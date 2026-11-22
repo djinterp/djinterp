@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  pdf_primitives.h
+* djinterp [c][utility]                                         pdf_primitives.h
 *
 * The leaf of the PDF kernel: geometry, page sizes, device colour and the
 * standard-14 face enumeration.

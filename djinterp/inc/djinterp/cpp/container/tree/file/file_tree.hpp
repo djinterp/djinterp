@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   file_tree.hpp
+* djinterp [cpp][container]                                        file_tree.hpp
 *
 * File tree umbrella:
 *   The single public entry point.  Including this header pulls in the

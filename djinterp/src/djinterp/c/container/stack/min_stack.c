@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       min_stack.c
+* djinterp [c][container]                                            min_stack.c
 *
 * TBA
 *

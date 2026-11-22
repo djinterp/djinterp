@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            document_dialect.hpp
+* djinterp [cpp][utility]                                   document_dialect.hpp
 *
 *   The join between the format SELECTOR and the dialect set: given a
 * `DDocumentFormat`, hand back the DDocumentRenderer that realises it, together

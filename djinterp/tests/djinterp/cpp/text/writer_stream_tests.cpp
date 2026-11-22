@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        writer_stream_tests.cpp
+* djinterp [cpp][text]                                   writer_stream_tests.cpp
 *
 *   writer.hpp's sinks and printer.hpp's file printer on the output stream
 * (stream 1, step 6): a sink returns nothing, so a failed write is kept by

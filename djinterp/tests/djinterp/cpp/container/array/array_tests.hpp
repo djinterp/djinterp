@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                array_tests.hpp
+* djinterp [cpp][container]                                      array_tests.hpp
 *
 * Unit test suite for the array family under container/array/.
 *   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):

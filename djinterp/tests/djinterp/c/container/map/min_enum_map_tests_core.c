@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      min_enum_map_tests_core.c
+* djinterp [c][container]                              min_enum_map_tests_core.c
 *
 *   Core operation tests for min_enum_map module.
 *   Tests creation, insertion, retrieval, and removal operations.

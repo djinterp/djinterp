@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                               arg_suggest.c
+* djinterp [c][parse]                                              arg_suggest.c
 *
 * "Did you mean" suggestions, declared in arg_internal.h (9.4).
 *   The optimal string alignment distance between two names -- Levenshtein's,

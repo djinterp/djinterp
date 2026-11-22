@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   fn_builder_tests_execute.cpp
+* djinterp [cpp][functional]                        fn_builder_tests_execute.cpp
 *
 * Execution-overload tests (section iii):
 *   test_execute -- execute(vector), execute(generic container),

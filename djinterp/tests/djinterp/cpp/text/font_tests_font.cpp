@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             font_tests_font.cpp
+* djinterp [cpp][text]                                       font_tests_font.cpp
 *
 *
 * path:      /tests/djinterp/cpp/text/font_tests_font.cpp

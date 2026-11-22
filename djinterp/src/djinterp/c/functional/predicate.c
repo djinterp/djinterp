@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       predicate.c
+* djinterp [c][functional]                                           predicate.c
 *
 * The predicate combinators predicate.h declares.
 *   Each _new allocates its combinator, which the caller releases with free();

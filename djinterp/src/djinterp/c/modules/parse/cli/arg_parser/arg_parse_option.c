@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                          arg_parse_option.c
+* djinterp [c][parse]                                         arg_parse_option.c
 *
 * The option step of the parse, declared in arg_internal.h (8.1.7, 8.1.9
 * and 8.4.8).

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/jit]                                                   jit_sparc.c
+* djinterp [c][jit]                                                  jit_sparc.c
 *
 * djinterp SPARC (V8 / V9) JIT encoder -- implementation (jit_sparc.h).
 *   SPARC instructions are big-endian, so d_jit_sparc_emit_word writes the word

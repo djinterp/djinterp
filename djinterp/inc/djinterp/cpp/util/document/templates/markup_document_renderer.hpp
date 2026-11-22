@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    markup_document_renderer.hpp
+* djinterp [cpp][utility]                           markup_document_renderer.hpp
 *
 *   The XML / HTML realisation of DDocumentRenderer -- the angle-bracket half of
 * the dialect set.  Where DPlainDocumentRenderer turns the semantic calls into

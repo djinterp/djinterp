@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    table_common.h
+* djinterp [c][container]                                         table_common.h
 *
 *   The table module's PREAMBLE: what every part needs before any structure is
 * declared -- the configuration knobs, D_INLINE_DEF, and the outcome

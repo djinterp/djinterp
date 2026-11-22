@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      color_cmyk.h
+* djinterp [c][utility]                                             color_cmyk.h
 *
 *   CMYK shared kernel for the djinterp color module. Defines the CMYK POD
 * and its construction, validation, and clamping. Conversions to and from

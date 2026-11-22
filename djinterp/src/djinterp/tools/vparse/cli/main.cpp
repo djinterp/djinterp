@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [cli]                                                          main.cpp
+* djinterp [cpp][tools]                                                 main.cpp
 *
 * The program `vparse`: vparse's command line, on the process's own streams.
 *   Everything the program does is cli::run(); main() hands it the standard
@@ -26,6 +26,7 @@
 *
 *   LEVELS. The command line's floor is the model's, C++17; below it this file
 * is empty rather than an error.
+*
 *
 * path:      /src/djinterp/tools/vparse/cli/main.cpp
 * link(s):   TBA

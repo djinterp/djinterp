@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                      discrete_interval.hpp
+* djinterp [cpp][math]                                     discrete_interval.hpp
 *
 * Compile-time discrete interval [lower, upper] with step.
 *   A closed interval whose iterator advances by a configurable step size

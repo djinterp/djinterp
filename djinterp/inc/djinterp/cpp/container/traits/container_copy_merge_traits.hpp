@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                 container_copy_merge_traits.hpp
+* djinterp [cpp][container]                      container_copy_merge_traits.hpp
 *
 *   COPY and MERGE - two of the operations FOUNDED on comparison (the spec,
 * Operations founded on comparison), the siblings of the conversion already in

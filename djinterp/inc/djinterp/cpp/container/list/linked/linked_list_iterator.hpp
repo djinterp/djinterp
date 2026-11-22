@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        linked_list_iterator.hpp
+* djinterp [cpp][container]                             linked_list_iterator.hpp
 *
 * Versatile iterator family for every permutation of linked-list node:
 *   This header provides a single iterator class template,

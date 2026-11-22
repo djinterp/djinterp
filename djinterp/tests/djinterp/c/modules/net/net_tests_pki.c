@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                               net_tests_pki.c
+* djinterp [c][net]                                              net_tests_pki.c
 *
 * The certificates net's TLS suites are tested with, made for each run.
 *   Every key is P-256 and every certificate is signed with SHA-256: a CA, a

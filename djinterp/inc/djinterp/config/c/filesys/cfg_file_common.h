@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                            cfg_file_common.h
+* djinterp [c][filesys]                                        cfg_file_common.h
 *
 * Build-time configuration shared by every module of the djinterp filesys
 * subframework (c/filesys/file_*.h).  It owns the knobs that are meaningful to

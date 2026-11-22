@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                       grid.cpp
+* djinterp [cpp][tools]                                                 grid.cpp
 *
 * The bit grid: one row per symbol, one column per bit.
 *   The grid scrolls both ways inside its own child window, with the column
@@ -58,6 +58,7 @@
 * sheet gave it; a row with no fill puts its name on its own ground.
 *   The ADD ROW after the symbols is a "+", and a faded "Add new..." beside
 * it; a press on either opens the menu of what to add.
+*
 *
 * path:      /src/ui/bitwisedom/grid.cpp
 * link(s):   TBA

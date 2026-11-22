@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               event_handler.hpp
+* djinterp [cpp][event]                                        event_handler.hpp
 *
 * The handler -- a step with a verdict:
 *   A handler is the single primitive of the event layer: given the (ambient)

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   desc_machines.c
+* djinterp [c][desc]                                             desc_machines.c
 *
 *   desc's text, JSON and collecting machines, and describing to a stream as
 * the options say. Every key and value a machine writes goes through the

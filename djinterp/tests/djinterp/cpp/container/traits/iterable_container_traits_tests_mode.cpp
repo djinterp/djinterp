@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                    iterable_container_traits_tests_mode.cpp
+* djinterp [cpp][container]             iterable_container_traits_tests_mode.cpp
 *
 *   Section III, type level - the mode a container's traversal actually grants.
 * provides_const_iteration asks whether begin() AND end() are callable on a CONST

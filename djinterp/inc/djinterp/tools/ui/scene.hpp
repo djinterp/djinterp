@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                  scene.hpp
+* djinterp [cpp][tools]                                                scene.hpp
 *
 *   The scene intermediate representation (roadmap phase 1c): the shared,
 * render-space description of a single frame that a lens produces and any

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                         xml.hpp
+* djinterp [cpp][text]                                                   xml.hpp
 *
 *   Foundational XML module for the djinterp framework. Provides shared
 * types, node-type enumerations, encoding identifiers, backend tag

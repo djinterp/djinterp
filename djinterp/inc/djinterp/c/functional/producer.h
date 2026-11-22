@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                        producer.h
+* djinterp [c][functional]                                            producer.h
 *
 * Pull-based producers: a state struct plus a `next` step.
 *   A producer is the dual of a consumer. Where a consumer absorbs elements one

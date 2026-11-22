@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    type_traits_tests_cpp20.cpp
+* djinterp [cpp][meta]                               type_traits_tests_cpp20.cpp
 *
 *   Unit tests for the C++20-features section (I.3) of type_traits.hpp:
 *     - is_bounded_array, is_bounded_array_v

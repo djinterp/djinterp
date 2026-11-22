@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                            event_handler_common.h
+* djinterp [c][event]                                     event_handler_common.h
 *
 * The handler step -- the shared C core (tier 0):
 *   A handler is the single primitive of the event layer: given the ambient

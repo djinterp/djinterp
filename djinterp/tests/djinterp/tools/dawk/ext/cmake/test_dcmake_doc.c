@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                             test_dcmake_doc.c
+* djinterp [c][tools]                                          test_dcmake_doc.c
 *
 * Exercises `dcmake_doc.h`: every change a CMake file takes, the layout each
 * takes from the file, what each refuses, and saving.
@@ -11,6 +11,7 @@
 *
 *   test_dcmake_doc [work directory]          the unit checks
 *   test_dcmake_doc --fuzz <dir> [seed] [n]   n changes to every file
+*
 *
 * path:      /tests/djinterp/tools/dawk/ext/cmake/test_dcmake_doc.c
 * link(s):   TBA

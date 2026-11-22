@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                               named_3d.hpp
+* djinterp [cpp][math]                                              named_3d.hpp
 *
 * Named 3D solids with closed-form measurements.
 *   Each type here is a shorthand for a specific 3D configuration whose

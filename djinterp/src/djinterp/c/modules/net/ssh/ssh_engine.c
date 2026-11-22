@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                  ssh_engine.c
+* djinterp [c][net]                                                 ssh_engine.c
 *
 *   Definitions for ssh_engine.h: the library-wide lifetime calls, which
 * reach every compiled engine, and the choice of default engine.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                               tcp_tests.hpp
+* djinterp [cpp][net]                                              tcp_tests.hpp
 *
 * Tests of the TCP transport's C++ layer.
 *   socket_connection, tcp_connector, and tcp_acceptor over real loopback

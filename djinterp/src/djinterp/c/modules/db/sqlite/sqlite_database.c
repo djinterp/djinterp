@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 sqlite_database.c
+* djinterp [c][db]                                             sqlite_database.c
 *
 * Implementation of sqlite_database.h.
 *   Whether a database is attached is sqlite3_db_readonly's question: it is -1

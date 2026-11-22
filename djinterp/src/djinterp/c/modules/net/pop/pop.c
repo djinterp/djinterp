@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                         pop.c
+* djinterp [c][net]                                                        pop.c
 *
 * Implementation of the shared POP3 kernel declared in pop.h.
 *   Pure computation over caller-owned memory: table lookups, the line and

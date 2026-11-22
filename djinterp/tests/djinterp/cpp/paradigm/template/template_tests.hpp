@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             template_tests.hpp
+* djinterp [cpp][paradigm]                                    template_tests.hpp
 *
 *   Unit-test suite header for inc/djinterp/cpp/paradigm/template/template.hpp
 * - the template-source-sink algebra.  Two faces, selected by DTEST_SPEC_MODE:

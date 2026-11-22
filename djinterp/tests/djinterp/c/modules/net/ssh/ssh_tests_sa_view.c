@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                           ssh_tests_sa_view.c
+* djinterp [c][net]                                          ssh_tests_sa_view.c
 *
 * Tests of a channel as a net.h connection.
 *   Each test reaches the channel only through its base, as code written for

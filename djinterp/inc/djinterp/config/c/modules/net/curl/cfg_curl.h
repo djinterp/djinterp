@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                   cfg_curl.h
+* djinterp [c][net]                                                   cfg_curl.h
 *
 * Build configuration for the libcurl binding, net/curl/curl.h.
 *   One knob: whether the binding is built over libcurl or compiled to stubs

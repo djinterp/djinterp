@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                           arg_config_read.c
+* djinterp [c][parse]                                          arg_config_read.c
 *
 * Reading configuration text, declared in arg_config.h (5.2.1).
 *   CLI11's ConfigBase::from_config, a C function for each of its helpers and

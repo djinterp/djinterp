@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     pdf_backend.c
+* djinterp [c][utility]                                            pdf_backend.c
 *
 * Backend capabilities and the backend taxonomy.
 *   Defines what pdf_backend.h declares. Availability and the preferred

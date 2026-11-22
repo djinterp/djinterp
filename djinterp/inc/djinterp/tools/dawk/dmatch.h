@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                   dmatch.h
+* djinterp [c][tools]                                                   dmatch.h
 *
 * Selector matching:
 *   Tests a parsed DSS selector against a node.  Matching runs right to left:

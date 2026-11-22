@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                hierarchical.hpp
+* djinterp [cpp][meta]                                          hierarchical.hpp
 *
 *   The HIERARCHICAL structural-kind tag: an opt-in marker for the structure
 * axis, declaring that a container nests - depth >= 2, a node summand present.

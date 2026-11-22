@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       option_compose_tests.hpp
+* djinterp [cpp][option]                                option_compose_tests.hpp
 *
 *   Declarations, fixtures, and section block-providers for the
 * option_compose.hpp unit suite.

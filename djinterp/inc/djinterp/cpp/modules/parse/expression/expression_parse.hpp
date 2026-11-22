@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                      expression_parse.hpp
+* djinterp [cpp][parse]                                     expression_parse.hpp
 *
 *   The inverse of the renderer: text (already lexed into tokens) into an
 * expression term, with operator precedence resolved from the very same

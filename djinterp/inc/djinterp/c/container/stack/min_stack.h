@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       min_stack.h
+* djinterp [c][container]                                            min_stack.h
 *
 *   A (minimal stack) is a LIFO (last-in, first-out) data structure optimized
 * to consume minimal space.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            container_encode.hpp
+* djinterp [cpp][container]                                 container_encode.hpp
 *
 *   The CONTAINER encoder: enc_tau lifted from a leaf to a whole container,
 * the

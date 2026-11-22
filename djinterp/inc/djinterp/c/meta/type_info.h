@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       type_info.h
+* djinterp [c][meta]                                                 type_info.h
 *
 *  Umbrella header for the bit-efficient type information system.
 *  Includes the common definitions unconditionally, then pulls in either

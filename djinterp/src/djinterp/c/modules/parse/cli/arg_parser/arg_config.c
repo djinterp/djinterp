@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                arg_config.c
+* djinterp [c][parse]                                               arg_config.c
 *
 * Configuration formats and items, declared in arg_config.h (3, 4 and 5.1).
 *   CLI11's ConfigBase settings as a plain record -- ConfigTOML's by default,

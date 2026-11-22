@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                               spine_tests.cpp
+* djinterp [cpp][interp]                                         spine_tests.cpp
 *
 * The spine's suite: what interp/spine.hpp does as it moved from parse's
 * functional_cli.hpp -- the reader's tokens, the grammar's pipeline and each

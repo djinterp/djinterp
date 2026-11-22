@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               table_builder.hpp
+* djinterp [cpp][container]                                    table_builder.hpp
 *
 *   The TYPE DSL -- the compile-time front end for declaring a table.  A
 * table_builder<...> is a table written as a type: a list of DECLARATORS

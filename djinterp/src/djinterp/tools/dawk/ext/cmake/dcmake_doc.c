@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  dcmake_doc.c
+* djinterp [c][tools]                                               dcmake_doc.c
 *
 * Definitions for the declarations in dcmake_doc.h.
 *   Every change is a candidate first: the new text, read into records of

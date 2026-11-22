@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                       dmsvs.c
+* djinterp [c][tools]                                                    dmsvs.c
 *
 * Reads Visual Studio's files into records: see dmsvs.h.
 *   An XML file is read with dxml's scanner into an element tree, each
@@ -11,6 +11,7 @@
 * span of text it stands in.
 *   And three things a writer needs: GUIDs made from names, by SHA-1;
 * relative paths; and escaped text.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/msvs/dmsvs.c
 * link(s):   TBA

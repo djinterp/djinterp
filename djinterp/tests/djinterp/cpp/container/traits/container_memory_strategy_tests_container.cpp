@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]               container_memory_strategy_tests_container.cpp
+* djinterp [cpp][container]        container_memory_strategy_tests_container.cpp
 *
 * Section: the container binding.
 *   container_memory_strategy.hpp - shape detectors (cms_has_*), DCmsInferKind,

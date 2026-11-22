@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    array_filter.c
+* djinterp [c][container]                                         array_filter.c
 *
 *   Implementation of zero-overhead filter operations for contiguous containers.
 *   All functions operate on raw (void*, count, element_size) triples and

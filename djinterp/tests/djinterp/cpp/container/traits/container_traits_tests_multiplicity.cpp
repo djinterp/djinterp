@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                     container_traits_tests_multiplicity.cpp
+* djinterp [cpp][container]              container_traits_tests_multiplicity.cpp
 *
 *   Section XII - uniqueness and multiplicity.  enforces_uniqueness is the
 * structural set-shape test: a key_type WITHOUT a mapped_type.  allows_duplicates

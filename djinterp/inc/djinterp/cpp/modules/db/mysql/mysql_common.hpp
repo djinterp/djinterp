@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                mysql_common.hpp
+* djinterp [cpp][db]                                            mysql_common.hpp
 *
 * djinterp MySQL-family common connection module:
 *   The connection MariaDB and Oracle's MySQL share, mysql_common_connection,

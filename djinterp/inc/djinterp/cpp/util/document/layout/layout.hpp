@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                      layout.hpp
+* djinterp [cpp][utility]                                             layout.hpp
 *
 *   The platform-agnostic DOCUMENT-STRUCTURE term, and nothing that names a
 * specific construct.  A document has content and structure; this module is

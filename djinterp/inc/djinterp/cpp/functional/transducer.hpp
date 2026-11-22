@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  transducer.hpp
+* djinterp [cpp][functional]                                      transducer.hpp
 *
 * Composable, source-and-sink-agnostic transformations (C++14+).
 *   A transducer is a function from one reducer to another: it takes a

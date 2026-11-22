@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                 container_traits_tests_constexpr_traits.cpp
+* djinterp [cpp][container]          container_traits_tests_constexpr_traits.cpp
 *
 *   Section III - the constexpr-evaluated shape traits: has_constexpr_size /
 * _max_size / _min_size (is `T{}.size()` etc. a constant expression?),

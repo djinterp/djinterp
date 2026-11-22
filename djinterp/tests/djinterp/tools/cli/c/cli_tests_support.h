@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                           cli_tests_support.h
+* djinterp [c][tools]                                        cli_tests_support.h
 *
 * What the command-line kit's C suites share: a program made fresh for each
 * case, what it writes captured, and what a case came to compared with what

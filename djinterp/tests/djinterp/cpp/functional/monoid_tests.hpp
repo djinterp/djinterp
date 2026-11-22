@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               monoid_tests.hpp
+* djinterp [cpp][functional]                                    monoid_tests.hpp
 *
 *   Unit-test declarations for core/functional/monoid.hpp.  One declaration
 * group per section of the module under test (newtypes, protocol, instances,

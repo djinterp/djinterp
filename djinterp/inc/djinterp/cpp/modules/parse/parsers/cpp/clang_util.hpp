@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                            clang_util.hpp
+* djinterp [cpp][parse]                                           clang_util.hpp
 *
 * libclang shared utilities:
 *   This header provides the common libclang infrastructure shared by

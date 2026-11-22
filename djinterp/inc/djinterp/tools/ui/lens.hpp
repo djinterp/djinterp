@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                   lens.hpp
+* djinterp [cpp][tools]                                                 lens.hpp
 *
 *   The lens contract: the abstract mapping from the n-dimensional state space
 * onto a render-space `scene`.  Each lens mode (slice, projection, flatten,

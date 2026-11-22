@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                      http_tests_helpers.cpp
+* djinterp [cpp][net]                                     http_tests_helpers.cpp
 *
 * Checks the string helpers http.hpp and net_url.hpp keep for HTTP and URLs:
 * to_string's names, "" for an extension method, method_from_string ignoring

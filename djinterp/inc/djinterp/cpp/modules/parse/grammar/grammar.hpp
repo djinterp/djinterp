@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                               grammar.hpp
+* djinterp [cpp][parse]                                              grammar.hpp
 *
 * Formal grammar four-tuple G = (N, Σ, P, S).
 *   This header carries the *textual* presentation of a grammar —

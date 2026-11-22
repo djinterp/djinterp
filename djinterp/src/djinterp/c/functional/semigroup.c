@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       semigroup.c
+* djinterp [c][functional]                                           semigroup.c
 *
 * TBA
 *

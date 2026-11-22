@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                    accumulator_tests.hpp
+* djinterp [cpp][functional]                               accumulator_tests.hpp
 *
 * Unit-test declarations for accumulator.hpp.
 *   This header declares the full battery of accumulator tests and the small

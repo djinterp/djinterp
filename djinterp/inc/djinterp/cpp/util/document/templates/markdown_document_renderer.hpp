@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                  markdown_document_renderer.hpp
+* djinterp [cpp][utility]                         markdown_document_renderer.hpp
 *
 *   The Markdown realisation of DDocumentRenderer, completing the string half of
 * the dialect set (plain / markdown / xml / html).  A heading becomes a `##`

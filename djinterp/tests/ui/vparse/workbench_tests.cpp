@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [tests]                                             workbench_tests.cpp
+* djinterp [cpp][tools]                                      workbench_tests.cpp
 *
 * The window's suite: the model an event leaves, and the face a model has.
 *   Nothing here opens a window or draws: the model's behaviour is a function,

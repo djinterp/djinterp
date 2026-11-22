@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   publisher.hpp
+* djinterp [cpp][paradigm]                                         publisher.hpp
 *
 * Publish-subscribe paradigm foundation:
 *   A publish-subscribe system decouples the senders of messages

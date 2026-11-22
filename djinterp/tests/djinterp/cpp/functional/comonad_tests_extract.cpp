@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      comonad_tests_extract.cpp
+* djinterp [cpp][functional]                           comonad_tests_extract.cpp
 *
 *   Section II.1 of the comonad.hpp suite: extract, the counit, which reads the
 * focus value out of a comonad (W<A> -> A).  Covers reading the focus over the

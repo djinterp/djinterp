@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                           event.h
+* djinterp [c][event]                                                    event.h
 *
 * The event subframework umbrella:
 *   One include for the whole module. Follows the shared-core convention set

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                             event_handler_tests_handler_id.cpp
+* djinterp [cpp][event]                       event_handler_tests_handler_id.cpp
 *
 *   Section I -- HANDLER IDENTIFICATION.  Covers the DHandlerId handle: its
 * relational operators, the validity query (non-zero is real, zero is the

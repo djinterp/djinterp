@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   tree_path.hpp
+* djinterp [cpp][container]                                        tree_path.hpp
 *
 * Path operations for arena-backed trees:
 *   This header provides the arena_path_policy - a container_path

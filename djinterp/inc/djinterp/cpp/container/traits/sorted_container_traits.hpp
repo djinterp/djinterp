@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                     sorted_container_traits.hpp
+* djinterp [cpp][container]                          sorted_container_traits.hpp
 *
 *   The SORTEDNESS axis, container-side traits: does a container's TYPE
 * promise

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          option_diff_tests.hpp
+* djinterp [cpp][option]                                   option_diff_tests.hpp
 *
 *   Shared surface for the option_diff.hpp unit suite.  Declares the six
 * section block-providers - each defined in its own translation unit - and

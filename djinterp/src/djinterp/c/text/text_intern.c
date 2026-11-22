@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     text_intern.c
+* djinterp [c][text]                                               text_intern.c
 *
 *   Text interning: an arena of names, each terminated, with its offset,
 * length and hash, and an open-addressed bucket array mapping a hash to a

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          text_tests_common.cpp
+* djinterp [cpp][text]                                     text_tests_common.cpp
 *
 *   The check and the run that every suite of text's C++ headers shares:
 * the suite checks are recorded against, as bound, a comparison of texts that

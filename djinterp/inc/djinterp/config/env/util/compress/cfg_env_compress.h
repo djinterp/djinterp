@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                           cfg_env_compress.h
+* djinterp [c][env]                                           cfg_env_compress.h
 *
 * Configuration for env_compress.h, the codec-library detection header under
 * env/util/compress/.

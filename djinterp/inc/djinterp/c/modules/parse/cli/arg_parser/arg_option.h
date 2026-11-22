@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                arg_option.h
+* djinterp [c][parse]                                               arg_option.h
 *
 * Options: the named, flag and positional arguments a command accepts.
 *   A `struct dj_arg_option` is CLI11's Option in C: its names (short, long,

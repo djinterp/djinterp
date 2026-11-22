@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                        sort.hpp
+* djinterp [cpp][utility]                                               sort.hpp
 *
 *   The sort subsystem in one include, with its seams into the functional
 * layer.  It brings in:

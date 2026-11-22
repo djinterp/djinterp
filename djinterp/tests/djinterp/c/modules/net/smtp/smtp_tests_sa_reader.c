@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                        smtp_tests_sa_reader.c
+* djinterp [c][net]                                       smtp_tests_sa_reader.c
 *
 * djinterp SMTP kernel tests -- the line reader.
 *   Standalone tests of smtp_reader.c over net_tests_peer.h's scripted peer:

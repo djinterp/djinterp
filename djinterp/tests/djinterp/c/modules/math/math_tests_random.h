@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                          math_tests_random.h
+* djinterp [c][math]                                         math_tests_random.h
 *
 * The math harnesses' random numbers.
 *   Marsaglia's xorshift on 64 bits -- shifts of 13, 7 and 17 -- kept as two

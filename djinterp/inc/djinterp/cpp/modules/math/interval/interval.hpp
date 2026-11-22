@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                               interval.hpp
+* djinterp [cpp][math]                                              interval.hpp
 *
 * Unified compile-time interval template.
 *   This header provides a single, fully generic interval type parameterized

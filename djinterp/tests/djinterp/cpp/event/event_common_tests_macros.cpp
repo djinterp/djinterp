@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  event_common_tests_macros.cpp
+* djinterp [cpp][event]                            event_common_tests_macros.cpp
 *
 *   Section V -- DECLARATION MACROS.  Covers D_EVENT and D_EVENT_EMPTY: the
 * payload_type tuple they synthesize, the static name() member they emit (its

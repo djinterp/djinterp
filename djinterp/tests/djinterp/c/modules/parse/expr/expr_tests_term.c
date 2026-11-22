@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                           expr_tests_term.c
+* djinterp [c][parse]                                          expr_tests_term.c
 *
 * Expression core v2's C suite, block "term": the arena and the
 * signature.

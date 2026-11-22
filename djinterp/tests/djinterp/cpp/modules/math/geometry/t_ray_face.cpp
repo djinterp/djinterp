@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                             t_ray_face.cpp
+* djinterp [cpp][math]                                            t_ray_face.cpp
 *
 *   Tests for geometry/ray.hpp, at every level from C++98: points along a
 * ray; the box test as the C core's -- the answer and the parameters -- for

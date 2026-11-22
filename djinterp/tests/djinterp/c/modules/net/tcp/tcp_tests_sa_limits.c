@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                         tcp_tests_sa_limits.c
+* djinterp [c][net]                                        tcp_tests_sa_limits.c
 *
 * Standalone tests of the TCP transport's limits and counts.
 *   Each wait a caller can bound -- a read, a write, an accept -- is made to

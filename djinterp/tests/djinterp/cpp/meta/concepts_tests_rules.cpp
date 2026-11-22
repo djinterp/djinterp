@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       concepts_tests_rules.cpp
+* djinterp [cpp][meta]                                  concepts_tests_rules.cpp
 *
 *   Tests for concepts.hpp section II.5: class-definition rule concepts.
 * Covers: follows_rule_of_zero_c, follows_rule_of_three_c,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                           traversable.hpp
+* djinterp [cpp][parse]                                          traversable.hpp
 *
 * Traversable protocol: traverse and sequence (C++).
 *   A traversable is a structure T<A> that can be walked left-to-right while

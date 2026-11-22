@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/jit]                                                   jit_riscv.h
+* djinterp [c][jit]                                                  jit_riscv.h
 *
 * djinterp RISC-V (RV32I / RV64I) JIT encoder (fixed-width 32-bit words):
 *   The RISC-V half of the djinterp JIT. Unlike x86/x86-64 or ARM A32/A64, the

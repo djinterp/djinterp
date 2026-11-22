@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                         dmemory.h
+* djinterp [c][memory]                                                 dmemory.h
 *
 * Cross-platform memory operations and secure-memory compatibility.
 *   Declares djinterp wrappers for raw memory copying, duplication, and

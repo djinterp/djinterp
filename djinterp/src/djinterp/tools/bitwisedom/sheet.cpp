@@ -1,11 +1,12 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                              sheet.cpp
+* djinterp [cpp][tools]                                                sheet.cpp
 *
 * The sheet: colours, defaults, and the operations on its tree of rows.
 *   The tree is a value -- rows own their children by value -- so lookups
 * walk it rather than index it. A sheet holds tens or hundreds of rows, and
 * every edit copies it whole for undo anyway; an index would be one more
 * thing to keep in step.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/sheet.cpp
 * link(s):   TBA

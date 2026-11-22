@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                               imap_tests_sa.h
+* djinterp [c][net]                                              imap_tests_sa.h
 *
 * Standalone tests of the IMAP kernel: its vocabulary, its writers and
 * parsers, and both sides of a session run through them.

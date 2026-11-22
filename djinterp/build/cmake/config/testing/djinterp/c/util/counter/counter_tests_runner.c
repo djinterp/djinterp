@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         counter_tests_runner.c
+* djinterp [c][utility]                                   counter_tests_runner.c
 *
 * The runner for the counter family's suite: one module spec, the suite's own.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            text_buffer_tests.h
+* djinterp [c][container]                                    text_buffer_tests.h
 *
 *   Unit test declarations for `text_buffer.h` module.
 *   Provides comprehensive testing of all dj_text_buffer functions including

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_tree.c
+* djinterp [c][container]                                            file_tree.c
 *
 *   The dj_file_tree functions file_tree.h declares: nodes for files,
 * directories and symlinks; path resolution by the tree's separator; building

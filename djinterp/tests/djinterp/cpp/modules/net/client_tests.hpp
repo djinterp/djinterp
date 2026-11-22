@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                            client_tests.hpp
+* djinterp [cpp][net]                                           client_tests.hpp
 *
 * Tests of net/client.hpp: the connector contract, connect_with_retry, and the
 * client facade.

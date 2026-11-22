@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                          color_cmyk_tests.hpp
+* djinterp [cpp][utility]                                   color_cmyk_tests.hpp
 *
 *   Suite header for color_cmyk.hpp - the C++ ergonomic layer over the CMYK
 * shared kernel: `cmyk` derives from dj_color_cmyk without adding state and

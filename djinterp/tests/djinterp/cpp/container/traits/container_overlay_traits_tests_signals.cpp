@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                  container_overlay_traits_tests_signals.cpp
+* djinterp [cpp][container]           container_overlay_traits_tests_signals.cpp
 *
 *   Section II - is_keyed_container (the eta restriction): the value type is a
 * pair Key x Val, detected by BOTH first_type and second_type aliases.  eta

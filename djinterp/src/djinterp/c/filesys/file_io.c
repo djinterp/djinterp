@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                         file_io.c
+* djinterp [c][filesys]                                                file_io.c
 *
 * Implementation of the byte transfer declared in file_io.h.
 *   Descriptor transfers clamp each request to the build's chunk size and to

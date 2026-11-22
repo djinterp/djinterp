@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                               container_copy_merge_concepts.hpp
+* djinterp [cpp][container]                    container_copy_merge_concepts.hpp
 *
 * C++20 concepts for the COPY AND MERGE axis -- the `requires`-facing view of
 * container_copy_merge_traits.hpp.

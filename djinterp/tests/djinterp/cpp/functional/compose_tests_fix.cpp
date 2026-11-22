@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          compose_tests_fix.cpp
+* djinterp [cpp][functional]                               compose_tests_fix.cpp
 *
 *   Tests for compose.hpp Section VII: fix, the Y-combinator for
 * recursive lambdas.  The combinator itself is available on the C++11

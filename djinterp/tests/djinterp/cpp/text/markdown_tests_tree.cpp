@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        markdown_tests_tree.cpp
+* djinterp [cpp][text]                                   markdown_tests_tree.cpp
 *
 *   The group for building a tree with markdown/markdown_template.hpp: the
 * factories, adoption by blocks and inlines, and the facades that read the

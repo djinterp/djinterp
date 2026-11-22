@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   db_common.hpp
+* djinterp [cpp][db]                                               db_common.hpp
 *
 * The namespace of djinterp's database layers: db, inside djinterp, with one
 * namespace per vendor inside it -- db::sqlite, db::postgres, db::mariadb and

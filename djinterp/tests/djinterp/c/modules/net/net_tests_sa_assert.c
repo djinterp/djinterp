@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                         net_tests_sa_assert.c
+* djinterp [c][net]                                        net_tests_sa_assert.c
 *
 * The assertion the net standalone suites count with.
 *   Definitions for net_tests_sa_assert.h. They carry on the stand-in the net

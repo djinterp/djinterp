@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                  t_dynamic_matrix_face.cpp
+* djinterp [cpp][math]                                 t_dynamic_matrix_face.cpp
 *
 *   Tests for linear_algebra/dynamic_matrix.hpp, at every level from C++98,
 * per family and for int: shapes chosen at run time -- construction,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                              t_value_boxed.c
+* djinterp [c][math]                                             t_value_boxed.c
 *
 *   Conformance harness for value.h's boxed kinds (c/math/value.h): dispatch
 * through a kind's table, ownership, and the inline paths a boxed operand

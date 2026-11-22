@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    font_tests_feature_flags.cpp
+* djinterp [cpp][text]                              font_tests_feature_flags.cpp
 *
 *
 * path:      /tests/djinterp/cpp/text/font_tests_feature_flags.cpp

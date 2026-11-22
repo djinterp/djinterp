@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                               postgres_database.c
+* djinterp [c][db]                                           postgres_database.c
 *
 * Implementation of postgres_database.h.
 *   Databases, schemas and extensions are asked after in pg_database,

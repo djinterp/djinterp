@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                          cfg_sqlite_common.h
+* djinterp [c][db]                                           cfg_sqlite_common.h
 *
 * Build-time configuration shared by every module of djinterp's SQLite layer
 * (c/modules/db/sqlite/sqlite_*.h).

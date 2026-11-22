@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                            registry_common_tests_strcmp.c
+* djinterp [c][container]                         registry_common_tests_strcmp.c
 *
 *
 * path:      /tests/djinterp/c/container/registry/registry_common_tests_strcmp.c

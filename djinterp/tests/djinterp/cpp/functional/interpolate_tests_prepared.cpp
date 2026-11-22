@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 interpolate_tests_prepared.cpp
+* djinterp [cpp][functional]                      interpolate_tests_prepared.cpp
 *
 * Section VIII -- DPreparedInterpolation: scan ONCE into a shared piece cache
 * and replay it every render.  Verifies the mirrored builder surface (identity,

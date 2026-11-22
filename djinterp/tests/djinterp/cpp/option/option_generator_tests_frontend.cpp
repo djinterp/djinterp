@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                            option_generator_tests_frontend.cpp
+* djinterp [cpp][option]                     option_generator_tests_frontend.cpp
 *
 *   Section IV - the public front-end.  DOptionGenerator parses a flat stream
 * and exposes the key type, the spec list, the populated option_set type, and

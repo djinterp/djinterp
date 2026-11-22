@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       ptr_array.h
+* djinterp [c][container]                                            ptr_array.h
 *
 * A `dj_array` is a dynamically-resizable array.
 * Does not allow NULL-elements.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                      value.h
+* djinterp [c][math]                                                     value.h
 *
 * One run-time type for any number the math module computes with: the C core
 * of the generic value (roadmap Phase 1).

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  mongodb_common.c
+* djinterp [c][db]                                              mongodb_common.c
 *
 * Implementation of mongodb_common.h.
 *   Results are packed so that reading one needs no driver: the functions of

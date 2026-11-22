@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             pdf_stream_tests.c
+* djinterp [c][utility]                                       pdf_stream_tests.c
 *
 *   The PDF writer on the output stream, from C, in DTest's C face
 * (c/modules/test/test_suite.h): the decimal-point ruling and save_to

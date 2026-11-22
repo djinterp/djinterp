@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             file_attributes.hpp
+* djinterp [cpp][container]                                  file_attributes.hpp
 *
 * Portable file attribute and metadata types:
 *   This header provides platform-independent representations of file

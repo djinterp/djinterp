@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      cli_option.h
+* djinterp [c][cli]                                                 cli_option.h
 *
 *   Convention-agnostic string-to-void* lookup and CLI argument parsing.
 * The core primitive is `d_string_entry`: a key/value pair mapping a

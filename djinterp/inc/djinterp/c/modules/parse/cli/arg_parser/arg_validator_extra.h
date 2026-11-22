@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                       arg_validator_extra.h
+* djinterp [c][parse]                                      arg_validator_extra.h
 *
 * CLI11's extra validators: type checks, bounds, IPv4 addresses, sets and
 * mappings, and numbers with units.

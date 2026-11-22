@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                    t_isect.c
+* djinterp [c][math]                                                   t_isect.c
 *
 *   Conformance harness for c/math/isect.h, all three families: each test
 * against the geometry headers' former formulas, written out here in the

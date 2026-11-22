@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                               lex_literal.c
+* djinterp [c][parse]                                              lex_literal.c
 *
 * Definitions for lex_literal.h.
 *   A numeric literal is read left to right in one pass: prefix, digits,

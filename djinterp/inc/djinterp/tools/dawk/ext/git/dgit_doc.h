@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                    dgit_doc.h
+* djinterp [c][tools]                                                 dgit_doc.h
 *
 * A git text file held for change.
 *   A document is the text of an ignore file, an attribute file or a file of
@@ -26,6 +26,7 @@
 *   A document is made from a file, or from a text not yet on disk, and saved
 * to its own path or another; saving writes only a file that would change,
 * beside its target and renamed over it, and makes the directories it needs.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/git/dgit_doc.h
 * link(s):   TBA

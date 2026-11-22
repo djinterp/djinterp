@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_lock.h
+* djinterp [c][filesys]                                              file_lock.h
 *
 * Advisory file locking.
 *   ADVISORY, and the word is load-bearing: a lock here is a convention among

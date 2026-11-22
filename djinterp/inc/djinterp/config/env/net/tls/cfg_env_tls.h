@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                cfg_env_tls.h
+* djinterp [c][env]                                                cfg_env_tls.h
 *
 * Configuration for env_tls.h, the TLS library detection header under
 * env/net/tls/.

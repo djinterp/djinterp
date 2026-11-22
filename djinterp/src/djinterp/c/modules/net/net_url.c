@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                     net_url.c
+* djinterp [c][net]                                                    net_url.c
 *
 * URLs parsed and recomposed: net_url.h's section 2.
 *   Parsing splits a reference at its delimiters, as RFC 3986's Appendix B

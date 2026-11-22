@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                cli_settings.h
+* djinterp [c][tools]                                             cli_settings.h
 *
 * The command-line kit's settings, on the knob-and-option pattern
 * (docs/djinterp/option/knob_and_option.md): a knob decides a setting's

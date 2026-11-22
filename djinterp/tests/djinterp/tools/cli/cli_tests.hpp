@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                 cli_tests.hpp
+* djinterp [cpp][tools]                                            cli_tests.hpp
 *
 * The command-line kit's C++ suite: the face of cli_program.hpp, cli_io.hpp,
 * cli_edit.hpp, cli_operand.hpp and cli_plugin.hpp, called from C++ across a

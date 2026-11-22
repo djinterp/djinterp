@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               node_iterator.hpp
+* djinterp [cpp][container]                                    node_iterator.hpp
 *
 * Generic node iterators:
 * Provides constexpr-friendly, trait-driven iterators for polymorphic

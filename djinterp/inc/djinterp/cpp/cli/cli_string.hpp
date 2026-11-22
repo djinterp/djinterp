@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  cli_string.hpp
+* djinterp [cpp][cli]                                             cli_string.hpp
 *
 *   A fixed-capacity compile-time string and the small constexpr string
 * algebra the CLI layer renders into.  `dji_cli_string<Cap>` is a literal,

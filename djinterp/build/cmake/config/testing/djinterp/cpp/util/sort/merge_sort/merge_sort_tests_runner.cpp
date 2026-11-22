@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    merge_sort_tests_runner.cpp
+* djinterp [cpp][utility]                            merge_sort_tests_runner.cpp
 *
 *   main() for the merge_sort_tests executable.  Defines DTEST_SPEC_MODE so
 * the suite header presents its spec-provider face (no fixtures compiled

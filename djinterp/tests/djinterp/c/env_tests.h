@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c][env]                                                  env_tests.h
+* djinterp [c]                                                       env_tests.h
 *
 * This is a test file for `env.h` unit tests.
 * For the file itself, go to `\inc\c\env.h`.

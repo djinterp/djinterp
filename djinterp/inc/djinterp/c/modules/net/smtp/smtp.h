@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                        smtp.h
+* djinterp [c][net]                                                       smtp.h
 *
 * djinterp SMTP kernel.
 *   Umbrella header for the C SMTP kernel: environment detection, protocol

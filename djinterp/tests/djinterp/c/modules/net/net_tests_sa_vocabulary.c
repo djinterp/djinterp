@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                     net_tests_sa_vocabulary.c
+* djinterp [c][net]                                    net_tests_sa_vocabulary.c
 *
 * Tests of the net foundation's pure functions.
 *   Error phrases, result helpers, port and endpoint parsing and formatting,

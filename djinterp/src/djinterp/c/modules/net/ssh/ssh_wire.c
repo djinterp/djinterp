@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                    ssh_wire.c
+* djinterp [c][net]                                                   ssh_wire.c
 *
 *   Definitions for ssh_wire.h. Every read checks the length it is about
 * to consume against what remains before consuming it, and every write

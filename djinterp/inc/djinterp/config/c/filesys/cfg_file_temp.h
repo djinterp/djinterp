@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                              cfg_file_temp.h
+* djinterp [c][filesys]                                          cfg_file_temp.h
 *
 * Build-time configuration for c/filesys/file_temp.h -- temporary files.
 *

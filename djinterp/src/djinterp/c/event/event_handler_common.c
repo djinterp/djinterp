@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                            event_handler_common.c
+* djinterp [c][event]                                     event_handler_common.c
 *
 * The handler step -- tier 0 definitions.
 *   Defines the step functions behind the void-callback adapter and the

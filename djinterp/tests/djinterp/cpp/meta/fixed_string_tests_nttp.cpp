@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                     fixed_string_tests_nttp.cpp
+* djinterp [cpp][meta]                               fixed_string_tests_nttp.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/fixed_string_tests_nttp.cpp

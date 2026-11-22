@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    test_counter_tests_runner.c
+* djinterp [c][test]                                 test_counter_tests_runner.c
 *
 * The runner for DTest's C test counter suite: one module spec, the suite's
 * own.

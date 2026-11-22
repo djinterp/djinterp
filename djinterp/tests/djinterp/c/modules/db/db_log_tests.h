@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 db_log_tests.h
+* djinterp [c][db]                                                db_log_tests.h
 *
 * The suite of db's codes for the log: its two tables, their registration
 * and the vendor's message, in DTest's C face.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                    cfg_pop.h
+* djinterp [c][net]                                                    cfg_pop.h
 *
 * Build-time configuration for the POP3 modules.
 *   Line-buffer sizing, default strictness, APOP, and the backend enables for

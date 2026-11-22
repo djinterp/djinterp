@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  postgres_sizes_tests_runner.c
+* djinterp [c][db]                                 postgres_sizes_tests_runner.c
 *
 * The runner for c/modules/db/postgres's suite of checked sizes, the white-box
 * suite over postgres_connection.c: options, then the suite's one section,

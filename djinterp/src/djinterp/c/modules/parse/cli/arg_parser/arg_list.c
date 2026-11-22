@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                  arg_list.c
+* djinterp [c][parse]                                                 arg_list.c
 *
 * The growable arrays the parser's records keep, declared in arg_internal.h
 * (section 6).

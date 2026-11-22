@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             file_tree_apple.hpp
+* djinterp [cpp][container]                                  file_tree_apple.hpp
 *
 * Apple (macOS) file tree scanner:
 *   Defines apple_scanner, which uses getattrlistbulk to read directory

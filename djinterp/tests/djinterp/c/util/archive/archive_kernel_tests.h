@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         archive_kernel_tests.h
+* djinterp [c][utility]                                   archive_kernel_tests.h
 *
 * The archive kernel's suite in DTest's C face (c/modules/test/test_suite.h).
 *   One entry point builds the module "archive_kernel": the staged create

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 fixed_table.hpp
+* djinterp [cpp][container]                                      fixed_table.hpp
 *
 *   fixed_table -- the fixed-shape mutable grid of the table trio.  A rank-2,
 * rectangular, cell-homogeneous table whose two extents R and C are fixed by

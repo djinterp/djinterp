@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               path_iterator.hpp
+* djinterp [cpp][container]                                    path_iterator.hpp
 *
 *   The PATH iterator: a traversal of the descent relation UPWARD -- the
 * unique chain of components from a node back to its root. It is the exact

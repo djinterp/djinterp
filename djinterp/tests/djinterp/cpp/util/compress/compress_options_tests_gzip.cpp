@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                compress_options_tests_gzip.cpp
+* djinterp [cpp][utility]                        compress_options_tests_gzip.cpp
 *
 *   Tests for the gzip block (DGzipOptions): the header's OS byte, its choices
 * and its equality helper (compress_options.hpp section II).  The block is the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        view_tests_terminal.cpp
+* djinterp [cpp][functional]                             view_tests_terminal.cpp
 *
 * Terminal operator tests (section VII): the drains that force a pipeline.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     mongodb.cpp
+* djinterp [cpp][db]                                                 mongodb.cpp
 *
 * Definitions for mongodb.hpp: mongo_connection's hooks and members, its
 * cursors and change streams, and the MongoDB layer's failures, over the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      html_tests_vocabulary.cpp
+* djinterp [cpp][text]                                 html_tests_vocabulary.cpp
 *
 *   The groups for html/html.hpp and html/html_dialect.hpp: versions and
 * DOCTYPEs, the element kinds and their tag names, the categories, the

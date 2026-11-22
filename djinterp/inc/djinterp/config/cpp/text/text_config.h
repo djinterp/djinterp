@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                text_config.h
+* djinterp [cpp][text]                                             text_config.h
 *
 * Feature configuration for the djinterp text module.
 *

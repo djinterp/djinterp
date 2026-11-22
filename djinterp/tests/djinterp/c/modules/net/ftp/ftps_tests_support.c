@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                          ftps_tests_support.c
+* djinterp [c][net]                                         ftps_tests_support.c
 *
 * FTPS test support: a deterministic TLS engine and a threaded FTP and FTPS
 * server over the TCP transport, shared by the C suite (ftps_test.c) and the

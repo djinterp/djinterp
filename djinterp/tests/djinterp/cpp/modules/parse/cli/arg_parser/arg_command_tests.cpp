@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                     arg_command_tests.cpp
+* djinterp [cpp][parse]                                    arg_command_tests.cpp
 *
 * The argument parser's C++ command suite's sections.
 *   The sections held to CLI11 run what the CASES section defines: commands

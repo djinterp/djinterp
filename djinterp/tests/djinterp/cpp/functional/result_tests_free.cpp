@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          result_tests_free.cpp
+* djinterp [cpp][functional]                               result_tests_free.cpp
 *
 * Free-function helper tests for result.hpp section VI:
 *   test_collect -- container of result<T, E> -> result<vector<T>, E>: ok iff

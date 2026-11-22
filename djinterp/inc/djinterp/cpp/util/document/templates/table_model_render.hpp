@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                          table_model_render.hpp
+* djinterp [cpp][utility]                                 table_model_render.hpp
 *
 *   The join between the TABLE subframework's model and the DOCUMENT
 * subframework's dialects: stream a table_model_value through any

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                         cli.hpp
+* djinterp [cpp][cli]                                                    cli.hpp
 *
 *   The CLI's formatting language as data.  A template is a tree of nested
 * option<>s in which the KEY is the node-kind (a `dji_cli` enum value) and the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                             registry_tests_constructors.c
+* djinterp [c][container]                          registry_tests_constructors.c
 *
 *
 * path:      /tests/djinterp/c/container/registry/registry_tests_constructors.c

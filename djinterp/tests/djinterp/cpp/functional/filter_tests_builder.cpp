@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        filter_tests_builder.cpp
+* djinterp [cpp][functional]                            filter_tests_builder.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/filter_tests_builder.cpp

@@ -1,7 +1,8 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                      fonts.hpp
+* djinterp [cpp][tools]                                                fonts.hpp
 *
 * The two fonts bitwisedom draws with, as ImGui's compressed TTF data.
+*
 *
 * path:      /src/ui/bitwisedom/fonts/fonts.hpp
 * link(s):   TBA

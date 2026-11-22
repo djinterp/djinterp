@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                         ssl.h
+* djinterp [c][net]                                                        ssl.h
 *
 * The shared SSL/TLS kernel: tier 0 of the SSL modules.
 *   Everything TLS clients, servers, and test doubles share that needs no

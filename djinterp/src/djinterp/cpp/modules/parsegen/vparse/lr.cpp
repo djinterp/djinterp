@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                                 lr.cpp
+* djinterp [cpp][parsegen]                                                lr.cpp
 *
 *   Definitions for lr.hpp: the LR family's operators and its table-driven
 * driver.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                                    curl.hpp
+* djinterp [cpp][net]                                                   curl.hpp
 *
 * The C++ face of the libcurl binding: http.hpp's requests, performed through
 * net/curl/curl.h.

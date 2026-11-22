@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     pipeline_tests_factory.cpp
+* djinterp [cpp][functional]                          pipeline_tests_factory.cpp
 *
 * Convenience factory tests (section II):
 *   test_factory -- the free pipeline_from(container) and

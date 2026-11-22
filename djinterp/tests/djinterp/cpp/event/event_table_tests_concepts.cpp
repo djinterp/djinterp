@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 event_table_tests_concepts.cpp
+* djinterp [cpp][event]                           event_table_tests_concepts.cpp
 *
 *   Section VI (concept constraints, C++20+) -- the ten concepts layered over
 * event_table_traits, each exercised as a boolean.  The core concept

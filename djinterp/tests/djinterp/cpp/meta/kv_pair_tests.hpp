@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                           kv_pair_tests.hpp
+* djinterp [cpp][meta]                                         kv_pair_tests.hpp
 *
 * Unit test suite for kv_pair.hpp -- the minimal key-value pair.
 *   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):

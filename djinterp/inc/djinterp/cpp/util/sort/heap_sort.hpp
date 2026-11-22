@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   heap_sort.hpp
+* djinterp [cpp][utility]                                          heap_sort.hpp
 *
 *   Heap sort: the sequential driver.
 * In-place, iterative, unstable, comparison-based.  The range is first arranged

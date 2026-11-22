@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                              cfg_file_desc.h
+* djinterp [c][filesys]                                          cfg_file_desc.h
 *
 * Build-time configuration for c/filesys/file_desc.h -- descriptor lifecycle
 * (open, close, dup, dup2, fileno).

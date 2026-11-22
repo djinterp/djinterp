@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     text_source.h
+* djinterp [c][text]                                               text_source.h
 *
 *   Text source: a text as it was read, by offset and by line.
 *   A source holds a text and the offset where each of its lines starts, so

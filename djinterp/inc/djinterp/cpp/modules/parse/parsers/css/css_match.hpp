@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                             css_match.hpp
+* djinterp [cpp][parse]                                            css_match.hpp
 *
 * CSS selector matching:
 *   This header makes the css subsystem useful to any application -- not

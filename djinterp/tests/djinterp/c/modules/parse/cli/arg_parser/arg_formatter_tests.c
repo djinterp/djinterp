@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                       arg_formatter_tests.c
+* djinterp [c][parse]                                      arg_formatter_tests.c
 *
 * The suite of help, declared in arg_formatter_tests.h.
 *   Each section of help's is a table of steps (arg_tests_support.h): each

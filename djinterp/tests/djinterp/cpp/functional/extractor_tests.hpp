@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                      extractor_tests.hpp
+* djinterp [cpp][functional]                                 extractor_tests.hpp
 *
 * Unit-test declarations for extractor.hpp.
 *   This header declares the full battery of extractor tests and the helpers

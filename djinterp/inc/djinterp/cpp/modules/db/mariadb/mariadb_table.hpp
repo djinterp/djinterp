@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               mariadb_table.hpp
+* djinterp [cpp][db]                                           mariadb_table.hpp
 *
 * A table of a MariaDB database held in memory: mysql_common_table over a
 * mariadb_connection, with what MariaDB adds.

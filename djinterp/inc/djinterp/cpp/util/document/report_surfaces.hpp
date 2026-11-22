@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             report_surfaces.hpp
+* djinterp [cpp][utility]                                    report_surfaces.hpp
 *
 *   The report dialect wearing all FOUR construction surfaces at once, over the
 * single layout term.  The combinator surface lives in report_dialect.hpp; this

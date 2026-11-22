@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           polynomial_tests.hpp
+* djinterp [cpp][functional]                                polynomial_tests.hpp
 *
 *   Unit-test declarations for parse/grammar/polynomial.hpp.  One declaration
 * group per section of the module under test (value-level vocabulary, type-

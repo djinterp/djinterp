@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                               cenv.cpp
+* djinterp [cpp][tools]                                                 cenv.cpp
 *
 * The define environment: the standard headers' macros, the expander, the
 * evaluator, the directive walker and the suggestions.
@@ -13,6 +13,7 @@
 * undefined behaviour marks the operand and is reported once, where it
 * arose; only an error -- a name nothing defines, a string, a syntax
 * error -- ends the evaluation.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/cenv.cpp
 * link(s):   TBA

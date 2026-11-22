@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                       cli_internal.hpp
+* djinterp [cpp][tools]                                         cli_internal.hpp
 *
 * What the command line's sources share: sheets read and written back, rows
 * and values as a command line names them, and output.
@@ -18,6 +18,7 @@
 *   Every diagnostic about a sheet is placed at it -- `uart.json: error:
 * UART_CR_EN: ...` -- and one about a place in its text at that place --
 * `uart.json:3:7: error: ...` -- as compilers place theirs.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/cli/cli_internal.hpp
 * link(s):   TBA

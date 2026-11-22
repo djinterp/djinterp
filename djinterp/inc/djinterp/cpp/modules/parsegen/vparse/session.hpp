@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                            session.hpp
+* djinterp [cpp][parsegen]                                           session.hpp
 *
 * A grammar session: text in, a runnable parser out.
 *   This is the facade the vparse workbench (djinterp/tools/vparse) drives,
@@ -18,6 +18,7 @@
 * metacircular notation's generator looks for neither, and would compile a
 * reference to nothing into a call that never returns, so that check is made
 * here.
+*
 *
 * path:      /inc/djinterp/cpp/modules/parsegen/vparse/session.hpp
 * link(s):   TBA

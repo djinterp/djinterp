@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  option_env.hpp
+* djinterp [cpp][option]                                          option_env.hpp
 *
 * option_env's C++ face: a frame of run-time variables as a C++ object.
 *   option_env.h is the machine: layered frames of declared variables, each

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  pdf_stream_tests_compress.cpp
+* djinterp [cpp][utility]                          pdf_stream_tests_compress.cpp
 *
 *   The built-in PDF backend's stream compression: FlateDecode on every
 * stream, PNG's predictors on an image's samples, and the setting that turns

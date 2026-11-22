@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     cofree_tests_recursion.cpp
+* djinterp [cpp][functional]                          cofree_tests_recursion.cpp
 *
 *   Sections IV-VI of the cofree.hpp suite: the RECURSION face of cofree, merged
 * into the header so a translation unit that sees cofree.hpp sees the fold too.

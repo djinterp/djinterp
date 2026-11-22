@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         archive_kernel_tests.c
+* djinterp [c][utility]                                   archive_kernel_tests.c
 *
 *   The archive kernel's suite: the module "archive_kernel", its helpers, and
 * the entry point that runs the section files (archive_kernel_tests_*.c).

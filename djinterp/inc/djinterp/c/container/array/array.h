@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                           array.h
+* djinterp [c][container]                                                array.h
 *
 * djinterp array container module
 *   A safe fixed-size array container for arrays that will be resized

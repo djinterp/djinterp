@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   sqlite_schema.c
+* djinterp [c][db]                                               sqlite_schema.c
 *
 * Implementation of sqlite_schema.h.
 *   Tables, indexes, views and triggers are all rows of a schema's catalogue

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  fn_builder.hpp
+* djinterp [cpp][functional]                                      fn_builder.hpp
 *
 * Template fluent builder for constructing function chains (C++11+).
 *   A type-safe builder that accumulates transformers and predicates,

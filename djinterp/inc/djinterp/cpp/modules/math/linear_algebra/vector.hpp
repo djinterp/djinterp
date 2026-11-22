@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                 vector.hpp
+* djinterp [cpp][math]                                                vector.hpp
 *
 * Fixed-size column vector for the linear-algebra subframework.
 *   vector<Type, N> stores its components by value in an array, and every

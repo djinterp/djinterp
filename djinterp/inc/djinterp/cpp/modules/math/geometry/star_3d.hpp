@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                star_3d.hpp
+* djinterp [cpp][math]                                               star_3d.hpp
 *
 * 3D star polyhedra: face-erection and named instances.
 *   Provides two complementary tools for "spiky" polyhedra:

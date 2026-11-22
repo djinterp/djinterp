@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                                  term.hpp
+* djinterp [cpp][parse]                                                 term.hpp
 *
 * Expression core v2's C++ face (design section 13): the term.
 *   DTerm holds a dj_parse_expr_term and calls the C functions, so nothing is

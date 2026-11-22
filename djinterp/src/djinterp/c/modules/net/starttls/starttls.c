@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                    starttls.c
+* djinterp [c][net]                                                   starttls.c
 *
 *   Definitions for starttls.h: the STARTTLS session -- its buffered plaintext
 * and TLS I/O over a net.h connection, the policy-driven negotiation, and the

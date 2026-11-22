@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        dtuple_tests_access.cpp
+* djinterp [cpp][meta]                                   dtuple_tests_access.cpp
 *
 *   Unit tests for the element-access section of dtuple.hpp:
 *     - DTupleTypeAt / tuple_type_at_t   (compile-time index lookup)

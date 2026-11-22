@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                              http_tests.cpp
+* djinterp [cpp][net]                                             http_tests.cpp
 *
 * Tests of net/http/http.hpp, HTTP's C++ layer.
 *   The C suite checks the semantics against RFC 9110; these check what the C++

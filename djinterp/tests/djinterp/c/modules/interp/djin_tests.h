@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                   djin_tests.h
+* djinterp [c][interp]                                              djin_tests.h
 *
 *   The suite of modules/interp/djin.h, on DTest's C face: the set's checks
 * of a djin's record, its registration of the djin's settings in a registry

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                              cli_edit_tests.c
+* djinterp [c][tools]                                           cli_edit_tests.c
 *
 * The suite of the command-line kit's commands that change a file, declared
 * in cli_edit_tests.h.

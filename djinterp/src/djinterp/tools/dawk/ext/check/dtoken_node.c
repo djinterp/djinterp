@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                              dtoken_node.c
+* djinterp [c][tools]                                              dtoken_node.c
 *
 * Definitions for the non-inline declarations in dtoken_node.h.
 *   Every attribute of a node is computed before the node's first one is

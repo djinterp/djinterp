@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                        pipeline.c
+* djinterp [c][functional]                                            pipeline.c
 *
 * The chainable pipeline pipeline.h declares.
 *   A pipeline either views the caller's array (begin) or owns a copy (every

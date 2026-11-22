@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                    cli_edit.c
+* djinterp [c][tools]                                                 cli_edit.c
 *
 * The command-line kit's commands that change a file, declared in cli_edit.h.
 *   Defining is the parser's work, with help composed from what the command

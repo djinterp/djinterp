@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     applicative_tests_pure.cpp
+* djinterp [cpp][functional]                          applicative_tests_pure.cpp
 *
 *   Section II.1 of the applicative.hpp suite: pure, which lifts a bare value
 * into an explicitly-named applicative (the dual of monad_unit).  Covers pure

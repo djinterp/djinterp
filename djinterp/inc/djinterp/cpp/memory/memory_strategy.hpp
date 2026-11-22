@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             memory_strategy.hpp
+* djinterp [cpp][memory]                                     memory_strategy.hpp
 *
 * The four concrete memory strategies.
 *   Each adapts one storage source to the contract in

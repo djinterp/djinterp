@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        output_stream_tests.hpp
+* djinterp [cpp][utility]                                output_stream_tests.hpp
 *
 * The output stream's C++ suite, in DTest's C face
 * (c/modules/test/test_suite.h), which compiles at every C++ level from C++98.

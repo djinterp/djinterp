@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                 parse_bnf.h
+* djinterp [c][parse]                                                parse_bnf.h
 *
 *   Simple BNF-style grammar parser. Supports:
 *     - %start Nonterminal ;

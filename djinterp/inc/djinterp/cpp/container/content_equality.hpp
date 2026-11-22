@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            content_equality.hpp
+* djinterp [cpp][container]                                 content_equality.hpp
 *
 *   The value-level companion to the comparison profile: the content
 * equalities

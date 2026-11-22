@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    sqlite_query.h
+* djinterp [c][db]                                                sqlite_query.h
 *
 * Running SQL on an SQLite connection without preparing statements by hand.
 *   d_sqlite_exec runs any number of statements and discards their rows, and

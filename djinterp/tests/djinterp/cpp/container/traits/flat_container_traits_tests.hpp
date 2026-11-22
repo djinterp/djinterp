@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                             flat_container_traits_tests.hpp
+* djinterp [cpp][container]                      flat_container_traits_tests.hpp
 *
 *   Declarations, shared helpers, and helper TYPES for the
 * flat_container_traits.hpp unit-test suite.  Flatness is the COMPLEMENT of

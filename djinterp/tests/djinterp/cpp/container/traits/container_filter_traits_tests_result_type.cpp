@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]               container_filter_traits_tests_result_type.cpp
+* djinterp [cpp][container]        container_filter_traits_tests_result_type.cpp
 *
 *   Section V - filter_result_type_t, the container a selection builds.  A
 * filterable type selects into its OWN type (selection is closed on it); a

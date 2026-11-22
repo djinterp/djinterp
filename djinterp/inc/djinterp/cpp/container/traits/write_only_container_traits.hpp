@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                 write_only_container_traits.hpp
+* djinterp [cpp][container]                      write_only_container_traits.hpp
 *
 *   The write_only corner of the access axis: is_write_only_container, true
 * iff a

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  archive_kernel_tests_runner.c
+* djinterp [c][utility]                            archive_kernel_tests_runner.c
 *
 * The runner for the archive kernel's suite: options, then the module.
 *

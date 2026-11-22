@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                        app.cpp
+* djinterp [cpp][tools]                                                  app.cpp
 *
 * The bitwisedom window: the frame loop and the reducer.
 *   apply() is a dispatch on the event's kind. Kinds are grouped by their
@@ -15,6 +15,7 @@
 * beside its tables' column widths, by a settings handler of the window's
 * own; what it reads and writes is kept apart from the window, which ImGui
 * may outlive.
+*
 *
 * path:      /src/ui/bitwisedom/app.cpp
 * link(s):   TBA

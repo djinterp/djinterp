@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                         http_tests_main.cpp
+* djinterp [cpp][net]                                        http_tests_main.cpp
 *
 * The runner for net/http/http.hpp's tests.
 *   Announces the suite, which reports each test and the tally itself.

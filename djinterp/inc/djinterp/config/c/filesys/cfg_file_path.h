@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                              cfg_file_path.h
+* djinterp [c][filesys]                                          cfg_file_path.h
 *
 * Build-time configuration for c/filesys/file_path.h -- lexical path
 * manipulation.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                  net_common.h
+* djinterp [c][net]                                                 net_common.h
 *
 * The net foundation: what every networking module shares; net.h is the
 * subframework's umbrella, and includes it.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                    compose_tests_macro.c
+* djinterp [c][functional]                                 compose_tests_macro.c
 *
 *
 * path:      /tests/djinterp/c/functional/compose_tests_macro.c

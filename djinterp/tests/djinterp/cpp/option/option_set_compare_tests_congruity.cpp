@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                         option_set_compare_tests_congruity.cpp
+* djinterp [cpp][option]                  option_set_compare_tests_congruity.cpp
 *
 *   Section III of the option_set_compare.hpp suite: the two congruity traits.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       monad_tests_pipeline.cpp
+* djinterp [cpp][functional]                            monad_tests_pipeline.cpp
 *
 *   Tests for monad.hpp Sections III and IV: the pipeline combinators
 * bind_with / map_with / then_with and the operator| that applies them.

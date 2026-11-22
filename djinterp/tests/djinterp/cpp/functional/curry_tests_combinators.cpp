@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                     curry_tests_combinators.cpp
+* djinterp [cpp][functional]                         curry_tests_combinators.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/curry_tests_combinators.cpp

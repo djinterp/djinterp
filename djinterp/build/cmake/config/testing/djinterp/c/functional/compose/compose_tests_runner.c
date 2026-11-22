@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         compose_tests_runner.c
+* djinterp [c][functional]                                compose_tests_runner.c
 *
 *   The runner for functional/compose.h's suite: options, then the module, which
 * its entry points build call by call (test_suite.h 3.2).

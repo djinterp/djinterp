@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          dtuple_tests_pack.cpp
+* djinterp [cpp][meta]                                     dtuple_tests_pack.cpp
 *
 *   Unit tests for the parameter-pack-utility and tuple-detection sections
 * of dtuple.hpp:

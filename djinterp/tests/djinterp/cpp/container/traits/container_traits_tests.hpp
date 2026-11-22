@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                  container_traits_tests.hpp
+* djinterp [cpp][container]                           container_traits_tests.hpp
 *
 *   Declarations, shared helpers, and helper TYPES for the container_traits.hpp
 * unit-test suite.  container_traits.hpp is the legacy UMBRELLA header: it

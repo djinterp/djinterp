@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                               scanner.hpp
+* djinterp [cpp][parse]                                              scanner.hpp
 *
 * Scanner CRTP base + scan status/diagnostic + traits + concepts merged.
 *   A scanner is the producer side of the parsing pipeline: it takes

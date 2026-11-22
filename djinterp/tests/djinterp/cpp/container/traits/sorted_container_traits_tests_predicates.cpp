@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                    sorted_container_traits_tests_predicates.cpp
+* djinterp [cpp][container]         sorted_container_traits_tests_predicates.cpp
 *
 *
 * path:      /tests/djinterp/cpp/container/traits/sorted_container_traits_tests_predicates.cpp

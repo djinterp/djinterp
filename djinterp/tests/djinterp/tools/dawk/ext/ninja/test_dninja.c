@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                 test_dninja.c
+* djinterp [c][tools]                                              test_dninja.c
 *
 * Exercises the Ninja extension's three parts: `dninja.h`, a file read as
 * ninja's parser reads it, and the writers; `dninja_eval.h`, a build loaded

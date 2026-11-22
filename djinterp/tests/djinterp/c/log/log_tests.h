@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                    log_tests.h
+* djinterp [c][log]                                                  log_tests.h
 *
 *   The suite of c/log, in DTest's C face: levels, codes and their keys, the
 * threshold and the grades, the body, the three writers, the caps, the

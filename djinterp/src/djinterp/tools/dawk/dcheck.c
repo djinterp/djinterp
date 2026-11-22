@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                      dcheck.c
+* djinterp [c][tools]                                                   dcheck.c
 *
 * Check driver:
 *   Walks a tree, asks an extension to build nodes for each file, matches a

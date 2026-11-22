@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                    dtree.h
+* djinterp [c][tools]                                                    dtree.h
 *
 * Filesystem tree record source:
 *   Declares the one entry point that fills a dj_awk_source with a walk over a

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                               syntax_item.h
+* djinterp [c][parse]                                              syntax_item.h
 *
 * Declarations, statements, labels and parameters: the items a scope is
 * made of, recognized over tokens and their grouping.

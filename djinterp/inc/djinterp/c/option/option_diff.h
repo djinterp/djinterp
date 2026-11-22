@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     option_diff.h
+* djinterp [c][option]                                             option_diff.h
 *
 * The diff algebra's front door. Include THIS. See option.h for the umbrella
 * pattern and for the note on the provisional dispatch spelling.

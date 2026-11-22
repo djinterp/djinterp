@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  dgit_index.c
+* djinterp [c][tools]                                               dgit_index.c
 *
 * Definitions for the index and the work tree of dgit_repo.h.
 *   The index is read whole, as git's read_index reads it: its header, each
@@ -14,6 +14,7 @@
 * data first, the content, made clean as git would add it, when the stat
 * data cannot say -- then the files the index does not hold, a directory of
 * them shown as the directory.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/git/dgit_index.c
 * link(s):   TBA

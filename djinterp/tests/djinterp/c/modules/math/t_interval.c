@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                 t_interval.c
+* djinterp [c][math]                                                t_interval.c
 *
 *   Conformance harness for the interval kernels (c/math/interval.h): every
 * kernel of both families checked against a brute-force reference -- the

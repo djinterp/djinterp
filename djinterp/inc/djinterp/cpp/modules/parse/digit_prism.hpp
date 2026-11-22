@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                           digit_prism.hpp
+* djinterp [cpp][parse]                                          digit_prism.hpp
 *
 * Worked example: the prism as cata / ana over a live polynomial functor.
 *   The smallest non-trivial μF that exercises the whole apparatus:

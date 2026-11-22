@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                            registry_config.h
+* djinterp [cpp][container]                                    registry_config.h
 *
 * TBA
 *

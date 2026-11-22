@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                      term.h
+* djinterp [c][parse]                                                     term.h
 *
 * Expression core v2: the term, a flat arena of nodes linked by index.
 *   A term is what a text means once it is parsed: leaves holding a token's

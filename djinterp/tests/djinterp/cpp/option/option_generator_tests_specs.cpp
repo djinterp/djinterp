@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               option_generator_tests_specs.cpp
+* djinterp [cpp][option]                        option_generator_tests_specs.cpp
 *
 *   Section I - the spec carriers.  Each parsed token becomes one spec that
 * knows the option<> it emits (::option_t) and the runtime value that seeds its

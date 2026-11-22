@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           test_cli_option_sa.h
+* djinterp [c][cli]                                         test_cli_option_sa.h
 *
 *   Unit test declarations for `cli_option.h` module. Tests convention-
 * agnostic string-to-void* lookup and CLI argument parsing including

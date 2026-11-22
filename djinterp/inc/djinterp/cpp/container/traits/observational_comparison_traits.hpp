@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                             observational_comparison_traits.hpp
+* djinterp [cpp][container]                  observational_comparison_traits.hpp
 *
 *   SFINAE structural traits for OBSERVATIONAL comparison - through which of a
 * container's interface operations two containers can be told apart.  Where

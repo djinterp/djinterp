@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                                 array_tests_integration.c
+* djinterp [c][container]                              array_tests_integration.c
 *
 * Integration and edge case tests for `array.h` module.
 * Part of the array suite, on DTest's C face.

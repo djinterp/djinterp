@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                    threadsafe_container_tests_locked_range.cpp
+* djinterp [cpp][container]          threadsafe_container_tests_locked_range.cpp
 *
 *   Layer 8 - DLockedRange, the read-lock-held iteration range.  Defines the
 * "DLockedRange" block.

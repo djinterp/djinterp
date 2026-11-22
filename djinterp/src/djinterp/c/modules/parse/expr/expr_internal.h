@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                             expr_internal.h
+* djinterp [c][parse]                                            expr_internal.h
 *
 * Expression core v2: what the parser and the renderer share, and nothing
 * else sees.

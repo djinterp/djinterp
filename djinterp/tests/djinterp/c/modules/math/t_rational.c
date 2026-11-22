@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                 t_rational.c
+* djinterp [c][math]                                                t_rational.c
 *
 *   Conformance harness for the rational kernels (c/math/rational.h): every
 * kernel against an exact reference, whose integers are 256 bits in 16-bit

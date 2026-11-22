@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                    cfg_env.h
+* djinterp [c][env]                                                    cfg_env.h
 *
 * Shared configuration for env's detection sections.
 *   Owns D_CFG_ENV_CUSTOM, which switches detection sections off one by one so

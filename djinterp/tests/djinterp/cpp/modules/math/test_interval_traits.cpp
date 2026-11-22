@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                   test_interval_traits.cpp
+* djinterp [cpp][math]                                  test_interval_traits.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/test_interval_traits.cpp

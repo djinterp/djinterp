@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     text_intern.h
+* djinterp [c][text]                                               text_intern.h
 *
 *   Text interning: names stood for by small integers.
 *   A symbol is a uint32_t standing for one distinct name. Names are numbered

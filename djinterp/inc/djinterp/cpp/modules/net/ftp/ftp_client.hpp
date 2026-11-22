@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                              ftp_client.hpp
+* djinterp [cpp][net]                                             ftp_client.hpp
 *
 * The C++ interface to the FTP and FTPS client.
 *   A zero-cost view of ftp_client.h: `client` holds a dj_ftp_client, and each

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                              test_dsettings.c
+* djinterp [c][tools]                                           test_dsettings.c
 *
 * Exercises `dsettings.h`.
 *

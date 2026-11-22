@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               sort_support.hpp
+* djinterp [cpp][utility]                                       sort_support.hpp
 *
 *   shared support for the sort subsystem unit-test suites.
 * This header is infrastructure, not a suite: it carries no tests_* functions

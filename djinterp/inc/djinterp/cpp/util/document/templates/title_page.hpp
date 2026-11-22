@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  title_page.hpp
+* djinterp [cpp][utility]                                         title_page.hpp
 *
 *   A dialect-agnostic COVER PAGE for documents.  DTitlePage is a pure content
 * model -- a title, an optional subtitle, an optional prominent banner (e.g. a

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                         database_connection.hpp
+* djinterp [cpp][db]                                     database_connection.hpp
 *
 * The connection every djinterp C++17 database connection derives from, its
 * operations written once for every vendor.

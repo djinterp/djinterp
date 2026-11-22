@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                            t_expr_face.cpp
+* djinterp [cpp][math]                                           t_expr_face.cpp
 *
 * Tests for math/expr/, the run-time expression language, as steps 13 to 22 (2a
 * to 3d) and step 23's first part (3e) made it: every header in place, its types

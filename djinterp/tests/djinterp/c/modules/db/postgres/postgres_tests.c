@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               postgres_tests.c
+* djinterp [c][db]                                              postgres_tests.c
 *
 *   Conformance tests for djinterp's PostgreSQL convenience layer: every
 * function in c/modules/db/postgres/postgres_*.h, its success paths, its

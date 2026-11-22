@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     compress_tests_options.cpp
+* djinterp [cpp][utility]                             compress_tests_options.cpp
 *
 *   Tests for how compress.cpp consumes compress_options.  Each backend maps
 * the generic `level` onto its own scale and clamps out-of-range values to a

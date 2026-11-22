@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                   dext_c.c
+* djinterp [c][tools]                                                   dext_c.c
 *
 * Definitions for the non-inline declarations in dext_c.h.
 *

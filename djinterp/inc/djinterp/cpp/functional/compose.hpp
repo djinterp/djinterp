@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     compose.hpp
+* djinterp [cpp][functional]                                         compose.hpp
 *
 * Template function composition and partial application (C++).
 *   SFINAE-constrained composed transformers, partial application

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                type_info_common.h
+* djinterp [c][utility]                                       type_info_common.h
 *
 *  Common type-information definitions shared by both the C and C++ modules.
 *  Contains the base bit layout (bits 0-23), X-macro tables, constant IDs,

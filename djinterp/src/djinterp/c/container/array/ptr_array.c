@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       ptr_array.c
+* djinterp [c][container]                                            ptr_array.c
 *
 *   The dj_ptr_array functions ptr_array.h declares, for an array of pointers:
 * constructors (arguments, copies, merges, slices), append, insert and

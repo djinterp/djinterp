@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      pipeline_tests_errors.cpp
+* djinterp [cpp][functional]                           pipeline_tests_errors.cpp
 *
 * Error-propagation tests. An errored pipeline (from error(code)) carries its
 * state through the chainable operations and short-circuits the queries.

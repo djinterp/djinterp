@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                expr_tests.h
+* djinterp [c][parse]                                               expr_tests.h
 *
 * Expression core v2's C suite in DTest's C face (c/modules/test/
 * test_suite.h): the term, the signature, the parser, the renderer, folds

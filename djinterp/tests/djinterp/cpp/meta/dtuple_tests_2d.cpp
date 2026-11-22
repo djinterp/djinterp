@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            dtuple_tests_2d.cpp
+* djinterp [cpp][meta]                                       dtuple_tests_2d.cpp
 *
 *   Unit tests for the 2D / jagged-tuple section of dtuple.hpp:
 *     - is_2d_tuple / is_2d_tuple_v

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  value_list.hpp
+* djinterp [cpp][meta]                                            value_list.hpp
 *
 * DValueList - the NTTP sequence (value-domain counterpart of the type list):
 *   dtuple.hpp treats std::tuple<typename...> as the framework's compile-time

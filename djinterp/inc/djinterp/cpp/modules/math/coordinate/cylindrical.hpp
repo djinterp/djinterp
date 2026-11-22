@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                            cylindrical.hpp
+* djinterp [cpp][math]                                           cylindrical.hpp
 *
 * Compile-time 3D cylindrical coordinate system (ρ, φ, z).
 *   Provides the cylindrical coordinate system type, point representation,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                  bench_stdio.c
+* djinterp [c][utility]                                            bench_stdio.c
 *
 *   The C library's own costs for the same operations as bench.c, to /dev/null
 * through a 64 KiB stdio buffer, best of seven runs, nanoseconds per

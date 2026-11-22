@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                                gen.cpp
+* djinterp [cpp][parsegen]                                               gen.cpp
 *
 * Definitions for `gen.hpp`.
 *

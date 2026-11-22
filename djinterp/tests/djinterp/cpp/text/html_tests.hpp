@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 html_tests.hpp
+* djinterp [cpp][text]                                            html_tests.hpp
 *
 *   text's HTML headers -- html/html.hpp, html/html_dialect.hpp,
 * html/html_printer.hpp and html/html_template.hpp -- in DTest's C face

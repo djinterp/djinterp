@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                  ssh_common.c
+* djinterp [c][net]                                                 ssh_common.c
 *
 *   Definitions for ssh_common.h, and the byte, text, and status helpers
 * every SSH source file shares through ssh_internal.h.

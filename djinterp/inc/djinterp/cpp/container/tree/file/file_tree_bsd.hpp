@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               file_tree_bsd.hpp
+* djinterp [cpp][container]                                    file_tree_bsd.hpp
 *
 * BSD-family file tree scanner:
 *   Defines bsd_scanner, used by the BSD-derived systems (FreeBSD,

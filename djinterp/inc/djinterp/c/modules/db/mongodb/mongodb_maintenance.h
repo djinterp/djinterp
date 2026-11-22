@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                             mongodb_maintenance.h
+* djinterp [c][db]                                         mongodb_maintenance.h
 *
 * Sizes, compaction and validation of a database's collections.
 *   Sizes are what WiredTiger keeps on disk, as the server reckons them:

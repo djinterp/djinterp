@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                      t_mat.c
+* djinterp [c][math]                                                     t_mat.c
 *
 *   Conformance harness for c/math/mat.h, all three families: every kernel
 * against the formula it implements, written out here in the same type and

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       ostream_template_tests.h
+* djinterp [c][text]                                    ostream_template_tests.h
 *
 * The template engine's suite in DTest's C face (c/modules/test/test_suite.h).
 *   One entry point builds the module "ostream_template" imperatively: a

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                            array_filter_tests_single_op.c
+* djinterp [c][container]                         array_filter_tests_single_op.c
 *
 *
 * path:      /tests/djinterp/c/container/array/array_filter_tests_single_op.c

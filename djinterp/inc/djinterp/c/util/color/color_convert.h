@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   color_convert.h
+* djinterp [c][utility]                                          color_convert.h
 *
 *   Cross-model conversion shared kernel for the djinterp color module.
 * Every color-space conversion is implemented exactly once here, operating

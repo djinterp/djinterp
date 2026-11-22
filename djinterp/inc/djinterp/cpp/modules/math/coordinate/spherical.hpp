@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                              spherical.hpp
+* djinterp [cpp][math]                                             spherical.hpp
 *
 * Compile-time 3D spherical coordinate system (r, θ, φ).
 *   Provides the spherical coordinate system type, point representation,

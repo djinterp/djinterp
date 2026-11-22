@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 cpp_named11.hpp
+* djinterp [cpp][meta]                                           cpp_named11.hpp
 *
 * C++11 named requirement type traits:
 *   Provides precise compile-time detection of fundamental named requirements

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      transducer.c
+* djinterp [c][functional]                                          transducer.c
 *
 * TBA
 *

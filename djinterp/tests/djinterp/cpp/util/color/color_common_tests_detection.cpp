@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                color_common_tests_detection.cpp
+* djinterp [cpp][utility]                       color_common_tests_detection.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/color/color_common_tests_detection.cpp

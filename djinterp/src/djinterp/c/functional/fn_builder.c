@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      fn_builder.c
+* djinterp [c][functional]                                          fn_builder.c
 *
 * The fluent function builder fn_builder.h declares.
 *   The builder keeps one array of steps, each a transformer or a predicate,

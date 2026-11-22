@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                         dtuple_wrap_partition_tests_schema.cpp
+* djinterp [cpp][meta]                    dtuple_wrap_partition_tests_schema.cpp
 *
 *   Section IV of dtuple_wrap_partition.hpp: the two partition_wrap_except
 * specializations and their precedence -- the schema may be a bare typename

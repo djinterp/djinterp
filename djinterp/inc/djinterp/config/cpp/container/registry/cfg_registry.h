@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                               cfg_registry.h
+* djinterp [cpp][container]                                       cfg_registry.h
 *
 *   Build-time configuration for the C++ registries (cpp/container/registry).
 * It defines no knobs yet.

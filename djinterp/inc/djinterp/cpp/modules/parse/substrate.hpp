@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                             substrate.hpp
+* djinterp [cpp][parse]                                            substrate.hpp
 *
 *   The C++ face of the parse execution substrate: the one place the
 * substrate's C++ headers get NS_PARSE from.

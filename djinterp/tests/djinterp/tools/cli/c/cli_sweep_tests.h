@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                             cli_sweep_tests.h
+* djinterp [c][tools]                                          cli_sweep_tests.h
 *
 * The command-line kit's allocation sweep: every allocation refused in turn.
 *   A case is one thing a program does -- making itself, a command line run

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   vector_common.h
+* djinterp [c][container]                                        vector_common.h
 *
 *   This module provides common building blocks for vector data structures.
 * Vectors are dynamic arrays that maintain both a capacity (allocated storage)

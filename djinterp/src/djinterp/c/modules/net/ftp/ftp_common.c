@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                  ftp_common.c
+* djinterp [c][net]                                                 ftp_common.c
 *
 * Implementation of the shared vocabulary declared in ftp_common.h.
 *   Buffer preparation and error descriptions.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    template.hpp
+* djinterp [cpp][paradigm]                                          template.hpp
 *
 *   The template-source-sink algebra: a programming-agnostic formalization,
 * rendered in C++.  A *system* is a carrier type tau, a sink type sigma, and a

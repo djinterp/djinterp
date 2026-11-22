@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                            adapter.cpp
+* djinterp [cpp][parsegen]                                           adapter.cpp
 *
 * Definitions for `adapter.hpp`.
 *

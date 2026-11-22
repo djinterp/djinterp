@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                ftp_internal.c
+* djinterp [c][net]                                               ftp_internal.c
 *
 * Implementation of the private helpers declared in ftp_internal.h.
 *   Bytes are classified by net's codec (codec_ascii.h) rather than with

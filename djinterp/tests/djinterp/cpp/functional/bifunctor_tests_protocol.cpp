@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   bifunctor_tests_protocol.cpp
+* djinterp [cpp][functional]                        bifunctor_tests_protocol.cpp
 *
 *   Section 0 + I of the bifunctor.hpp suite: the protocol and its detection
 * vocabulary.  Covers is_bifunctor (and its _v shorthand), bifunctor_first_type

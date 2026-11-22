@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 option_override_tests_lazy.cpp
+* djinterp [cpp][option]                          option_override_tests_lazy.cpp
 *
 *   Section III of the option_override.hpp suite: the lazy on_delta_only SFINAE
 * plumbing and the accumulator helper.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                        dzip.c
+* djinterp [c][tools]                                                     dzip.c
 *
 * Definitions for the declarations in dzip.h.
 *   The directory at the end of the archive is the truth about it: the local
@@ -11,6 +11,7 @@
 * tables, as Mark Adler's puff does it: slower than zlib, and short enough to
 * check against the RFC line by line. The entries it reads here are XML parts,
 * which are small; media are usually stored, and are copied, not inflated.
+*
 *
 * path:      /src/djinterp/tools/dawk/dzip.c
 * link(s):   TBA

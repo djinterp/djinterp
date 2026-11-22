@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     text_buffer.h
+* djinterp [c][container]                                          text_buffer.h
 *
 * Text buffer implementation optimized for string operations with automatic
 * null-termination and capacity management for temporary text processing.

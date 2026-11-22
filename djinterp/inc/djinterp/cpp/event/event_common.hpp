@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                event_common.hpp
+* djinterp [cpp][event]                                         event_common.hpp
 *
 * Event foundations -- the alphabet layer:
 *   The base vocabulary of the event system, formalized after the companion

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                         table_model_dialect.hpp
+* djinterp [cpp][utility]                                table_model_dialect.hpp
 *
 *   The one-shot convenience over table_model_render.hpp: render a table model
 * in a named format and hand back the bytes.  It is separate because it needs

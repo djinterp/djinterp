@@ -15,6 +15,7 @@
 * before the first re_std include to override detection. The two knobs
 * (RE_STD_CFG_*) are what a build may set on purpose.
 *
+*
 * path:      /inc/re_std/config.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.01

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 fn_builder_tests_transform.cpp
+* djinterp [cpp][functional]                      fn_builder_tests_transform.cpp
 *
 * Transforming fluent-operation tests (section ii, part 1):
 *   test_map      -- map (incl. type-changing) and and_then (its alias).

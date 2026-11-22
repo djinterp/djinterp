@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               reduce_tests.hpp
+* djinterp [cpp][functional]                                    reduce_tests.hpp
 *
 *   Unit-test declarations for core/functional/reduce.hpp -- the DRIVERS, the
 * iteration half of the step/driver split.  One declaration group per section of

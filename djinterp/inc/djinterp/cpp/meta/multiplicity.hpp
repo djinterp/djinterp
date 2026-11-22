@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                multiplicity.hpp
+* djinterp [cpp][meta]                                          multiplicity.hpp
 *
 *   Programming-agnostic vocabulary for the MULTIPLICITY axis - the bound a
 * container places on mutually interchangeable occurrences (the spec,

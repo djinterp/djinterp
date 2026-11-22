@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                for_each_pair512.h
+* djinterp [c][utility]                                       for_each_pair512.h
 *
 * TBA
 *

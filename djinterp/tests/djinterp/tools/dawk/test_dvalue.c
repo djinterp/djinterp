@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [dawk]                                                  test_dvalue.c
+* djinterp [c][tools]                                              test_dvalue.c
 *
 *   Unit tests for the value model in dvalue.h.
 *     The comparison matrix is written out in full -- every tag against every

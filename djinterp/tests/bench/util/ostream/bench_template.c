@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               bench_template.c
+* djinterp [c][utility]                                         bench_template.c
 *
 *   The template engine's and the environment printer's cost, measured. One
 * line of the text style's entry -- two spaces, a label padded to a column,

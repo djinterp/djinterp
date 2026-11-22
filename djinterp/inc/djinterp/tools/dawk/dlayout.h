@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                  dlayout.h
+* djinterp [c][tools]                                                  dlayout.h
 *
 * Layout:
 *   Two things a formatter needs and a selector engine does not provide on its

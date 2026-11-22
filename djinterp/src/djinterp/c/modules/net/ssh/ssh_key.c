@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                     ssh_key.c
+* djinterp [c][net]                                                    ssh_key.c
 *
 *   Definitions for ssh_key.h: key types, SHA256 fingerprints, and the
 * secure random source that salts hashed known_hosts entries.

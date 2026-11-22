@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                           cli_main.cpp
+* djinterp [cpp][tools]                                             cli_main.cpp
 *
 * bitwisedom's command line, and bitwisedom-gen's.
 *   `bitwisedom` is a program of commands, made with djinterp's kit: the
@@ -10,6 +10,7 @@
 * an operand or by --example, and the two jobs it always had beside the
 * header -- listing the examples and saving one -- as the options it always
 * spelled them with. Its work is gen's, so the two cannot drift apart.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/cli/cli_main.cpp
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                          decomposition.hpp
+* djinterp [cpp][math]                                         decomposition.hpp
 *
 * Matrix factorizations for the linear-algebra subframework.
 *   Three classic decompositions, each as a small value-type object that

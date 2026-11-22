@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]           concurrency_strategy_traits_tests_classification.cpp
+* djinterp [cpp][container] concurrency_strategy_traits_tests_classification.cpp
 *
 *   Section VII - DContainerConcurrencyClass, the aggregate that gathers the
 * strategy predicates, the monograph signature, and the forwarded safety level

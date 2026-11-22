@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                   controls.cpp
+* djinterp [cpp][tools]                                             controls.cpp
 *
 * The controls the interface has no uxoxo element for: the "+" that adds,
 * with a faded "Add new..." beside it; the add control -- "+ Add" and the
@@ -39,6 +39,7 @@
 * document whose window it came from. Each draws its content at its own
 * zoom: its text larger or smaller, and its spacings with it, as a
 * browser's page zooms; Ctrl and the wheel over it ask for another.
+*
 *
 * path:      /src/ui/bitwisedom/controls.cpp
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                diagnostic.c
+* djinterp [c][parse]                                               diagnostic.c
 *
 *   Definitions for the non-inline declarations in diagnostic.h.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                     quick_sort_tests_median.cpp
+* djinterp [cpp][utility]                            quick_sort_tests_median.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/sort/quick_sort_tests_median.cpp

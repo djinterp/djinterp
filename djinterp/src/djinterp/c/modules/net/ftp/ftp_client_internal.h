@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                         ftp_client_internal.h
+* djinterp [c][net]                                        ftp_client_internal.h
 *
 * Private helpers shared by the two halves of the FTP client.
 *   ftp_client.c holds the session -- connecting, securing, logging in, and

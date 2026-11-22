@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                   program.h
+* djinterp [c][parse]                                                  program.h
 *
 * The instruction stream a family's driver runs, and the container that holds
 * one.

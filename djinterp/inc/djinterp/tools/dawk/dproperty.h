@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                dproperty.h
+* djinterp [c][tools]                                                dproperty.h
 *
 * Property evaluation:
 *   Evaluates one declaration against one matched node, and computes the

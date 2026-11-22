@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                             threadsafe_container_tests_cas.cpp
+* djinterp [cpp][container]                   threadsafe_container_tests_cas.cpp
 *
 *   Layer 5 - the CAS retry infrastructure: DExponentialBackoff and
 * cas_loop (the generic compare-exchange retry).  Defines the "cas" block.

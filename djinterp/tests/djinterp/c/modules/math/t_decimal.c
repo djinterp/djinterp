@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                  t_decimal.c
+* djinterp [c][math]                                                 t_decimal.c
 *
 *   Conformance harness for decimal text to binary floating point
 * (c/math/decimal.h): every result against an exact reference.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                 dhost_ninja.h
+* djinterp [c][tools]                                              dhost_ninja.h
 *
 * The Ninja extension: Ninja's files, read and changed from awk, and Ninja
 * builds loaded as ninja loads them.
@@ -18,6 +18,7 @@
 *   The writers make the text a file holds: a path or a value escaped as it
 * must be, a path made canonical, and a path as ninja writes it into a
 * command.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/ninja/dhost_ninja.h
 * link(s):   TBA

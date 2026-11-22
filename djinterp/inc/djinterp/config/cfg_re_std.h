@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                 cfg_re_std.h
+* djinterp [c][config]                                              cfg_re_std.h
 *
 * djinterp's settings for re_std.
 *   re_std is djinterp-agnostic and reads only its own switches (config.h,
@@ -13,6 +13,7 @@
 *   requires: cfg_common.h (D_CFG_IS_ON, D_CFG_TESTING); included at its end,
 *             so it is seen before any re_std header a djinterp unit reaches
 *             through djinterp's roots or config
+*
 *
 * path:      /inc/djinterp/config/cfg_re_std.h
 * link(s):   TBA

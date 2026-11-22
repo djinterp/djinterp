@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                           arg_smoke_tests.c
+* djinterp [c][parse]                                          arg_smoke_tests.c
 *
 * The argument parser's smoke suite, declared in arg_smoke_tests.h.
 *   Every expected transcript, message and help text here is CLI11 2.7.2's,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              table_template.hpp
+* djinterp [cpp][container]                                   table_template.hpp
 *
 *   The TEMPLATING layer over a table model -- what turns a table written once
 * into a table that can be filled many times.  Two independent features, both

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    desc_options.h
+* djinterp [c][desc]                                              desc_options.h
 *
 *   desc's djin, "desc": the variables a run sets to choose among what the
 * knobs built. `ring` (name, line, sentence, detailed) says how much a

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                        less.hpp
+* djinterp [cpp][text]                                                  less.hpp
 *
 *   Foundational Less module for the djinterp framework. Layered on
 * top of the CSS module: a Less stylesheet IS a CSS stylesheet plus

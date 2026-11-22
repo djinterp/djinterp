@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                             number_to_string_en.h
+* djinterp [c][text]                                       number_to_string_en.h
 *
 *
 * path:      /inc/djinterp/c/text/number_to_string_en.h

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                              sqlite_transaction.h
+* djinterp [c][db]                                          sqlite_transaction.h
 *
 * Transactions and savepoints on an SQLite connection.
 *   SQLite runs every statement outside an explicit transaction in one of its

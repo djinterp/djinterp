@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                               postgres_internal.c
+* djinterp [c][db]                                           postgres_internal.c
 *
 * Implementation of the plumbing postgres_internal.h declares for the
 * PostgreSQL layer's modules: results read, name checks and quoting,

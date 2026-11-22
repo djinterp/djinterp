@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                          cli_c_sweep_runner.c
+* djinterp [c][tools]                                       cli_c_sweep_runner.c
 *
 * Entry point for the command-line kit's allocation sweep.
 *   Built as C and linked against the kit and the argument parser with

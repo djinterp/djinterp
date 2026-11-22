@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                concurrency_strategy_traits_tests_aggregate.cpp
+* djinterp [cpp][container]      concurrency_strategy_traits_tests_aggregate.cpp
 *
 *   Section IV.b - the vacuous / concurrent / synchronized / sequential axis.
 * These are tested as the header's own logical invariants so they hold whatever

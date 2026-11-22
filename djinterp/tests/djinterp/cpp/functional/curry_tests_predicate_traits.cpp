@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                curry_tests_predicate_traits.cpp
+* djinterp [cpp][functional]                    curry_tests_predicate_traits.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/curry_tests_predicate_traits.cpp

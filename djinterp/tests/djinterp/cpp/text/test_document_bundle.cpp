@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        test_document_bundle.cpp
+* djinterp [cpp][text]                                  test_document_bundle.cpp
 *
 *
 * path:      /tests/djinterp/cpp/text/test_document_bundle.cpp

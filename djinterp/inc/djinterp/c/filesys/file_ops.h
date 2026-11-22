@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                        file_ops.h
+* djinterp [c][filesys]                                               file_ops.h
 *
 * Whole-file operations -- removing, renaming, copying.
 *   d_file_rename is atomic; d_file_copy is not, and cannot be. That asymmetry

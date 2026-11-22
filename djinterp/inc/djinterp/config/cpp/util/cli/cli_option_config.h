@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                          cli_option_config.h
+* djinterp [cpp][utility]                                    cli_option_config.h
 *
 * Feature configuration for the djinterp text module.
 *

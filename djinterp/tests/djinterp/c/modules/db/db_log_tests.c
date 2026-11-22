@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 db_log_tests.c
+* djinterp [c][db]                                                db_log_tests.c
 *
 *   The suite of db's codes for the log (db_log.h), in DTest's C face: both
 * tables' rows against their enumerations and against the classes and grades

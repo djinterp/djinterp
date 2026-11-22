@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                  host_glfw.cpp
+* djinterp [cpp][tools]                                            host_glfw.cpp
 *
 * The window's host on GLFW and OpenGL 3: Linux, macOS, and Windows where GLFW
 * is installed.
@@ -23,6 +23,7 @@
 * not be opened, as an error that ends the run in trouble; anything after,
 * as a warning. The window's version names GLFW as the window runs it, and
 * the GL context it asks for.
+*
 *
 * path:      /src/ui/bitwisedom/host_glfw.cpp
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        writer_stream_tests.hpp
+* djinterp [cpp][text]                                   writer_stream_tests.hpp
 *
 * text's writers on the output stream, in DTest's C face
 * (c/modules/test/test_suite.h).

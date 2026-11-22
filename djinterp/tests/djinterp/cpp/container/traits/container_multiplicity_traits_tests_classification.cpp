@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]      container_multiplicity_traits_tests_classification.cpp
+* djinterp [cpp][container] container_multiplicity_traits_tests_classification.cpp
 *
 *   Section IV - DMultiplicityContainerClass, the assembled snapshot (the four
 * raw signals, the kind and its numeric bound and name, and the three kind

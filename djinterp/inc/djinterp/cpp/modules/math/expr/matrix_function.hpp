@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                        matrix_function.hpp
+* djinterp [cpp][math]                                       matrix_function.hpp
 *
 * Linear algebra's functions of the run-time expression language's matrix
 * values: det, inv, trace, norm, eig, dot, cross and solve; roadmap Phase 3,

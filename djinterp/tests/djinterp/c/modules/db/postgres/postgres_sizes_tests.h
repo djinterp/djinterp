@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         postgres_sizes_tests.h
+* djinterp [c][db]                                        postgres_sizes_tests.h
 *
 *   The suite of c/modules/db/postgres's checked sizes, in DTest's C face: every
 * size the layer computes for an allocation from a count it is handed, given a

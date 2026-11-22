@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [text]                                  text_template_tests_utility.c
+* djinterp [c][text]                               text_template_tests_utility.c
 *
 *
 * path:      /tests/djinterp/c/text/text_template_tests_utility.c

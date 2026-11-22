@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                         event_dispatcher_common.c
+* djinterp [c][event]                                  event_dispatcher_common.c
 *
 * The queue and the facade -- tier 0 definitions.
 *   Implements event_dispatcher_common.h. The queue is two rings: slots, and

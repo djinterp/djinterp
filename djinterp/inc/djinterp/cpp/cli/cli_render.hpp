@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  cli_render.hpp
+* djinterp [cpp][cli]                                             cli_render.hpp
 *
 *   The interpreter for the CLI language (dj_cli.hpp), in the two shapes the
 * framework already dispatches over - exactly the split option_diff.hpp draws:

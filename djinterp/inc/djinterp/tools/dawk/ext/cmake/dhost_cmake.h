@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                 dhost_cmake.h
+* djinterp [c][tools]                                              dhost_cmake.h
 *
 * The CMake extension: CMake files, read and changed from awk.
 *   A file is opened from disk, or made from text, and named by a handle, a
@@ -17,6 +17,7 @@
 * bracketed or as plain as it can be, and a whole command of values; and the
 * other way, the value of an argument's text, and the items of a list as
 * CMake divides one.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/cmake/dhost_cmake.h
 * link(s):   TBA

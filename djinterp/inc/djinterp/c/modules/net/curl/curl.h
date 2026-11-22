@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                        curl.h
+* djinterp [c][net]                                                       curl.h
 *
 * The libcurl binding: HTTP and the other URL schemes libcurl speaks, from C.
 *   A request -- method, URL, header fields, body -- and a set of options go

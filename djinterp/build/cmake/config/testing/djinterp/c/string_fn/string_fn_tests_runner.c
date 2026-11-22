@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       string_fn_tests_runner.c
+* djinterp [c][string_fn]                               string_fn_tests_runner.c
 *
 * The runner for string_fn.h's suite: options, the spec, and the sections
 * the spec's module goes on to hold.

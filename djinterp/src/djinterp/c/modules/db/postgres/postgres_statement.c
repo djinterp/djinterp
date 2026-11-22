@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                              postgres_statement.c
+* djinterp [c][db]                                          postgres_statement.c
 *
 * Implementation of postgres_statement.h.
 *   A statement is prepared on the server under a name the layer makes from

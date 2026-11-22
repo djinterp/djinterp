@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    pipeline_tests_creation.cpp
+* djinterp [cpp][functional]                         pipeline_tests_creation.cpp
 *
 * Pipeline creation tests (section i):
 *   test_creation -- default ctor, from(container/vector&&/init-list/raw

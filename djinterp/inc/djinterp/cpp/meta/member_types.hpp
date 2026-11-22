@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                member_types.hpp
+* djinterp [cpp][meta]                                          member_types.hpp
 *
 *   The framework's shared nested-TYPEDEF detectors - the concrete "does _Type
 * expose a `::X` typedef?" traits that recur across more than one subsystem -

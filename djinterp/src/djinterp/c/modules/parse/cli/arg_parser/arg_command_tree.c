@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                          arg_command_tree.c
+* djinterp [c][parse]                                         arg_command_tree.c
 *
 * A command's special options and its place in the tree, declared in
 * arg_command.h (3.3 and 4).

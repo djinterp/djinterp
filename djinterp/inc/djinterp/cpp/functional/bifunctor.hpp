@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   bifunctor.hpp
+* djinterp [cpp][functional]                                       bifunctor.hpp
 *
 * Bifunctor protocol: map over both type parameters at once (C++).
 *   A bifunctor is a two-parameter type constructor F<A, B> that is a functor in

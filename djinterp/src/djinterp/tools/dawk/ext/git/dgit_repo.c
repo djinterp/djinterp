@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                   dgit_repo.c
+* djinterp [c][tools]                                                dgit_repo.c
 *
 * Definitions for the repositories, configuration, names, refs, revisions
 * and history of dgit_repo.h; dgit_object.c reads objects, and dgit_index.c
@@ -22,6 +22,7 @@
 * walked as revision.c walks it: a list by commit date, ties first in first
 * out, the parents of a commit put on it as it comes off, and, when a
 * revision is excluded, the whole walk first, then what is left of it.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/git/dgit_repo.c
 * link(s):   TBA

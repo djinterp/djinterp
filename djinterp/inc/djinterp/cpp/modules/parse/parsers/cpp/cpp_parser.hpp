@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                            cpp_parser.hpp
+* djinterp [cpp][parse]                                           cpp_parser.hpp
 *
 * C++ source parser (libclang-backed):
 *   This header defines a concrete parser that processes C++ source code

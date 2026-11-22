@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                sqlite_statement.c
+* djinterp [c][db]                                            sqlite_statement.c
 *
 * Implementation of sqlite_statement.h.
 *   A statement is SQLite's own, so most functions are a check and a call.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 ftp_feature.h
+* djinterp [c][net]                                                ftp_feature.h
 *
 * FTP feature negotiation (RFC 2389).
 *   Reads a FEAT reply into capability flags, including the parameters that

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       container.c
+* djinterp [c][container]                                            container.c
 *
 * TBA
 *

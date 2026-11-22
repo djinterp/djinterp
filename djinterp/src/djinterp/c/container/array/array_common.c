@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    array_common.c
+* djinterp [c][container]                                         array_common.c
 *
 *   The raw-pointer building blocks that array.c, ptr_array.c and their kin
 * share: initialisers (sized, from an array or arguments, copies, ranges,

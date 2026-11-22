@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                       ordered_container_traits_tests_layout.cpp
+* djinterp [cpp][container]            ordered_container_traits_tests_layout.cpp
 *
 *
 * path:      /tests/djinterp/cpp/container/traits/ordered_container_traits_tests_layout.cpp

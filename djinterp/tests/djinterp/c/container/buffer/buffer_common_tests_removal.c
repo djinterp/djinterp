@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                             buffer_common_tests_removal.c
+* djinterp [c][container]                          buffer_common_tests_removal.c
 *
 *
 * path:      /tests/djinterp/c/container/buffer/buffer_common_tests_removal.c

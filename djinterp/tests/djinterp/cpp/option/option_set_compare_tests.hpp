@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   option_set_compare_tests.hpp
+* djinterp [cpp][option]                            option_set_compare_tests.hpp
 *
 *   Declarations, fixtures, and section block-providers for the
 * option_set_compare.hpp unit suite.

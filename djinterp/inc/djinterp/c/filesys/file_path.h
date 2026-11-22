@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_path.h
+* djinterp [c][filesys]                                              file_path.h
 *
 * Lexical path manipulation -- what a path SAYS, never what is on disk.
 *   Nothing in this module issues a system call. d_path_dirname("/nowhere/x")

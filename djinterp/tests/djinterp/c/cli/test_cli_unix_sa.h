@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             test_cli_unix_sa.h
+* djinterp [c][cli]                                           test_cli_unix_sa.h
 *
 *   Unit test declarations for `cli_unix.h` module. Tests Unix CLI
 * convention parsing: long options (--key, --key=val), short flags (-v),

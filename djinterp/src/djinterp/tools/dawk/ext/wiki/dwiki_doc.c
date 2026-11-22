@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                   dwiki_doc.c
+* djinterp [c][tools]                                                dwiki_doc.c
 *
 * Definitions for the declarations in dwiki_doc.h.
 *   Every change is a candidate first: the new text, read into records of
@@ -12,6 +12,7 @@
 * if the second is refused.
 *   Files are read and written here, apart from the other units: a file is
 * written beside its target and renamed over it.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/wiki/dwiki_doc.c
 * link(s):   TBA

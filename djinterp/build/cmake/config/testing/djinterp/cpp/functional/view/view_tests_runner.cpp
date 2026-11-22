@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          view_tests_runner.cpp
+* djinterp [cpp][functional]                               view_tests_runner.cpp
 *
 *   The runner for view.hpp's suite: it selects the suite header's spec
 * face (DTEST_SPEC_MODE) and hands the spec to run_module, which runs the

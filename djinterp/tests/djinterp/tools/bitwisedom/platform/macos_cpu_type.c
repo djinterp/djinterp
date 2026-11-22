@@ -1,10 +1,11 @@
 /*******************************************************************************
-* bitwisedom [tests]                                            macos_cpu_type.c
+* djinterp [c][tools]                                           macos_cpu_type.c
 *
 * The CPU-type example against mach/machine.h: the ABI bits, every
 * type and the subtypes, compared with the platform's own at compile
 * time -- CPU_TYPE_ANY as the negative number it is. Built where the
 * build targets macOS.
+*
 *
 * path:      /tests/djinterp/tools/bitwisedom/platform/macos_cpu_type.c
 * link(s):   TBA

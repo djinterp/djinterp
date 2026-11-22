@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         array_tests_traits.cpp
+* djinterp [cpp][container]                               array_tests_traits.cpp
 *
 *   Trait tests: array_traits.hpp's classification of the six cells, the
 * standard containers, C arrays and the four wrappers, through cv and

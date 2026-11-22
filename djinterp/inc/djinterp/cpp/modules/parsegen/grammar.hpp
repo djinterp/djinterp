@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                            grammar.hpp
+* djinterp [cpp][parsegen]                                           grammar.hpp
 *
 *   The C++ face of the neutral grammar declared in grammar.h.
 *   `node` and `rule` are ALIASES rather than derived types, because a grammar

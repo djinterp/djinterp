@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                    container_comparison_traits_tests_stdlib.cpp
+* djinterp [cpp][container]         container_comparison_traits_tests_stdlib.cpp
 *
 *
 * path:      /tests/djinterp/cpp/container/traits/container_comparison_traits_tests_stdlib.cpp

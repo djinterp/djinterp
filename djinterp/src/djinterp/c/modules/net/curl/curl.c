@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                        curl.c
+* djinterp [c][net]                                                       curl.c
 *
 *   Definitions for curl.h: the libcurl binding, over libcurl's easy
 * interface, one handle per transfer.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                              option_diff_common.h
+* djinterp [c][option]                                      option_diff_common.h
 *
 * The difference algebra over option sets. Tier 0 -- the shared core both faces
 * compile.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [vparse]                                                      store.hpp
+* djinterp [cpp][tools]                                                store.hpp
 *
 * Saving runs to files, and loading them back.
 *   Each run is saved to its own folder inside a session folder:
@@ -19,6 +19,7 @@
 * input -- and name them in UTF-8 whatever the system, as the command line
 * and a Dear ImGui text field both give them; section 2.4 turns such a name
 * into a path, and reads the file whole.
+*
 *
 * path:      /inc/djinterp/tools/vparse/store.hpp
 * link(s):   TBA

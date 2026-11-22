@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                           container_overlay.hpp
+* djinterp [cpp][container]                                container_overlay.hpp
 *
 * djinterp container overlay module:
 *   This header provides the idioms for defining zero-overhead container

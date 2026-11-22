@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                      scan.c
+* djinterp [c][parse]                                                     scan.c
 *
 * Expression core v2: definitions for scan.h, the default scanner.
 *   A token is read where the last ended: blanks first, then by its first

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                            claude_tests.hpp
+* djinterp [cpp][net]                                           claude_tests.hpp
 *
 * Tests of the Claude clients, net/api/claude.hpp and claude_api.hpp, against
 * a loopback stand-in for the Messages and Message Batches APIs.

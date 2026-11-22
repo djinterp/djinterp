@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                       wide.h
+* djinterp [c][math]                                                      wide.h
 *
 * Fixed-width wide integers: signed integers of 256 bits, kept in limbs, with
 * exact arithmetic and no allocation -- the C core of the math module's wide

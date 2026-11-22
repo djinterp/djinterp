@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                     env_linux.h
+* djinterp [c][env]                                                  env_linux.h
 *
 * djinterp Linux environment detection.
 *   Compile-time detection of the Linux compilation environment: kernel

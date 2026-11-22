@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               pipeline_tests.h
+* djinterp [c][functional]                                      pipeline_tests.h
 *
 *   Unit tests for `pipeline.h` in the functional module.
 *   For the file itself, go to `\inc\functional\pipeline.h`.

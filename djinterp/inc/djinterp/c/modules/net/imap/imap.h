@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                        imap.h
+* djinterp [c][net]                                                       imap.h
 *
 * djinterp IMAP common module.
 *   The protocol kernel every IMAP module builds on: the vocabulary, and the

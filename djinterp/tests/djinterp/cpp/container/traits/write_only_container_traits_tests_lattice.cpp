@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                   write_only_container_traits_tests_lattice.cpp
+* djinterp [cpp][container]        write_only_container_traits_tests_lattice.cpp
 *
 *
 * path:      /tests/djinterp/cpp/container/traits/write_only_container_traits_tests_lattice.cpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                math_common.h
+* djinterp [c][math]                                               math_common.h
 *
 * The math module's C kit: what every math kernel is spelled with.
 *   The math module is a C core with C++ faces, as memory, color and

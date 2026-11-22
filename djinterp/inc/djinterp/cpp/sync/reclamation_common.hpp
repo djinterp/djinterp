@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                          reclamation_common.hpp
+* djinterp [cpp][sync]                                    reclamation_common.hpp
 *
 * Deferred-reclamation engine shared by the sync module's safe-memory schemes.
 *   hazard_pointer.hpp and rcu.hpp each maintained their OWN list of retired

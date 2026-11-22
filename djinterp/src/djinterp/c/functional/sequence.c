@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                        sequence.c
+* djinterp [c][functional]                                            sequence.c
 *
 * TBA
 *

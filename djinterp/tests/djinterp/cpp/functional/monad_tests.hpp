@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                             monad_tests.hpp
+* djinterp [cpp][functional]                                     monad_tests.hpp
 *
 *   DTest declarations and shared helper types for the monad.hpp unit
 * test suite.  Each like-group semantic section of monad.hpp maps to a

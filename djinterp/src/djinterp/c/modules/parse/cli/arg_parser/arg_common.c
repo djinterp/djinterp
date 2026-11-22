@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                arg_common.c
+* djinterp [c][parse]                                               arg_common.c
 *
 * Implementation of the shared vocabulary declared in arg_common.h.
 *   Status names and exit codes, the growable byte buffer, the sinks over C

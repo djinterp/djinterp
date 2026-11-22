@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       concepts_tests_tuple.cpp
+* djinterp [cpp][meta]                                  concepts_tests_tuple.cpp
 *
 *   Tests for concepts.hpp section II.4: tuple concepts.
 * Covers: is_tuple_c, tuple_like, homogeneous_tuple, empty_tuple,

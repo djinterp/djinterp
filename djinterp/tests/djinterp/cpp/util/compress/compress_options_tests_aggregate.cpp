@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                           compress_options_tests_aggregate.cpp
+* djinterp [cpp][utility]                   compress_options_tests_aggregate.cpp
 *
 *   Tests for compress_options itself (compress_options.hpp section II): the
 * generic effort, the seven blocks composed together, value semantics and ==,

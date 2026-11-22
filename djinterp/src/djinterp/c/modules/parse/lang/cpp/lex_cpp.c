@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                   lex_cpp.c
+* djinterp [c][parse]                                                  lex_cpp.c
 *
 * Definitions for the non-inline declarations in lex_cpp.h.
 *   The keyword table is token_shared.def read with its C++ column, plus

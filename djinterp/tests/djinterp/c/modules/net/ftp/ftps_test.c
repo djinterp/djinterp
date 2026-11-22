@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                   ftps_test.c
+* djinterp [c][net]                                                  ftps_test.c
 *
 * FTPS tests: the net/ftp/ client over real loopback sockets, secured through
 * the SSL kernel with a deterministic test engine, against a threaded server

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                       monad.hpp
+* djinterp [cpp][functional]                                           monad.hpp
 *
 * Monad protocol and generic monadic operations (C++).
 *   Defines a trait-based protocol that maybe<T>, result<T, E>, and any

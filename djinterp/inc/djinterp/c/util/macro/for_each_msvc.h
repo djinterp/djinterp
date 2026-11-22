@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   for_each_msvc.h
+* djinterp [c][utility]                                          for_each_msvc.h
 *
 * TBA
 *

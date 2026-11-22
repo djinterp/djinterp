@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                      arg_completion_tests.c
+* djinterp [c][parse]                                     arg_completion_tests.c
 *
 * The suite of shell completion, declared in arg_completion_tests.h.
 *   Its sections are rows -- names, numbers, bytes, lines and descriptions,

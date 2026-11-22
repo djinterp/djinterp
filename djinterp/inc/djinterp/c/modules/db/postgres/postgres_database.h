@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                               postgres_database.h
+* djinterp [c][db]                                           postgres_database.h
 *
 * The databases on a PostgreSQL server, the schemas a database is divided
 * into, and the extensions installed in it.

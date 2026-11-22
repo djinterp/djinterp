@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                                bridge.hpp
+* djinterp [cpp][parse]                                               bridge.hpp
 *
 * Expression core v2's bridge to v1's term (design section 13), from C++11,
 * v1's floor; below it this file is empty.

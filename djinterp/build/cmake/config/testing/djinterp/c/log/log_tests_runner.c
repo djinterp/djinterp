@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             log_tests_runner.c
+* djinterp [c][log]                                           log_tests_runner.c
 *
 * The runner for c/log's suite: options, then its one section, d_tests_log,
 * which opens the log's module and builds it call by call (test_suite.h 3.2).

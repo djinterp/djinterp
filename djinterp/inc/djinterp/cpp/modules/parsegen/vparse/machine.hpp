@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                            machine.hpp
+* djinterp [cpp][parsegen]                                           machine.hpp
 *
 *   The operator-agnostic substrate for the vparse virtual parsing machine: the
 * shared run-state (`machine`), the type-erased operator and its per-family

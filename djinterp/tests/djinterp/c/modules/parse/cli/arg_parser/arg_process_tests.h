@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                         arg_process_tests.h
+* djinterp [c][parse]                                        arg_process_tests.h
 *
 * The suite of what ends the argument parser's parse (arg_process.c,
 * arg_process_config.c): what is required, of options, subcommands and

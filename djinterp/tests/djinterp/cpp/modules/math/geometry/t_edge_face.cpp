@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                            t_edge_face.cpp
+* djinterp [cpp][math]                                           t_edge_face.cpp
 *
 *   Tests for geometry/edge.hpp, at every level from C++98: a segment's
 * points and length; a polyline's points, its parameter clamped at both

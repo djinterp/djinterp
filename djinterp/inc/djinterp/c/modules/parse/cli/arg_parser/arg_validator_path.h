@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                        arg_validator_path.h
+* djinterp [c][parse]                                       arg_validator_path.h
 *
 * Validators that ask the file system: CLI11's existing-file, -directory and
 * -path checks, the nonexistent-path check, the file found on a default

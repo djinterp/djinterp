@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                           visit_source.hpp
+* djinterp [cpp][tools]                                         visit_source.hpp
 *
 * A state source that counts visits.
 *   Many searches are best seen as something moving through a discrete space

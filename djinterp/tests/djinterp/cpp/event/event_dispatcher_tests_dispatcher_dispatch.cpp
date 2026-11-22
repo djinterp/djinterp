@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                 event_dispatcher_tests_dispatcher_dispatch.cpp
+* djinterp [cpp][event]           event_dispatcher_tests_dispatcher_dispatch.cpp
 *
 *   Section III (immediate surface) -- the DEventDispatcher facade's
 * synchronous half.  bind and the management operations (unbind / enable /

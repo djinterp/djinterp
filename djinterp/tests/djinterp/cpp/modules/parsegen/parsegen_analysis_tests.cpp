@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                            parsegen_analysis_tests.cpp
+* djinterp [cpp][parsegen]                           parsegen_analysis_tests.cpp
 *
 * The grammar-analysis suite's sections: nullability and first sets, left
 * recursion, a grammar's health, and the routing that analysis and the registry

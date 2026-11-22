@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                           document_template.hpp
+* djinterp [cpp][utility]                                  document_template.hpp
 *
 *   The foundational TEMPLATING module: a declarative document skeleton with
 * named slots, bound to data at render time and emitted through any

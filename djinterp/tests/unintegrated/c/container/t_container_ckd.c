@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              t_container_ckd.c
+* djinterp [c][container]                                      t_container_ckd.c
 *
 *   Regression tests for lane C's checked sizes in c/container and
 * c/functional, and for the four memory faults found while making them: each

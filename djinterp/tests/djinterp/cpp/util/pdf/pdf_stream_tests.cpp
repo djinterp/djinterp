@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           pdf_stream_tests.cpp
+* djinterp [cpp][utility]                                   pdf_stream_tests.cpp
 *
 *   The PDF writer on the output stream, from C++: the decimal-point ruling and
 * save_to (stream 1), both tiers in one change. internal::pdf_num is held to

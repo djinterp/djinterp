@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    ordered_container_traits.hpp
+* djinterp [cpp][container]                         ordered_container_traits.hpp
 *
 *   The ORDER axis, container-side traits: is a container's iteration order a
 * meaningful, stable property (is_ordered_container), what KIND of order is it

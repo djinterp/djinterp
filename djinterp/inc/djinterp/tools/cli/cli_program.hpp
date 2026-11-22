@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                               cli_program.hpp
+* djinterp [cpp][tools]                                          cli_program.hpp
 *
 * The command-line kit's C++ face: the program.
 *   `cli::program` is a dj_cli_program over the parser it is. It derives from

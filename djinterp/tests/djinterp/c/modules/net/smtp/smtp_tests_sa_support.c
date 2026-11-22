@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                       smtp_tests_sa_support.c
+* djinterp [c][net]                                      smtp_tests_sa_support.c
 *
 * Support for the SMTP kernel's standalone tests.
 *   Scripted peers that say everything at once, expectations built as the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                             memory_discipline_tests_runner.cpp
+* djinterp [cpp][meta]                        memory_discipline_tests_runner.cpp
 *
 *   Runner for the memory_discipline suite (memory_discipline_tests.hpp):
 * defines DTEST_SPEC_MODE, takes the suite's spec and hands it to DTest.

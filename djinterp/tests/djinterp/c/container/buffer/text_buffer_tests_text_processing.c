@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                       text_buffer_tests_text_processing.c
+* djinterp [c][container]                    text_buffer_tests_text_processing.c
 *
 *
 * path:      /tests/djinterp/c/container/buffer/text_buffer_tests_text_processing.c

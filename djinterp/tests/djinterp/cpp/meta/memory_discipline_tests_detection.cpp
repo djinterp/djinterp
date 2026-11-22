@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                          memory_discipline_tests_detection.cpp
+* djinterp [cpp][meta]                     memory_discipline_tests_detection.cpp
 *
 *   Detection tests: the strategy marker and allocate signals, the two optional
 * constants (detected by declaration, not by value), and the readers that

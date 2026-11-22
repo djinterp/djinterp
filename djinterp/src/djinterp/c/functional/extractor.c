@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       extractor.c
+* djinterp [c][functional]                                           extractor.c
 *
 * TBA
 *

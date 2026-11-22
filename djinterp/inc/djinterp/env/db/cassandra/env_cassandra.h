@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                 env_cassandra.h
+* djinterp [c][env]                                              env_cassandra.h
 *
 * djinterp Apache Cassandra environment detection.
 *   Compile-time detection of an Apache Cassandra environment: the DataStax

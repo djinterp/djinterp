@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         html_tests_printer.cpp
+* djinterp [cpp][text]                                    html_tests_printer.cpp
 *
 *   The group for html/html_printer.hpp: DHtmlPrintPolicy's escaping and
 * element forms, and a document of cpp/util/document printed through it, at

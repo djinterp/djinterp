@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            t_interval_face.cpp
+* djinterp [cpp][math]                                       t_interval_face.cpp
 *
 *   Tests for the interval faces (math/interval/), at every level from C++98.
 * The compile-time half -- static members as constants, the conversion types,

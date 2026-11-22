@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          color_tests_delta_e.c
+* djinterp [c][utility]                                    color_tests_delta_e.c
 *
 * The color suite, block "delta_e": color.h's CIEDE2000 difference, checked
 * against the reference pairs its authors published for exactly this

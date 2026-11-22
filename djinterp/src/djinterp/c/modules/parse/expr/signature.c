@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                 signature.c
+* djinterp [c][parse]                                                signature.c
 *
 * Expression core v2: definitions for signature.h, a language's table.
 *   Definition only appends; sealing sorts, checks, and marks the signature

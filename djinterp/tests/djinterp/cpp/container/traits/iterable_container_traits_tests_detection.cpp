@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]               iterable_container_traits_tests_detection.cpp
+* djinterp [cpp][container]        iterable_container_traits_tests_detection.cpp
 *
 *   Section I - the raw SFINAE probes.  has_begin_method / has_end_method are taken
 * on a NON-CONST lvalue, so they detect a traversal whatever its qualification: a

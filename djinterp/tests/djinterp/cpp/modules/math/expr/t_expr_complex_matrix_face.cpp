@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                             t_expr_complex_matrix_face.cpp
+* djinterp [cpp][math]                            t_expr_complex_matrix_face.cpp
 *
 * Tests for what step 23's third part, chunk 43, made of matrices of complex
 * numbers in the language (math/expr/matrix_kind.hpp, matrix_function.hpp,

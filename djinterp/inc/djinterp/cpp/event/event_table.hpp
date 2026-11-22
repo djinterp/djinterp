@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 event_table.hpp
+* djinterp [cpp][event]                                          event_table.hpp
 *
 * The erased store:
 *   Type-erased handler storage for the event system -- the realization of

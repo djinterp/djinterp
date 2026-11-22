@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 sqlite_internal.h
+* djinterp [c][db]                                             sqlite_internal.h
 *
 * Private to the SQLite layer's sources: sqlite3.h, the version floor, and the
 * statement plumbing every module repeats -- when the layer is built over

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              hazard_pointer.hpp
+* djinterp [cpp][sync]                                        hazard_pointer.hpp
 *
 * Hazard pointer memory reclamation for lock-free data structures.
 *   Provides the foundational building blocks for safe memory reclamation

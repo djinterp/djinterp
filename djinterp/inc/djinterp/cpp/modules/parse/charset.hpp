@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                               charset.hpp
+* djinterp [cpp][parse]                                              charset.hpp
 *
 *   The C++ face of the character class declared in charset.h.
 *   `charset` derives from dj_parse_charset, adds no data member, and is

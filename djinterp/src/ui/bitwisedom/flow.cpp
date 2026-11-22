@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                       flow.cpp
+* djinterp [cpp][tools]                                                 flow.cpp
 *
 * The flow view: where an operation sends the sheet's bits.
 *   Two strips, one bit to a cell: the distribution before the operation --
@@ -9,6 +9,7 @@
 * text's, faded, for a symbol with no fill; a bit that falls off the end is
 * crossed out, and a bit filled with zero is marked. An operation that
 * computes rather than moves outlines the bits it changes.
+*
 *
 * path:      /src/ui/bitwisedom/flow.cpp
 * link(s):   TBA

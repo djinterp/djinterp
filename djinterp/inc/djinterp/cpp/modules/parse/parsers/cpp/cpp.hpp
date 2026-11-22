@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                                   cpp.hpp
+* djinterp [cpp][parse]                                                  cpp.hpp
 *
 * C++-specific language constants:
 *   This header defines the symbol kinds, qualifier flags, and other

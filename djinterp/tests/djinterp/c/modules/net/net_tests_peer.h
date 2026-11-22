@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                              net_tests_peer.h
+* djinterp [c][net]                                             net_tests_peer.h
 *
 * The scripted peer and the toy engine net's protocol suites run against.
 *   The peer is a net.h connection scripted as the other party: it releases

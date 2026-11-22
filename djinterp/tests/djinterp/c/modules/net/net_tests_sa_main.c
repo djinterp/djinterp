@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                           net_tests_sa_main.c
+* djinterp [c][net]                                          net_tests_sa_main.c
 *
 * Entry point for the net foundation standalone tests.
 *   Runs the suite and reports its counts. Exits 0 only if every test passed.

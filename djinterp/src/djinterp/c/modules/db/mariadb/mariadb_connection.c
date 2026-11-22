@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                              mariadb_connection.c
+* djinterp [c][db]                                          mariadb_connection.c
 *
 * Implementation of mariadb_connection.h.
 *   A handle is made around a connected MYSQL*, and reads the server's flavor

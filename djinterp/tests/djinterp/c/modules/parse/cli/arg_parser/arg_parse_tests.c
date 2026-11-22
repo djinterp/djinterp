@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                           arg_parse_tests.c
+* djinterp [c][parse]                                          arg_parse_tests.c
 *
 * The suite of the argument parser's parse, declared in arg_parse_tests.h.
 *   Each section is a case table (arg_tests_support.h): each case makes its

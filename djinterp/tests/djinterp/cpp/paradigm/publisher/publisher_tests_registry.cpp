@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   publisher_tests_registry.cpp
+* djinterp [cpp][paradigm]                          publisher_tests_registry.cpp
 *
 *   Tests of publisher.hpp's subscriber registry (section V), driven directly
 * with hand-made tokens and liveness flags.

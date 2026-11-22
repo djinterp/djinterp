@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                         rcu.hpp
+* djinterp [cpp][sync]                                                   rcu.hpp
 *
 * Read-Copy-Update (RCU) and epoch-based reclamation primitives.
 *   Provides building blocks for lock-free containers that use read-side

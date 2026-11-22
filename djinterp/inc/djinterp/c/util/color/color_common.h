@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    color_common.h
+* djinterp [c][utility]                                           color_common.h
 *
 *   Common foundation for the djinterp color module, shared verbatim by the
 * C library and the C++ layer. Defines the language-portable qualifier

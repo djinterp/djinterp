@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                             derivative.hpp
+* djinterp [cpp][math]                                            derivative.hpp
 *
 * The symbolic derivative: a term differentiated by a variable, and the
 * gradient; roadmap Phase 4's first item, 4a.

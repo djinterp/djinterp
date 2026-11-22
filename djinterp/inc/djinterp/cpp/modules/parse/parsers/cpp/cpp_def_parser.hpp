@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                        cpp_def_parser.hpp
+* djinterp [cpp][parse]                                       cpp_def_parser.hpp
 *
 * C++ definition parser (libclang-backed):
 *   This header defines a parser specialized for extracting function and

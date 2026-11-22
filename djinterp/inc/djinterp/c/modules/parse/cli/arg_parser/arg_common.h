@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                arg_common.h
+* djinterp [c][parse]                                               arg_common.h
 *
 * The argument parser's shared vocabulary.
 *   Everything the parser's modules -- types, validators, options, commands,

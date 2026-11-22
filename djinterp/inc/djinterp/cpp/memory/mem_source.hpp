@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  mem_source.hpp
+* djinterp [cpp][memory]                                          mem_source.hpp
 *
 * C++ face of the upstream byte-source protocol.
 *   `DMemorySource` DERIVES from dj_mem_source and adds no members, so it IS

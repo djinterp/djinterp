@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                       color_convert_tests.hpp
+* djinterp [cpp][utility]                                color_convert_tests.hpp
 *
 *   Suite header for color_convert.hpp - the conversion graph over the seven
 * color models.  Its shape is a hub-and-spoke: every model converts to and

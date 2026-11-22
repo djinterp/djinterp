@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                           cli_operand_tests.c
+* djinterp [c][tools]                                        cli_operand_tests.c
 *
 * The suite of the command-line kit's operands that name something other
 * than a file, declared in cli_operand_tests.h.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                      adapter_tests_concepts.cpp
+* djinterp [cpp][paradigm]                            adapter_tests_concepts.cpp
 *
 *
 * path:      /tests/djinterp/cpp/paradigm/adapter/adapter/adapter_tests_concepts.cpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                         datomic.h
+* djinterp [c][sync]                                                   datomic.h
 *
 * Cross-platform atomic operations interface.
 *   This header provides a unified interface for atomic operations across

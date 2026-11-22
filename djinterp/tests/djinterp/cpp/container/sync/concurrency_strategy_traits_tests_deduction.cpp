@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                concurrency_strategy_traits_tests_deduction.cpp
+* djinterp [cpp][container]      concurrency_strategy_traits_tests_deduction.cpp
 *
 *   Section V - concurrency_strategy_of.  Covers every tag_to_strategy
 * specialization, each single-strategy structure, the hybrid (hit_count >= 2)

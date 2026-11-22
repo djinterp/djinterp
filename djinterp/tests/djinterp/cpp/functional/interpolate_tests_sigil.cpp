@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    interpolate_tests_sigil.cpp
+* djinterp [cpp][functional]                         interpolate_tests_sigil.cpp
 *
 * Section II.ii -- DSigilScanner: the `$name` syntax.  Exercises plain literals,
 * a single / mid-string / adjacent key, the doubled-sigil escape, a bare sigil

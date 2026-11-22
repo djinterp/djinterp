@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            sorted_container.hpp
+* djinterp [cpp][container]                                 sorted_container.hpp
 *
 *   The SORTEDNESS axis (the spec, Sortedness), layered on the Order axis.
 * Sortedness presupposes positions: a container is SORTED with respect to a

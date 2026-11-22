@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                main_cli_unix.c
+* djinterp [c][cli]                                              main_cli_unix.c
 *
 *   Test runner for cli_unix module unit tests.
 *   Executes comprehensive standalone tests for Unix CLI convention parsing

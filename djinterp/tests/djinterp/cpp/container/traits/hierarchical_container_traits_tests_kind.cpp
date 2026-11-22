@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                hierarchical_container_traits_tests_kind.cpp
+* djinterp [cpp][container]         hierarchical_container_traits_tests_kind.cpp
 *
 *   Section IV - the structure-kind summary: non_container (not container-shaped),
 * flat (container, depth 1), or hierarchical (nests).  structure_kind_name spells

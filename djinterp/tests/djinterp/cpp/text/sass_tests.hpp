@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 sass_tests.hpp
+* djinterp [cpp][text]                                            sass_tests.hpp
 *
 *   The suite for text's Sass headers -- css/sass/sass.hpp,
 * css/sass/sass_template.hpp and css/sass/sass_printer.hpp -- in DTest's C

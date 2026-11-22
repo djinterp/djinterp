@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                   adapter_tests_class_iface.cpp
+* djinterp [cpp][paradigm]                         adapter_tests_class_iface.cpp
 *
 *
 * path:      /tests/djinterp/cpp/paradigm/adapter/adapter/adapter_tests_class_iface.cpp

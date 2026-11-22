@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                 cli_tests.cpp
+* djinterp [cpp][tools]                                            cli_tests.cpp
 *
 * The command-line kit's C++ suite, declared in cli_tests.hpp.
 *   Each section makes its programs as a C++ program makes them -- a

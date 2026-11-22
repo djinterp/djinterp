@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    math_symbols.h
+* djinterp [c][text]                                              math_symbols.h
 *
 * Mathematical symbols as UTF-8 string literals.
 *   Works in plain C99+ without embedding non-ASCII in your source.

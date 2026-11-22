@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                 pack_element_tests_indexing.cpp
+* djinterp [cpp][meta]                           pack_element_tests_indexing.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/pack_element_tests_indexing.cpp

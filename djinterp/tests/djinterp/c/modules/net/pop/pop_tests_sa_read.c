@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                           pop_tests_sa_read.c
+* djinterp [c][net]                                          pop_tests_sa_read.c
 *
 * Tests of the POP3 kernel's reader over a net.h connection, and of a client
 * and a server talking through it.

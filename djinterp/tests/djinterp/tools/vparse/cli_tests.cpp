@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [tests]                                                   cli_tests.cpp
+* djinterp [cpp][tools]                                            cli_tests.cpp
 *
 * The command line's suite: `vparse`, run in-process, its every subcommand
 * and its every way of refusing, the measures over many inputs among them.

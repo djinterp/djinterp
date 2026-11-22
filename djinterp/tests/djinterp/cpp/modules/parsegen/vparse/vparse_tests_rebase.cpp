@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                vparse_tests_rebase.cpp
+* djinterp [cpp][parsegen]                               vparse_tests_rebase.cpp
 *
 * vparse tests: the carrier adapter -- a compiled program as a parser handle,
 * and two of them threading one parse_state.

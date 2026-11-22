@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                          memory.h
+* djinterp [c][memory]                                                  memory.h
 *
 * Umbrella header for the memory subframework -- C face.
 *   Includes the shared vocabulary and every allocator, in dependency order.

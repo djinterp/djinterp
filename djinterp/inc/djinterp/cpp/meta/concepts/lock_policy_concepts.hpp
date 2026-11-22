@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        lock_policy_concepts.hpp
+* djinterp [cpp][meta]                                  lock_policy_concepts.hpp
 *
 *   C++20 concepts for the LOCK-POLICY contract -- the `requires`-facing view of
 * {traits}.

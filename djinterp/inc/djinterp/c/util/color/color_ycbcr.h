@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     color_ycbcr.h
+* djinterp [c][utility]                                            color_ycbcr.h
 *
 *   YCbCr shared kernel for the djinterp color module. Defines the YCbCr POD
 * (full-range ITU-R BT.601) and its construction, validation, and clamping.

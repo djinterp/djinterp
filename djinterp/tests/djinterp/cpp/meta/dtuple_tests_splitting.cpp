@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     dtuple_tests_splitting.cpp
+* djinterp [cpp][meta]                                dtuple_tests_splitting.cpp
 *
 *   Unit tests for the tuple-splitting section of dtuple.hpp:
 *     - DTupleSplit   (with its `before` / `after` member exposures)

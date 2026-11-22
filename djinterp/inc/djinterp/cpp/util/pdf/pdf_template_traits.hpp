@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                         pdf_template_traits.hpp
+* djinterp [cpp][utility]                                pdf_template_traits.hpp
 *
 *   Structural SFINAE detection for the PDF subsystem.  Classifies two
 * families of types without tag types or base-class checks - expose the

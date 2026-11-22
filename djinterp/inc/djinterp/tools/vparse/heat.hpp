@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [vparse]                                                       heat.hpp
+* djinterp [cpp][tools]                                                 heat.hpp
 *
 * Where a run spent its work: the run as a djinterp::ui visit space.
 *   Each trace step happens at an input position, inside some rule's code. The
@@ -12,6 +12,7 @@
 * a run of any length fits; rows are rules, the start rule on top. The call
 * stack at any step is kept as parent links, so the derivation in progress --
 * the trail drawn over the map -- costs its depth to recover, not a replay.
+*
 *
 * path:      /inc/djinterp/tools/vparse/heat.hpp
 * link(s):   TBA

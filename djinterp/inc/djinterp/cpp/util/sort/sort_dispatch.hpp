@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               sort_dispatch.hpp
+* djinterp [cpp][utility]                                      sort_dispatch.hpp
 *
 *   The algorithm-agnostic sort.  Includes every algorithm header and layers
 * one facility over them that lets a caller name the algorithm in either of

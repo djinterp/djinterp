@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          interpolate_tests.hpp
+* djinterp [cpp][functional]                               interpolate_tests.hpp
 *
 *   DTest declarations and shared fixtures for the interpolate.hpp unit-test
 * suite.  interpolate.hpp is the type-agnostic interpolation engine (scanner /

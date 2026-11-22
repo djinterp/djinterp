@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                 threadsafe_container_traits.hpp
+* djinterp [cpp][container]                      threadsafe_container_traits.hpp
 *
 * Thread-safe container traits for the djinterp framework.
 *   Provides compile-time detection of thread-safety capabilities at

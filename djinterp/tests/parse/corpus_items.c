@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 corpus_items.c
+* djinterp [c][parse]                                             corpus_items.c
 *
 * Items over a corpus: counts, recognizer failures, and the indentation.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             byte_array_tests.h
+* djinterp [c][container]                                     byte_array_tests.h
 *
 *   Unit test declarations for `byte_array.h` module.
 *   Provides comprehensive testing of all byte array macros including byte

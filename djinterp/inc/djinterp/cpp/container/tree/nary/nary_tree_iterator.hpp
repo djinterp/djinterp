@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                          nary_tree_iterator.hpp
+* djinterp [cpp][container]                               nary_tree_iterator.hpp
 *
 * Iterators and a cursor for LCRS n-ary trees:
 *   This header provides iterators over an LCRS-shaped node graph in four

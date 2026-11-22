@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   mariadb_query.c
+* djinterp [c][db]                                               mariadb_query.c
 *
 * Implementation of mariadb_query.h.
 *   The plain forms pass SQL through untouched, as the `%s` of an otherwise

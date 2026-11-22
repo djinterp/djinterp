@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                               metadata_traits_tests_mirrors.cpp
+* djinterp [cpp][utility]                      metadata_traits_tests_mirrors.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/metadata/metadata_traits_tests_mirrors.cpp

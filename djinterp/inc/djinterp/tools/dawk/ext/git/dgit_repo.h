@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                   dgit_repo.h
+* djinterp [c][tools]                                                dgit_repo.h
 *
 * A git repository, read directly.
 *   Everything is read from the repository's files, as git itself would read
@@ -21,6 +21,7 @@
 * what git would ask another program for: a filter's clean command, a
 * textconv, a hook. A file a filter cleans is compared by its stat alone.
 *   Independent of dgit.h, which reads history for dcheck's sheets.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/git/dgit_repo.h
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                   math.cpp
+* djinterp [cpp][math]                                                  math.cpp
 *
 *
 * path:      /src/djinterp/cpp/modules/math/math.cpp

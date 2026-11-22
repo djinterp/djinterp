@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                 container_comparison_traits.hpp
+* djinterp [cpp][container]                      container_comparison_traits.hpp
 *
 *   The comparison of two container TYPES: where they stand, axis by axis, on
 * the

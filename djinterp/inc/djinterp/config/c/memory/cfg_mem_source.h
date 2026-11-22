@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                             cfg_mem_source.h
+* djinterp [c][memory]                                          cfg_mem_source.h
 *
 *   Configuration for the upstream byte-source protocol -- the layer every
 * allocator in the memory subframework obtains its backing storage through.

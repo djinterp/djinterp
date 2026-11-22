@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                   env_archive.h
+* djinterp [c][env]                                                env_archive.h
 *
 * djinterp archive-library detection.
 *   Compile-time detection of third-party archive libraries, mapped onto a

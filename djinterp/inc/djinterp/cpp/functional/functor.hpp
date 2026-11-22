@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     functor.hpp
+* djinterp [cpp][functional]                                         functor.hpp
 *
 * Functor protocol and the generic functorial map (C++).
 *   A functor here is a type constructor F<T> -- a context holding values of

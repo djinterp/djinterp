@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                      threadsafe_container_tests_concurrent.cpp
+* djinterp [cpp][container]            threadsafe_container_tests_concurrent.cpp
 *
 *   Integration - genuine multi-threaded contention with std::thread.  Each
 * test asserts a DETERMINISTIC invariant that holds for correct code under any

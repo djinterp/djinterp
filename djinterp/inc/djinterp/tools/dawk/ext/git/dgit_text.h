@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                   dgit_text.h
+* djinterp [c][tools]                                                dgit_text.h
 *
 * Git's text files, read without loss.
 *   Three kinds of file, each read as git reads it: the ignore files --
@@ -26,6 +26,7 @@
 * the macros of attribute files, `binary` among them.
 *   Independent of the repository: what a path's ignore and attribute files
 * are, and where, is dgit_repo's to find; this unit takes them as scopes.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/git/dgit_text.h
 * link(s):   TBA

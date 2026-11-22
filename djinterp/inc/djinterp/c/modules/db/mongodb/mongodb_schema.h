@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  mongodb_schema.h
+* djinterp [c][db]                                              mongodb_schema.h
 *
 * A database's collections, views and indexes.
 *   COLLECTIONS. A collection is created by its first write, or explicitly,

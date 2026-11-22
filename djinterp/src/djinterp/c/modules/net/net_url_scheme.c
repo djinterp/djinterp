@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                              net_url_scheme.c
+* djinterp [c][net]                                             net_url_scheme.c
 *
 * Schemes and endpoints: net_url.h's section 5.
 *   One table holds every scheme with a registered default port, whether it

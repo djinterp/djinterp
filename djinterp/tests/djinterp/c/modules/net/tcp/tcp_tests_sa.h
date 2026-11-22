@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                tcp_tests_sa.h
+* djinterp [c][net]                                               tcp_tests_sa.h
 *
 * Standalone tests of the TCP transport.
 *   Real sockets over loopback: every test listens on an ephemeral port or a

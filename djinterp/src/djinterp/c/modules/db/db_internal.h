@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     db_internal.h
+* djinterp [c][db]                                                 db_internal.h
 *
 * Private to the database layers' sources: how a result list is built.
 *   A vendor layer reads names, column descriptions or rows one row at a

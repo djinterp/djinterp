@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                            postgres_maintenance.c
+* djinterp [c][db]                                        postgres_maintenance.c
 *
 * Implementation of postgres_maintenance.h.
 *   VACUUM and ANALYZE are written in the form every supported server takes,

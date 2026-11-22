@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              functor_tests.hpp
+* djinterp [cpp][functional]                                   functor_tests.hpp
 *
 *   Unit-test declarations for core/functional/functor.hpp -- the Functor
 * protocol and the generic functorial map.  One declaration group per section of

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             registry_update.hpp
+* djinterp [cpp][container]                                  registry_update.hpp
 *
 *   The COMMON FUNCTIONAL CORE shared by every registry flavour -- the single
 * body through which a value edit passes, and the two strategies that plug

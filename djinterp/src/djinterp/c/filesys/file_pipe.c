@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_pipe.c
+* djinterp [c][filesys]                                              file_pipe.c
 *
 * Implementation of the process pipes declared in file_pipe.h.
 *   popen and pclose on POSIX, with the parent's end of the pipe kept from

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                numeric.hpp
+* djinterp [cpp][math]                                               numeric.hpp
 *
 * Numeric calculus: a term's definite integral, and its derivative at a
 * point, computed in a floating-point type; roadmap Phase 4's second item,

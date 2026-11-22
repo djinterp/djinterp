@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                   test_lex_c.c
+* djinterp [c][parse]                                               test_lex_c.c
 *
 * Smoke + differential driver for the C lexer.
 *

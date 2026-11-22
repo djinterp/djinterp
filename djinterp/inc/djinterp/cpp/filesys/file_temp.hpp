@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   file_temp.hpp
+* djinterp [cpp][filesys]                                          file_temp.hpp
 *
 * Temporary-file support (roadmap Phase 8).
 *   The atomic, safe part of temp handling -- creating an anonymous scratch

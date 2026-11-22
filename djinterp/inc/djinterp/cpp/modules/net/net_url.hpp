@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                                 net_url.hpp
+* djinterp [cpp][net]                                                net_url.hpp
 *
 * URLs in C++, over net/net_url.h.
 *   An owning url holds its text and the C parse of it; every accessor returns

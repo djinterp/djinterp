@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                cfg_db_face.h
+* djinterp [cpp][db]                                               cfg_db_face.h
 *
 * Build-time configuration for the database layers' C++ faces,
 * c/modules/db/db_face.hpp and each layer's <vendor>_face.hpp.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                      hierarchical_tests_tag.cpp
+* djinterp [cpp][meta]                                hierarchical_tests_tag.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/hierarchical_tests_tag.cpp

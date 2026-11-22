@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               postgres_face.hpp
+* djinterp [cpp][db]                                           postgres_face.hpp
 *
 * The C++ face of djinterp's PostgreSQL layer.
 *   face::postgres owns a connection, libpq's PGconn (struct pg_conn), and

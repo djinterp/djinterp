@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                  t_tangent.c
+* djinterp [c][math]                                                 t_tangent.c
 *
 *   Conformance harness for c/math/tangent.h. For float, tan_c and atan_c
 * must be the correctly rounded result -- the long double library's, rounded

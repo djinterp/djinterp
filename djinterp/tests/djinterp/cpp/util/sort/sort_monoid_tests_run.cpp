@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                       sort_monoid_tests_run.cpp
+* djinterp [cpp][utility]                              sort_monoid_tests_run.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/sort/sort_monoid_tests_run.cpp

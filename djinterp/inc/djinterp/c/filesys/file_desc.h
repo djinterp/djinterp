@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_desc.h
+* djinterp [c][filesys]                                              file_desc.h
 *
 * Descriptor lifecycle -- getting one, copying one, giving one back.
 *   This module owns descriptors, not the bytes that move through them; those

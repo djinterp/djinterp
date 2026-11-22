@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                            encode_options_tests_convenience.cpp
+* djinterp [cpp][binary]                    encode_options_tests_convenience.cpp
 *
 *
 * path:      /tests/djinterp/cpp/binary/encode_options_tests_convenience.cpp

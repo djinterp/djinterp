@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                      filter.hpp
+* djinterp [cpp][functional]                                          filter.hpp
 *
 * Template collection filtering with expression-based selection (C++).
 *   Provides a comprehensive, fully typed filtering framework that supports

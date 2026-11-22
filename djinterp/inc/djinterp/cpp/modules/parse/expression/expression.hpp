@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                            expression.hpp
+* djinterp [cpp][parse]                                           expression.hpp
 *
 *   The common core of every expression language in the framework -- math,
 * parser, CLI predicate, and whatever comes next.  An expression is a

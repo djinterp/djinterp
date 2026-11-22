@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                      threadsafe_container_tests_optimistic.cpp
+* djinterp [cpp][container]            threadsafe_container_tests_optimistic.cpp
 *
 *   Layer 4 - optimistic_read, the seqlock read protocol.  Both the fast path
 * (validate succeeds first attempt) and the retry-then-lock fall path are

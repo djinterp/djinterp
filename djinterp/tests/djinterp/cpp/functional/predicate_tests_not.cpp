@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                  predicate_tests_not.cpp
+* djinterp [cpp][functional]                             predicate_tests_not.cpp
 *
 *   Tests for the unary negation combinator (predicate_not_combinator) and
 * its factory function (predicate_not).

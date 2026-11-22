@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                              publisher_tests_customization.cpp
+* djinterp [cpp][paradigm]                     publisher_tests_customization.cpp
 *
 *   Tests of publisher.hpp's customization points (section VI) and the
 * concrete bus (section VII).

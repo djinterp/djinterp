@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [tests]                                         pci_config_header.c
+* djinterp [c][tools]                                        pci_config_header.c
 *
 * The PCI example against linux/pci_regs.h: every register where Linux puts
 * it, every bit and field as the mask Linux gives it in its register, and
@@ -7,6 +7,7 @@
 * targets Linux. The example names a place by its bit in the whole header,
 * and Linux by a byte offset and a mask in the register there: a register's
 * first bit is its offset times eight.
+*
 *
 * path:      /tests/djinterp/tools/bitwisedom/platform/pci_config_header.c
 * link(s):   TBA

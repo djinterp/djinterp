@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 sort_monoid.hpp
+* djinterp [cpp][utility]                                        sort_monoid.hpp
 *
 *   The merge monoid: where the sort subsystem joins the functional algebra.
 * Sorting does not fit the Functor / Monad / Comonad cluster -- it fixes the

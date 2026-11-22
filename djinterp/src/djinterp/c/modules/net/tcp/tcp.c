@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                         tcp.c
+* djinterp [c][net]                                                        tcp.c
 *
 * The TCP transport over BSD sockets or Winsock 2.
 *   Implements tcp.h in parts the preprocessor chooses whole: a BSD layer and

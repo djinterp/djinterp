@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             document_format.hpp
+* djinterp [cpp][utility]                                    document_format.hpp
 *
 *   The catalogue of the framework's built-in document formats -- the ONE enum
 * every layer selects an output format with.  It is deliberately a small,

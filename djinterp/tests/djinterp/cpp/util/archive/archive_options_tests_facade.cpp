@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               archive_options_tests_facade.cpp
+* djinterp [cpp][utility]                       archive_options_tests_facade.cpp
 *
 *   Tests for what the facade actually DOES with an archive_options.  The rest
 * of the suite pins the vocabulary's data contract; this section drives

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                   starttls_tests_sa_support.c
+* djinterp [c][net]                                  starttls_tests_sa_support.c
 *
 * Support for the STARTTLS module's standalone tests.
 *   The SMTP-like negotiator, the on_upgrade recorder, option and fixture

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [dawk]                                                    dregistry.h
+* djinterp [c][tools]                                                dregistry.h
 *
 * Property registry:
 *   Evaluates one declaration against one matched node, and computes the
@@ -12,6 +12,7 @@
 * asking a human.  That is a property of the property, not a judgement made
 * per rule, and it is what partitions a defect list into the part a tool can
 * close and the part it cannot.
+*
 *
 * path:      /inc/djinterp/tools/dawk/dregistry.h
 * link(s):   TBA

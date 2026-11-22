@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                            net_url_encoding.c
+* djinterp [c][net]                                           net_url_encoding.c
 *
 * Percent-encoding and decoding: net_url.h's section 4.
 *   Each component leaves its own class of characters unencoded; a '%' is

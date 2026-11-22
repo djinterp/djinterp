@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 event_handler_tests_monoid.cpp
+* djinterp [cpp][event]                           event_handler_tests_monoid.cpp
 *
 *   Section V -- THE HANDLER MONOID (seq, skip).  Covers the monoid unit skip
 * (always yields pass, accepts any arguments) and the sequencing operation

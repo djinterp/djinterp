@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                        file_dir.c
+* djinterp [c][filesys]                                               file_dir.c
 *
 * Implementation of the directory operations declared in file_dir.h.
 *   struct dj_dir_t wraps the platform's handle -- a DIR* on POSIX, a

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                interpolate_tests_recursive.cpp
+* djinterp [cpp][functional]                     interpolate_tests_recursive.cpp
 *
 * Section VI -- DRecursiveResolver / recursive: expand a resolved VALUE that is
 * itself a template.  Verifies flat (no-nesting) values, one/multi level

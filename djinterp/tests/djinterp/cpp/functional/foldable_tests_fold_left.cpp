@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   foldable_tests_fold_left.cpp
+* djinterp [cpp][functional]                        foldable_tests_fold_left.cpp
 *
 *   Section II.1 of the foldable.hpp suite: fold_left, the one obligation every
 * other fold is derived from.  Covers the empty (zero-iteration) and non-empty

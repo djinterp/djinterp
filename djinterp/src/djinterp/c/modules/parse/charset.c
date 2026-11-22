@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                   charset.c
+* djinterp [c][parse]                                                  charset.c
 *
 *   Definitions for the non-inline declarations in charset.h.
 *

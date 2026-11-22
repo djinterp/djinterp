@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                 read_only_container_tests.hpp
+* djinterp [cpp][container]                        read_only_container_tests.hpp
 *
 *   Suite header for read_only_container.hpp - the access overlay that holds a
 * container privately and forwards only its const observation surface.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    t_event_core.c
+* djinterp [c][event]                                             t_event_core.c
 *
 *   Conformance harness for the tier-0 event core: every contract the five
 * event_*_common.h headers state, checked against their implementations --

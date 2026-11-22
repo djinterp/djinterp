@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                           arg_argv_source.c
+* djinterp [c][parse]                                          arg_argv_source.c
 *
 * Where arguments come from besides `argv`, declared in arg_argv.h (2.2, 2.3
 * and 3.1) and arg_internal.h (8.3.2).

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                        registry.h
+* djinterp [c][container]                                             registry.h
 *
 *   A generic registry for storing and retrieving user-defined row structures
 * by string key. The core is a simple array of user-defined structs with a

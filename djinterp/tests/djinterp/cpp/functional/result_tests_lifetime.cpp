@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      result_tests_lifetime.cpp
+* djinterp [cpp][functional]                           result_tests_lifetime.cpp
 *
 * Lifetime, value/error access tests for result<T, E> (section I: the
 * primitive itself).

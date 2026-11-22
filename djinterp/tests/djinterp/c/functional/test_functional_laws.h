@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                   test_functional_laws.h
+* djinterp [c][functional]                                test_functional_laws.h
 *
 * Conformance declarations for the C functional dataflow and algebra modules.
 *   One group per formal object. Each group asserts the claims the subframework

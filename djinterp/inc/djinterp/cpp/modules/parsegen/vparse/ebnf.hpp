@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                               ebnf.hpp
+* djinterp [cpp][parsegen]                                              ebnf.hpp
 *
 *   An EBNF frontend: grammar text to a syntax tree, and the tree to a PEG
 * program.

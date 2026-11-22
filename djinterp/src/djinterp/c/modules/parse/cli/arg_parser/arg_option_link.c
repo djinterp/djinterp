@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                           arg_option_link.c
+* djinterp [c][parse]                                          arg_option_link.c
 *
 * Options' links to other things, declared in arg_option.h (sections 4.6
 * to 4.8).

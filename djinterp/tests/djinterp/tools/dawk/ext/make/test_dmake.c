@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  test_dmake.c
+* djinterp [c][tools]                                               test_dmake.c
 *
 * Exercises the Makefile extension's reader as it stands: `dmake.h`'s logical
 * lines, joined by each make's rule for a backslash that ends a line, with
@@ -24,6 +24,7 @@
 *   test_dmake [work directory]           the unit checks
 *   test_dmake --corpus [make] < files    every file named, one to a line
 *   test_dmake --fuzz [seed] [n] < files  n changes to every file named
+*
 *
 * path:      /tests/djinterp/tools/dawk/ext/make/test_dmake.c
 * link(s):   TBA

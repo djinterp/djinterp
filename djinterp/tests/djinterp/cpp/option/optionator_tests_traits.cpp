@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    optionator_tests_traits.cpp
+* djinterp [cpp][option]                             optionator_tests_traits.cpp
 *
 *   Section VII - the public identification surface.  is_optionator recognizes
 * an unsourced optionator<...> head; is_option_chain recognizes a sourced

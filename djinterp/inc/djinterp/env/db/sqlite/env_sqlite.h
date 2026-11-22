@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                    env_sqlite.h
+* djinterp [c][env]                                                 env_sqlite.h
 *
 * djinterp SQLite environment detection.
 *   Compile-time detection of an SQLite environment: the library version, and

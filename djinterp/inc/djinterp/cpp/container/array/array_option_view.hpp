@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                           array_option_view.hpp
+* djinterp [cpp][container]                                array_option_view.hpp
 *
 * Array-specific option configuration module.
 *   Specializes the generic container_option_traits.hpp infrastructure

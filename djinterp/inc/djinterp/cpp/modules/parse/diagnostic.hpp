@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                            diagnostic.hpp
+* djinterp [cpp][parse]                                           diagnostic.hpp
 *
 *   The C++ face of the diagnostic channel declared in diagnostic.h.
 *   Every type here IS its C counterpart: `span` derives from dj_parse_span and

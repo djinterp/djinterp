@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                text_pattern.hpp
+* djinterp [cpp][text]                                          text_pattern.hpp
 *
 *   Marker-aware text pattern engine.  Given a template literal whose
 * captures are marked %key% by default, DTextPattern compiles the literal

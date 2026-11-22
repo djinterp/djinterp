@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               optionator_tests_descriptors.cpp
+* djinterp [cpp][option]                        optionator_tests_descriptors.cpp
 *
 *   Sections II + III - the unconfigured descriptor + factory layer.  stage()
 * builds a DPendingStage carrying a tag and decayed call-site args; into() /

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   option_common.c
+* djinterp [c][option]                                           option_common.c
 *
 *   Implementation of the option cell. See option_common.h for the rationale;
 * this file carries only what the code needs to be read correctly.

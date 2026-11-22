@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                      cfg_env_compress_link.h
+* djinterp [c][env]                                      cfg_env_compress_link.h
 *
 * Configuration for env_compress_link.h, the auto-link directives under
 * env/util/compress/.

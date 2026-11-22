@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     pdf_metrics.h
+* djinterp [c][utility]                                            pdf_metrics.h
 *
 * Glyph and string width measurement for the standard-14 PDF fonts.
 *   This is the keystone of any real layout: centre and right alignment,

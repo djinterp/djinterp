@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        markup_string_tests.hpp
+* djinterp [cpp][text]                                   markup_string_tests.hpp
 *
 *   text's markup string templates -- markup_string_template.hpp and its two
 * facades, html/html_string_template.hpp and xml/xml_string_template.hpp --

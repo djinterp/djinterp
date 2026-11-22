@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                               operator.hpp
+* djinterp [cpp][math]                                              operator.hpp
 *
 * Operators: the ids of every operator the run-time expression language has,
 * and its operator table, the first half of the second layer.

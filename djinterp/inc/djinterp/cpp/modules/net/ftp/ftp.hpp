@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                                     ftp.hpp
+* djinterp [cpp][net]                                                    ftp.hpp
 *
 * Umbrella for the FTP and FTPS module, in C++.
 *   Includes ftp.h, the C foundation and client, and ftp_client.hpp, the

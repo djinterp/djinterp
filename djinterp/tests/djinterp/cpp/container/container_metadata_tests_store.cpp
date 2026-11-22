@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                          container_metadata_tests_store.cpp
+* djinterp [cpp][container]                   container_metadata_tests_store.cpp
 *
 *   The store section of container_metadata's suite: DContainerMetadata as
 * an ordered collection of named entries - construction, set, lookup, erase

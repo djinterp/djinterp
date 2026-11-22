@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  color_cmyk.hpp
+* djinterp [cpp][utility]                                         color_cmyk.hpp
 *
 *   C++ ergonomic layer for the CMYK color model. `cmyk` derives from the
 * shared-kernel POD (color_cmyk.h) without adding state, providing constexpr

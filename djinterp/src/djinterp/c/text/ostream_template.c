@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                ostream_template.c
+* djinterp [c][text]                                          ostream_template.c
 *
 *   Templates onto a stream (ostream_template.h): the value formatter, the
 * conversions for JSON, CSV, Markdown and XML, the compiler and the program

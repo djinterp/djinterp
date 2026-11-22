@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                  constexpr_container_traits.hpp
+* djinterp [cpp][container]                       constexpr_container_traits.hpp
 *
 *   Structural traits for the COMPILE-TIME end of a container's Lifetime axis.
 * A container has a STATIC lifetime - is usable in constant evaluation - when

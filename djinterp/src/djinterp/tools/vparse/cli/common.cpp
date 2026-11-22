@@ -1,11 +1,12 @@
 /*******************************************************************************
-* vparse [cli]                                                        common.cpp
+* djinterp [cpp][tools]                                               common.cpp
 *
 * Definitions for common.hpp: the steps the subcommands share.
 *   A file is read whole, in binary, so a grammar or an input is run byte for
 * byte; `-` is the standard input, read to its end, once. A failure is said
 * through the kit's program the run is, so its shape, its colour and the
 * exit status it ends with are the kit's whoever failed.
+*
 *
 * path:      /src/djinterp/tools/vparse/cli/common.cpp
 * link(s):   TBA

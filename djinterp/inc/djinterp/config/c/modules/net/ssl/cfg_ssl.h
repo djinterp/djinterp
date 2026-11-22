@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                    cfg_ssl.h
+* djinterp [c][net]                                                    cfg_ssl.h
 *
 * Build-time configuration for the SSL/TLS modules.
 *   Buffer sizing, the policy floor every configuration is validated against,

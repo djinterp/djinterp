@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]               concurrency_strategy_traits_tests_structural.cpp
+* djinterp [cpp][container]     concurrency_strategy_traits_tests_structural.cpp
 *
 *   Section III - the structural member detectors used as the tag-less
 * fallback.  Each detector is exercised on a type that has the member and one

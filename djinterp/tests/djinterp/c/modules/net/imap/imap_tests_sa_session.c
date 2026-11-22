@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                       imap_tests_sa_session.c
+* djinterp [c][net]                                      imap_tests_sa_session.c
 *
 * Tests of the IMAP kernel in a session: a client's commands built by its
 * writers, and both sides of a scripted session.

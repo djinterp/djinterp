@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                 dninja_eval.h
+* djinterp [c][tools]                                              dninja_eval.h
 *
 * A Ninja build, loaded as ninja loads it.
 *   A manifest is read with dninja, and each statement taken as ninja's
@@ -21,6 +21,7 @@
 *   The ninja acted as is a version: what it reads and how it words what it
 * refuses follow the version, from 1.11 to 1.14, as the banner of dninja.h
 * and each operation here say.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/ninja/dninja_eval.h
 * link(s):   TBA

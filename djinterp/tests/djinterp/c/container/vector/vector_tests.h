@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 vector_tests.h
+* djinterp [c][container]                                         vector_tests.h
 *
 *   Unit test declarations for `vector.h` module.
 *   Provides comprehensive testing of all dj_vector functions including

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                       hierarchical_registry.hpp
+* djinterp [cpp][container]                            hierarchical_registry.hpp
 *
 *   hierarchical_registry -- a registry that NESTS (the Structure axis).  The
 * Structure section factors a container's component type as the composite

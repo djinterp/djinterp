@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                    t_dmemory.c
+* djinterp [c][memory]                                               t_dmemory.c
 *
 * Run-time checks of dmemory.h's bounded functions: d_memset_s and d_memcpy_s
 * return 0, EINVAL or ERANGE as Annex K's memset_s and memcpy_s do, clear or

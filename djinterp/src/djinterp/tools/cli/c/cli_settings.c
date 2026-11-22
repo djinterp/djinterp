@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                cli_settings.c
+* djinterp [c][tools]                                             cli_settings.c
 *
 * The command-line kit's settings, declared in cli_settings.h.
 *   The kit's djin is made at its first use, over static storage: a run

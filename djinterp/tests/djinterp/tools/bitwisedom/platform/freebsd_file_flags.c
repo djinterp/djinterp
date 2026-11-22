@@ -1,9 +1,10 @@
 /*******************************************************************************
-* bitwisedom [tests]                                        freebsd_file_flags.c
+* djinterp [c][tools]                                       freebsd_file_flags.c
 *
 * The file-flags example against sys/stat.h: both halves and every
 * flag, compared with the platform's own at compile time. Built where
 * the build targets FreeBSD.
+*
 *
 * path:      /tests/djinterp/tools/bitwisedom/platform/freebsd_file_flags.c
 * link(s):   TBA

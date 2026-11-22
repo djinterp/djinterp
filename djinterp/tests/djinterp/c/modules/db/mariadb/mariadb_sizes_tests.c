@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          mariadb_sizes_tests.c
+* djinterp [c][db]                                         mariadb_sizes_tests.c
 *
 *   Checks that the size mariadb_query.c computes for a query's attribute
 * names refuses to wrap. The count is the attributes the connection keeps,

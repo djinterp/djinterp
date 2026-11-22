@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  dext_cmake.h
+* djinterp [c][tools]                                               dext_cmake.h
 *
 * The CMake extension: binds a CMake file to a DSS node tree.
 *   A sheet that names `file[lang=cmake]` reads what dcmake reads, as nodes:
@@ -34,6 +34,7 @@
 *   The extension supplies facts and decides nothing: which case a name takes,
 * how a block is indented, whether an endif repeats its condition, are the
 * sheet's to say.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/check/dext_cmake.h
 * link(s):   TBA

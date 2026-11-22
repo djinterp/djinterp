@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           less_tests_sheet.cpp
+* djinterp [cpp][text]                                      less_tests_sheet.cpp
 *
 *   The groups for css/less/less.hpp and css/less/less_template.hpp, on the
 * default backend: the vocabulary, a stylesheet built through the facades and

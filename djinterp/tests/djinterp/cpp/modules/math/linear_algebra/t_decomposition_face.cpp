@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                   t_decomposition_face.cpp
+* djinterp [cpp][math]                                  t_decomposition_face.cpp
 *
 *   Tests for linear_algebra/decomposition.hpp, at every level from C++98,
 * per family: LU of a known matrix -- its factors, P A = L U, determinant,

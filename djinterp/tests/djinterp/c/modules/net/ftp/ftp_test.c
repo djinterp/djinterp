@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                    ftp_test.c
+* djinterp [c][net]                                                   ftp_test.c
 *
 * Exercises `ftp.h`, and the client's connection helpers in its private
 * ftp_client_internal.h over a scripted transport.

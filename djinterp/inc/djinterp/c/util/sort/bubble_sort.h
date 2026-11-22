@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     bubble_sort.h
+* djinterp [c][utility]                                            bubble_sort.h
 *
 *   Bubble sort: the sequential driver.
 * In-place, iterative, stable, comparison-based.  A pass sweeps the adjacent

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             compress_tests.hpp
+* djinterp [cpp][utility]                                     compress_tests.hpp
 *
 *   Unit-test header for compress.hpp / compress.cpp - the djinterp portable
 * compression facade.  It declares every test function (all flat in

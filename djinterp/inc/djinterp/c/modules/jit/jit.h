@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/jit]                                                         jit.h
+* djinterp [c][jit]                                                        jit.h
 *
 * djinterp portable JIT core (executable-memory + code buffer):
 *   The architecture-independent half of the djinterp JIT. It turns the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  polynomial.hpp
+* djinterp [cpp][functional]                                      polynomial.hpp
 *
 * Polynomial functors as first-class, foldable protocol citizens.
 *   A polynomial functor F is built from the variable position (recursion),

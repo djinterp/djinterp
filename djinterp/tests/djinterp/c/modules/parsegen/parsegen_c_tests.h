@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parsegen]                                       parsegen_c_tests.h
+* djinterp [c][parsegen]                                      parsegen_c_tests.h
 *
 * Parsegen's C suite: its C API, called from C.
 *   Building a grammar, rendering it, analysing it, and routing it through the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                           ssl_tests_sa_main.c
+* djinterp [c][net]                                          ssl_tests_sa_main.c
 *
 * The SSL kernel's standalone suite: its runner and entry point.
 *   Makes the run's certificates and contexts, runs every test, and exits 0

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                      coordinate_mapper.hpp
+* djinterp [cpp][tools]                                    coordinate_mapper.hpp
 *
 *   The runtime bridge between the configuration's coordinate_system enum and
 * the compile-time maths coordinate systems.  The lens layer is chosen at

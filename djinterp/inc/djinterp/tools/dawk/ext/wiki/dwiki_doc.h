@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                   dwiki_doc.h
+* djinterp [c][tools]                                                dwiki_doc.h
 *
 * A wiki's page held for change.
 *   A document is a page's text and its records, read by dwiki. A change is
@@ -23,6 +23,7 @@
 *   A document is made from a file, or from a text not yet on disk, and saved
 * to its own path or another; saving writes only a file that would change,
 * beside its target and renamed over it, and makes the directories it needs.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/wiki/dwiki_doc.h
 * link(s):   TBA

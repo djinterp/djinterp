@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  consumer_tests_primitives.cpp
+* djinterp [cpp][functional]                       consumer_tests_primitives.cpp
 *
 *   Tests for consumer.hpp Section II primitives: print_to (with custom
 * and default separators), write_to (container append), discard (null

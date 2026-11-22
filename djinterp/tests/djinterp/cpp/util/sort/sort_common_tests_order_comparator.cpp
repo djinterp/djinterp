@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                          sort_common_tests_order_comparator.cpp
+* djinterp [cpp][utility]                 sort_common_tests_order_comparator.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/sort/sort_common_tests_order_comparator.cpp

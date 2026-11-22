@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                     env_apple.h
+* djinterp [c][env]                                                  env_apple.h
 *
 * djinterp Apple environment detection.
 *   Compile-time detection of the Apple compilation environment, covering both

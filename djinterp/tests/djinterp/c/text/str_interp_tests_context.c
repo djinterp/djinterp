@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [text]                                     str_interp_tests_context.c
+* djinterp [c][text]                                  str_interp_tests_context.c
 *
 *
 * path:      /tests/djinterp/c/text/str_interp_tests_context.c

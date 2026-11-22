@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    option_set_tests_checks.cpp
+* djinterp [cpp][option]                             option_set_tests_checks.cpp
 *
 *   Section III of the option_set.hpp suite: the construction-time checks that
 * run over the flattened (post-expansion) option tuple.

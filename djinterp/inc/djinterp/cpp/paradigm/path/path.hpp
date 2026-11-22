@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                        path.hpp
+* djinterp [cpp][paradigm]                                              path.hpp
 *
 * Generic path manipulation utilities:
 *   This header provides container-agnostic, string-based path operations.

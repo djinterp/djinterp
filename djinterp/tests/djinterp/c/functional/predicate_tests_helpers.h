@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      predicate_tests_helpers.h
+* djinterp [c][functional]                             predicate_tests_helpers.h
 *
 *   Shared helper predicate functions used across predicate test files.
 *   Extracted to avoid duplication between constructor and evaluation tests.

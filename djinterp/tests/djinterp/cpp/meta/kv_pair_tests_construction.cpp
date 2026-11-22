@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 kv_pair_tests_construction.cpp
+* djinterp [cpp][meta]                            kv_pair_tests_construction.cpp
 *
 *   Construction tests: the member typedefs, the value, default and rvalue
 * constructors, make_kv's decayed types, and constexpr construction.

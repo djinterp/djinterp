@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 ftp_command.h
+* djinterp [c][net]                                                ftp_command.h
 *
 * FTP commands: the verb vocabulary, formatting, and parsing.
 *   A table of the RFC 959 commands and their standard extensions with each

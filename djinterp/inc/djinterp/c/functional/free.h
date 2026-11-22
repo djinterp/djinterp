@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                            free.h
+* djinterp [c][functional]                                                free.h
 *
 * `free<F,A>` and `cofree<F,A>`: the two recursive carriers of Table 7.2.
 *   `free<F,A> = mu X. (A + F X)` is a tree whose leaves are either a HOLE

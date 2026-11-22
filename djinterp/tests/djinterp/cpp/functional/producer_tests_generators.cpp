@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                            producer_tests_generators.cpp
+* djinterp [cpp][functional]                       producer_tests_generators.cpp
 *
 *   Tests for the source producers that do not wrap another producer:
 * iterate, unfold, range, iota, repeat, repeat_n, cycle, generate, empty,

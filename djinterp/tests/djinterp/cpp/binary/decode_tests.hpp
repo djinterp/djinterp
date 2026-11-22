@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [binary/test]                                        decode_tests.hpp
+* djinterp [cpp][binary]                                        decode_tests.hpp
 *
 *   Declarations, fixtures, and the per-suite assertion macro for the decode.hpp
 * unit tests.  decode.hpp owns the reader over a bit string (DByteReader), the

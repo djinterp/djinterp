@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                    svg.hpp
+* djinterp [cpp][tools]                                                  svg.hpp
 *
 * SVG export.
 *   Writes a draw_list as a standalone SVG document -- rectangles, then faces,

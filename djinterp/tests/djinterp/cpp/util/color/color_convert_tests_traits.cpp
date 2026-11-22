@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 color_convert_tests_traits.cpp
+* djinterp [cpp][utility]                         color_convert_tests_traits.cpp
 *
 *   The color_convert suite, block "traits": which pairs are convertible, the
 * trait's shape and _v form, qualifier stripping, the two argument orders,

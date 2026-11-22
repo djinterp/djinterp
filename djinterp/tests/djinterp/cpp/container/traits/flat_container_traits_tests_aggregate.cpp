@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                   flat_container_traits_tests_aggregate.cpp
+* djinterp [cpp][container]            flat_container_traits_tests_aggregate.cpp
 *
 *   Section II - flat_container_class, the assembled snapshot: is_container, depth,
 * is_flat, is_strictly_flat, and the shared DStructureKind summary (kind + name),

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          archive_tests_api.cpp
+* djinterp [cpp][utility]                                  archive_tests_api.cpp
 *
 *   Tests for the non-throwing API edges (empty-list round-trips) and the
 * throwing convenience wrappers (round-trip, and DArchiveError on create

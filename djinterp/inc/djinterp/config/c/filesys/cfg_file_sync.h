@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                              cfg_file_sync.h
+* djinterp [c][filesys]                                          cfg_file_sync.h
 *
 * Build-time configuration for c/filesys/file_sync.h -- forcing data to durable
 * storage.

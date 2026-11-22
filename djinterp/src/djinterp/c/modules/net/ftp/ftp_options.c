@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 ftp_options.c
+* djinterp [c][net]                                                ftp_options.c
 *
 * Implementation of the client options declared in ftp_options.h.
 *

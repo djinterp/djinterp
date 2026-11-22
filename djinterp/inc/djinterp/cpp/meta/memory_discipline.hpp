@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                           memory_discipline.hpp
+* djinterp [cpp][meta]                                     memory_discipline.hpp
 *
 *   The framework's foundational MEMORY-DISCIPLINE vocabulary - the answer to
 * "what kind of memory does a strategy use?": a general-purpose heap, a pool, an

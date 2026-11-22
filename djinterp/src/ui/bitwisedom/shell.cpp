@@ -1,11 +1,12 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                      shell.cpp
+* djinterp [cpp][tools]                                                shell.cpp
 *
 * The tool windows' table, and the keys windows are known by.
 *   Every tool window has a title, a key that names its window within a
 * workspace -- so two workspaces each have an inspector of their own, laid
 * out as each was left -- a place it is first docked, and whether a
 * workspace never laid out before opens it.
+*
 *
 * path:      /src/ui/bitwisedom/shell.cpp
 * link(s):   TBA

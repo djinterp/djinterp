@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                           pop_tests_sa_send.c
+* djinterp [c][net]                                          pop_tests_sa_send.c
 *
 * Tests of how a connection's errors become the POP3 kernel's, and of the
 * send helpers over a connection.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    bsearch_tests_robustness.cpp
+* djinterp [cpp][meta]                              bsearch_tests_robustness.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/bsearch_tests_robustness.cpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                               dgit_internal.h
+* djinterp [c][tools]                                            dgit_internal.h
 *
 * What the git extension's units share, and no other unit sees.
 *   Files: a file read whole, written beside its target and renamed over it,
@@ -10,6 +10,7 @@
 * pieces. Inflating: zlib's stream, which git's objects and packs are
 * written in, read without zlib. Both are written here for the git
 * extension alone, which shares them with no other extension.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/git/dgit_internal.h
 * link(s):   TBA

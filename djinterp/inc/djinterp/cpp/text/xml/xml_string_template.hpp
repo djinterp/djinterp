@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                         xml_string_template.hpp
+* djinterp [cpp][text]                                   xml_string_template.hpp
 *
 *   XML facade over `DMarkupStringTemplate<EscapePolicy>`. Binds
 * `DXmlEscapePolicy` and re-exports the templating engine under

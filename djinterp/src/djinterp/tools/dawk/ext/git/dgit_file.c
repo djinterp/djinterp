@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                   dgit_file.c
+* djinterp [c][tools]                                                dgit_file.c
 *
 * Definitions for the files of dgit_internal.h.
 *   Reading and writing are ISO C. Asking what a path names, reading a link,
@@ -7,6 +7,7 @@
 * twice, for POSIX and for Windows, the system choosing between whole
 * functions: no body here is split by a conditional. Windows has no link git
 * can make there, no inode and no owner, so those answers are none and 0.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/git/dgit_file.c
 * link(s):   TBA

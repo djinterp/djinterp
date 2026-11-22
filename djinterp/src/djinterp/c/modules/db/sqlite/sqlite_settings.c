@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 sqlite_settings.c
+* djinterp [c][db]                                             sqlite_settings.c
 *
 * Implementation of sqlite_settings.h.
 *   A typed set writes the PRAGMA and reads it back; a get reads it. Both go

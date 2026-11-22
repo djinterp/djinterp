@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                     fuzz_lex.c
+* djinterp [c][parse]                                                 fuzz_lex.c
 *
 * Fuzz the scanner and the literal decoder: random token soup, no crash, no.
 *

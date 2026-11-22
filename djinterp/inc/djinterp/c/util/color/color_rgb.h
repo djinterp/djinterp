@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       color_rgb.h
+* djinterp [c][utility]                                              color_rgb.h
 *
 *   RGB family shared kernel for the djinterp color module. Defines the
 * linear-RGB POD and its companions (straight-alpha RGBA, premultiplied

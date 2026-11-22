@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                               stress_fuzz.c
+* djinterp [c][parse]                                              stress_fuzz.c
 *
 * Expression core v2's libFuzzer harness: each input is scanned and parsed
 * by dawk's signature, through the same path as the stress suite's random

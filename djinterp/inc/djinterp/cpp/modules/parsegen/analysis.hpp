@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                           analysis.hpp
+* djinterp [cpp][parsegen]                                          analysis.hpp
 *
 *   The C++ face of grammar analysis declared in analysis.h.
 *   `facts` derives from dj_parsegen_facts, adds no data member, and is asserted

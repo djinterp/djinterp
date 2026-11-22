@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                             event_handler_tests_invocation.cpp
+* djinterp [cpp][event]                       event_handler_tests_invocation.cpp
 *
 *   Section II -- VERDICT NORMALIZATION + tuple-apply.  Covers the internal
 * invocation helpers: invoke_normalized (a void-returning handler is run and

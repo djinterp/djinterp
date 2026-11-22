@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            sort_view_tests.hpp
+* djinterp [cpp][utility]                                    sort_view_tests.hpp
 *
 *   unit-test suite for sort_view.hpp.
 * Declares every tests_sort_view_* predicate and the helpers the suite's

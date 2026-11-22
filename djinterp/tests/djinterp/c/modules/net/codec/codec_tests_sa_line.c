@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                         codec_tests_sa_line.c
+* djinterp [c][net]                                        codec_tests_sa_line.c
 *
 * Standalone tests of codec_line.h: lines found and split, CR LF and bare LF
 * alike, the checks for line breaks, and the line buffer -- each of its

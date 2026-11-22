@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                              event_table_tests_merge_clear.cpp
+* djinterp [cpp][event]                        event_table_tests_merge_clear.cpp
 *
 *   Section III (merge + clear) -- whole-table composition and teardown.
 * merge realizes the pointwise concatenation rho (+) rho': it appends _other's

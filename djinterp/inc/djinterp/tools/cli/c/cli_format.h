@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  cli_format.h
+* djinterp [c][tools]                                               cli_format.h
 *
 * Help as GNU programs lay it out, for the argument parser's formatter.
 *   The layout (GRAMMAR.md, section 6):

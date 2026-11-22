@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                         cow.hpp
+* djinterp [cpp][sync]                                                   cow.hpp
 *
 * Copy-on-write and immutable snapshot primitives for the thread-safe
 * framework.

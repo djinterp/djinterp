@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                    t_value.c
+* djinterp [c][math]                                                   t_value.c
 *
 *   Conformance harness for the value layer (c/math/value.h): every operation
 * on every pairing of kinds, against the exact reference of

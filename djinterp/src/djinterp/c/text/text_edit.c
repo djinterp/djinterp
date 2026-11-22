@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       text_edit.c
+* djinterp [c][text]                                                 text_edit.c
 *
 *   Text edit: the changes in an array, each with its own copy of its text and
 * the order it was made in. Applying sorts them by where they start, measures

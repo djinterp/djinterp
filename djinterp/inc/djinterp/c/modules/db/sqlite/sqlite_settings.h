@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 sqlite_settings.h
+* djinterp [c][db]                                             sqlite_settings.h
 *
 * SQLite's settings -- its PRAGMAs -- as get/set pairs.
 *   The settings most programs touch have typed functions; d_sqlite_set_pragma

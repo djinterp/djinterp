@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                               tls_tests.cpp
+* djinterp [cpp][net]                                              tls_tests.cpp
 *
 * Tests of the TLS layer, net/tls/tls.hpp.
 *   A server thread of dmutex.h's accepts on a loopback port with the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                         t_arena.c
+* djinterp [c][memory]                                                 t_arena.c
 *
 *   Arena conformance harness. Runs against ANY configuration of the memory
 * subframework, including builds with no heap: a section the configuration did

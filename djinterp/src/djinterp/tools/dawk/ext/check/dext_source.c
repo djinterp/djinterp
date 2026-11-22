@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                              dext_source.c
+* djinterp [c][tools]                                              dext_source.c
 *
 * Definitions for dext_source.h.
 *   The file is read in chunks to its end rather than sized with a seek, so a

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        read_write_container.hpp
+* djinterp [cpp][container]                             read_write_container.hpp
 *
 *   The read_write access wrapper: the full-capability member of the access
 * trio. It HOLDS a container privately and forwards both the const observation

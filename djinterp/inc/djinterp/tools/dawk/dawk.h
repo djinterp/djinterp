@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                     dawk.h
+* djinterp [c][tools]                                                     dawk.h
 *
 *   Embedding and extension interface for the dawk interpreter.
 *     dawk is a POSIX awk implementation exposed as a library.  Section 4

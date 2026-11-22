@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     text_source.c
+* djinterp [c][text]                                               text_source.c
 *
 *   Text source: the text, whether the source owns it, and the offset where
 * each line starts, found in one pass when the source is made. A line is

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [vparse]                                                       heat.cpp
+* djinterp [cpp][tools]                                                 heat.cpp
 *
 * Building a run's heat space from its trace, and reading it back.
 *   One pass over the trace does everything: each step is counted at its cell,
@@ -8,6 +8,7 @@
 * backtrack pops frames until the depth matches the next step's -- recording at
 * every step the innermost frame open as it runs. The end-of-input gate belongs
 * to no rule, so its steps are not counted and it ends any stay in a cell.
+*
 *
 * path:      /src/djinterp/tools/vparse/heat.cpp
 * link(s):   TBA

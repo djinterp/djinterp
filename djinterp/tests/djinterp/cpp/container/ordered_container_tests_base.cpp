@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                            ordered_container_tests_base.cpp
+* djinterp [cpp][container]                     ordered_container_tests_base.cpp
 *
 *   Section TU: the DOrderedBase CRTP order operations.  Every method is driven
 * through a vector-backed derived container, and each branch is reached

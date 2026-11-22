@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                mongodb_face.hpp
+* djinterp [cpp][db]                                            mongodb_face.hpp
 *
 * The C++ face of djinterp's MongoDB layer.
 *   face::mongodb owns a handle, the layer's struct dj_mongodb around the

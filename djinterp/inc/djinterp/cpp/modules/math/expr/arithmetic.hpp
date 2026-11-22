@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                             arithmetic.hpp
+* djinterp [cpp][math]                                            arithmetic.hpp
 *
 * The arithmetic of the run-time expression language beyond value.h's: the
 * standard functions' evaluators in a floating-point type, in a complex type

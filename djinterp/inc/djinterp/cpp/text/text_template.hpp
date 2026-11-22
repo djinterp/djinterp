@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               text_template.hpp
+* djinterp [cpp][text]                                         text_template.hpp
 *
 *   Convenient, high-performance string interpolation.  `DTextTemplate` binds a
 * `parser` (parser.hpp), which scans a format string with `{key}` placeholders

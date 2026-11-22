@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                   sequential_container_tests_algorithms.cpp
+* djinterp [cpp][container]            sequential_container_tests_algorithms.cpp
 *
 *   Section TU: the free order algorithms.  Behaviourally identical to the
 * ordered suite (empty / partial / exact / mismatch / over-long, then

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              file_recursive.hpp
+* djinterp [cpp][filesys]                                     file_recursive.hpp
 *
 * Recursive traversal (roadmap Phase 9) -- walking a whole tree, and removing
 * one.

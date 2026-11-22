@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                           arg_command.hpp
+* djinterp [cpp][parse]                                          arg_command.hpp
 *
 * The argument parser's C++ face: commands.
 *   CLI11's App is one class for the root, its subcommands and its option

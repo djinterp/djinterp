@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                             ostream_format_null_tests_runner.c
+* djinterp [c][text]                          ostream_format_null_tests_runner.c
 *
 * The runner for printf's heap fallback with no heap: options, then the
 * module.

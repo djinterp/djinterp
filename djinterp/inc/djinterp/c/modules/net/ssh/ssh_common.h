@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                  ssh_common.h
+* djinterp [c][net]                                                 ssh_common.h
 *
 * SSH shared base: what every other SSH header builds on.
 *   The status every fallible call returns, and which of its values end a

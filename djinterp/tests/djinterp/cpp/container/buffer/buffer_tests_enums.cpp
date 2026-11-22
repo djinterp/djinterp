@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         buffer_tests_enums.cpp
+* djinterp [cpp][container]                               buffer_tests_enums.cpp
 *
 *   Unit tests for the buffer_growth_strategy and buffer_cursor_model
 * enumerations (sections I and II of buffer.hpp).  Both enums exist purely

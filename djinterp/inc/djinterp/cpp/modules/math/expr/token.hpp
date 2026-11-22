@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                  token.hpp
+* djinterp [cpp][math]                                                 token.hpp
 *
 * Tokens: math text cut into numbers, names, symbols, brackets, commas and
 * semicolons, the first layer of the run-time expression language.

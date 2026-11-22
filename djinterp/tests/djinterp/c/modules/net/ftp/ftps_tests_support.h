@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                          ftps_tests_support.h
+* djinterp [c][net]                                         ftps_tests_support.h
 *
 * FTPS test support: what ftps_tests_support.c gives the suites -- the toy
 * TLS engine and its settings, the threaded server and what it saw, and the

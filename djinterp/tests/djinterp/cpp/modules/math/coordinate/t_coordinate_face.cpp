@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                      t_coordinate_face.cpp
+* djinterp [cpp][math]                                     t_coordinate_face.cpp
 *
 *   Tests for the coordinate headers -- cartesian, polar, cylindrical,
 * spherical, coordinate -- at every level from C++98: each system's

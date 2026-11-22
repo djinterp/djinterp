@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                          syntax_tests_cpp.c
+* djinterp [c][parse]                                         syntax_tests_cpp.c
 *
 * The syntax items' suite, block "cpp": the items of C++ heads, template
 * arguments, template heads, class heads with base lists, constructors'

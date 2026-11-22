@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parsegen]                                                grammar.c
+* djinterp [c][parsegen]                                               grammar.c
 *
 *   Definitions for the non-inline declarations in grammar.h.
 *

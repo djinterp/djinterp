@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     text_intern_tests_intern.c
+* djinterp [c][text]                                  text_intern_tests_intern.c
 *
 * The text_intern suite: every block, as the table is small.
 *

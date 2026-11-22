@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     mariadb.cpp
+* djinterp [cpp][db]                                                 mariadb.cpp
 *
 * Definitions for mariadb.hpp: mariadb_connection's constructors,
 * configuration and hooks, and the MySQL family's members instantiated for

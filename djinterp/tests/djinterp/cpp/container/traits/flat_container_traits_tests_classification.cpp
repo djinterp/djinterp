@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]              flat_container_traits_tests_classification.cpp
+* djinterp [cpp][container]       flat_container_traits_tests_classification.cpp
 *
 *   Section I - the flat verdict.  is_flat_container is container-shaped AND NOT
 * hierarchical; is_strictly_flat_container adds that the value_type-chain depth is

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  bifunctor_tests_instances.cpp
+* djinterp [cpp][functional]                       bifunctor_tests_instances.cpp
 *
 *   Section III of the bifunctor.hpp suite: the two shipped instances, std::pair
 * and DKvPair, exercised specifically.  Covers each instance's bimap called

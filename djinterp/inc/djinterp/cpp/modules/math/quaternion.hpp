@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                             quaternion.hpp
+* djinterp [cpp][math]                                            quaternion.hpp
 *
 * Quaternions for representing and composing 3D rotations without gimbal
 * lock, and their algebra.

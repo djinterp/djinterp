@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                             option_factory_tests_make_type.cpp
+* djinterp [cpp][option]                      option_factory_tests_make_type.cpp
 *
 *   Section II - make_option_t, the compile-time option factory.  It is a thin
 * alias for option<_Key, _Args...>, so the tests confirm it forwards the key

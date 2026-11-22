@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                       env_tls.h
+* djinterp [c][env]                                                    env_tls.h
 *
 * djinterp TLS backend environment detection.
 *   Compile-time detection of the TLS libraries available to the net TLS

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  mariadb_common.c
+* djinterp [c][db]                                              mariadb_common.c
 *
 * Implementation of mariadb_common.h.
 *   What a server can do is decided by its flavor and version, which the

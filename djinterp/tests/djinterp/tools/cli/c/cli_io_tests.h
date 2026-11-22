@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                cli_io_tests.h
+* djinterp [c][tools]                                             cli_io_tests.h
 *
 * The suite of the command-line kit's streams and files (cli_io.c): which
 * names are the standard streams; the standard sinks; whether a stream is a

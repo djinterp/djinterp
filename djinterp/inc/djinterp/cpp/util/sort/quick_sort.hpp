@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  quick_sort.hpp
+* djinterp [cpp][utility]                                         quick_sort.hpp
 *
 *   Quicksort: the sequential driver.
 * In-place, divide-and-conquer, unstable, comparison-based.  The range is

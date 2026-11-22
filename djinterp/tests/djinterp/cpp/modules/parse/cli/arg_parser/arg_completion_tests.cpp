@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                  arg_completion_tests.cpp
+* djinterp [cpp][parse]                                 arg_completion_tests.cpp
 *
 * The argument parser's C++ completion suite's sections.
 *   Every section is the module's own, as CLI11 writes no completion script:

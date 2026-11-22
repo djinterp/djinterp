@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             archive_options.hpp
+* djinterp [cpp][utility]                                    archive_options.hpp
 *
 *   Container tuning knobs for the C++ facade -- RE-BASED onto the shared
 * kernel, but NOT the same way compress_options was, and the difference is

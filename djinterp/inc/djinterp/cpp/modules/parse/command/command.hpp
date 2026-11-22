@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                               command.hpp
+* djinterp [cpp][parse]                                              command.hpp
 *
 *
 * path:      /inc/djinterp/cpp/modules/parse/command/command.hpp

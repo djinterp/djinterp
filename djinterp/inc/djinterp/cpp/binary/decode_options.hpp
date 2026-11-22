@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              decode_options.hpp
+* djinterp [cpp][binary]                                      decode_options.hpp
 *
 *   The CONFIGURABLE face of the leaf decoder - the exact inverse of
 * encode_options.hpp.  decode.hpp fixes one decoding (big-endian scalars, an

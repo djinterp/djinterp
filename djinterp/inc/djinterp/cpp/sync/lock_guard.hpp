@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  lock_guard.hpp
+* djinterp [cpp][sync]                                            lock_guard.hpp
 *
 * Policy-aware RAII lock guards for the thread-safe framework.
 *   These guards are the primary mechanism for acquiring and releasing locks

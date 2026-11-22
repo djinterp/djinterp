@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      database_tests_runner.cpp
+* djinterp [cpp][db]                                   database_tests_runner.cpp
 *
 * The runner for the C++ database vocabulary's suite: each test in
 * database_tests.hpp, in turn, with a line for each that fails and the tally

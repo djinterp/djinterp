@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      option_override_tests.hpp
+* djinterp [cpp][option]                               option_override_tests.hpp
 *
 *   Declarations, fixtures, and section block-providers for the
 * option_override.hpp unit suite.  option_override.hpp is a purely TYPE-LEVEL

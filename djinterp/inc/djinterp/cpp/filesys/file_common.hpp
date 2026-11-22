@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 file_common.hpp
+* djinterp [cpp][filesys]                                        file_common.hpp
 *
 * Common base for the C++ filesystem layer -- the C++ counterpart to the C
 * file_common.h, which it derives from.

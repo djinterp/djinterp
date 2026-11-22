@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 option_env_desc.c
+* djinterp [c][option]                                         option_env_desc.c
 *
 *   A frame's settings as desc facts: each visible variable a level, with its
 * value in force, source, default, knob, help and refused sources, and on

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                   dmake_bsd.c
+* djinterp [c][tools]                                                dmake_bsd.c
 *
 * Reads a makefile's statements as BSD make, as bmake reads one: see
 * dmake.h.
@@ -29,6 +29,7 @@
 * not counted. Every branch is read as one bmake evaluates: in a branch it
 * skips, bmake reads no loop, so a `.for` or `.endfor` there counts for
 * nothing, and its conditionals count in the scope about it.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/make/dmake_bsd.c
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                              test_dmsvs_doc.c
+* djinterp [c][tools]                                           test_dmsvs_doc.c
 *
 * Exercises `dmsvs_doc.h`: each change, with the text it leaves, to the byte;
 * handles that follow their elements across changes and name nothing once
@@ -17,6 +17,7 @@
 *                                                   file
 *   test_dmsvs_doc --fuzz-into <out> <seed> <dir>.. the same, each file then
 *                                                   saved into <out>
+*
 *
 * path:      /tests/djinterp/tools/dawk/ext/msvs/test_dmsvs_doc.c
 * link(s):   TBA

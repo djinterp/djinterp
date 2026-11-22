@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                          option_set_compare_tests_carriers.cpp
+* djinterp [cpp][option]                   option_set_compare_tests_carriers.cpp
 *
 *   Section IV of the option_set_compare.hpp suite: the value-carrier sentinels
 * and their structural equality.

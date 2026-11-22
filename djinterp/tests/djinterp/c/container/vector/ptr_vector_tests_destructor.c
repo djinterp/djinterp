@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  ptr_vector_tests_destructor.c
+* djinterp [c][container]                          ptr_vector_tests_destructor.c
 *
 *   Unit tests for ptr_vector destructor functions.
 *

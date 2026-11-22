@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        result_tests_traits.cpp
+* djinterp [cpp][functional]                             result_tests_traits.cpp
 *
 * SFINAE structural trait tests for result.hpp section II:
 *   is_result<T>, result_value_type<R> / result_error_type<R>,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            compress_options.hpp
+* djinterp [cpp][utility]                                   compress_options.hpp
 *
 *   Codec tuning knobs for the C++ facade -- RE-BASED onto the shared kernel.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                heatmap.hpp
+* djinterp [cpp][tools]                                              heatmap.hpp
 *
 *   The heatmap lens (lens_mode::heatmap): the value mapping from the state
 * space onto a scene.  It samples the cell metric over a grid of up to two axes

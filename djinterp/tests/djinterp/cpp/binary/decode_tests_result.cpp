@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                         decode_tests_result.cpp
+* djinterp [cpp][binary]                                 decode_tests_result.cpp
 *
 *
 * path:      /tests/djinterp/cpp/binary/decode_tests_result.cpp

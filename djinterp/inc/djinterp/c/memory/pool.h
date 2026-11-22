@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                            pool.h
+* djinterp [c][memory]                                                    pool.h
 *
 * Fixed-slot pool -- the shared C core (tier 0):
 *   An allocator that vends one size. Because every slot is the same, there is

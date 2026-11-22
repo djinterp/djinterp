@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp                                                            cli_unix.h
+* djinterp [c][cli]                                                   cli_unix.h
 *
 *   Unix CLI convention layer built on `cli_option.h`. Handles:
 *

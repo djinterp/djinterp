@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                    t_dckdint.c
+* djinterp [c]                                                       t_dckdint.c
 *
 *   The checked-arithmetic kit's harness (c/dckdint.h): d_ckd_add, d_ckd_sub
 * and d_ckd_mul against a table of edge cases and a sweep of random operands,

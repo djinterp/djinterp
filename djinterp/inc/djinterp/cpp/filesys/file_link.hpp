@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   file_link.hpp
+* djinterp [cpp][filesys]                                          file_link.hpp
 *
 * Symbolic links (roadmap Phase 8) -- create one, read where it points, ask
 * whether a path is one.

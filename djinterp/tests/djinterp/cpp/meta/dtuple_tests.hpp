@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               dtuple_tests.hpp
+* djinterp [cpp][meta]                                          dtuple_tests.hpp
 *
 *   Unit-test suite for the djinterp tuple metafunction module
 * (`dtuple.hpp`).  Tests are split across multiple translation units, one

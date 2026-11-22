@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                    dtuple_wrap_partition_tests_integration.cpp
+* djinterp [cpp][meta]               dtuple_wrap_partition_tests_integration.cpp
 *
 *   Section V of dtuple_wrap_partition.hpp: the partition_wrap_except_t alias,
 * the engine's agnosticism to the wrapper it is handed, and end-to-end runs on

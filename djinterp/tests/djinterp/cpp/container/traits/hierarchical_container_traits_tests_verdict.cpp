@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]             hierarchical_container_traits_tests_verdict.cpp
+* djinterp [cpp][container]      hierarchical_container_traits_tests_verdict.cpp
 *
 *   Section III - the nesting verdict.  is_hierarchical_container combines the
 * signals by precedence: a container-shaped node_type OR a hierarchical tag yields

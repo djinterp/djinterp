@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             tuple_partition.hpp
+* djinterp [cpp][meta]                                       tuple_partition.hpp
 *
 * djinterp tuple partitioning module:
 *   Slicing a flat parameter pack or tuple into a sequence of sub-tuples

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 option_override.h
+* djinterp [c][option]                                         option_override.h
 *
 * The merge engine's front door. Include THIS. See option.h for the umbrella
 * pattern and for the note on the provisional dispatch spelling.

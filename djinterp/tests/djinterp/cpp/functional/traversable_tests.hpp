@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          traversable_tests.hpp
+* djinterp [cpp][functional]                               traversable_tests.hpp
 *
 *   Unit-test declarations for core/functional/traversable.hpp -- the capstone of
 * the functional layer: walk a structure left-to-right, run an applicative effect

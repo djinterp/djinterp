@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                           cfg_event_common.h
+* djinterp [c][event]                                         cfg_event_common.h
 *
 *   Root configuration for the event subframework. Owns the aggregate and the
 * presets, the foundation knobs every event module reads, and the derived

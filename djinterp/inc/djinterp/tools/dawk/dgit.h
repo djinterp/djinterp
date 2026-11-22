@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                        dgit.h
+* djinterp [c][tools]                                                     dgit.h
 *
 * SCRATCH STUB -- not part of the delivered tree.
 *   dcheck.c includes this header and calls three functions from it, but

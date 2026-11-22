@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                           cli_read.cpp
+* djinterp [cpp][tools]                                             cli_read.cpp
 *
 * The commands that read a sheet: gen, check, show, decode, eval, convert and
 * examples.
@@ -13,6 +13,7 @@
 * names, eval for an expression that does not evaluate.
 *   An option counts as given when it is on the command line at all: `--date=`
 * is a date that is not one, never today's.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/cli/cli_read.cpp
 * link(s):   TBA

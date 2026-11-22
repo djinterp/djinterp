@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                               threadsafe_common.h
+* djinterp [c][sync]                                         threadsafe_common.h
 *
 * Cross-platform thread safety vocabulary and inline spinlock.
 *   Composes primitives from datomic.h and dmutex.h into higher-level

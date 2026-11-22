@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            output_packaging.hpp
+* djinterp [cpp][utility]                                   output_packaging.hpp
 *
 *   The runtime packaging vocabulary the document-output stack consumes:
 * document_bundle collects a run's documents and drives them through this

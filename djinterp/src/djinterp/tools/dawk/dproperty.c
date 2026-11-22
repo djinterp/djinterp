@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                dproperty.c
+* djinterp [c][tools]                                                dproperty.c
 *
 * Property evaluation:
 *   Evaluation, derivation and repair for every property a sheet may name.  A

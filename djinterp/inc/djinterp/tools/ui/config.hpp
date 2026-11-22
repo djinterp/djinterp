@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                 config.hpp
+* djinterp [cpp][tools]                                               config.hpp
 *
 *   The configuration model (roadmap phase 1b): the declarative description of
 * a visualization.  Every knob a frontend exposes maps to a field here, grouped

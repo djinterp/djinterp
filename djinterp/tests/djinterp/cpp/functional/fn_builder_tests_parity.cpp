@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    fn_builder_tests_parity.cpp
+* djinterp [cpp][functional]                         fn_builder_tests_parity.cpp
 *
 * Parity tests (section viii): the C++ face against the C kernel.
 *   test_parity_c_kernel -- the same chains, built with DFnBuilder and with

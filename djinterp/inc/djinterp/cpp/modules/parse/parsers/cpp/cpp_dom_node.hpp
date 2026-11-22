@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                          cpp_dom_node.hpp
+* djinterp [cpp][parse]                                         cpp_dom_node.hpp
 *
 * C++ DOM Node Payload:
 *   Extends dom_node with fields specific to C++ declarations: qualified

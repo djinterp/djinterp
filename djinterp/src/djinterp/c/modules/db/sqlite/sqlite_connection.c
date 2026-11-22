@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                               sqlite_connection.c
+* djinterp [c][db]                                           sqlite_connection.c
 *
 * Implementation of sqlite_connection.h.
 *   Every open goes through sqlite3_open_v2, which allocates a handle even

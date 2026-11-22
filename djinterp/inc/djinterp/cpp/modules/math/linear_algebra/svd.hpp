@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                    svd.hpp
+* djinterp [cpp][math]                                                   svd.hpp
 *
 * Singular value decomposition and pseudoinverse for the linear-algebra
 * subframework.

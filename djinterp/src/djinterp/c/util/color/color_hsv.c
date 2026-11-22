@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       color_hsv.c
+* djinterp [c][utility]                                              color_hsv.c
 *
 *   External-definition unit for color_hsv.h. The HSV bodies live in the
 * header as `inline`; this unit re-declares their prototypes so one out-of-

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                env_attributes.h
+* djinterp [c][env]                                             env_attributes.h
 *
 * djinterp portable wrappers for standard attributes.
 *   D_* macros that expand to the right spelling of each standard [[...]]

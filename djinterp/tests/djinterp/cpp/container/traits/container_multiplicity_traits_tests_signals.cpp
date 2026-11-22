@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]             container_multiplicity_traits_tests_signals.cpp
+* djinterp [cpp][container]      container_multiplicity_traits_tests_signals.cpp
 *
 *   Section I - the structural signals the verdict is read from: the
 * countability guard (a value_type AND a const size()), the closed-interval

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [parsegen]                                    vparse_tests_runner.cpp
+* djinterp [cpp][parsegen]                               vparse_tests_runner.cpp
 *
 * Entry point for the vparse test suite.  Lives in the config tree (next to
 * the CMakeLists), includes the test header, and drives the tests_* section

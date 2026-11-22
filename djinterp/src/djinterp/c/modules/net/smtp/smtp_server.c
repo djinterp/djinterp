@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 smtp_server.c
+* djinterp [c][net]                                                smtp_server.c
 *
 * djinterp SMTP server -- implementation.
 *   The session engine: a loop that reads one command, dispatches it on its

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             test_lex_unicode.c
+* djinterp [c][parse]                                         test_lex_unicode.c
 *
 * Unit tests: UTF-8 validation, identifier sets, UCNs, NFC, end positions,.
 *

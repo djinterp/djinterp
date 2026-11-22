@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      pipeline_tests_traits.cpp
+* djinterp [cpp][functional]                           pipeline_tests_traits.cpp
 *
 * SFINAE structural trait & concept tests for pipeline.hpp section III:
 *   is_pipeline, pipeline_value_type, is_pipeline_mapper, is_pipeline_predicate,

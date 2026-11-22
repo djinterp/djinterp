@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [text]                                            text_lineup_tests.c
+* djinterp [c][text]                                         text_lineup_tests.c
 *
 *
 * path:      /tests/djinterp/c/text/text_lineup_tests.c

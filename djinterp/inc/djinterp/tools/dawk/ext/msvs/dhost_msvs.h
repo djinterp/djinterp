@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  dhost_msvs.h
+* djinterp [c][tools]                                               dhost_msvs.h
 *
 * The msvs extension: Visual Studio's files, all of them, from awk.
 *   An umbrella over two parts: sln, for solutions, and vcxproj, for MSBuild's
@@ -8,6 +8,7 @@
 * files a pattern names, and what a path is. A program that only reads
 * solutions can install sln alone, and one that only edits projects,
 * vcxproj alone.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/msvs/dhost_msvs.h
 * link(s):   TBA

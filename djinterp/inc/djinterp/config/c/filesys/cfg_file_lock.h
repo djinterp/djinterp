@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                              cfg_file_lock.h
+* djinterp [c][filesys]                                          cfg_file_lock.h
 *
 * Build-time configuration for c/filesys/file_lock.h -- advisory file locking.
 *

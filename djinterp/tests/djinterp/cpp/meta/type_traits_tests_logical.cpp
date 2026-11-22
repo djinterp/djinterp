@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  type_traits_tests_logical.cpp
+* djinterp [cpp][meta]                             type_traits_tests_logical.cpp
 *
 *   Unit tests for the logical metafunctions in Section I.1 and the
 * portable logical-metafunction macros in Section II of type_traits.hpp:

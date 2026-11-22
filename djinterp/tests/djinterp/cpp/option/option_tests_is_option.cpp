@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     option_tests_is_option.cpp
+* djinterp [cpp][option]                              option_tests_is_option.cpp
 *
 *   Section III of the option.hpp suite: the is_option detection trait.
 *

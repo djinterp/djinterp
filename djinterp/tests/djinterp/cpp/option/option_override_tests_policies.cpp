@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                             option_override_tests_policies.cpp
+* djinterp [cpp][option]                      option_override_tests_policies.cpp
 *
 *   Section V of the option_override.hpp suite: the ready-made policy aliases.
 *

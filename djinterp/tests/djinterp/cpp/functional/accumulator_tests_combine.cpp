@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                   accumulator_tests_combine.cpp
+* djinterp [cpp][functional]                       accumulator_tests_combine.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/accumulator_tests_combine.cpp

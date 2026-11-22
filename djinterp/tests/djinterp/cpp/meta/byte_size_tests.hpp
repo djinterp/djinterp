@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            byte_size_tests.hpp
+* djinterp [cpp][meta]                                       byte_size_tests.hpp
 *
 *   Unit-test suite for the container byte-footprint module `byte_size.hpp`.
 * Tests are split across translation units, one per semantic section of the

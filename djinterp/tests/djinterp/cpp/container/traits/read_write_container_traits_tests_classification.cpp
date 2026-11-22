@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]            read_write_container_traits_tests_classification.cpp
+* djinterp [cpp][container] read_write_container_traits_tests_classification.cpp
 *
 *
 * path:      /tests/djinterp/cpp/container/traits/read_write_container_traits_tests_classification.cpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                     settings_tests_runner.c
+* djinterp [c][parse]                                    settings_tests_runner.c
 *
 * The runner for parse's settings suite: its options and its spec.
 *   It defines DTEST_SPEC_MODE before the suite header, which then gives it

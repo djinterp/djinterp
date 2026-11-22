@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]          container_multiplicity_traits_tests_predicates.cpp
+* djinterp [cpp][container]   container_multiplicity_traits_tests_predicates.cpp
 *
 *   Section III - the boolean projections of the kind: is_sequence_container
 * (the comparator-less m = inf kind), is_unique_container (m = 1 set semantics),

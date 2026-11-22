@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                arg_system.c
+* djinterp [c][parse]                                               arg_system.c
 *
 * What the parser asks of the operating system, declared in arg_internal.h
 * (9.1 to 9.3 and 9.5), and the terminal's width, declared in arg_formatter.h

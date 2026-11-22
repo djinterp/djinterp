@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                              cfg_file_path.h
+* djinterp [cpp][filesys]                                        cfg_file_path.h
 *
 * Build-time configuration for cpp/filesys/file_path.hpp -- djinterp::path.
 *   Two knobs, both read by that one header: whether a failed allocation

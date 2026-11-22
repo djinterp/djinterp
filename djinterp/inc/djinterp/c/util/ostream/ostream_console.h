@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 ostream_console.h
+* djinterp [c][utility]                                        ostream_console.h
 *
 *   The console as a stream: stdout or stderr, written the way the platform
 * needs.

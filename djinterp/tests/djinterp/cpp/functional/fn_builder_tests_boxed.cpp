@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     fn_builder_tests_boxed.cpp
+* djinterp [cpp][functional]                          fn_builder_tests_boxed.cpp
 *
 * Type-erasure tests (section IV): DBoxedFnBuilder and box_builder.
 *

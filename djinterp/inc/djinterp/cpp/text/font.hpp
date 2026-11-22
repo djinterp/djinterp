@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                        font.hpp
+* djinterp [cpp][text]                                                  font.hpp
 *
 * Abstract font model:
 *   A framework-agnostic, OS-agnostic typography model.  Defines the

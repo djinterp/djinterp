@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                 passthrough_tests_semantics.cpp
+* djinterp [cpp][meta]                           passthrough_tests_semantics.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/passthrough_tests_semantics.cpp

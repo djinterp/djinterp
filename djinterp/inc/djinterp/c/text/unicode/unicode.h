@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                         unicode.h
+* djinterp [c][text]                                                   unicode.h
 *
 * Unicode building blocks (utf-8).
 *   This header defines commonly used unicode codepoints as utf-8 string

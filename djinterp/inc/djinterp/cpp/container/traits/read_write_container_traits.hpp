@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                 read_write_container_traits.hpp
+* djinterp [cpp][container]                      read_write_container_traits.hpp
 *
 *   The ACCESS axis (capability), container-side classifier - and the shared
 * core of the access-trait trio.  Given a type, it reports which access

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   table_carrier.c
+* djinterp [c][container]                                        table_carrier.c
 *
 *   The out-of-line half of table_carrier.h. Every definition here is
 * D_INLINE while its declaration in the header is not, so C11 6.7.4p7 makes

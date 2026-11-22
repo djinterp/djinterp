@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              djin_desc_tests.c
+* djinterp [c][interp]                                         djin_desc_tests.c
 *
 *   The djin describers of djin_desc.h, run through desc's JSON machine into
 * an array, each JSON object held to the text it should be, whole: a record

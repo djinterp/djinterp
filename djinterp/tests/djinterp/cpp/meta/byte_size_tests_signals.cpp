@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    byte_size_tests_signals.cpp
+* djinterp [cpp][meta]                               byte_size_tests_signals.cpp
 *
 *   Section II of byte_size.hpp: the internal storage-shape signal detectors
 * that decide a container's dynamic footprint.  They are implementation detail

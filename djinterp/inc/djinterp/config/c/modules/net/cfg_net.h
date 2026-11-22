@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                    cfg_net.h
+* djinterp [c][net]                                                    cfg_net.h
 *
 * Build-time configuration for the net foundation.
 *   Sizes the endpoint record and the scratch buffer of net/net.h, and fixes

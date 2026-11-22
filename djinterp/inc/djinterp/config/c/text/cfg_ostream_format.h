@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                         cfg_ostream_format.h
+* djinterp [c][text]                                        cfg_ostream_format.h
 *
 *   Configuration for formatted output onto a stream (c/text/ostream_format.h):
 * how a double is formatted in a locale of the caller's choosing, without

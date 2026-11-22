@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    pdf_document.h
+* djinterp [c][utility]                                           pdf_document.h
 *
 * The backend protocol and the document facade.
 *   A backend is whatever writes bytes; the facade is the agnostic drawing API

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                        net_tests_sa_support.c
+* djinterp [c][net]                                       net_tests_sa_support.c
 *
 * The doubles the net foundation tests run against.
 *   A scripted connection with two tables -- one supplying every optional

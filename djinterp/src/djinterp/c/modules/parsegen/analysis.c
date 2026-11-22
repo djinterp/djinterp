@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parsegen]                                               analysis.c
+* djinterp [c][parsegen]                                              analysis.c
 *
 *   Definitions for the non-inline declarations in analysis.h.
 *

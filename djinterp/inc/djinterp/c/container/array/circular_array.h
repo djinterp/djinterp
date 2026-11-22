@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  circular_array.h
+* djinterp [c][container]                                       circular_array.h
 *
 *   A circular array (ring buffer) is a fixed-capacity array data structure
 * that wraps around when elements are added or removed. It supports efficient

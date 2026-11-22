@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                            ui_tests_field.cpp
+* djinterp [cpp][tools]                                       ui_tests_field.cpp
 *
 * Unit tests for field picking and field layout in the ui draw layer.
 *

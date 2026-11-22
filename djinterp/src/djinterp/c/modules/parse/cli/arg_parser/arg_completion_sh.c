@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                         arg_completion_sh.c
+* djinterp [c][parse]                                        arg_completion_sh.c
 *
 * Completion scripts for bash and zsh, declared in arg_internal.h (11.2.4).
 *   Both scripts hold the model as shell functions -- one `case` statement

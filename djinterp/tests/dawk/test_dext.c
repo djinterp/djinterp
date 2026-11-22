@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                    test_dext.c
+* djinterp [c][tools]                                                test_dext.c
 *
 * The extensions end to end: tree shape, file attributes, and the sheet's.
 *

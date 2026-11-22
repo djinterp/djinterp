@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  mem_common.hpp
+* djinterp [cpp][memory]                                          mem_common.hpp
 *
 * C++ face of the memory subframework's shared vocabulary.
 *   This header adds NOTHING to what mem_common.h already computes. It renames

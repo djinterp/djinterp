@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            font_tests_enums.cpp
+* djinterp [cpp][text]                                      font_tests_enums.cpp
 *
 *
 * path:      /tests/djinterp/cpp/text/font_tests_enums.cpp

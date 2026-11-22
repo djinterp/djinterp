@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                css_template.hpp
+* djinterp [cpp][text]                                          css_template.hpp
 *
 *   Templated CSS declaration / rule / stylesheet facades and the
 * bundled default backend. Mirrors the templating pattern of

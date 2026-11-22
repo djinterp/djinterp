@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                   cfg_expr.h
+* djinterp [cpp][math]                                                cfg_expr.h
 *
 *   Build-time configuration of the run-time expression language
 * (cpp/modules/math/expr/): how many operands a compiled term keeps in the

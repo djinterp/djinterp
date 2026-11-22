@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                                  server.hpp
+* djinterp [cpp][net]                                                 server.hpp
 *
 *   A small HTTP/1.1 server: it accepts connections from a transport acceptor,
 * reads requests off each, invokes a request -> response handler, and writes

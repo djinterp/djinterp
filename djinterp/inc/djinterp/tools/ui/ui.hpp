@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                     ui.hpp
+* djinterp [cpp][tools]                                                   ui.hpp
 *
 *   Umbrella header for the djinterp::ui visualization module.  Includes the
 * phase 1 agnostic core (the shared types, the state / value model, the

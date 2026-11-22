@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   result_tests_conversions.cpp
+* djinterp [cpp][functional]                        result_tests_conversions.cpp
 *
 * maybe-conversion tests for result<T, E>: the ok() / err() member accessors
 * (section I) and the free to_maybe (section VI).

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                  slice.hpp
+* djinterp [cpp][tools]                                                slice.hpp
 *
 *   The slice lens (lens_mode::slice): the structural mapping from the state
 * space onto a scene.  It lays up to three axes out spatially, holds the rest

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                  cfg_event.h
+* djinterp [c][event]                                                cfg_event.h
 *
 *   Umbrella configuration for the event subframework: includes every
 * cfg_event_*.h in dependency order and computes the cross-cutting values that

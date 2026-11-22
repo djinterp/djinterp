@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                              env_mysql_common.h
+* djinterp [c][env]                                           env_mysql_common.h
 *
 * djinterp MySQL-family common detection.
 *   Compile-time detection shared by Oracle MySQL and MariaDB, which forked

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                 dmake_nmake.c
+* djinterp [c][tools]                                              dmake_nmake.c
 *
 * Reads a makefile's statements as Microsoft's NMake reads one, as its
 * documentation describes it: see dmake.h.
@@ -21,6 +21,7 @@
 * macros hold: an `!ELSE`, an `!ELSEIF` or an `!ENDIF` with no `!IF` open
 * (U1021; the documentation gives the text for `!ELSE`, and the others are
 * worded the same), and a conditional still open at the end (U1020).
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/make/dmake_nmake.c
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                       producer_tests.hpp
+* djinterp [cpp][functional]                                  producer_tests.hpp
 *
 *   Unit-test header for producer.hpp. Provides a lightweight, self-contained
 * test harness in `djinterp::testing`, shared helper producer/functor types,

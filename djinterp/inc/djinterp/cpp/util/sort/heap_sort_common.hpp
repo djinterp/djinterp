@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            heap_sort_common.hpp
+* djinterp [cpp][utility]                                   heap_sort_common.hpp
 *
 *   The primitives every heap sort is built from.  A heap sort is a driver
 * wrapped around one operation -- sift an element down an implicit binary

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               tree_iterator.hpp
+* djinterp [cpp][container]                                    tree_iterator.hpp
 *
 *   The foundational TREE iterator: a traversal of the DESCENT relation of a
 * node-linked container. Where the flat iterator visits a flat container's own

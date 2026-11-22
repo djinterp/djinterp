@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                observational_comparison_traits_tests_probes.cpp
+* djinterp [cpp][container]     observational_comparison_traits_tests_probes.cpp
 *
 *
 * path:      /tests/djinterp/cpp/container/traits/observational_comparison_traits_tests_probes.cpp

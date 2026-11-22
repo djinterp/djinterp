@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                    decimal.h
+* djinterp [c][math]                                                   decimal.h
 *
 * Decimal text to binary floating point: the float, double or long double
 * nearest a decimal number of any length, ties to even, whatever the

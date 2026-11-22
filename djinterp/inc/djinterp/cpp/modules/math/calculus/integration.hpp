@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                            integration.hpp
+* djinterp [cpp][math]                                           integration.hpp
 *
 * Numerical definite integration.
 *   Quadrature rules over [a, b] for an arbitrary callable f. Each rule is a

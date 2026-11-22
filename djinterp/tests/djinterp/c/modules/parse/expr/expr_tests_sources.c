@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                        expr_tests_sources.c
+* djinterp [c][parse]                                       expr_tests_sources.c
 *
 * Expression core v2's C suite, block "sources": the default scanner and
 * the caller's scratch for the parser's stacks.

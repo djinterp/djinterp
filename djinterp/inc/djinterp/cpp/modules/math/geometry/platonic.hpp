@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                               platonic.hpp
+* djinterp [cpp][math]                                              platonic.hpp
 *
 * The five Platonic solids as explicit triangle meshes.
 *   Each factory returns a triangle_mesh<cartesian<3, T>, V, F> whose

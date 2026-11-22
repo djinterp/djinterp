@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                expr_face_tests_runner.cpp
+* djinterp [cpp][parse]                               expr_face_tests_runner.cpp
 *
 * The runner for expression core v2's C++ face suite: its options and its
 * spec.

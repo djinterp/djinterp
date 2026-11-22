@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                       t_cpp.cpp
+* djinterp [cpp][memory]                                               t_cpp.cpp
 *
 *   C++ parity and cost-law harness. Checks that every wrapper's base subobject
 * sits at offset zero, and drives the SAME operation through both faces to

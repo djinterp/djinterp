@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                        compose_tests.hpp
+* djinterp [cpp][functional]                                   compose_tests.hpp
 *
 *   DTest declarations and shared helper types for the compose.hpp unit
 * test suite.  Each like-group semantic section of compose.hpp maps to a

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]             hierarchical_container_traits_tests_signals.cpp
+* djinterp [cpp][container]      hierarchical_container_traits_tests_signals.cpp
 *
 *   Section I - the three detection signals.  is_container_shape is the shared "is
 * this a container at all" guard (a value_type AND a const-callable size()).

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    text_core_tests_pattern.cpp
+* djinterp [cpp][text]                               text_core_tests_pattern.cpp
 *
 *   The groups for text_pattern.hpp: compiling a literal into segments, the
 * escape, the four faces (predicate, extractor, renderer, rewrite), find,

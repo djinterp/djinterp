@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           timer_tests_runner.c
+* djinterp [c][utility]                                     timer_tests_runner.c
 *
 * The runner for the timer family's suite: one module spec, the suite's own.
 *

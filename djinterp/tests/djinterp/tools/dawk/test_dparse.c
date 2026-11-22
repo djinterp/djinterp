@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                 test_dparse.c
+* djinterp [c][tools]                                              test_dparse.c
 *
 *   Unit tests for the scanner and parser.
 *     Each case is a program and the shape its tree should have, written in a

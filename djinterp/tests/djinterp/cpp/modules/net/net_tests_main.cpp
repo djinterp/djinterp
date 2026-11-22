@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                          net_tests_main.cpp
+* djinterp [cpp][net]                                         net_tests_main.cpp
 *
 * Entry point for the net foundation C++ tests.
 *   Runs the suite and reports its tally. Exits 0 only if every test passed.

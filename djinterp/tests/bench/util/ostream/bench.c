@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                        bench.c
+* djinterp [c][utility]                                                  bench.c
 *
 *   The output stream's cost, measured: one source, built against this tree's
 * kernel and against the 2026.10.07 one (-DBENCH_OLD with that branch's

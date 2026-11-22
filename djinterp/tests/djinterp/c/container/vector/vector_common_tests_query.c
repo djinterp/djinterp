@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                               vector_common_tests_query.c
+* djinterp [c][container]                            vector_common_tests_query.c
 *
 *
 * path:      /tests/djinterp/c/container/vector/vector_common_tests_query.c

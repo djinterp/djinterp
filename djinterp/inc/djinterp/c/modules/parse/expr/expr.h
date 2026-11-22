@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                      expr.h
+* djinterp [c][parse]                                                     expr.h
 *
 * Expression core v2: the umbrella, every header of the C core.
 *   The core parses text into a term by a signature -- a language's operators

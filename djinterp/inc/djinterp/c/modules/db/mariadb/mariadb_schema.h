@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  mariadb_schema.h
+* djinterp [c][db]                                              mariadb_schema.h
 *
 * Tables, columns, indexes, views and triggers in a MariaDB or MySQL database.
 *   Every function takes the database to act in, and NULL means the

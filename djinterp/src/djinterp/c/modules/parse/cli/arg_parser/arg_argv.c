@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                  arg_argv.c
+* djinterp [c][parse]                                                 arg_argv.c
 *
 * Splitting text into arguments and quoting words to survive a split,
 * declared in arg_argv.h (2.1), and CLI11's split_up, close_sequence and

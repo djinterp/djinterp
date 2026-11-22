@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                    cfg_cli.h
+* djinterp [c][tools]                                                  cfg_cli.h
 *
 * Configuration of the command-line kit.
 *   Which optional parts of the kit are compiled -- the plugin loader, colour,

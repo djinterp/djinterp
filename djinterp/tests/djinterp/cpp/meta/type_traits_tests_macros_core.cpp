@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                              type_traits_tests_macros_core.cpp
+* djinterp [cpp][meta]                         type_traits_tests_macros_core.cpp
 *
 *   Unit tests for the core detection-macro family, now DECLARED in
 * trait_detect.hpp (re-exported through Section 0.3 of type_traits.hpp):

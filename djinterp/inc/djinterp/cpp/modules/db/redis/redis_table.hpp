@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 redis_table.hpp
+* djinterp [cpp][db]                                             redis_table.hpp
 *
 * djinterp Redis table module:
 *   A hash-backed "logical table" abstraction over Redis. Redis is a

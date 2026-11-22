@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                       http1.h
+* djinterp [c][net]                                                      http1.h
 *
 * HTTP/1.1's message syntax, as RFC 9112 defines it: message heads, in C.
 *   A head is found line by line as bytes arrive, each call resuming where

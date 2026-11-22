@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                        main.c
+* djinterp [c][tools]                                                     main.c
 *
 *   Command-line driver for the dawk interpreter.
 *     The synopsis is awk's: -F for the field separator, -v for a pre-BEGIN

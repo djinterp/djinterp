@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                           color.c
+* djinterp [c][utility]                                                  color.c
 *
 *   External-definition unit for color.h. The cross-model operation bodies
 * live in the header as `inline`; this unit re-declares their prototypes so

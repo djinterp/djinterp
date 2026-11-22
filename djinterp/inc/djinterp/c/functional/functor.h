@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                         functor.h
+* djinterp [c][functional]                                             functor.h
 *
 * Tier 3, completed: Functor, Applicative and Monad as runtime dictionaries.
 *

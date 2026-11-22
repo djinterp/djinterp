@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             fn_builder_tests.h
+* djinterp [c][functional]                                    fn_builder_tests.h
 *
 *   Unit tests for `fn_builder.h` in the functional module.
 *   For the file itself, go to `\inc\functional\fn_builder.h`.

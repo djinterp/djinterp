@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 ssh_libssh2.c
+* djinterp [c][net]                                                ssh_libssh2.c
 *
 *   Definitions for ssh_libssh2.h: the libssh2 engine, an adapter from
 * the engine interface to libssh2's blocking API.

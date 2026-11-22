@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                         container_memory_strategy_tests.hpp
+* djinterp [cpp][container]                  container_memory_strategy_tests.hpp
 *
 * Unit tests for container_memory_strategy.hpp.  This is a spec-mode suite (see
 * djinterp_testing.md): a two-faced header whose normal face (the section TUs)

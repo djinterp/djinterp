@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                           emoji.c
+* djinterp [c][text]                                                     emoji.c
 *
 * UTF-8 encoders for emoji.h.
 *   Defines d_text_emoji_utf8_encode, which writes one code point's UTF-8 into

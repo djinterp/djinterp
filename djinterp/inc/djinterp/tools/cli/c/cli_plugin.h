@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  cli_plugin.h
+* djinterp [c][tools]                                               cli_plugin.h
 *
 * A program's commands that live in modules of their own: its window, loaded
 * only when asked for (GRAMMAR.md, section 7).

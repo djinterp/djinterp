@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    archive_kernel_tests_gzip.c
+* djinterp [c][utility]                              archive_kernel_tests_gzip.c
 *
 *   gzip's header, the name and time RFC 1952 lets a stream carry: written and
 * read by the compress kernel's gzip pair, and by the archive kernel for a .gz

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                          t_pool.c
+* djinterp [c][memory]                                                  t_pool.c
 *
 *   Pool conformance harness. Covers all three release policies, generational
 * handles, slot geometry, iteration and the block-table addressing, and runs

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                     ordered_container_tests_classifiers.cpp
+* djinterp [cpp][container]              ordered_container_tests_classifiers.cpp
 *
 *   Section TU: the order-axis verdict this file re-exports.  Its point is the
 * correction called out in the module preamble - positional identity excludes

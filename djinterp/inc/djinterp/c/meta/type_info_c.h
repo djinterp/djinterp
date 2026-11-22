@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     type_info_c.h
+* djinterp [c][meta]                                               type_info_c.h
 *
 *  C-specific extensions to the common type-information system.
 *  Covers:

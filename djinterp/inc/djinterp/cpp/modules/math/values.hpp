@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                 values.hpp
+* djinterp [cpp][math]                                                values.hpp
 *
 * Compile-time sampling of an expression.
 *   Evaluates a value-holding expression (expression.hpp) at a sequence of

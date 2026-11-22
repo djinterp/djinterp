@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                        cfg_postgres_common.h
+* djinterp [c][db]                                         cfg_postgres_common.h
 *
 * Build-time configuration shared by every module of djinterp's PostgreSQL
 * layer (c/modules/db/postgres/postgres_*.h).

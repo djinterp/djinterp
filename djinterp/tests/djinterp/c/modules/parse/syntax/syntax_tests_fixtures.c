@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                     syntax_tests_fixtures.c
+* djinterp [c][parse]                                    syntax_tests_fixtures.c
 *
 * The syntax items' suite, its fixtures: a text lexed, grouped and
 * recognized, a token found by its spelling, and expectations held to what

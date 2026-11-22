@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                  arg_type.h
+* djinterp [c][parse]                                                 arg_type.h
 *
 * Value types for the argument parser: how text becomes a value, and back.
 *   A `struct dj_arg_type` describes one destination type the way CLI11's

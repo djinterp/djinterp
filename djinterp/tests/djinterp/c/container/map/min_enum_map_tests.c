@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           min_enum_map_tests.c
+* djinterp [c][container]                                   min_enum_map_tests.c
 *
 *   Master test runner for min_enum_map module.
 *   Coordinates execution of all test categories.

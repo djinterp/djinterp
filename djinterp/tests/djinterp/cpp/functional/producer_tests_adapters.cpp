@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                              producer_tests_adapters.cpp
+* djinterp [cpp][functional]                         producer_tests_adapters.cpp
 *
 *   Tests for the producers that wrap another producer: take_n, drop_n,
 * concat, interleave, transform, and filter. Also exercises the CRTP

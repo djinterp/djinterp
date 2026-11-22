@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                 container_storage_traits_tests_duration.cpp
+* djinterp [cpp][container]          container_storage_traits_tests_duration.cpp
 *
 *   Section II - storage_duration_of, the siting classifier, across all four
 * sitings and both resolution paths.  Shape inference feeds make_storage_duration

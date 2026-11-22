@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                             buffer_tests_buffer_base_write.cpp
+* djinterp [cpp][container]                   buffer_tests_buffer_base_write.cpp
 *
 *   Unit tests for DBufferBase's write surface: write(), write_byte(),
 * write_fill(), write_head(), and commit().  These tests cover the

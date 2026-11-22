@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  test_dmsvs.c
+* djinterp [c][tools]                                               test_dmsvs.c
 *
 * Exercises `dmsvs.h`: kinds by name; the XML element tree, its places, its
 * attributes and its text, decoded as XML decodes them; a solution in either

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                           exchange.cpp
+* djinterp [cpp][tools]                                             exchange.cpp
 *
 * A bitfield as JSON for other programs, and from them.
 *   Reading a bitfield is two passes. The first makes every row, in order,
@@ -9,6 +9,7 @@
 * finds each such name as the expressions find theirs.
 *   Writing one leaves out what the defaults say, so a file written is a
 * file a person could have written: a bit is {"name": "EN", "bit": 0}.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/exchange.cpp
 * link(s):   TBA

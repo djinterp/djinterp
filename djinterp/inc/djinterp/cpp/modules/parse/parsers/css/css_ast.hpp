@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                               css_ast.hpp
+* djinterp [cpp][parse]                                              css_ast.hpp
 *
 * CSS abstract syntax tree:
 *   This header defines the data-only AST nodes produced by the css parser

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          archive_tests_tar.cpp
+* djinterp [cpp][utility]                                  archive_tests_tar.cpp
 *
 *   Tests for the ustar (tar) writer and reader: file and directory round-
 * trips, metadata defaults, 100-byte name truncation, the header checksum,

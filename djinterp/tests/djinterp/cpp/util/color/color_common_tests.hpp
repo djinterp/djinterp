@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                        color_common_tests.hpp
+* djinterp [cpp][utility]                                 color_common_tests.hpp
 *
 *   Suite header for color_common.hpp - the color foundation: the channel
 * scalar, the two generic scalar helpers (clamp_channel / approx_equal), the

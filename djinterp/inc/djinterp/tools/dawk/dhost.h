@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                       dhost.h
+* djinterp [c][tools]                                                    dhost.h
 *
 * Host functions: what an extension adds to the language.
 *   A host function is called from a program as a user function is, by name
@@ -12,6 +12,7 @@
 * its arguments, so it cannot reach what the program has not handed it.
 *   Under D_AWK_STRICT_POSIX installation is refused, so the conforming core
 * stays independently verifiable.
+*
 *
 * path:      /inc/djinterp/tools/dawk/dhost.h
 * link(s):   TBA

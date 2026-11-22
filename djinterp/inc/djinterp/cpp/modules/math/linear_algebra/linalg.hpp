@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                 linalg.hpp
+* djinterp [cpp][math]                                                linalg.hpp
 *
 * Umbrella header for the linear-algebra subframework.
 *   Includes every public linalg header. Users may also include the sub-headers

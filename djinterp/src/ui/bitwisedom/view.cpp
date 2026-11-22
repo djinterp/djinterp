@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                       view.cpp
+* djinterp [cpp][tools]                                                 view.cpp
 *
 * The interface, as uxoxo templates built from the window's state.
 *   build_ui() is a pure function of what it is given -- the window around
@@ -32,6 +32,7 @@
 * closed group's rows are not built; Expand all and Collapse all, over the
 * tree's window, on the View menu and on a group's menu, open and close
 * every group at once.
+*
 *
 * path:      /src/ui/bitwisedom/view.cpp
 * link(s):   TBA

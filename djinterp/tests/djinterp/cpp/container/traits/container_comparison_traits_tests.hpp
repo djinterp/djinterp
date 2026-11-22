@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                       container_comparison_traits_tests.hpp
+* djinterp [cpp][container]                container_comparison_traits_tests.hpp
 *
 *   Declarations, fixtures and the check macros for the container_comparison_traits
 * suite.  The section TUs define the tests_* functions declared at the bottom;

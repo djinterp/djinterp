@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [vparse]                                                        run.hpp
+* djinterp [cpp][tools]                                                  run.hpp
 *
 * One vparse run, kept whole: every stage, its trace, and what the trace says.
 *   A run takes a grammar text and an input through vparse's three stages and
@@ -22,6 +22,7 @@
 * and its stacks' peaks. A request can have the program call some of its
 * rules through the memo: every rule, the rules it names, or the rules a run
 * without the memo says the memo pays for.
+*
 *
 * path:      /inc/djinterp/tools/vparse/run.hpp
 * link(s):   TBA

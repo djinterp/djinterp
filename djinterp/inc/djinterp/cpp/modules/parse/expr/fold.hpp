@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                                  fold.hpp
+* djinterp [cpp][parse]                                                 fold.hpp
 *
 * Expression core v2's C++ face (design section 13): folds and walks.
 *   fold() computes a value per node, bottom-up, in arena order, each node's

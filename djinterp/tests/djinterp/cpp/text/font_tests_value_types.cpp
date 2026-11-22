@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                      font_tests_value_types.cpp
+* djinterp [cpp][text]                                font_tests_value_types.cpp
 *
 *
 * path:      /tests/djinterp/cpp/text/font_tests_value_types.cpp

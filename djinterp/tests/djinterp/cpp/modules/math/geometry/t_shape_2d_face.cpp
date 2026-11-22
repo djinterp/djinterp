@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                        t_shape_2d_face.cpp
+* djinterp [cpp][math]                                       t_shape_2d_face.cpp
 *
 *   Tests for geometry/shape_2d.hpp, at every level from C++98: a square
 * and an L-shaped hexagon as polygons -- containment, perimeter, area,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                              arg_argv.hpp
+* djinterp [cpp][parse]                                             arg_argv.hpp
 *
 * The argument parser's C++ face: arguments from text.
 *   The C library's splitting, quoting and conversion (arg_argv.h), with the

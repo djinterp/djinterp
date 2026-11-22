@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    postgres.hpp
+* djinterp [cpp][db]                                                postgres.hpp
 *
 * djinterp PostgreSQL connection module:
 *   The PostgreSQL connection, pg_connection, over the PostgreSQL layer's C++

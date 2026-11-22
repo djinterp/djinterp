@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                t_env_printer.c
+* djinterp [c][env]                                              t_env_printer.c
 *
 *   The environment printer's C harness (env/env_printer.h): the report a C unit
 * collects, and the printer as a machine -- its defaults, every style,

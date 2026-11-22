@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     dtuple_tests_selection.cpp
+* djinterp [cpp][meta]                                dtuple_tests_selection.cpp
 *
 *   Unit tests for the type-selection section of dtuple.hpp:
 *     - DTypeCase

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    runtime_container_traits.hpp
+* djinterp [cpp][container]                         runtime_container_traits.hpp
 *
 *   Structural traits for the RUNTIME end of a container's Lifetime axis.  A
 * container is "runtime-only" when its value cannot be settled in a constant

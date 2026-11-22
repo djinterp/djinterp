@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                      member_types_tests.hpp
+* djinterp [cpp][meta]                                    member_types_tests.hpp
 *
 * Unit test suite for member_types.hpp -- the framework's shared nested-typedef
 * detectors and the pick_member_type extraction helper.

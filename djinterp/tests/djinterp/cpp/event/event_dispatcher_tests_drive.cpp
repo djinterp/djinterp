@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               event_dispatcher_tests_drive.cpp
+* djinterp [cpp][event]                         event_dispatcher_tests_drive.cpp
 *
 *   Section IV -- FUSED DRIVE.  drive runs a homogeneous trace through a
 * precompiled DFusedStep as a single loop, reporting only the occurrence and

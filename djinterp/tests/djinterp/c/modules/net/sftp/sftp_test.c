@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                   sftp_test.c
+* djinterp [c][net]                                                  sftp_test.c
 *
 * SFTP tests: the codec on its own; the client against an in-process server,
 * which can answer out of order, read short, and break the protocol on

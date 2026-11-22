@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                    t_power.c
+* djinterp [c][math]                                                   t_power.c
 *
 *   Conformance harness for c/math/power.h. cbrt_c must be the correctly
 * rounded cube root. For float that is checked exactly: |x| must lie strictly

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                                 lr.hpp
+* djinterp [cpp][parsegen]                                                lr.hpp
 *
 *   The LR (shift/reduce) operator family: its opcodes, its table format, and
 * its table-driven driver. It knows nothing about any particular grammar --

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                             selective.hpp
+* djinterp [cpp][parse]                                            selective.hpp
 *
 * Selective protocol: select, branch, ifS — between Applicative and Monad.
 *   A Selective applicative sits between Applicative and Monad in the

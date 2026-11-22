@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                              cfg_file_pipe.h
+* djinterp [c][filesys]                                          cfg_file_pipe.h
 *
 * Build-time configuration for c/filesys/file_pipe.h -- process pipes.
 *

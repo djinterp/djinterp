@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [ui]                                                      host_glfw.cpp
+* djinterp [cpp][tools]                                            host_glfw.cpp
 *
 * The workbench's window on GLFW and OpenGL 3: the host for Linux, macOS, and
 * Windows where GLFW is found.
@@ -8,6 +8,7 @@
 * "#version 330" shaders need; macOS asks for it forward-compatible, as it
 * must. A capture reads the back buffer after the frame is drawn and before
 * it is shown, and turns OpenGL's bottom-up rows the right way up.
+*
 *
 * path:      /src/ui/vparse/host_glfw.cpp
 * link(s):   TBA

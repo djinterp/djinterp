@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         net_log_tests_runner.c
+* djinterp [c][net]                                       net_log_tests_runner.c
 *
 * The runner for net's codes for the log: options, then its one section,
 * d_tests_net_log, which opens its module and builds it call by call

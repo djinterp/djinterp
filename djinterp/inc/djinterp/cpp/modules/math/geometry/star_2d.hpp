@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                star_2d.hpp
+* djinterp [cpp][math]                                               star_2d.hpp
 *
 * 2D star shapes.
 *   Provides two complementary constructions of "star-shaped" planar

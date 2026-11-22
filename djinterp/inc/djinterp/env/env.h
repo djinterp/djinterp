@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                           env.h
+* djinterp [c][env]                                                        env.h
 *
 * djinterp environment detection (umbrella header).
 *   Compile-time detection of the compilation environment, exposing a unified

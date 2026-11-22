@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                          test_foldable.c
+* djinterp [c][functional]                                       test_foldable.c
 *
 *
 * path:      /tests/djinterp/c/functional/test_foldable.c

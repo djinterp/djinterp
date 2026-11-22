@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                  kv_pair_tests_contract.cpp
+* djinterp [cpp][meta]                                kv_pair_tests_contract.cpp
 *
 *   Section III of the kv_pair suite: DKvPair against the key/value
 * structural contract meta/kv.hpp detects. The members are named key and

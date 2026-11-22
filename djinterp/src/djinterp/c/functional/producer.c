@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                        producer.c
+* djinterp [c][functional]                                            producer.c
 *
 * TBA
 *

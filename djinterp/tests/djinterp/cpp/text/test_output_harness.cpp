@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                         test_output_harness.cpp
+* djinterp [cpp][text]                                   test_output_harness.cpp
 *
 *
 * path:      /tests/djinterp/cpp/text/test_output_harness.cpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 optionator_tests_internals.cpp
+* djinterp [cpp][option]                          optionator_tests_internals.cpp
 *
 *   Section IV - the pipeline's pure internals.  identity_xform is the seed
 * transform a fresh chain carries: it is a genuine transducer (so operator|

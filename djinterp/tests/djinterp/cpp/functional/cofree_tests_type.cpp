@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          cofree_tests_type.cpp
+* djinterp [cpp][functional]                               cofree_tests_type.cpp
 *
 *   Section I of the cofree.hpp suite: the cofree<F, A> type itself.  Covers the
 * public default constructor (needed because duplicate yields a cofree whose

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                  arg_validator_path_tests.c
+* djinterp [c][parse]                                 arg_validator_path_tests.c
 *
 * The suite of the validators that ask the file system, declared in
 * arg_validator_path_tests.h.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                  parse.hpp
+* djinterp [cpp][math]                                                 parse.hpp
 *
 * The parser layer: math text to a term, by parse/expression's precedence
 * climbing over the operator table; the second half of the second layer.

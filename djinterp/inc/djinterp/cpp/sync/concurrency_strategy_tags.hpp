@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                   concurrency_strategy_tags.hpp
+* djinterp [cpp][sync]                             concurrency_strategy_tags.hpp
 *
 *   Concurrency-strategy tag types AND the concurrency-signature
 * vocabulary for the trait classification system.

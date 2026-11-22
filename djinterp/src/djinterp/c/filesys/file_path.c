@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_path.c
+* djinterp [c][filesys]                                              file_path.c
 *
 * Implementation of the lexical path operations declared in file_path.h.
 *   File-local helpers carry every rule: which characters separate, how long a

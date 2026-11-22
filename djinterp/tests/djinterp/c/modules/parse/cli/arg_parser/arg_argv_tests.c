@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                            arg_argv_tests.c
+* djinterp [c][parse]                                           arg_argv_tests.c
 *
 * The suite of arguments from text, declared in arg_argv_tests.h.
 *   Each section but the last of each part is a table of rows -- lines,

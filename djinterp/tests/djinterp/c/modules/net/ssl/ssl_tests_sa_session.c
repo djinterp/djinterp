@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                        ssl_tests_sa_session.c
+* djinterp [c][net]                                       ssl_tests_sa_session.c
 *
 * Tests of the SSL kernel's sessions over a net.h connection.
 *   Each test opens a client and a server session over a pipe and drives

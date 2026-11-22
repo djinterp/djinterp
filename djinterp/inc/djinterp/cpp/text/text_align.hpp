@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  text_align.hpp
+* djinterp [cpp][text]                                            text_align.hpp
 *
 *   Text alignment definition, used for any text justification or alignment
 * purpose.

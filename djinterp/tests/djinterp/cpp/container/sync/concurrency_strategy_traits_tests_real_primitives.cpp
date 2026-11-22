@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]          concurrency_strategy_traits_tests_real_primitives.cpp
+* djinterp [cpp][container] concurrency_strategy_traits_tests_real_primitives.cpp
 *
 *   Integration - the classification run against the actual updated
 * /core/sync/ primitives (not synthetic fixtures).  Every primitive self-tags

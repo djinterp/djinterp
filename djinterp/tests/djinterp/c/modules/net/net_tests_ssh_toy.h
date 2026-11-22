@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                           net_tests_ssh_toy.h
+* djinterp [c][net]                                          net_tests_ssh_toy.h
 *
 * The toy SSH engine net's SSH and SFTP suites run against.
 *   It stands behind ssh_engine.h's table in place of an SSH library: a

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                    ssh_wire.h
+* djinterp [c][net]                                                   ssh_wire.h
 *
 * SSH wire encoding (RFC 4251 section 5): readers and writers for the
 * byte, boolean, uint32, uint64, string, mpint, and name-list types that

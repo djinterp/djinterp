@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     color_ycbcr.c
+* djinterp [c][utility]                                            color_ycbcr.c
 *
 *   External-definition unit for color_ycbcr.h. The YCbCr bodies live in the
 * header as `inline`; this unit re-declares their prototypes so one out-of-

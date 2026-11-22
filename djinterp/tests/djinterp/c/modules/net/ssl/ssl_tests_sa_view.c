@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                           ssl_tests_sa_view.c
+* djinterp [c][net]                                          ssl_tests_sa_view.c
 *
 * Tests of a session as a net.h connection.
 *   Each test reaches the sessions only through their base, as code written

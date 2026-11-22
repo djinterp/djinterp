@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     concepts_tests_numeric.cpp
+* djinterp [cpp][meta]                                concepts_tests_numeric.cpp
 *
 *   Tests for concepts.hpp section II.10: size and numeric concepts.
 * Covers: valid_size_type, nonzero_size, zero_size.

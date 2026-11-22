@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          mariadb_sizes_tests.h
+* djinterp [c][db]                                         mariadb_sizes_tests.h
 *
 *   The suite of c/modules/db/mariadb's checked sizes, in DTest's C face: every
 * size the layer computes for an allocation from a count it keeps, given a count

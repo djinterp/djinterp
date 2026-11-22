@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                       starttls_tests_sa_tcp.c
+* djinterp [c][net]                                      starttls_tests_sa_tcp.c
 *
 * Standalone tests of a session over TCP: one end of an AF_UNIX stream pair
 * is adopted by tcp.c and handed to the session, and the test plays the peer

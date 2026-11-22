@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                      env_lang.h
+* djinterp [c][env]                                                   env_lang.h
 *
 * djinterp language-standard detection.
 *   Compile-time detection of the C and C++ language standard, exposing the

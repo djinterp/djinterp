@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       color_hsv.h
+* djinterp [c][utility]                                              color_hsv.h
 *
 *   HSV shared kernel for the djinterp color module. Defines the HSV POD and
 * its construction, validation, and clamping. Conversions to and from other

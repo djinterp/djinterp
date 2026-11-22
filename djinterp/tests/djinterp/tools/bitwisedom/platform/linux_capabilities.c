@@ -1,10 +1,11 @@
 /*******************************************************************************
-* bitwisedom [tests]                                        linux_capabilities.c
+* djinterp [c][tools]                                       linux_capabilities.c
 *
 * The capabilities example against linux/capability.h: each
 * capability's bit and number, compared with the platform's own at
 * compile time; those newer than the headers are left out. Built
 * where the build targets Linux.
+*
 *
 * path:      /tests/djinterp/tools/bitwisedom/platform/linux_capabilities.c
 * link(s):   TBA

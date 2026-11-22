@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        consumer_tests_flow.cpp
+* djinterp [cpp][functional]                             consumer_tests_flow.cpp
 *
 *   Tests for consumer.hpp Section II stateful flow combinators:
 * batched (fire every N-th input), take (first N then ignore), and drop

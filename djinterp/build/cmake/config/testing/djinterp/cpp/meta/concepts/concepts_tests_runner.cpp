@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      concepts_tests_runner.cpp
+* djinterp [cpp][meta]                                 concepts_tests_runner.cpp
 *
 *   The runner for concepts.hpp's suite: it selects the suite header's spec
 * face (DTEST_SPEC_MODE) and hands the spec to run_module, which runs the

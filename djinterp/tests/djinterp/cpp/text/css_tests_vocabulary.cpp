@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       css_tests_vocabulary.cpp
+* djinterp [cpp][text]                                  css_tests_vocabulary.cpp
 *
 *   The groups for css/css.hpp: the rule kinds' category masks and the
 * predicates over them, every at-rule's keyword both ways -- in any case, as

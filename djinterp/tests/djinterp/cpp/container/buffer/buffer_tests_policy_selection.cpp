@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                              buffer_tests_policy_selection.cpp
+* djinterp [cpp][container]                    buffer_tests_policy_selection.cpp
 *
 *   Unit tests for the compile-time policy-selection traits:
 *     - select_growth_policy<_Strategy>::type / select_growth_policy_t

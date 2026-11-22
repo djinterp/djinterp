@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         css_tests_detached.cpp
+* djinterp [cpp][text]                                    css_tests_detached.cpp
 *
 *   The groups for css/css_template.hpp's ten factories and its two adopt
 * functions, a rule's and a stylesheet's, on the default backend, and the

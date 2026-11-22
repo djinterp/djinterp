@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                         arg_tests_support.h
+* djinterp [c][parse]                                        arg_tests_support.h
 *
 * What the argument parser's C suites share: a parse to test, and what it
 * came to, written out as text.

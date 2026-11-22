@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                       write_only_container_traits_tests.hpp
+* djinterp [cpp][container]                write_only_container_traits_tests.hpp
 *
 * Unit tests for write_only_container_traits.hpp:
 *   Declarations, fixtures and assertion plumbing for the write_only corner of

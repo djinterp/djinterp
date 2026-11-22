@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              t_env_printer.cpp
+* djinterp [cpp][env]                                          t_env_printer.cpp
 *
 *   The environment printer's C++ harness (env/env_printer.hpp), at every level
 * from C++98: the C++ unit's report and its two C++ sections, the `features`

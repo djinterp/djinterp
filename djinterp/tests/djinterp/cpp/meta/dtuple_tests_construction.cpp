@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  dtuple_tests_construction.cpp
+* djinterp [cpp][meta]                             dtuple_tests_construction.cpp
 *
 *   Unit tests for the tuple-construction section of dtuple.hpp:
 *     - to_tuple / to_tuple_t  (including the empty-pack specialization)

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                mariadb_face.hpp
+* djinterp [cpp][db]                                            mariadb_face.hpp
 *
 * The C++ face of djinterp's MariaDB and MySQL layer.
 *   face::mariadb owns a connection -- the layer's handle, struct dj_mariadb,

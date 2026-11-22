@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                             cfg_mem_common.h
+* djinterp [c][memory]                                          cfg_mem_common.h
 *
 *   Root configuration for the memory subframework. Owns the aggregate and the
 * presets, the vocabulary knobs every memory module reads (counter width,

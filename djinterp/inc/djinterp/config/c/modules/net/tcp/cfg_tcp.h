@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                    cfg_tcp.h
+* djinterp [c][net]                                                    cfg_tcp.h
 *
 * Configuration of the TCP transport.
 *   Whether tcp.c builds its socket backend or stubs, and the listen backlog

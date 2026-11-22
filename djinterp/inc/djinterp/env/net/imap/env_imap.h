@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                      env_imap.h
+* djinterp [c][env]                                                   env_imap.h
 *
 * djinterp IMAP environment detection.
 *   The single home for all compile-time detection tied to IMAP, expressed

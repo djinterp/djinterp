@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                              cfg_env_linux.h
+* djinterp [c][env]                                              cfg_env_linux.h
 *
 * Configuration for env_linux.h, the Linux detection header under env/os/.
 *   Resolves D_CFG_ENV_LINUX_MUSL, the build's word that its C library is

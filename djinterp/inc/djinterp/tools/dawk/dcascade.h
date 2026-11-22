@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                    dcascade.h
+* djinterp [c][tools]                                                 dcascade.h
 *
 * The cascade: which declaration wins, per node and property, computed once.
 *   A host records each (node, rule) match; d_cascade_rank orders every node's

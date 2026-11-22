@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                            postgres_transaction.c
+* djinterp [c][db]                                        postgres_transaction.c
 *
 * Implementation of postgres_transaction.h.
 *   libpq's PQtransactionStatus follows the status byte the server sends

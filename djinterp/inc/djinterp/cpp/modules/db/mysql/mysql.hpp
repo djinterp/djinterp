@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                       mysql.hpp
+* djinterp [cpp][db]                                                   mysql.hpp
 *
 * djinterp Oracle MySQL connection module:
 *   The MySQL connection, mysql_connection, over the MariaDB layer's C++ face

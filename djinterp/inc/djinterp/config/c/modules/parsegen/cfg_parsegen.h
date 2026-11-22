@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                               cfg_parsegen.h
+* djinterp [c][parsegen]                                          cfg_parsegen.h
 *
 * Configuration for the parser-generator subsystem.
 *   Owns the knobs parsegen's own containers read. They are separate from

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 corpus_group.c
+* djinterp [c][parse]                                             corpus_group.c
 *
 * Grouping over a corpus: balance, depth, and the files that are not balanced.
 *

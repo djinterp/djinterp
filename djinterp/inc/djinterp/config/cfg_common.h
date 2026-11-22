@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                 cfg_common.h
+* djinterp [c][config]                                              cfg_common.h
 *
 *   Root of the configuration subframework. #included FIRST by every cfg_*.h.
 * Responsibilities:

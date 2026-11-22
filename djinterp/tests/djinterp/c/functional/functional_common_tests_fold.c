@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                           functional_common_tests_fold.c
+* djinterp [c][functional]                        functional_common_tests_fold.c
 *
 *
 * path:      /tests/djinterp/c/functional/functional_common_tests_fold.c

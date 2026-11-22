@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                     overflow_tests_runner.c
+* djinterp [c][parse]                                    overflow_tests_runner.c
 *
 * The runner for the overflow suite of parse and parsegen: its options and
 * its spec.

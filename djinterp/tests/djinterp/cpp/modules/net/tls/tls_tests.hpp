@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                               tls_tests.hpp
+* djinterp [cpp][net]                                              tls_tests.hpp
 *
 * Tests of the TLS layer, net/tls/tls.hpp.
 *   Each test runs a real handshake over loopback TCP, against a certificate

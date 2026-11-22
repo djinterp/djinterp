@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                        numeric_compare.hpp
+* djinterp [cpp][math]                                       numeric_compare.hpp
 *
 * Numbers written as text, compared exactly at any length: integers,
 * decimals, scientific notation, fractions and mixed numbers.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                      dparse.c
+* djinterp [c][tools]                                                   dparse.c
 *
 *   Definitions for the non-inline declarations in dparse.h.
 *     The precedence ladder is POSIX awk's, and two rungs of it are unusual.

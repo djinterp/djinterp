@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    ostream_file.h
+* djinterp [c][utility]                                           ostream_file.h
 *
 *   A stream over a C library FILE*: one the caller opened and lends, or one
 * opened here and owned. The FILE* is a transport: the bytes go through stdio,

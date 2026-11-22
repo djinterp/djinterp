@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                                     net.hpp
+* djinterp [cpp][net]                                                    net.hpp
 *
 * The net subframework's C++ umbrella: including it includes every C++ face
 * of net, with the foundation they share, net_common.hpp.

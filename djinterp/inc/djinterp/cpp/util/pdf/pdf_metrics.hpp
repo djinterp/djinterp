@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 pdf_metrics.hpp
+* djinterp [cpp][utility]                                        pdf_metrics.hpp
 *
 * djinterp PDF text-metrics header:
 *   Accurate glyph and string width measurement for the standard-14 PDF

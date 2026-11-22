@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    sequence.hpp
+* djinterp [cpp][paradigm]                                          sequence.hpp
 *
 * Ordered linear element sequence:
 *   A sequence is the simplest composite type in the container

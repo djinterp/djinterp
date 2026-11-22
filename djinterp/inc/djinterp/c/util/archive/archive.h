@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                         archive.h
+* djinterp [c][utility]                                                archive.h
 *
 *   The C face of the archive kernel: tier 1a.  Ergonomics ONLY, on the same
 * terms as compress.h -- every macro expands to a call into archive_common.h,

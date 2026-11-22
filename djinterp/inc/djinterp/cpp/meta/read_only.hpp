@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   read_only.hpp
+* djinterp [cpp][meta]                                             read_only.hpp
 *
 *   The READ_ONLY access-capability tag: a handle that grants observation but
 * NOT modification.  It is a corner of the access lattice headed by read_write

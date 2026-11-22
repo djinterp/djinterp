@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                 test_dcmake.c
+* djinterp [c][tools]                                              test_dcmake.c
 *
 * Exercises `dcmake.h`: every form an argument takes, comments in every place
 * they may stand, values, line endings, the blocks and their pairing, every
@@ -17,6 +17,7 @@
 *   test_dcmake                    the unit checks
 *   test_dcmake --corpus <dir>...  every CMake file under each directory
 *   test_dcmake --values <file>    the values of the file's show(...)
+*
 *
 * path:      /tests/djinterp/tools/dawk/ext/cmake/test_dcmake.c
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    foldable_tests_fold_map.cpp
+* djinterp [cpp][functional]                         foldable_tests_fold_map.cpp
 *
 *   Section II.3 of the foldable.hpp suite: fold_map, which maps each element to
 * a monoid value and combines the images left-associated from an explicit

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           color_tests_runner.c
+* djinterp [c][utility]                                     color_tests_runner.c
 *
 * The runner for the color module's C suite: one module spec, the suite's own.
 *

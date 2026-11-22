@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                       http1.c
+* djinterp [c][net]                                                      http1.c
 *
 * HTTP/1.1's message heads: http1.h's definitions.
 *   Scanning and parsing are separate passes. The scan finds the head's end a

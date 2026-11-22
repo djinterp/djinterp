@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 text_template_overflow_tests.c
+* djinterp [c][text]                              text_template_overflow_tests.c
 *
 *   Regression tests for the two allocation sizes the upgrade audit of
 * 2026.11.01 found unchecked in c/text/text_template.c: the binding array a

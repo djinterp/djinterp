@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                       color_cie_lab_tests.hpp
+* djinterp [cpp][utility]                                color_cie_lab_tests.hpp
 *
 *   Suite header for color_cie_lab.hpp - the C++ ergonomic layer over the CIE
 * shared kernel (color_lab.h).  The header wraps TWO models: cie_xyz, the

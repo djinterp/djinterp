@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                          database_statement.hpp
+* djinterp [cpp][db]                                      database_statement.hpp
 *
 * Statements and result sets over the C layers, once for every vendor.
 *   buffered_result_set is database.hpp's result_set over the rows a C layer

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 ssl_openssl.c
+* djinterp [c][net]                                                ssl_openssl.c
 *
 *   Definitions for ssl_openssl.h: the OpenSSL-family engine, an adapter from
 * the kernel's sans-I/O engine interface to libssl running over memory BIOs.

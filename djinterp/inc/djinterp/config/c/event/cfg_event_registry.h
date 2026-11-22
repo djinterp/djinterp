@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                         cfg_event_registry.h
+* djinterp [c][event]                                       cfg_event_registry.h
 *
 *   Configuration for the registry and its folds: which of the two outer folds
 * compile, and whether the staging path is available.

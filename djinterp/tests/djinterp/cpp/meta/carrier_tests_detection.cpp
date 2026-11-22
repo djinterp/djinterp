@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                     carrier_tests_detection.cpp
+* djinterp [cpp][meta]                               carrier_tests_detection.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/carrier_tests_detection.cpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                          t_square_face.cpp
+* djinterp [cpp][math]                                         t_square_face.cpp
 *
 *   Tests for linear_algebra/square.hpp, at every level from C++98: the
 * generic path (t_real, a user's type wrapping a double) against the C core,

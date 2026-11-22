@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                 dgit_object.c
+* djinterp [c][tools]                                              dgit_object.c
 *
 * Definitions for the objects of dgit_repo.h: reading, naming and parsing.
 *   An object is looked for in each store in turn -- the repository's own
@@ -16,6 +16,7 @@
 *   Parsing is git's, and as lenient: a commit's tree, parents, author and
 * committer, encoding and message; a tag's object, type, name and tagger;
 * a tree's entries in order.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/git/dgit_object.c
 * link(s):   TBA

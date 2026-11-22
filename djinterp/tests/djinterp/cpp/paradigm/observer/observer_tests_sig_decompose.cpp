@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                observer_tests_sig_decompose.cpp
+* djinterp [cpp][paradigm]                      observer_tests_sig_decompose.cpp
 *
 *
 * path:      /tests/djinterp/cpp/paradigm/observer/observer_tests_sig_decompose.cpp

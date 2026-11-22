@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 smtp_common.c
+* djinterp [c][net]                                                smtp_common.c
 *
 * djinterp SMTP protocol vocabulary -- implementation.
 *   Defines everything smtp_common.h declares. Every routine is pure: it reads

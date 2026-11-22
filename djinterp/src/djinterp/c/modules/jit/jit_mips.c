@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/jit]                                                    jit_mips.c
+* djinterp [c][jit]                                                   jit_mips.c
 *
 * djinterp MIPS (MIPS32 / MIPS64) JIT encoder -- implementation (jit_mips.h).
 *   Emitters assemble each instruction from its opcode/funct fields via three

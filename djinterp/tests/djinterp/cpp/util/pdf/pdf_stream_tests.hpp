@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           pdf_stream_tests.hpp
+* djinterp [cpp][utility]                                   pdf_stream_tests.hpp
 *
 * The C++ PDF writer's stream suite, in DTest's C face
 * (c/modules/test/test_suite.h).

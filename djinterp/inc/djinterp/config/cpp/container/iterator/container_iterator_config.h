@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                  container_iterator_config.h
+* djinterp [cpp][container]                          container_iterator_config.h
 *
 * TBA
 *

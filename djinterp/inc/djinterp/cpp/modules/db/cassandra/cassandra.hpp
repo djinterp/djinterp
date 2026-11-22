@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   cassandra.hpp
+* djinterp [cpp][db]                                               cassandra.hpp
 *
 * djinterp Apache Cassandra connection module:
 *   This header provides the Cassandra-specific connection implementation

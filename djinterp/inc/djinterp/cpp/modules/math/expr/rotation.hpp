@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                               rotation.hpp
+* djinterp [cpp][math]                                              rotation.hpp
 *
 * A quaternion's functions in the run-time expression language that give or
 * take a vector or a matrix; roadmap Phase 3, step 24 (3f), its third part.

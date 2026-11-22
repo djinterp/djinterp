@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       applicative_tests_ap.cpp
+* djinterp [cpp][functional]                            applicative_tests_ap.cpp
 *
 *   Section II.2 of the applicative.hpp suite: ap, wrapped application
 *   F<a -> b> -> F<a> -> F<b> (Haskell <*>), delegating to

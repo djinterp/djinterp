@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      concepts_tests_macros.cpp
+* djinterp [cpp][meta]                                 concepts_tests_macros.cpp
 *
 *   Tests for concepts.hpp section 0: the D_CONCEPT_HAS_* macro family.
 * Each macro emits a unary concept; this TU instantiates one concept per

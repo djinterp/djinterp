@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    color_common.c
+* djinterp [c][utility]                                           color_common.c
 *
 *   External-definition unit for color_common.h. The scalar helper bodies live in the
 * header as `inline`; this unit re-declares their prototypes so one out-of-

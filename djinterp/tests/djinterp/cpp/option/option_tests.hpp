@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               option_tests.hpp
+* djinterp [cpp][option]                                        option_tests.hpp
 *
 *   Declarations, fixtures, and section block-providers for the option.hpp
 * unit suite.  option.hpp is a purely TYPE-LEVEL header (the core option<>

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                layout_parse.hpp
+* djinterp [cpp][utility]                                       layout_parse.hpp
 *
 *   The TEXTUAL construction surface -- a block-form DSL parsed into a DLayoutDoc.
 * A construct is a keyword, an optional quoted argument, optional key="value"

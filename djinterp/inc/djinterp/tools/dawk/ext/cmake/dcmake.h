@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                      dcmake.h
+* djinterp [c][tools]                                                   dcmake.h
 *
 * The CMake language, read without loss.
 *   Enough of cmake-language(7) to say what a CMake file holds and to change
@@ -20,6 +20,7 @@
 * for or the plainest that reads back as the value.
 *   A stand-in, local to dawk: CMake belongs to the parse tier, and when that
 * tier reads it, this unit gives way to it.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/cmake/dcmake.h
 * link(s):   TBA

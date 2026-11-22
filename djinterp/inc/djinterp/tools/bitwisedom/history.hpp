@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                            history.hpp
+* djinterp [cpp][tools]                                              history.hpp
 *
 * Undo and redo, as whole-sheet snapshots.
 *   A sheet is small, so each step keeps the sheet as it was before the
@@ -8,6 +8,7 @@
 * colour across the picker is undone in one go, not frame by frame. seal()
 * ends a run, so the next edit starts a step of its own even with the same
 * key.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/history.hpp
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                           selftest.hpp
+* djinterp [cpp][tools]                                             selftest.hpp
 *
 * A header's self-test: a C or C++ file that proves the header right.
 *   It includes the header, and compiles only if every macro has the value
@@ -11,6 +11,7 @@
 * tests compile one at every language level, and run a wide sheet's, which
 * is how the generator is proved rather than merely run.
 *   `bitwisedom gen --self-test` and `bitwisedom-gen --self-test` write it.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/selftest.hpp
 * link(s):   TBA

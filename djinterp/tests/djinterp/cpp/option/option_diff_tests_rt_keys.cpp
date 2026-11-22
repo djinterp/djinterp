@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  option_diff_tests_rt_keys.cpp
+* djinterp [cpp][option]                           option_diff_tests_rt_keys.cpp
 *
 *   PART B / B.I - runtime key-level diff (option_keys_in, option_added_keys,
 * option_removed_keys, option_common_keys) exercised over DTestOptionMap, the

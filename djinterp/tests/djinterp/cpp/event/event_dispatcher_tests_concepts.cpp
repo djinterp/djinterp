@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                            event_dispatcher_tests_concepts.cpp
+* djinterp [cpp][event]                      event_dispatcher_tests_concepts.cpp
 *
 *   Section VII -- CONCEPT CONSTRAINTS (C++20+).  Exercises the dispatcher
 * concepts layered over event_dispatcher_traits.  Core: is_event_dispatcher_type

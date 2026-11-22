@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                                  free.hpp
+* djinterp [cpp][parse]                                                 free.hpp
 *
 * The three strata — Applicative, Selective, Monad — as free constructions.
 *   Per ch-parsing.tex the expressive power of a parser can be dialled

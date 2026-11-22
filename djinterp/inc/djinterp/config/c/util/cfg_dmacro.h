@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                 cfg_dmacro.h
+* djinterp [c][utility]                                             cfg_dmacro.h
 *
 *   Build-time configuration for dmacro.h: the variadic limits, the generated
 * macro-family variant, and which families are included.

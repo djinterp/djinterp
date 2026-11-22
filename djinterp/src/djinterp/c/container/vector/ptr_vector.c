@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      ptr_vector.c
+* djinterp [c][container]                                           ptr_vector.c
 *
 * TBA
 *

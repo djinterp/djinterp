@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                  array_tests.h
+* djinterp [c][container]                                          array_tests.h
 *
 * Unit tests for `array.h` module.
 * For the file itself, go to `\inc\container\array\array.h`.

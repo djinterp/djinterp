@@ -1,11 +1,12 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   path_span.hpp
+* djinterp [cpp][paradigm]                                         path_span.hpp
 *
 * The C++ face of c/text/path_span.h: a generic path read from its rendering.
 *   path_span wraps a dj_path_span -- it copies no text and allocates nothing
 * but what str() and join() return -- and walks its labels with a forward
 * iterator, so a loop, or from C++11 a range-for, reads a path label by label.
 * It is C++98 throughout, as the C layer beneath it is C99.
+*
 *
 * path:      /inc/djinterp/cpp/paradigm/path/path_span.hpp
 * link(s):   TBA

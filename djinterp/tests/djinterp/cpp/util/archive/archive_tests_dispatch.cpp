@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     archive_tests_dispatch.cpp
+* djinterp [cpp][utility]                             archive_tests_dispatch.cpp
 *
 *   Tests for the internal dispatch leaves, reached only through
 * djinterp::internal: the null-base argument guards, the unknown-format

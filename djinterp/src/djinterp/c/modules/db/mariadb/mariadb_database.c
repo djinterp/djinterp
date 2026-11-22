@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                mariadb_database.c
+* djinterp [c][db]                                            mariadb_database.c
 *
 * Implementation of mariadb_database.h.
 *   Databases are asked after in information_schema.SCHEMATA, as every other

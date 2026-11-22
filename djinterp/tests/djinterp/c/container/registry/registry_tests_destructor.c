@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                               registry_tests_destructor.c
+* djinterp [c][container]                            registry_tests_destructor.c
 *
 *
 * path:      /tests/djinterp/c/container/registry/registry_tests_destructor.c

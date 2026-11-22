@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        view_tests_pipeline.cpp
+* djinterp [cpp][functional]                             view_tests_pipeline.cpp
 *
 * Pipeline operator tests (section VI): operator| for view|adapter and
 * container|adapter, plus multi-stage chaining.

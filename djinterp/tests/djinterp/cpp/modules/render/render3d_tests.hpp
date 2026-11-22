@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/render]                                       render3d_tests.hpp
+* djinterp [cpp][render]                                      render3d_tests.hpp
 *
 * Shared declarations for the render3d unit tests.
 *   Covers what the render3d subframework gained with the ui port: the

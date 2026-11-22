@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                   expr.hpp
+* djinterp [cpp][math]                                                  expr.hpp
 *
 * The handle of the run-time expression language, math::expr, and the
 * header that includes every other of math/expr/; the sixth layer.

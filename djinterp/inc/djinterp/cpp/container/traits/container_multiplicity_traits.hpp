@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                               container_multiplicity_traits.hpp
+* djinterp [cpp][container]                    container_multiplicity_traits.hpp
 *
 *   SFINAE structural traits for the MULTIPLICITY axis - the per-class
 * occurrence

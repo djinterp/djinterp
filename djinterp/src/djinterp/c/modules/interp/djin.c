@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                            djin.c
+* djinterp [c][interp]                                                    djin.c
 *
 *   Djins (djin.h): their records checked, kept in a program's set, their
 * settings' frames registered in the program's registry, and the set and a

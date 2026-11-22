@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             function_traits.hpp
+* djinterp [cpp][functional]                                 function_traits.hpp
 *
 * Compile-time introspection of callable types (C++).
 *   Extracts the arity, return type, argument types, and class type (for

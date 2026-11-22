@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]               iterable_container_traits_tests_aggregate.cpp
+* djinterp [cpp][container]        iterable_container_traits_tests_aggregate.cpp
 *
 *   Section V - DIterableContainerClass, the assembled snapshot: the four detection
 * signals, the base classification, and the mode sub-axis (both raw probes, the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/jit]                                                   jit_sparc.h
+* djinterp [c][jit]                                                  jit_sparc.h
 *
 * djinterp SPARC (V8 / V9) JIT encoder (fixed-width 32-bit, big-endian words):
 *   The SPARC half of the djinterp JIT. As with the other RISC targets, the V8

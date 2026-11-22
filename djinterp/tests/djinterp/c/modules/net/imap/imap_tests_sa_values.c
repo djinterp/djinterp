@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                        imap_tests_sa_values.c
+* djinterp [c][net]                                       imap_tests_sa_values.c
 *
 * Tests of the IMAP kernel's sequence sets and dates.
 *   Sequence sets are written and parsed back, measured, refused where RFC

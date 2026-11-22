@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                              vparse_tests_captures.cpp
+* djinterp [cpp][parsegen]                             vparse_tests_captures.cpp
 *
 * vparse tests: MARK / CAP captures -- backtrack-safe unwinding, captures the
 * generator emits, and the traced run on a caller's machine.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            semigroup_tests.hpp
+* djinterp [cpp][functional]                                 semigroup_tests.hpp
 *
 *   Unit-test declarations for core/functional/semigroup.hpp.  One declaration
 * group per section of the module under test:

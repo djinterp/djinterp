@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          desc_machines_tests.c
+* djinterp [c][desc]                                       desc_machines_tests.c
 *
 *   The suite of desc's machines and of describing to a stream, in DTest's C
 * face. A toy type, a box of items, is described to the text machine in both

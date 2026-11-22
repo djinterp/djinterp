@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                           registry.hpp
+* djinterp [cpp][parsegen]                                          registry.hpp
 *
 *   The C++ face of the capability vocabulary and the stage registry.
 *   `DFeatureSet` wraps the C mask in a strong type so a capability profile

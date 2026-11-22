@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        registry_common_tests.h
+* djinterp [c][container]                                registry_common_tests.h
 *
 *   Unit test declarations for `registry_common.h` module.
 *   Provides comprehensive testing of all registry_common functions including

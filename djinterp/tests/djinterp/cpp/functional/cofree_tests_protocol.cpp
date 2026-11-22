@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      cofree_tests_protocol.cpp
+* djinterp [cpp][functional]                           cofree_tests_protocol.cpp
 *
 *   Section III of the cofree.hpp suite: the typeclass registration.  cofree<F,A>
 * registers functor_traits AND comonad_traits, so this section checks that the

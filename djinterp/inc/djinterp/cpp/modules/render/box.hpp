@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                    box.hpp
+* djinterp [cpp][render]                                                 box.hpp
 *
 * Axis-aligned boxes as a renderer sees them.
 *   The corner, edge and face tables of a box, and its projection through a

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 dregex_tests.h
+* djinterp [c][utility]                                           dregex_tests.h
 *
 * The suite of c/util/dregex, in DTest's C face.
 *

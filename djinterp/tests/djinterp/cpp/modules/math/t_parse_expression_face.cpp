@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                t_parse_expression_face.cpp
+* djinterp [cpp][math]                               t_parse_expression_face.cpp
 *
 *   Tests for parse/expression/, the framework's shared expression core, on
 * which the math module's run-time expression language is to be built

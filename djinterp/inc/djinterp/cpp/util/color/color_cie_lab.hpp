@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               color_cie_lab.hpp
+* djinterp [cpp][utility]                                      color_cie_lab.hpp
 *
 *   C++ ergonomic layer for the CIE XYZ and CIE L*a*b* color models. Both
 * wrappers derive from their shared-kernel PODs (color_lab.h) without adding

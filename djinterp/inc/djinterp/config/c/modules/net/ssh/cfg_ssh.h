@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                    cfg_ssh.h
+* djinterp [c][net]                                                    cfg_ssh.h
 *
 *   Configuration for the SSH common module. It selects which built-in engines
 * are compiled -- today, the libssh2 engine -- and the defaults that

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                             elementary.hpp
+* djinterp [cpp][math]                                            elementary.hpp
 *
 * Elementary functions, identities, and scalar helpers.
 *   Two layers:

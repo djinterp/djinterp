@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                               bits.hpp
+* djinterp [cpp][tools]                                                 bits.hpp
 *
 * Bits within a width: masks, runs, rotations, encodings and integer text.
 *   Most of what is here works on a value held in the low _width bits of a

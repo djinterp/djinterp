@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                              type_traits_tests_macros_spec.cpp
+* djinterp [cpp][meta]                         type_traits_tests_macros_spec.cpp
 *
 *   Unit tests for the specialization-detection macros, now in
 * trait_detect.hpp (re-exported through Section 0.3 of type_traits.hpp):

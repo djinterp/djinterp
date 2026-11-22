@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               compress_options_tests_enums.cpp
+* djinterp [cpp][utility]                       compress_options_tests_enums.cpp
 *
 *   Tests for the eight categorical enums (compress_options.hpp section I).
 * Each holds the value its library uses for that setting (zlib, liblzma,

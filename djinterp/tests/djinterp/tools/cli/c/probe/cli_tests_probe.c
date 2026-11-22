@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                             cli_tests_probe.c
+* djinterp [c][tools]                                          cli_tests_probe.c
 *
 * The modules the plugin suite loads: one source, built once for each kind
 * D_TESTS_CLI_PROBE names, each into a module `prog-KIND` beside the others.

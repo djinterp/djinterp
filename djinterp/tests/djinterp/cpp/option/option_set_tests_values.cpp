@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    option_set_tests_values.cpp
+* djinterp [cpp][option]                             option_set_tests_values.cpp
 *
 *   Section V of the option_set.hpp suite: the field marker and the value-
 * carrying face.

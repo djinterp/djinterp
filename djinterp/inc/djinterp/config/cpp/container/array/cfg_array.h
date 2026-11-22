@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                  cfg_array.h
+* djinterp [cpp][container]                                          cfg_array.h
 *
 * Feature configuration for the array sub-module.
 *   Resolves per-array-type filter toggles from the category defaults in

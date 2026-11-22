@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                             corpus.cpp
+* djinterp [cpp][parsegen]                                            corpus.cpp
 *
 * Definitions for `corpus.hpp`.
 *   A walk's shortest way out is measured in rules, not characters: a rule's

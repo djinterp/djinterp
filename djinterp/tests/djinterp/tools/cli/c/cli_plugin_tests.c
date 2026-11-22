@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                            cli_plugin_tests.c
+* djinterp [c][tools]                                         cli_plugin_tests.c
 *
 * The suite of the command-line kit's plugins, declared in
 * cli_plugin_tests.h.

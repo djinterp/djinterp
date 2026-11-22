@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                  markdown_template_concepts.hpp
+* djinterp [cpp][text]                            markdown_template_concepts.hpp
 *
 *   C++20 concepts for the Markdown block / inline / document /
 * backend protocols. Mirrors the structural traits in

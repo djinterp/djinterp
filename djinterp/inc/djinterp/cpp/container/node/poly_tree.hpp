@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   poly_tree.hpp
+* djinterp [cpp][container]                                        poly_tree.hpp
 *
 * Polymorphic Arena Tree:
 * A high-performance, variant-based tree container. It stores mixed node

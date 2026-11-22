@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             env_tests_runner.c
+* djinterp [c][env]                                           env_tests_runner.c
 *
 * The runner for env.h's suite: options, then the module, which its
 * entry points build call by call (test_suite.h 3.2). The module carries the

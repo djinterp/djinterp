@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               buffer_tests.hpp
+* djinterp [cpp][container]                                     buffer_tests.hpp
 *
 *   Declarations and helper types for the buffer.hpp unit test suite.
 * Each tests_<group> function records its assertions with

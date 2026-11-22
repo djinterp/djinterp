@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                        ftp_client_tests.cpp
+* djinterp [cpp][net]                                       ftp_client_tests.cpp
 *
 * C++ tests for net/ftp/ftp_client.hpp: the interface over the C client,
 * against the threaded FTP and FTPS server of ftps_tests_support.c. The core

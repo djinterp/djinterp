@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                         antiderivative.hpp
+* djinterp [cpp][math]                                        antiderivative.hpp
 *
 * Antiderivatives: a term integrated symbolically, from a table of
 * elementary forms; roadmap Phase 4's last item, 4d.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                        t_named_2d_face.cpp
+* djinterp [cpp][math]                                       t_named_2d_face.cpp
 *
 *   Tests for geometry/named_2d.hpp, at every level from C++98, per family:
 * every named shape's known areas, perimeters, centroids and containment --

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   mariadb_sizes_tests_runner.c
+* djinterp [c][db]                                  mariadb_sizes_tests_runner.c
 *
 * The runner for c/modules/db/mariadb's suite of checked sizes, the white-box
 * suite over mariadb_query.c: options, then the suite's one section,

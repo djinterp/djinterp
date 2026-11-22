@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     archive_kernel_tests_zip.c
+* djinterp [c][utility]                               archive_kernel_tests_zip.c
 *
 *   The ZIP reader's checks, its methods, and the writer's limits.  Every
 * member read is checked against its record -- size and CRC -- so damage the

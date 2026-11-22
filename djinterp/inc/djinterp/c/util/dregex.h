@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                          dregex.h
+* djinterp [c][utility]                                                 dregex.h
 *
 *   POSIX extended regular expressions with leftmost-longest semantics.
 *     Patterns are parsed to a tree, compiled by Thompson construction to a

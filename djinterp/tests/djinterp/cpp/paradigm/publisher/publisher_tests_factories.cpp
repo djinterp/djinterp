@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  publisher_tests_factories.cpp
+* djinterp [cpp][paradigm]                         publisher_tests_factories.cpp
 *
 *   Tests of publisher.hpp's factories (section X): make_bus and make_message.
 *

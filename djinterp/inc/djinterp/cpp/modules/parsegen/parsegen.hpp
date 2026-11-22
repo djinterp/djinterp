@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                           parsegen.hpp
+* djinterp [cpp][parsegen]                                          parsegen.hpp
 *
 *   The C++ face of the parsegen umbrella.
 *   Everything the subsystem needs is in parsegen.h; this adds the one part of

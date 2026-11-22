@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  ostream_format.h
+* djinterp [c][text]                                            ostream_format.h
 *
 *   Formatted output onto a stream: a double in the C locale's form whatever
 * the program's locale, a double in a locale the caller names, and printf.

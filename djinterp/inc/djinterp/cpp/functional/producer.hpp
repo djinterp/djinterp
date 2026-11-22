@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    producer.hpp
+* djinterp [cpp][functional]                                        producer.hpp
 *
 * First-class producers (sources) for functional dataflow (C++).
 *   A producer is a pull-driven source of values: a callable of signature

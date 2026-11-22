@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                            arg_option_set.c
+* djinterp [c][parse]                                           arg_option_set.c
 *
 * Options' settings, declared in arg_option.h (sections 4.1 to 4.5).
 *   The text help shows, the counts of values and items, the multi-option

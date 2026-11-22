@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 type_traits_tests_evaluate.cpp
+* djinterp [cpp][meta]                            type_traits_tests_evaluate.cpp
 *
 *   Unit tests for the trait-evaluation utilities in Section III of
 * type_traits.hpp:

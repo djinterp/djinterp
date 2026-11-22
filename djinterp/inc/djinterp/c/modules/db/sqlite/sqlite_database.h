@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 sqlite_database.h
+* djinterp [c][db]                                             sqlite_database.h
 *
 * SQLite's databases: the ones a connection has attached, and the files they
 * live in.

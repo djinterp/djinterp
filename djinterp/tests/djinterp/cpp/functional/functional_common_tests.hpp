@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    functional_common_tests.hpp
+* djinterp [cpp][functional]                         functional_common_tests.hpp
 *
 *   Unit-test declarations for core/functional/functional_traits.hpp -- the
 * shared callable vocabulary (and, since the merge, its C++20 concept faces).

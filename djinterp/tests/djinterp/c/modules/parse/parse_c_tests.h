@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                             parse_c_tests.h
+* djinterp [c][parse]                                            parse_c_tests.h
 *
 * The parse substrate's C suite: its C API, called from C.
 *   The C++ suites exercise this API through its C++ faces. These sections call

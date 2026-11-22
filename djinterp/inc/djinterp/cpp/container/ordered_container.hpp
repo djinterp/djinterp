@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                           ordered_container.hpp
+* djinterp [cpp][container]                                ordered_container.hpp
 *
 *   The ORDER axis (the spec, Sortedness): whether a container has POSITIONAL
 * IDENTITY.  A container is ORDERED iff a position function is part of its

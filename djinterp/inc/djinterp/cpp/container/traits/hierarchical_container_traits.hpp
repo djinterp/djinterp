@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                               hierarchical_container_traits.hpp
+* djinterp [cpp][container]                    hierarchical_container_traits.hpp
 *
 *   SFINAE structural traits for the HIERARCHICAL side of the structure axis -
 * whether a container NESTS. A container type factors as T = tau + F[T]: a

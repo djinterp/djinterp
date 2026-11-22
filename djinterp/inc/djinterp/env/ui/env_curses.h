@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                    env_curses.h
+* djinterp [c][env]                                                 env_curses.h
 *
 * djinterp curses environment detection.
 *   Compile-time and runtime detection of curses libraries across platforms:

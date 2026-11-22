@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                          kv.hpp
+* djinterp [cpp][meta]                                                    kv.hpp
 *
 * The C++ face of kv.h: a field named by a pointer-to-member, read with its own
 * type at no cost, and passed across to C as the two constants it already is.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                              dom_node.hpp
+* djinterp [cpp][parse]                                             dom_node.hpp
 *
 * Base DOM Node Payload:
 *   This header defines the foundational payload struct for a DOM-style

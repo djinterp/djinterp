@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  option_builder_tests_lift.cpp
+* djinterp [cpp][option]                           option_builder_tests_lift.cpp
 *
 *   Section II of the option_builder.hpp suite: the tuple-to-set lift.
 *

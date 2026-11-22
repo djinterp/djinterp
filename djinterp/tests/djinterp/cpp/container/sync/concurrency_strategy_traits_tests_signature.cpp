@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                concurrency_strategy_traits_tests_signature.cpp
+* djinterp [cpp][container]      concurrency_strategy_traits_tests_signature.cpp
 *
 *   Section VI - the strategy -> signature table, the convenience projections,
 * and the progress-grade shorthands.  The seven tag fixtures select the seven

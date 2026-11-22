@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       test_cvar_tests_runner.c
+* djinterp [c][test]                                    test_cvar_tests_runner.c
 *
 * The runner for test_cvar.h's suite: options, then the module, which its
 * entry points build call by call (test_suite.h 3.2).

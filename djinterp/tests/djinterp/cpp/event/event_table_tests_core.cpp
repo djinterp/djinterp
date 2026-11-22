@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     event_table_tests_core.cpp
+* djinterp [cpp][event]                               event_table_tests_core.cpp
 *
 *   Section III (core) -- the DEventTable lifecycle operations.  Covers the
 * empty initial state; insert (ids handed out from 1 and strictly increasing,

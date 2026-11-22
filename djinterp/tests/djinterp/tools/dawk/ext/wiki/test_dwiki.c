@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  test_dwiki.c
+* djinterp [c][tools]                                               test_dwiki.c
 *
 * Exercises `dwiki.h` and `dwiki_doc.h`: dialects, and pages' names, files,
 * keys and anchors; Markdown read as a GitHub wiki reads it, and MediaWiki's
@@ -22,6 +22,7 @@
 *   test_dwiki --corpus <dir>...         every page under each
 *   test_dwiki --fuzz <seed> <dir>...    random changes to every page
 *   test_dwiki --dump <file> [dialect]   a page's records
+*
 *
 * path:      /tests/djinterp/tools/dawk/ext/wiki/test_dwiki.c
 * link(s):   TBA

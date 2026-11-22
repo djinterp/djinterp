@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   dtuple_tests_homogeneity.cpp
+* djinterp [cpp][meta]                              dtuple_tests_homogeneity.cpp
 *
 *   Unit tests for the tuple-homogeneity section of dtuple.hpp:
 *     - is_tuple_homogeneous / is_tuple_homogeneous_v   (compile-time)

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                              sort_conformance_tests_surface.cpp
+* djinterp [cpp][utility]                     sort_conformance_tests_surface.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/sort/sort_conformance_tests_surface.cpp

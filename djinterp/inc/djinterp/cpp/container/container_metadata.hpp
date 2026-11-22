@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                          container_metadata.hpp
+* djinterp [cpp][container]                               container_metadata.hpp
 *
 *   The foundational metadata facility for containers. Metadata is, at bottom,
 * nothing more than a COLLECTION OF KEY-VALUE PAIRS whose key and value types

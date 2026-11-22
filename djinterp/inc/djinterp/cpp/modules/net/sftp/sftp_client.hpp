@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                             sftp_client.hpp
+* djinterp [cpp][net]                                            sftp_client.hpp
 *
 * The C++ interface to the SFTP client.
 *   A zero-cost view of sftp_client.h: `client` holds a dj_sftp_client, and

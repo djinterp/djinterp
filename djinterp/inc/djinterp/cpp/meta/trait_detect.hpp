@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                trait_detect.hpp
+* djinterp [cpp][meta]                                          trait_detect.hpp
 *
 *   The detection-trait MACRO TOOLKIT, factored out of type_traits.hpp so the
 * whole framework draws its SFINAE / detection-idiom machinery from one place.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          less_tests_runner.cpp
+* djinterp [cpp][text]                                     less_tests_runner.cpp
 *
 * The runner for less's suite: options, then the module.
 *

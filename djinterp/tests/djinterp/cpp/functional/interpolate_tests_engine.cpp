@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   interpolate_tests_engine.cpp
+* djinterp [cpp][functional]                        interpolate_tests_engine.cpp
 *
 * Section V -- interpolate_into: the fold that binds scanner, resolver, and
 * sink.  Verifies literal passthrough, a hit's value emission, a miss leaving

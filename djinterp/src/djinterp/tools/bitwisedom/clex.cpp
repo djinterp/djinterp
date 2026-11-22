@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                               clex.cpp
+* djinterp [cpp][tools]                                                 clex.cpp
 *
 * C and C++ text as tokens: djinterp's scanners and literal decoder, behind
 * values that own their spelling.
@@ -7,6 +7,7 @@
 * extern "C" guards its diagnostic header has, so they are included inside
 * one here. Their diagnostics reach a sink with no storage and a hook, which
 * turns each error into text as it is raised.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/clex.cpp
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                         sequential_container_tests_base.cpp
+* djinterp [cpp][container]                  sequential_container_tests_base.cpp
 *
 *   Section TU: the DSequentialBase CRTP order operations.  Structurally a
 * mirror of the DOrderedBase coverage - every method and every branch (the

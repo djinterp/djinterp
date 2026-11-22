@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                         arg_tests_support.c
+* djinterp [c][parse]                                        arg_tests_support.c
 *
 * The runs the argument parser's C suites share, declared in
 * arg_tests_support.h: a parser made as the module was checked against

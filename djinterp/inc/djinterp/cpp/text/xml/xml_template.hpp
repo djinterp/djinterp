@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                xml_template.hpp
+* djinterp [cpp][text]                                          xml_template.hpp
 *
 *   Templated, library-agnostic XML attribute / node / document types.
 * Each user-facing class is parameterised over a `Backend` type that

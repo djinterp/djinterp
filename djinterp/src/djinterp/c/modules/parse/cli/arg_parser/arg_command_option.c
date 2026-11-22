@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                        arg_command_option.c
+* djinterp [c][parse]                                       arg_command_option.c
 *
 * A command's options, declared in arg_command.h (3.1, 3.2 and 3.4.2).
 *   Adding an option as CLI11's add_option adds one -- its names checked

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parsegen]                                               registry.h
+* djinterp [c][parsegen]                                              registry.h
 *
 * The table of stages a pipeline can be built from, and how one is chosen.
 *   A frontend reads a notation. A pass rewrites a grammar. A family plans a

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                           color_hsv_tests.hpp
+* djinterp [cpp][utility]                                    color_hsv_tests.hpp
 *
 *   Suite header for color_hsv.hpp - the C++ ergonomic layer over the HSV
 * shared kernel: `hsv` derives from dj_color_hsv without adding state and

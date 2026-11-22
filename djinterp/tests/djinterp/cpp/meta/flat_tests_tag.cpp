@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              flat_tests_tag.cpp
+* djinterp [cpp][meta]                                        flat_tests_tag.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/flat_tests_tag.cpp

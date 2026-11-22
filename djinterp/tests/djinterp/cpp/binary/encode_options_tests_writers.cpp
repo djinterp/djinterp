@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                encode_options_tests_writers.cpp
+* djinterp [cpp][binary]                        encode_options_tests_writers.cpp
 *
 *
 * path:      /tests/djinterp/cpp/binary/encode_options_tests_writers.cpp

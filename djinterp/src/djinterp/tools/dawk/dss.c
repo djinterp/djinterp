@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                      dss.c
+* djinterp [c][tools]                                                      dss.c
 *
 * DSS front end:
 *   A hand-written recursive-descent parser over the declarative subset of

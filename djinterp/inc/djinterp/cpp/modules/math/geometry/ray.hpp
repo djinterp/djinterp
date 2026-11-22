@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                    ray.hpp
+* djinterp [cpp][math]                                                   ray.hpp
 *
 * A ray (origin + direction) in Cartesian space, plus the intersection tests
 * used for picking and containment queries.

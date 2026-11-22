@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     compress_options_tests.hpp
+* djinterp [cpp][utility]                             compress_options_tests.hpp
 *
 *   Unit-test header for compress_options.hpp - the codec-aware compression
 * option vocabulary (the expanded, authoritative form of the minimal

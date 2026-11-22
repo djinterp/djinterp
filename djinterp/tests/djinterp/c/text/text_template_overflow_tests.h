@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 text_template_overflow_tests.h
+* djinterp [c][text]                              text_template_overflow_tests.h
 *
 * text_template.c's overflow suite in DTest's C face
 * (c/modules/test/test_suite.h).

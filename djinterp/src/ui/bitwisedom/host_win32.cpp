@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                 host_win32.cpp
+* djinterp [cpp][tools]                                           host_win32.cpp
 *
 * The window's host on Windows: Win32 and Direct3D 11, with nothing to
 * install.
@@ -24,6 +24,7 @@
 * cannot be opened is said through the module's program, as an error that
 * ends the run in trouble. The window's version names the host as Win32
 * and Direct3D 11, whose feature level is chosen only when the window opens.
+*
 *
 * path:      /src/ui/bitwisedom/host_win32.cpp
 * link(s):   TBA

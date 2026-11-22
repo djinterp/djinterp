@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     archive.hpp
+* djinterp [cpp][utility]                                            archive.hpp
 *
 *   djinterp portable archive facade:
 * A version-portable (C++98 - C++23), OS-cross-platform interface for creating

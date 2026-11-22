@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      test_timer_tests_runner.c
+* djinterp [c][test]                                   test_timer_tests_runner.c
 *
 * The runner for DTest's C test timer suite: one module spec, the suite's
 * own.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [parse]                                    free_tests_applicative.cpp
+* djinterp [cpp][parse]                               free_tests_applicative.cpp
 *
 *   Section V of the parser/free.hpp suite: the applicative stratum
 * (free_ap_parser) and its ap_pure / ap_lift / ap_apply / ap_map factories.

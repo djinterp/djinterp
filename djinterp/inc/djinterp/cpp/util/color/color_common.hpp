@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                color_common.hpp
+* djinterp [cpp][utility]                                       color_common.hpp
 *
 *   The foundation of the C++ color module, which every model's header
 * includes: the channel scalar (channel_t, the C kernel's float), the

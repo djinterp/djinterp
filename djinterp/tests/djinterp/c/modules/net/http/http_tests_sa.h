@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                               http_tests_sa.h
+* djinterp [c][net]                                              http_tests_sa.h
 *
 * Standalone tests of net/http/http.h, HTTP's semantics in C.
 *   Each test is table-driven, so a case is one line and a failure names the

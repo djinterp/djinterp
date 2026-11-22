@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]             container_transform_traits_tests_capability.cpp
+* djinterp [cpp][container]      container_transform_traits_tests_capability.cpp
 *
 *   Section I - the capability split.  is_transform_source is the READ capability
 * (iterable + a value_type); is_container_transformable adds the BUILD capability

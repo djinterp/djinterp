@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]           container_memory_traits_tests_alias_detection.cpp
+* djinterp [cpp][container]    container_memory_traits_tests_alias_detection.cpp
 *
 *   Section I - has_memory_strategy_alias: detection of a container's explicit
 * `using memory_strategy = S;` member, the highest-priority declaration of how

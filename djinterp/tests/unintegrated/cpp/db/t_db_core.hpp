@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [core]                                                  t_db_core.hpp
+* djinterp [cpp][db]                                               t_db_core.hpp
 *
 *   The checks every vendor's core/db harness shares: the operations
 * database_connection writes once for every vendor -- running SQL and

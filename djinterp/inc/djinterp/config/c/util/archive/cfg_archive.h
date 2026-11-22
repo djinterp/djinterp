@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                cfg_archive.h
+* djinterp [c][utility]                                            cfg_archive.h
 *
 *   Build-time configuration for the archive facade: which formats are compiled
 * in, whether the built-in writers are used in preference to a detected

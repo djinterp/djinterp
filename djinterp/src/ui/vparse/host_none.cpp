@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [ui]                                                      host_none.cpp
+* djinterp [cpp][tools]                                            host_none.cpp
 *
 * The host of a build with no window: what the workbench is compiled with
 * where neither of the others can be -- not on Windows, and no GLFW found.
@@ -7,6 +7,7 @@
 * reached, since every other call needs an open window. `vparse gui` still
 * reads its command line and answers --help; a run is printed by vparse's
 * commands, which need no window at all.
+*
 *
 * path:      /src/ui/vparse/host_none.cpp
 * link(s):   TBA

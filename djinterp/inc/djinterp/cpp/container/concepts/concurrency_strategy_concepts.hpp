@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                               concurrency_strategy_concepts.hpp
+* djinterp [cpp][container]                    concurrency_strategy_concepts.hpp
 *
 * C++20 concepts for the CONCURRENCY STRATEGY axis -- the `requires`-facing
 * view of concurrency_strategy_traits.hpp.

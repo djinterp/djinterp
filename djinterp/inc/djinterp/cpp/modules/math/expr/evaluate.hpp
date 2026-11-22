@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                               evaluate.hpp
+* djinterp [cpp][math]                                              evaluate.hpp
 *
 * The folds to numbers: a term's value at its variables' values, in a
 * floating-point type or as a math::value; the fourth layer's first half.

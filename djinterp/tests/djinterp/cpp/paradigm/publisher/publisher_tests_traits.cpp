@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     publisher_tests_traits.cpp
+* djinterp [cpp][paradigm]                            publisher_tests_traits.cpp
 *
 *   Tests of publisher.hpp's conformance traits (section VIII) and its C++20
 * concepts (section IX).

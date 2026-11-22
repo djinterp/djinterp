@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [core]                                       database_tests_enums.cpp
+* djinterp [cpp][db]                                    database_tests_enums.cpp
 *
 *
 * path:      /tests/unintegrated/cpp/db/database_tests_enums.cpp

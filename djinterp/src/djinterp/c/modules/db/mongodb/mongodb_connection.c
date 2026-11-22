@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                              mongodb_connection.c
+* djinterp [c][db]                                          mongodb_connection.c
 *
 * Implementation of mongodb_connection.h.
 *   A connection is made in four steps. The connection string is built: the

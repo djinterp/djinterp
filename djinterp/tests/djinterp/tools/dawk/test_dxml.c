@@ -1,9 +1,10 @@
 /*******************************************************************************
-* djinterp [tools]                                                   test_dxml.c
+* djinterp [c][tools]                                                test_dxml.c
 *
 * Exercises `dxml.h`: the tokens of a slide part in the shape a .story holds,
 * names with and without prefixes, attributes as written, the decoding of
 * text, and the refusal of markup that is not well formed.
+*
 *
 * path:      /tests/djinterp/tools/dawk/test_dxml.c
 * link(s):   TBA

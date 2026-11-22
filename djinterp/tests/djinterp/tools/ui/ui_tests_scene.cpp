@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                            ui_tests_scene.cpp
+* djinterp [cpp][tools]                                       ui_tests_scene.cpp
 *
 * Unit tests for scene projection and picking through the render3d camera.
 *

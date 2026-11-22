@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                      sqlite.hpp
+* djinterp [cpp][db]                                                  sqlite.hpp
 *
 * djinterp SQLite connection module:
 *   The SQLite connection, sqlite_connection, over the SQLite layer's C++

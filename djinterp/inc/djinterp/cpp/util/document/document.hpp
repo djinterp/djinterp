@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    document.hpp
+* djinterp [cpp][utility]                                           document.hpp
 *
 *   A fluent facade over the build side (`DDocumentWriter`) and the print
 * side (`DDocumentPrinter`): one object you build a tree into and then

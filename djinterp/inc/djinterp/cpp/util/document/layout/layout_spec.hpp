@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 layout_spec.hpp
+* djinterp [cpp][utility]                                        layout_spec.hpp
 *
 *   The DECLARATIVE construction surface -- a pure-data description of a document
 * lowered to the term by a free function, the idiom the test framework's

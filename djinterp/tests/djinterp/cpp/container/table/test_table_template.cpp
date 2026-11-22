@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                         test_table_template.cpp
+* djinterp [cpp][container]                              test_table_template.cpp
 *
 *
 * path:      /tests/djinterp/cpp/container/table/test_table_template.cpp

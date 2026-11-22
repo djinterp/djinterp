@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                               edit.hpp
+* djinterp [cpp][tools]                                                 edit.hpp
 *
 * Edits as the window and the command line make them alike.
 *   What a user does to a sheet -- adds a row, duplicates, removes or moves
@@ -18,6 +18,7 @@
 * the sheet to keep when it is not.
 *   SORTING. The order the window shows each group's rows in, by a key, is
 * made the sheet's own -- the order its header follows.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/edit.hpp
 * link(s):   TBA

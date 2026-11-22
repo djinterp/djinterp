@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                         ssl.c
+* djinterp [c][net]                                                        ssl.c
 *
 * Implementation of the shared SSL/TLS kernel declared in ssl.h.
 *   Pure computation over caller-owned memory -- names, ALPN lists, PEM,

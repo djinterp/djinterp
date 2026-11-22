@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                   math.hpp
+* djinterp [cpp][math]                                                  math.hpp
 *
 * Umbrella header for the math subframework.
 *   math.hpp defines no types of its own; it includes every header of the

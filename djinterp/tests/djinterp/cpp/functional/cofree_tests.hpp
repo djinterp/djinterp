@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                            cofree_tests.hpp
+* djinterp [cpp][functional]                                    cofree_tests.hpp
 *
 *   Declarations and shared fixtures for the cofree.hpp unit suite.  The
 * individual tests_* predicates and their block-providers are defined per

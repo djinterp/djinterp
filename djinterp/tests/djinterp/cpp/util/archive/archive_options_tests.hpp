@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      archive_options_tests.hpp
+* djinterp [cpp][utility]                              archive_options_tests.hpp
 *
 *   Declarations for the archive_options.hpp unit-test suite, plus the small
 * shared helpers and the per-suite check macros the section translation units

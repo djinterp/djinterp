@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                   sequence_tests_conversion.cpp
+* djinterp [cpp][paradigm]                         sequence_tests_conversion.cpp
 *
 *
 * path:      /tests/djinterp/cpp/paradigm/sequence/sequence_tests_conversion.cpp

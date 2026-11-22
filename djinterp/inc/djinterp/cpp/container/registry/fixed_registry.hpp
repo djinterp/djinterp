@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              fixed_registry.hpp
+* djinterp [cpp][container]                                   fixed_registry.hpp
 *
 *   fixed_registry -- a registry whose KEY SET is settled at construction and
 * never grows or shrinks thereafter: STRUCTURALLY FIXED.  On the Mutability

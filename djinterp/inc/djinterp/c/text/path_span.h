@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       path_span.h
+* djinterp [c][text]                                                 path_span.h
 *
 * A generic path: an address -- a word of labels -- read from its rendering
 * as text, without copying it.
@@ -11,6 +11,7 @@
 * grammar a caller writes is all that tells them apart. The vocabulary is
 * core/paradigm/path/path.hpp's: the anchor contributes no label, a path's
 * level is its number of labels, and paths in different anchors have no meet.
+*
 *
 * path:      /inc/djinterp/c/text/path_span.h
 * link(s):   TBA

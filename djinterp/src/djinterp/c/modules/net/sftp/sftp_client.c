@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 sftp_client.c
+* djinterp [c][net]                                                sftp_client.c
 *
 * Implementation of the SFTP client declared in sftp_client.h.
 *   Received bytes collect in one buffer sized for the largest packet; a

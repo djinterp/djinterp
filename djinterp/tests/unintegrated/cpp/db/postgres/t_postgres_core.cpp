@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [core]                                            t_postgres_core.cpp
+* djinterp [cpp][db]                                         t_postgres_core.cpp
 *
 *   core/db's PostgreSQL connection, pg_connection, over the PostgreSQL
 * layer, against a live server -- PostgreSQL from 10, through whichever libpq

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                         reducer.c
+* djinterp [c][functional]                                             reducer.c
 *
 * TBA
 *

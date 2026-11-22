@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                         dfs.c
+* djinterp [c][tools]                                                      dfs.c
 *
 * What the tools ask of a file system that ISO C cannot answer.
 *   Each question is answered twice, once for Windows and once for POSIX, and
@@ -9,6 +9,7 @@
 *   The Windows half asks the system itself (kernel32's narrow interface) and
 * not its C library, whose answers differ between the libraries a Windows
 * compiler may come with.
+*
 *
 * path:      /src/djinterp/tools/dawk/dfs.c
 * link(s):   TBA

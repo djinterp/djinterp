@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                dtuple_wrap_partition_tests.hpp
+* djinterp [cpp][meta]                           dtuple_wrap_partition_tests.hpp
 *
 *   Unit-test suite for the chunk-and-wrap partition engine in
 * `dtuple_wrap_partition.hpp` (partition_wrap_except / _t).  Tests are split

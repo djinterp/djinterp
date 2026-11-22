@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 cpp_named26.hpp
+* djinterp [cpp][meta]                                           cpp_named26.hpp
 *
 * C++26 named requirement type traits:
 *   Extends the C++23 named requirement traits with C++26 additions:

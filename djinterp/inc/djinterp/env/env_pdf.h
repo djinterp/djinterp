@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                       env_pdf.h
+* djinterp [c][env]                                                    env_pdf.h
 *
 * djinterp PDF-library detection.
 *   Compile-time detection of the PDF generation, rendering, and parsing

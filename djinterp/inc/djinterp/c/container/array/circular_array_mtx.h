@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                              circular_array_mtx.h
+* djinterp [c][container]                                   circular_array_mtx.h
 *
 *   A thread-safe circular array (ring buffer) that wraps `dj_circular_array`
 * with mutex-based synchronization. All operations acquire a lock before

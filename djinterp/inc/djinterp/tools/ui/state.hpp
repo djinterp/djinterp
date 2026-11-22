@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                  state.hpp
+* djinterp [cpp][tools]                                                state.hpp
 *
 *   The UI-framework-agnostic state / value model (roadmap phase 1a).  Describes
 * the n-dimensional discrete state space (its `axis`es), addresses a cell of the

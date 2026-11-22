@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/jit]                                                     jit_ppc.h
+* djinterp [c][jit]                                                    jit_ppc.h
 *
 * djinterp PowerPC (PPC32 / PPC64) JIT encoder (fixed-width 32-bit words):
 *   The PowerPC half of the djinterp JIT. Like MIPS and RISC-V, the PPC32 and

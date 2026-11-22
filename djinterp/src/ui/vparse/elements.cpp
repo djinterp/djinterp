@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [ui]                                                       elements.cpp
+* djinterp [cpp][tools]                                             elements.cpp
 *
 * The workbench's own elements: their types, and the builders that make them.
 *   Each is a leaf whose attributes name what to show -- a part of a run, a
@@ -8,6 +8,7 @@
 * a template stays small whatever the runs hold, and a platform that has not
 * heard of these elements draws nothing for them rather than failing. Their
 * drawing on Dear ImGui is in elements_imgui.cpp.
+*
 *
 * path:      /src/ui/vparse/elements.cpp
 * link(s):   TBA

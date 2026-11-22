@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      result_tests_equality.cpp
+* djinterp [cpp][functional]                           result_tests_equality.cpp
 *
 * Equality-operator tests for result<T, E>.
 *

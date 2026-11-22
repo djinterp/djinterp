@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                       vparse_tests.hpp
+* djinterp [cpp][parsegen]                                      vparse_tests.hpp
 *
 * Test header for the vparse module: shared helpers plus declarations of the
 * tests_* section functions (defined in the vparse_tests_*.cpp TUs, flat in

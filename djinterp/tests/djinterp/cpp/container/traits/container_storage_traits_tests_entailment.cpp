@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]               container_storage_traits_tests_entailment.cpp
+* djinterp [cpp][container]        container_storage_traits_tests_entailment.cpp
 *
 *   Section IV - static_storage_implies_constexpr_size, the per-type form of the
 * formal entailment site(c) = stat => stage(|c|) = c: an inline (static) footprint

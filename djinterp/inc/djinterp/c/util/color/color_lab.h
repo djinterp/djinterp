@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       color_lab.h
+* djinterp [c][utility]                                              color_lab.h
 *
 *   CIE XYZ and CIE L*a*b* shared kernel for the djinterp color module. XYZ
 * is the device-independent hub through which L*a*b* conversions route, so

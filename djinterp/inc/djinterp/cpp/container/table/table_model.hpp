@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 table_model.hpp
+* djinterp [cpp][container]                                      table_model.hpp
 *
 *   THE MEETING POINT. A table has two declaration front ends -- table_builder
 * (C++ types) and table_parser (text) -- and the requirement that anything

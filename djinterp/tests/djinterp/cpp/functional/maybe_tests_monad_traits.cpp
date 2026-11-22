@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   maybe_tests_monad_traits.cpp
+* djinterp [cpp][functional]                        maybe_tests_monad_traits.cpp
 *
 * Tests for the monad_traits<maybe<_T>> specialization defined in maybe.hpp
 * section V.  The generic monad protocol (free bind/map_with/etc. in

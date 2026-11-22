@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_link.c
+* djinterp [c][filesys]                                              file_link.c
 *
 * Implementation of the symbolic-link calls declared in file_link.h.
 *   symlink and readlink on POSIX. On Windows, CreateSymbolicLinkA with the

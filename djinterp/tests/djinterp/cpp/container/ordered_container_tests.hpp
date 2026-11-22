@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                 ordered_container_tests.hpp
+* djinterp [cpp][container]                          ordered_container_tests.hpp
 *
 *   DTest suite header for ordered_container.hpp - the ORDER axis.  Presents
 *   two

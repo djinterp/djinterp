@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  option_set_tests_concepts.cpp
+* djinterp [cpp][option]                           option_set_tests_concepts.cpp
 *
 *   Section VII of the option_set.hpp suite: the C++20 concept analogs of the
 * query traits.

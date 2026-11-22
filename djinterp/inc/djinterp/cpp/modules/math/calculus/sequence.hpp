@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                               sequence.hpp
+* djinterp [cpp][math]                                              sequence.hpp
 *
 * Sequences.
 *   A sequence maps an index n (0-based) to a term value. A general sequence

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   table_carrier.h
+* djinterp [c][container]                                        table_carrier.h
 *
 *   The CELL-HOMOGENEOUS carrier: one cell type serves every cell, so the
 * cells sit contiguously in the atomic order and the type is carried as a

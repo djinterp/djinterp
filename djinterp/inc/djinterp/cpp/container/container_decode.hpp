@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            container_decode.hpp
+* djinterp [cpp][container]                                 container_decode.hpp
 *
 *   The CONTAINER decoder: dec_tau lifted from a leaf to a whole container,
 * the

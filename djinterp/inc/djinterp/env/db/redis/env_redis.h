@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                     env_redis.h
+* djinterp [c][env]                                                  env_redis.h
 *
 * djinterp Redis environment detection.
 *   Compile-time detection of a Redis environment: the hiredis client and its

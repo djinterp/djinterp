@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                   edge.cpp
+* djinterp [cpp][math]                                                  edge.cpp
 *
 *
 * path:      /src/djinterp/cpp/modules/math/geometry/edge.cpp

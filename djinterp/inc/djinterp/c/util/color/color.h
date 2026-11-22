@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                           color.h
+* djinterp [c][utility]                                                  color.h
 *
 *   Umbrella header for the djinterp color module (C). Including this single
 * header pulls in every color model, the shared conversion kernel, and the

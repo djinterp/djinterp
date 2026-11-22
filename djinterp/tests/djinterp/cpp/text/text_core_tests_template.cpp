@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   text_core_tests_template.cpp
+* djinterp [cpp][text]                              text_core_tests_template.cpp
 *
 *   The groups for text_align.hpp and text_template.hpp: DTextAlignment's
 * values; the placeholder parser's segments; the template's dialect, its

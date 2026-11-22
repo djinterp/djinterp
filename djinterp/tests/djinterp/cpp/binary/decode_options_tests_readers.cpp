@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                decode_options_tests_readers.cpp
+* djinterp [cpp][binary]                        decode_options_tests_readers.cpp
 *
 *
 * path:      /tests/djinterp/cpp/binary/decode_options_tests_readers.cpp

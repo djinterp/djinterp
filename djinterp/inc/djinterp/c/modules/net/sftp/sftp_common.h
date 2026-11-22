@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 sftp_common.h
+* djinterp [c][net]                                                sftp_common.h
 *
 * The SSH File Transfer Protocol, version 3: vocabulary and codec.
 *   Version 3 (draft-ietf-secsh-filexfer-02) is the version OpenSSH speaks and

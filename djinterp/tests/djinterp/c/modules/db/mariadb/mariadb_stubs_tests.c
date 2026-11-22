@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          mariadb_stubs_tests.c
+* djinterp [c][db]                                         mariadb_stubs_tests.c
 *
 *   The MariaDB layer built without a client library (D_CFG_MARIADB 0): every
 * function answers as such a build must -- D_DB_UNSUPPORTED, or false, 0 or

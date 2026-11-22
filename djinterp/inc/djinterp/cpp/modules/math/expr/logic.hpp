@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                  logic.hpp
+* djinterp [cpp][math]                                                 logic.hpp
 *
 * The relations and logic of the run-time expression language, in a
 * floating-point type and as a value, and piecewise: the evaluators the

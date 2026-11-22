@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         compress_tests_api.cpp
+* djinterp [cpp][utility]                                 compress_tests_api.cpp
 *
 *   Tests for the non-throwing template API and the dispatch leaves
 * (compress.hpp section VII; compress.cpp section VII).  Covers the argument

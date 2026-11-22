@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                              mariadb_connection.h
+* djinterp [c][db]                                          mariadb_connection.h
 *
 * Making, adopting and closing connections, and what a connection reports.
 *   d_mariadb_connect makes a connection from a struct of the usual fields and

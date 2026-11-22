@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                        codec_tests_sa_ascii.c
+* djinterp [c][net]                                       codec_tests_sa_ascii.c
 *
 * Standalone tests of codec_ascii.h: every character's classes and folding,
 * checked against the ASCII table itself, and comparison and trimming of

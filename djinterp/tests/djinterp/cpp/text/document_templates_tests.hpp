@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                  document_templates_tests.hpp
+* djinterp [cpp][text]                              document_templates_tests.hpp
 *
 *   Unit tests for the dialect-agnostic document-template subframework built
 * this session.  Each test is a `bool()` predicate in ::djinterp::testing, in

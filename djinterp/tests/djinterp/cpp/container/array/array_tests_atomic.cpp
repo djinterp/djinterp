@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         array_tests_atomic.cpp
+* djinterp [cpp][container]                               array_tests_atomic.cpp
 *
 *   DAtomicArray tests: construction, the per-element atomic operations,
 * iteration over the atomics, and four threads' increments with none lost.

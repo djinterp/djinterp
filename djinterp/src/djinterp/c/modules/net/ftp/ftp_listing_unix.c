@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                            ftp_listing_unix.c
+* djinterp [c][net]                                           ftp_listing_unix.c
 *
 * Implementation of the Unix listing dialect: "ls -l" lines.
 *   Fields are collected until one begins a date, so the variable middle

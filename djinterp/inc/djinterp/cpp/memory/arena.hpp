@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                       arena.hpp
+* djinterp [cpp][memory]                                               arena.hpp
 *
 * C++ face of the monotonic bump arena.
 *   `DArena` DERIVES from dj_arena and adds no data members, so it IS one: it

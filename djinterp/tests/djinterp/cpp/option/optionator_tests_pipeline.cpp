@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  optionator_tests_pipeline.cpp
+* djinterp [cpp][option]                           optionator_tests_pipeline.cpp
 *
 *   Sections V + VI - assembly and execution.  optionator<...> is the empty
 * entry point carrying the normalized environment as options_t; piping a source

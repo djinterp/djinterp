@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                      memory_strategy_common.hpp
+* djinterp [cpp][memory]                              memory_strategy_common.hpp
 *
 * The memory-strategy contract -- C++ notation over the C allocators.
 *   A STRATEGY is a uniform surface over "where storage comes from", so that a

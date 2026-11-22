@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             markdown_tests.hpp
+* djinterp [cpp][text]                                        markdown_tests.hpp
 *
 *   The suite for text's Markdown headers -- markdown/markdown.hpp,
 * markdown/markdown_template.hpp and its traits and concepts -- in DTest's C

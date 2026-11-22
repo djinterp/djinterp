@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                markup_string_tests_facades.cpp
+* djinterp [cpp][text]                           markup_string_tests_facades.cpp
 *
 *   The groups for the two facades over the markup string template:
 * html/html_string_template.hpp, in namespace djinterp::html, and

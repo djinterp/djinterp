@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                        compress.h
+* djinterp [c][utility]                                               compress.h
 *
 *   The C face of the compression kernel: tier 1a.  Ergonomics ONLY.  Every
 * line here expands to a call into compress_common.h; nothing in this file

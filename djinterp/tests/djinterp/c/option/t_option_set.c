@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    t_option_set.c
+* djinterp [c][option]                                            t_option_set.c
 *
 *   Conformance harness for option_set.h's pristine mark and by-value status:
 * the mark lowers every cell's ASSIGNED flag and nothing else, the test sees

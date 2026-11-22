@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               table_options.hpp
+* djinterp [cpp][container]                                    table_options.hpp
 *
 *   The option vocabulary shared by the two table declaration front ends --
 * table_builder (the compile-time TYPE DSL) and table_parser (the TEXT DSL).

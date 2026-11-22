@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                           djinterp_commands.h
+* djinterp [c][tools]                                        djinterp_commands.h
 *
 * The djinterp program's 0.8 preview: a program on the command-line kit
 * whose commands read the djins and the settings of the program's registry

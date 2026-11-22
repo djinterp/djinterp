@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    override.hpp
+* djinterp [cpp][meta]                                              override.hpp
 *
 *   Foundational, container-agnostic override-policy module.  An "override
 * policy" is the abstract notion of "given a BASE element and a DELTA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         mariadb_tests_runner.c
+* djinterp [c][db]                                        mariadb_tests_runner.c
 *
 * The runner for c/modules/db/mariadb's suite, the layer against a MariaDB or
 * MySQL server: options, then the suite's one section, d_tests_mariadb, which

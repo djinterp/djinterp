@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      markdown_tests_traits.cpp
+* djinterp [cpp][text]                                 markdown_tests_traits.cpp
 *
 *   The groups for markdown/markdown_template_traits.hpp and
 * markdown/markdown_template_concepts.hpp: the default backend's facades,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 mysql_table.hpp
+* djinterp [cpp][db]                                             mysql_table.hpp
 *
 * A table of an Oracle MySQL database held in memory: mysql_common_table
 * over a mysql_connection, with what MySQL adds.

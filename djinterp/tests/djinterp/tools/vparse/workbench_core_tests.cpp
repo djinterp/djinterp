@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [tests]                                        workbench_core_tests.cpp
+* djinterp [cpp][tools]                                 workbench_core_tests.cpp
 *
 * The model's suite: what a run holds, what the session decides for it, the
 * heat it leaves, what it counts and what its memo does, and the files it is

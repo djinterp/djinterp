@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                compress_options_tests_zstd.cpp
+* djinterp [cpp][utility]                        compress_options_tests_zstd.cpp
 *
 *   Tests for the Zstandard block (DZstdOptions, compress_options.hpp
 * section II): nineteen knobs, pristine at UNSET, and the flags the core pins

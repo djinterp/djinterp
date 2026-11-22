@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                    log_tests.c
+* djinterp [c][log]                                                  log_tests.c
 *
 *   The suite of c/log, in DTest's C face. A toy module, "t.net", declares
 * three codes; records go to a fixed stream, at a fixed time, so each test

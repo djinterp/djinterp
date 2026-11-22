@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   option_set_tests_queries.cpp
+* djinterp [cpp][option]                            option_set_tests_queries.cpp
 *
 *   Section VI of the option_set.hpp suite: the trait machinery that queries an
 * already-instantiated option_set<>.

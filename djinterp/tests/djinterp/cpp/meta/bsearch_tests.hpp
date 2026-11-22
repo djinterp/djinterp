@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                           bsearch_tests.hpp
+* djinterp [cpp][meta]                                         bsearch_tests.hpp
 *
 * Unit test suite for bsearch.hpp -- the compile-time binary-search engine.
 *   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):

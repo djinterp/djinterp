@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           dregex_sizes_tests.h
+* djinterp [c][utility]                                     dregex_sizes_tests.h
 *
 * The white-box suite of c/util/dregex's allocation sizes, in DTest's C face.
 *

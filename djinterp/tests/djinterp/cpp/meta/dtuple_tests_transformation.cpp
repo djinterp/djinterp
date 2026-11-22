@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                dtuple_tests_transformation.cpp
+* djinterp [cpp][meta]                           dtuple_tests_transformation.cpp
 *
 *   Unit tests for the tuple-transformation section of dtuple.hpp:
 *     - tuple_apply_all / tuple_apply_all_t

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    foldable.hpp
+* djinterp [cpp][functional]                                        foldable.hpp
 *
 * Foldable protocol and the generic folds (C++).
 *   A foldable here is a type constructor F<T> -- a context holding zero or

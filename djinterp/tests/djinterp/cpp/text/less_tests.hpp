@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 less_tests.hpp
+* djinterp [cpp][text]                                            less_tests.hpp
 *
 *   The suite for text's Less headers -- css/less/less.hpp and
 * css/less/less_template.hpp -- in DTest's C face

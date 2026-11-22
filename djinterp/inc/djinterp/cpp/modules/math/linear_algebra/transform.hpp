@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                              transform.hpp
+* djinterp [cpp][math]                                             transform.hpp
 *
 * Transformation builders and homogeneous coordinates for the linear-algebra
 * subframework.

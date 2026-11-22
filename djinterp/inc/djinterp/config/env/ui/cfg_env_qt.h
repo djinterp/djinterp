@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                 cfg_env_qt.h
+* djinterp [c][env]                                                 cfg_env_qt.h
 *
 * Configuration for env_qt.h, the Qt detection header under env/ui/.
 *   Resolves D_CFG_ENV_QT_PROBE_VERSION, which lets env_qt.h include Qt 6.5's

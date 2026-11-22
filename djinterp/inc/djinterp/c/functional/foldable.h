@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                        foldable.h
+* djinterp [c][functional]                                            foldable.h
 *
 * Tier 3, first instalment: Foldable and Alternative as runtime dictionaries.
 *   `parity_functional_types.md` frames the tier-3 choice as (a) macro

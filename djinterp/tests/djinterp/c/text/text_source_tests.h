@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            text_source_tests.h
+* djinterp [c][text]                                         text_source_tests.h
 *
 * The suite for c/text/text_source.h, in DTest's C spec form: making a
 * source, its lines, telling an offset as a line and column, and reading and

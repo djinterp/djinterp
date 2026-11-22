@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                        dlex.c
+* djinterp [c][tools]                                                     dlex.c
 *
 *   Definitions for the non-inline declarations in dlex.h.
 *     The scanner keeps one bit of history: whether the previous token can end

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                 encode_options_tests_leaves.cpp
+* djinterp [cpp][binary]                         encode_options_tests_leaves.cpp
 *
 *
 * path:      /tests/djinterp/cpp/binary/encode_options_tests_leaves.cpp

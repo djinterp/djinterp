@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                       insertion_sort_common.hpp
+* djinterp [cpp][utility]                              insertion_sort_common.hpp
 *
 *   The primitives every insertion sort is built from, sequential or otherwise.
 * An insertion sort is a driver wrapped around two operations: place one

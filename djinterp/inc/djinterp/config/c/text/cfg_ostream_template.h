@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                       cfg_ostream_template.h
+* djinterp [c][text]                                      cfg_ostream_template.h
 *
 *   Configuration for the template engine that writes onto an output stream:
 * how deep its conditional blocks may nest, and what JSON and XML do with text

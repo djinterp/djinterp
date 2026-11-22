@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                 dhost_story.c
+* djinterp [c][tools]                                              dhost_story.c
 *
 * Definitions for the declarations in dhost_story.h.
 *   The model owns its strings and a driver owns its format: the driver is
@@ -10,6 +10,7 @@
 * one when none is open is a program error and stops the run; opening,
 * replacing and saving can fail in the world and report it as getline does,
 * with -1, leaving story_error() to say why.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/story/dhost_story.c
 * link(s):   TBA

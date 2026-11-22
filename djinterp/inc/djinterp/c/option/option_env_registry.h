@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                             option_env_registry.h
+* djinterp [c][option]                                     option_env_registry.h
 *
 *   The djin registry: the program's root frame, and the list of the djins
 * beneath it. A djin is a named frame -- a printer, a logger, desc, a tool's

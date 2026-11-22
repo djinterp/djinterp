@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                cfg_file_io.h
+* djinterp [c][filesys]                                            cfg_file_io.h
 *
 * Build-time configuration for c/filesys/file_io.h -- reading and writing bytes,
 * whether through a descriptor, at an offset, or a whole file at a time.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          bubble_sort_tests.hpp
+* djinterp [cpp][utility]                                  bubble_sort_tests.hpp
 *
 *   unit-test suite for bubble_sort.hpp.
 * Declares every tests_bubble_sort_* predicate and the small adapters the

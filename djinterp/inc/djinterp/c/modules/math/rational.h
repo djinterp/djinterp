@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                   rational.h
+* djinterp [c][math]                                                  rational.h
 *
 * Exact rationals over the widest signed integer the build can spell: the C
 * core of the math module's rational numbers.

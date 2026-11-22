@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               buffer_tests_cursor_policies.cpp
+* djinterp [cpp][container]                     buffer_tests_cursor_policies.cpp
 *
 *   Unit tests for write_only_cursor_policy and dual_cursor_policy
 * (section IV of buffer.hpp).  Each policy is exercised directly by

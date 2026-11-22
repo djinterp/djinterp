@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          font_tests_runner.cpp
+* djinterp [cpp][text]                                     font_tests_runner.cpp
 *
 *   The runner for font.hpp's suite: registers every section's tests with
 * report_builder, one module per like-group section of the header, and writes

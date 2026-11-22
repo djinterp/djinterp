@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          byte_array_tests_1d.c
+* djinterp [c][container]                                  byte_array_tests_1d.c
 *
 *   Unit tests for byte_array.h 1D array builder macros.
 *   Tests D_BYTE_ARRAY, D_BYTE_ARRAY_INIT, D_BYTE_ARRAY_n_m variants, and

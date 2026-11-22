@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                         file_io.h
+* djinterp [c][filesys]                                                file_io.h
 *
 * Moving bytes -- through a descriptor, at an offset, or a whole file at once.
 *   Read and write live together because they are one mechanism seen from two

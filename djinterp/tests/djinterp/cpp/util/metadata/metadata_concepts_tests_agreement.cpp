@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                           metadata_concepts_tests_agreement.cpp
+* djinterp [cpp][utility]                  metadata_concepts_tests_agreement.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/metadata/metadata_concepts_tests_agreement.cpp

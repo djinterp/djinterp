@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                parse_abnf.h
+* djinterp [c][parse]                                               parse_abnf.h
 *
 *   Augmented BNF (ABNF) grammar parser per RFC 5234. Supports:
 *     - Rule definition:     rulename = elements

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             xml_tests_tree.cpp
+* djinterp [cpp][text]                                        xml_tests_tree.cpp
 *
 *   The groups for xml/xml_template.hpp, on its default backend: the
 * attribute, nodes and their links, the document and its prolog, the text

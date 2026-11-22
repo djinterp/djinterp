@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           cofree_tests_map.cpp
+* djinterp [cpp][functional]                                cofree_tests_map.cpp
 *
 *   Section II.3 (map) of the cofree.hpp suite: cofree_map, the functorial map
 * that applies A -> B to every node's head while preserving the F-layers, and

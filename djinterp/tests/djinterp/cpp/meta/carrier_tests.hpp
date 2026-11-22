@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              carrier_tests.hpp
+* djinterp [cpp][meta]                                         carrier_tests.hpp
 *
 * djinterp carrier unit-test header:
 *   Declarations, helper types, and a helper macro for the carrier.hpp unit

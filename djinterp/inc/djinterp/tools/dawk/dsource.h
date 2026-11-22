@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                  dsource.h
+* djinterp [c][tools]                                                  dsource.h
 *
 * Pluggable record source:
 *   A record source replaces RS splitting.  The interpreter's main loop asks

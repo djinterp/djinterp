@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         postgres_sizes_tests.c
+* djinterp [c][db]                                        postgres_sizes_tests.c
 *
 *   Checks that the sizes postgres_connection.c computes for a connect's
 * keyword and value arrays refuse to wrap. Their count is the layer's

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                            read_only_container_tests_traits.cpp
+* djinterp [cpp][container]                 read_only_container_tests_traits.cpp
 *
 *
 * path:      /tests/djinterp/cpp/container/read_only_container_tests_traits.cpp

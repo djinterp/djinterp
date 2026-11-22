@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                      oracle.hpp
+* djinterp [cpp][db]                                                  oracle.hpp
 *
 * djinterp Oracle Database connection module:
 *   This header provides the Oracle-specific connection implementation and

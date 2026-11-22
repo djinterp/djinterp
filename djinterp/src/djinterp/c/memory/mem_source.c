@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      mem_source.c
+* djinterp [c][memory]                                              mem_source.c
 *
 *   Implementation unit for mem_source.h. Carries the four built-in sources --
 * system, null, buffer and counting -- their operation tables, and the generic

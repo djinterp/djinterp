@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      functional.h
+* djinterp [c][functional]                                          functional.h
 *
 *   Root header for the functional programming module.
 *   Includes five of the module's headers -- functional_common.h,

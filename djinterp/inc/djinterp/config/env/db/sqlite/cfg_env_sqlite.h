@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                             cfg_env_sqlite.h
+* djinterp [c][env]                                             cfg_env_sqlite.h
 *
 * Per-module configuration for env_sqlite.h. Owns all D_CFG_ENV_SQLITE_*
 * defaults and the pre-defined-detection auto-activation logic for

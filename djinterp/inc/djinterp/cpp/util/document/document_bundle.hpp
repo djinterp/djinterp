@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             document_bundle.hpp
+* djinterp [cpp][utility]                                    document_bundle.hpp
 *
 *   The assembly half of the document-output stack: a bundle collects the
 * documents a run produced - each a (logical name, extension, DEFERRED

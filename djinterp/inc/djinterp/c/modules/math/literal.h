@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                    literal.h
+* djinterp [c][math]                                                   literal.h
 *
 * A number's text, read as a value, exactly wherever the value allows: the
 * reading of literals for the generic value (roadmap item 1c).

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                    ftp_fact.h
+* djinterp [c][net]                                                   ftp_fact.h
 *
 * FTP file facts: modification times and sizes (RFC 3659).
 *   The YYYYMMDDHHMMSS[.sss] timestamps of MDTM, MFMT, and MLSx, with calendar

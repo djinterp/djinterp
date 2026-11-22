@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                 lex_token.h
+* djinterp [c][parse]                                                lex_token.h
 *
 * The token record, its flag vocabulary, and the token-kind value space.
 *   Kinds live in one enumeration split into three disjoint ranges: the

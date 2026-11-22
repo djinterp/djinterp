@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                      pool.c
+* djinterp [c][parse]                                                     pool.c
 *
 *   Definitions for the non-inline declarations in pool.h.
 *

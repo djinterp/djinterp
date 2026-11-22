@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                           arena.h
+* djinterp [c][memory]                                                   arena.h
 *
 * Monotonic bump arena -- the shared C core (tier 0):
 *   The simplest allocator that is still general: a pointer that moves

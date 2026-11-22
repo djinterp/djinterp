@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     sink_common.h
+* djinterp [c][utility]                                            sink_common.h
 *
 *   A context-carrying byte consumer, and the two spans that go with it.
 * Compiled by BOTH C and C++.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                   arg_validator_tests.hpp
+* djinterp [cpp][parse]                                  arg_validator_tests.hpp
 *
 * The argument parser's C++ validator suite: CLI11's validators, through
 * the C++ face's cli::validator.

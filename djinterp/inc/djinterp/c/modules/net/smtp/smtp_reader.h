@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 smtp_reader.h
+* djinterp [c][net]                                                smtp_reader.h
 *
 * djinterp SMTP line reader.
 *   SMTP is line-oriented in both directions, and both engines read through

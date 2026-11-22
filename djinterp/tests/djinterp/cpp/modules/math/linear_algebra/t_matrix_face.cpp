@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                          t_matrix_face.cpp
+* djinterp [cpp][math]                                         t_matrix_face.cpp
 *
 *   Tests for linear_algebra/matrix.hpp, at every level from C++98. The
 * compile-time half -- the traits, and from C++14 the operations as constant

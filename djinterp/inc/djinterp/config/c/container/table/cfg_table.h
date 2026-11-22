@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                  cfg_table.h
+* djinterp [c][container]                                            cfg_table.h
 *
 *   Build-time configuration for the C table module (c/container/table): how
 * wide a stored extent is, the greatest rank a build carries, and whether the

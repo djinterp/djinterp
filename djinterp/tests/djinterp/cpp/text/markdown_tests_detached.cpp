@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    markdown_tests_detached.cpp
+* djinterp [cpp][text]                               markdown_tests_detached.cpp
 *
 *   The groups for markdown/markdown_template.hpp's handles: what its twenty
 * factories return, what add_block and add_inline take and refuse, and the

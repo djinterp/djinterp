@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 ftp_command.c
+* djinterp [c][net]                                                ftp_command.c
 *
 * Implementation of the command handling declared in ftp_command.h.
 *   One table, indexed by enum dj_ftp_command, holds every verb with its

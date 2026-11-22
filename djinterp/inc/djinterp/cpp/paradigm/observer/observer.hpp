@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    observer.hpp
+* djinterp [cpp][paradigm]                                          observer.hpp
 *
 *   Standalone observer pattern in three cost tiers.  No UI knowledge.  No
 * component coupling.  Pure pattern - attach it to whatever you like.

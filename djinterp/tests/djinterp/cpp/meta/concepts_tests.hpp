@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             concepts_tests.hpp
+* djinterp [cpp][meta]                                        concepts_tests.hpp
 *
 *   Declarations for the DTest concepts test suite plus the shared helper
 * types and assertion macros used by every per-section translation unit.

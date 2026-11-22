@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 ostream_console.c
+* djinterp [c][utility]                                        ostream_console.c
 *
 *   The console destination's backends. Each defines the same file-local
 * functions -- open, write, flush, close, query and vt -- and everything after

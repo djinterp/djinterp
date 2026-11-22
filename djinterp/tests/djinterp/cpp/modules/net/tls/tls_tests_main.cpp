@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                          tls_tests_main.cpp
+* djinterp [cpp][net]                                         tls_tests_main.cpp
 *
 * Runs the TLS layer's tests; without an engine, or a 64-bit integer type,
 * there are none, and it says so.

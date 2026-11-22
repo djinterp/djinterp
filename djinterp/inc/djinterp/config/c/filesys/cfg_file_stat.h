@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                              cfg_file_stat.h
+* djinterp [c][filesys]                                          cfg_file_stat.h
 *
 * Build-time configuration for c/filesys/file_stat.h -- file metadata.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                            metadata_traits_tests_extraction.cpp
+* djinterp [cpp][utility]                   metadata_traits_tests_extraction.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/metadata/metadata_traits_tests_extraction.cpp

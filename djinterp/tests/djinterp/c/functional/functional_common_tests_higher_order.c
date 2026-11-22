@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                   functional_common_tests_higher_order.c
+* djinterp [c][functional]                functional_common_tests_higher_order.c
 *
 *
 * path:      /tests/djinterp/c/functional/functional_common_tests_higher_order.c

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   vector_common_tests_runner.c
+* djinterp [c][container]                           vector_common_tests_runner.c
 *
 *   The runner for container/vector/vector_common.h's suite: options, then the
 * module, which its entry points build call by call (test_suite.h 3.2).

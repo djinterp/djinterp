@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                         git.hpp
+* djinterp [cpp][utility]                                                git.hpp
 *
 *   git version-control module for the djinterp framework. Provides value
 * types describing commit metadata, a commit-log container, and a repository

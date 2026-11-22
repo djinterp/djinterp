@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  mariadb_schema.c
+* djinterp [c][db]                                              mariadb_schema.c
 *
 * Implementation of mariadb_schema.h.
 *   Existence and listing are information_schema lookups (mariadb_internal.c);

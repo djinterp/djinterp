@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                        flat.hpp
+* djinterp [cpp][meta]                                                  flat.hpp
 *
 *   The FLAT structural-kind tag: an opt-in marker for the structure axis,
 * declaring that a container holds only leaves - depth 1, no node summand.

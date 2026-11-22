@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                             ftp_client_data.c
+* djinterp [c][net]                                            ftp_client_data.c
 *
 * Implementation of the FTP and FTPS client declared in ftp_client.h: data
 * connections and transfers.

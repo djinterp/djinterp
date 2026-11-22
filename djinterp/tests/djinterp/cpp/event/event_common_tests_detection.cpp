@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               event_common_tests_detection.cpp
+* djinterp [cpp][event]                         event_common_tests_detection.cpp
 *
 *   Section III -- EVENT TAG DETECTION.  Covers the internal detection traits
 * that classify a candidate event tag: has_payload_type / has_args_type (the

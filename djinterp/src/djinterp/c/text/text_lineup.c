@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     text_lineup.c
+* djinterp [c][text]                                               text_lineup.c
 *
 *   String arrays, and tokens laid out in aligned, wrapped columns.
 *

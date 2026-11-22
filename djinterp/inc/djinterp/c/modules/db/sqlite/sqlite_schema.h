@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   sqlite_schema.h
+* djinterp [c][db]                                               sqlite_schema.h
 *
 * Tables, columns, indexes, views and triggers in an SQLite database.
 *   Every function takes the schema to act in -- "main", "temp", or the name a

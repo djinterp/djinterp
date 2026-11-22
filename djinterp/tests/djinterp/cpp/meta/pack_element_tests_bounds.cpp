@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                   pack_element_tests_bounds.cpp
+* djinterp [cpp][meta]                             pack_element_tests_bounds.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/pack_element_tests_bounds.cpp

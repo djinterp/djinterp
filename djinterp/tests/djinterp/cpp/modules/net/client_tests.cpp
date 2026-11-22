@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                            client_tests.cpp
+* djinterp [cpp][net]                                           client_tests.cpp
 *
 * Tests of net/client.hpp.
 *   A scripted connector fails as many times as it is told, with the error it

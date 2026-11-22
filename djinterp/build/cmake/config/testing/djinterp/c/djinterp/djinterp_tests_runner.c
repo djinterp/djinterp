@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        djinterp_tests_runner.c
+* djinterp [c][djinterp]                                 djinterp_tests_runner.c
 *
 * The runner for djinterp.h's suite: options, the spec, and the sections
 * the spec's module goes on to hold.

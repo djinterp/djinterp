@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                producer_tests_traits.cpp
+* djinterp [cpp][functional]                           producer_tests_traits.cpp
 *
 *   Tests for the producer detection traits: is_producer_step, is_producer,
 * producer_value_type, and the C++20 concepts producer_step_type / producer.

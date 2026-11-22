@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                fixed_string.hpp
+* djinterp [cpp][meta]                                          fixed_string.hpp
 *
 *   fixed_string<N>: structural string-literal carrier suitable for use
 * as a C++20 class-type NTTP.  Raw const char[N] doesn't satisfy the

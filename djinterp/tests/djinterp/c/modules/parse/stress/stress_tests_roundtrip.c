@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                    stress_tests_roundtrip.c
+* djinterp [c][parse]                                   stress_tests_roundtrip.c
 *
 * Expression core v2's stress suite, block "roundtrip": seeded random terms,
 * rendered and read back by the same signature, over two signatures that

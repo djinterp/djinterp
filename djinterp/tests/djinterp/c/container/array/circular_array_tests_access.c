@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                             circular_array_tests_access.c
+* djinterp [c][container]                          circular_array_tests_access.c
 *
 *
 * path:      /tests/djinterp/c/container/array/circular_array_tests_access.c

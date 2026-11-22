@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                            dhost_articulate.c
+* djinterp [c][tools]                                         dhost_articulate.c
 *
 * Definitions for the declarations in dhost_articulate.h.
 *   The package is opened once and kept: a slide's name and its media are read
@@ -8,6 +8,7 @@
 * saved, after every replacement is known. Each assumption about the format
 * named in the header is a function of its own here, so correcting one
 * against a real .story changes one function.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/story/dhost_articulate.c
 * link(s):   TBA

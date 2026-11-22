@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   mariadb_query.h
+* djinterp [c][db]                                               mariadb_query.h
 *
 * Running SQL on a MariaDB or MySQL connection without handling result sets
 * by hand.

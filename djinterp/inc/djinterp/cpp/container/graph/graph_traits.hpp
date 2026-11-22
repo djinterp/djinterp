@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                graph_traits.hpp
+* djinterp [cpp][container]                                     graph_traits.hpp
 *
 * Compile-time classification traits for graph-shaped containers.
 *   Companion to `container_traits.hpp` and the rest of the

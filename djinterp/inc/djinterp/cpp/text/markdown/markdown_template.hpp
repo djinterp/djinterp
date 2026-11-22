@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                           markdown_template.hpp
+* djinterp [cpp][text]                                     markdown_template.hpp
 *
 *   Templated Markdown block / inline / document facades and the
 * bundled default backend. Mirrors the templating pattern of

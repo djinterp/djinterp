@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                      memory.hpp
+* djinterp [cpp][memory]                                              memory.hpp
 *
 * Umbrella header for the memory subframework -- C++ face.
 *   Includes the C core (through memory.h) and every C++ face over it. See

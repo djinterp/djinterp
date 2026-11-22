@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                arg_config.h
+* djinterp [c][parse]                                               arg_config.h
 *
 * Configuration files: TOML and INI read into options, and written from them.
 *   A `struct dj_arg_config_format` is CLI11's ConfigBase in C: the characters

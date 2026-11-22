@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                     flat_container_concepts.hpp
+* djinterp [cpp][container]                          flat_container_concepts.hpp
 *
 * C++20 concepts for the STRUCTURE (flat side) axis -- the `requires`-facing
 * view of flat_container_traits.hpp.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  arena_tree.hpp
+* djinterp [cpp][container]                                       arena_tree.hpp
 *
 * Arena-Allocated Tree Container:
 *   A thin wrapper over arena<> that adds single-root ownership and

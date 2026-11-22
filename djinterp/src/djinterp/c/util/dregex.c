@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                          dregex.c
+* djinterp [c][utility]                                                 dregex.c
 *
 *   Definitions for the non-inline declarations in dregex.h.
 *     A pattern is parsed to an index-addressed tree, lowered by Thompson

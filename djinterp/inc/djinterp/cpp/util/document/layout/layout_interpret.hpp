@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            layout_interpret.hpp
+* djinterp [cpp][utility]                                   layout_interpret.hpp
 *
 *   The interpreter for a document-structure term: how a DLayoutDoc (layout.hpp)
 * becomes a rendered document, driving a DDocumentRenderer.  Two levels of

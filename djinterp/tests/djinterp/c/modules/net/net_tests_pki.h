@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                               net_tests_pki.h
+* djinterp [c][net]                                              net_tests_pki.h
 *
 * The certificates net's TLS suites are tested with, made for each run.
 *   A CA; from it a server certificate for localhost and 127.0.0.1, a client

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                      dninja.h
+* djinterp [c][tools]                                                   dninja.h
 *
 * The Ninja build language, read without loss.
 *   A file of Ninja's -- a build.ninja, a rules.ninja, any file it includes --
@@ -20,6 +20,7 @@
 * later, as ninja reads it.
 *   The writers make the text of a path or a value from what it is to hold,
 * and give the paths ninja's canonical form and their shell-escaped form.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/ninja/dninja.h
 * link(s):   TBA

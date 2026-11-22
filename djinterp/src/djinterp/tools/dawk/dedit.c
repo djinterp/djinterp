@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                    dedit.c
+* djinterp [c][tools]                                                    dedit.c
 *
 * Line editing:
 *   The whole of the write path.  A line's own terminator is reproduced, so a

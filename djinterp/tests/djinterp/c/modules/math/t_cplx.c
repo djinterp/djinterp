@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                     t_cplx.c
+* djinterp [c][math]                                                    t_cplx.c
 *
 *   Conformance harness for c/math/cplx.h, all three families and both forms.
 * First, against references: every function at the points of

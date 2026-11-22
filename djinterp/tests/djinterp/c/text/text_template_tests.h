@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          text_template_tests.h
+* djinterp [c][text]                                       text_template_tests.h
 *
 *   Unit tests for the text template module (text_template.h).
 *   Tests cover template lifecycle, marker configuration, binding management,

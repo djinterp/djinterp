@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/render]                            render3d_tests_quaternion.cpp
+* djinterp [cpp][render]                           render3d_tests_quaternion.cpp
 *
 * Unit tests for math::linalg::quaternion, re-exported by render3d.
 *

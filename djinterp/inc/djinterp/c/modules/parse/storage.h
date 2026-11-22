@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                   storage.h
+* djinterp [c][parse]                                                  storage.h
 *
 * The one growth policy the subframework's containers share.
 *   Four containers here hold an array that may be caller-supplied or owned:

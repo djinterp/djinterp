@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                               cfg_compress.h
+* djinterp [c][utility]                                           cfg_compress.h
 *
 *   Build-time configuration for the compression facade: which codecs are
 * compiled in, how much determinism is bought at what cost, and the sizes the

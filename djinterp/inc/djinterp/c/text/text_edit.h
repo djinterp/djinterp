@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       text_edit.h
+* djinterp [c][text]                                                 text_edit.h
 *
 *   Text edit: changes to a text, kept apart from it until they are applied.
 *   A change replaces the bytes from one offset to another of the text as it

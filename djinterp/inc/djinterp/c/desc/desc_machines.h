@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   desc_machines.h
+* djinterp [c][desc]                                             desc_machines.h
 *
 *   desc's own machines (desc.h's struct dj_desc_machine), and what describe
 * writes with. A machine turns facts into output; these three are desc's:

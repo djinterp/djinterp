@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                   dgit_hash.c
+* djinterp [c][tools]                                                dgit_hash.c
 *
 * Definitions for the hashes of dgit_internal.h: SHA-1 and SHA-256.
 *   Both as FIPS 180-4 has them, on 64-byte blocks: bytes wait in the block
@@ -9,6 +9,7 @@
 * compression; the feeding and the padding are shared. Git hashes SHA-1
 * with collision detection, which changes nothing but for a crafted
 * collision, which this does not look for.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/git/dgit_hash.c
 * link(s):   TBA

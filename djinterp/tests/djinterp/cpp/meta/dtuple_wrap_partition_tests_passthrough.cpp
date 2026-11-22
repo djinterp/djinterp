@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                    dtuple_wrap_partition_tests_passthrough.cpp
+* djinterp [cpp][meta]               dtuple_wrap_partition_tests_passthrough.cpp
 *
 *   Section III of dtuple_wrap_partition.hpp: passthrough survival -- types
 * satisfying _IsPassthrough are emitted UNWRAPPED at their positions, which sit

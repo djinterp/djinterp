@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                            type_traits_tests_macros_member.cpp
+* djinterp [cpp][meta]                       type_traits_tests_macros_member.cpp
 *
 *   Unit tests for the member-detection macros now DECLARED in
 * trait_detect.hpp (re-exported through Section 0.3 of type_traits.hpp,

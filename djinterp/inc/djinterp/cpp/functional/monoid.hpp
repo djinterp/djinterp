@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                      monoid.hpp
+* djinterp [cpp][functional]                                          monoid.hpp
 *
 * Monoid protocol, its identity-aware operations, and the standard instances.
 *   A monoid is a semigroup (an associative combine, semigroup.hpp) that also

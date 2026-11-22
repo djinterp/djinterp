@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                        stress_tests_bytes.c
+* djinterp [c][parse]                                       stress_tests_bytes.c
 *
 * Expression core v2's stress suite, block "bytes": seeded random bytes
 * through the default scanner, alone and into the parser. Whatever the bytes,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                       codec_tests_sa_digest.c
+* djinterp [c][net]                                      codec_tests_sa_digest.c
 *
 * Standalone tests of codec_digest.h: MD5, SHA-1 and SHA-256 against their
 * documents' known answers, HMAC against RFC 2202's and RFC 4231's, and what

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    compress.cpp
+* djinterp [cpp][utility]                                           compress.cpp
 *
 *   The C++ facade's dispatch leaves -- three adapters, and nothing else.
 *

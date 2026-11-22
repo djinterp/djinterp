@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  byte_array_tests_extraction.c
+* djinterp [c][container]                          byte_array_tests_extraction.c
 *
 *   Unit tests for byte_array.h byte extraction macros.
 *   Tests D_INTERNAL_BYTE_n_OF_m macros for extracting individual bytes from

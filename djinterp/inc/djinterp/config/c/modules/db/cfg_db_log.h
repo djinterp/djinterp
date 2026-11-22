@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                 cfg_db_log.h
+* djinterp [c][db]                                                  cfg_db_log.h
 *
 * Build-time configuration for what db gives the log.
 *   A vendor's message can carry a user's data -- the value a constraint

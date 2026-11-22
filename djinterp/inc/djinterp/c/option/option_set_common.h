@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                               option_set_common.h
+* djinterp [c][option]                                       option_set_common.h
 *
 * The option set: a flat, key-unique, declaration-ordered sequence of option
 * cells over one value block. Tier 0 -- the shared core both faces compile.

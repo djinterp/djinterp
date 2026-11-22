@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                             cfg_qualifiers.h
+* djinterp [c][config]                                          cfg_qualifiers.h
 *
 *   Build-time configuration for the djinterp storage / linkage qualifier
 * layer (D_STATIC, D_INLINE, D_CONSTEXPR, D_EXTERN_C and their compounds).

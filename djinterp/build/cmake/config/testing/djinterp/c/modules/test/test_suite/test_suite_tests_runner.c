@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      test_suite_tests_runner.c
+* djinterp [c][test]                                   test_suite_tests_runner.c
 *
 * The runner for test_suite.h's suite: options and nothing else.
 *   It defines DTEST_SPEC_MODE before the suite header, which then gives it the

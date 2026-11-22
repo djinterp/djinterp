@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            container_traits.hpp
+* djinterp [cpp][container]                                 container_traits.hpp
 *
 *  djinterp container compile-time classification traits
 *   SFINAE-based detection and classification of container properties,

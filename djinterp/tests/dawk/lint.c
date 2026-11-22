@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                         lint.c
+* djinterp [c][tools]                                                     lint.c
 *
 * Lint driver: build a tree per file through the extension that claims.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      fn_builder_tests_runner.c
+* djinterp [c][functional]                             fn_builder_tests_runner.c
 *
 *   The runner for functional/fn_builder.h's suite: options, then the module,
 * which its entry points build call by call (test_suite.h 3.2).

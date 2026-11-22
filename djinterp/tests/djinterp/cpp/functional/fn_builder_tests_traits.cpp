@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    fn_builder_tests_traits.cpp
+* djinterp [cpp][functional]                         fn_builder_tests_traits.cpp
 *
 * SFINAE structural trait & concept tests for fn_builder.hpp section V:
 *   is_fn_builder, is_boxed_fn_builder, fn_builder_input_type,

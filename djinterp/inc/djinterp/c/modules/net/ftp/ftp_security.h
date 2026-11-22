@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                ftp_security.h
+* djinterp [c][net]                                               ftp_security.h
 *
 * FTP security settings (RFC 2228, RFC 4217).
 *   How TLS protects the control connection -- not at all, explicitly after

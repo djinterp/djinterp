@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                             map.h
+* djinterp [c][container]                                                  map.h
 *
 *
 * path:      /inc/djinterp/c/container/map/map.h

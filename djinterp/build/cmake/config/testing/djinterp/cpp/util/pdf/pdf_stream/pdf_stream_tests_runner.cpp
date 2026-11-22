@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    pdf_stream_tests_runner.cpp
+* djinterp [cpp][utility]                            pdf_stream_tests_runner.cpp
 *
 * The runner for pdf_stream's suite: options, then the module.
 *

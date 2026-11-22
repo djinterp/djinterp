@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      desc_units.h
+* djinterp [c][desc]                                                desc_units.h
 *
 *   desc's light default: units of fill-in-the-blank text, chosen when a type
 * is compiled and by a plan read from the object's values at run time, then

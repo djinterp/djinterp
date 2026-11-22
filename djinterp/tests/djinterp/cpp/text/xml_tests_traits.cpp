@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           xml_tests_traits.cpp
+* djinterp [cpp][text]                                      xml_tests_traits.cpp
 *
 *   The groups for xml/xml.hpp and xml/xml_dialect.hpp. xml.hpp classifies
 * types by what they expose, so most of its groups are probes: small

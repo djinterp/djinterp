@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    database.hpp
+* djinterp [cpp][db]                                                database.hpp
 *
 * The vocabulary every djinterp C++17 database connection shares, and the
 * interfaces each one presents.

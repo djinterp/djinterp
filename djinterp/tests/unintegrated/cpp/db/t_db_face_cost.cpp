@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                t_db_face_cost.cpp
+* djinterp [cpp][db]                                          t_db_face_cost.cpp
 *
 *   What a C++ face costs over the C layer it wraps: nothing. Each pair of
 * functions here makes one call twice, once through a layer and once through

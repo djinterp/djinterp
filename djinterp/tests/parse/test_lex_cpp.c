@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 test_lex_cpp.c
+* djinterp [c][parse]                                             test_lex_cpp.c
 *
 * Unit checks for the C++ lexer, and the cross-language invariants.
 *

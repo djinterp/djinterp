@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       insertion_sort_tests.hpp
+* djinterp [cpp][utility]                               insertion_sort_tests.hpp
 *
 *   unit-test suite for insertion_sort.hpp.
 * Declares every tests_insertion_sort_* predicate and the adapters the suite's

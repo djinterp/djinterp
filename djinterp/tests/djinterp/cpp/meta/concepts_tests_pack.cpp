@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        concepts_tests_pack.cpp
+* djinterp [cpp][meta]                                   concepts_tests_pack.cpp
 *
 *   Tests for concepts.hpp section II.11: parameter pack concepts.
 * Covers: single_type, empty_pack, nonempty_pack, all_same,

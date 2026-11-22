@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                      smtp_tests_sa_loopback.c
+* djinterp [c][net]                                     smtp_tests_sa_loopback.c
 *
 * djinterp SMTP kernel tests -- over loopback TCP.
 *   Live sessions: the client connects with d_smtp_client_connect to a

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                           quick_sort_common.hpp
+* djinterp [cpp][utility]                                  quick_sort_common.hpp
 *
 *   The primitives every quicksort is built from.  A quicksort is a driver
 * wrapped around two operations: choose a pivot and move it to the front of the

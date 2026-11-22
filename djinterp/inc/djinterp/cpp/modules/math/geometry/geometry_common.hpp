@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                        geometry_common.hpp
+* djinterp [cpp][math]                                       geometry_common.hpp
 *
 * Foundational geometry infrastructure shared by 2D and 3D modules.
 *   Provides the structural interface documentation for edge and shape

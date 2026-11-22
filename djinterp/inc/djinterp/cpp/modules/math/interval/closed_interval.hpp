@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                        closed_interval.hpp
+* djinterp [cpp][math]                                       closed_interval.hpp
 *
 * Compile-time closed interval [lower, upper].
 *   Both endpoints are inclusive. The value type, bounds, and size type are

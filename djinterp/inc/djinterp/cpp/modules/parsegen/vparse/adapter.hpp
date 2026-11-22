@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                            adapter.hpp
+* djinterp [cpp][parsegen]                                           adapter.hpp
 *
 *   The join to djinterp::parse.  as_parser wraps a compiled vparse program as a
 * first-class parser<std::string, char>: a value invocable as

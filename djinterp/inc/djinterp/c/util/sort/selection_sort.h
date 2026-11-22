@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  selection_sort.h
+* djinterp [c][utility]                                         selection_sort.h
 *
 *   Selection sort: the sequential driver.
 * In-place, iterative, comparison-based, NOT stable.  Each position takes the

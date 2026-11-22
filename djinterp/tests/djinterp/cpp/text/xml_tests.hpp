@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                  xml_tests.hpp
+* djinterp [cpp][text]                                             xml_tests.hpp
 *
 *   text's XML headers -- xml/xml.hpp, xml/xml_dialect.hpp and
 * xml/xml_template.hpp -- in DTest's C face (c/modules/test/test_suite.h).

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                          cfg_event_handler.h
+* djinterp [c][event]                                        cfg_event_handler.h
 *
 *   Configuration for the handler step and the sequencing monoid: which
 * combinators compile, which handler shapes are accepted, and whether the

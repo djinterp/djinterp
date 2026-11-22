@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                   cfg_desc.h
+* djinterp [c][desc]                                                  cfg_desc.h
 *
 * Configuration for c/desc: what a build of desc has. Each knob is a default
 * that a build overrides with -D. desc has two engines, both on by default:

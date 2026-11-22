@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     sort_conformance_tests.hpp
+* djinterp [cpp][utility]                             sort_conformance_tests.hpp
 *
 *   unit-test suite for the sort subsystem's CROSS-CUTTING contracts -- the
 * claims that belong to no single header because they are claims about how the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                             cfg_env_oracle.h
+* djinterp [c][env]                                             cfg_env_oracle.h
 *
 * Per-module configuration for env_oracle.h. Owns all D_CFG_ENV_ORACLE_*
 * defaults plus D_CFG_ENV_ORA_CUSTOM and the pre-defined-detection

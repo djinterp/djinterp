@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                      starttls_tests_sa_main.c
+* djinterp [c][net]                                     starttls_tests_sa_main.c
 *
 * The STARTTLS module's standalone test runner.
 *   Runs every test, reports each, and counts tests and assertions. The

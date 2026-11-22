@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                       env_ios.h
+* djinterp [c][env]                                                    env_ios.h
 *
 * djinterp iOS environment detection.
 *   Compile-time detection of the mobile Apple compilation environment: iOS,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    container_storage_traits.hpp
+* djinterp [cpp][container]                         container_storage_traits.hpp
 *
 *   Container-side classification on the STORAGE axis: given a container type,
 * is its storage STATIC (cells inline, in-object) or DYNAMIC (cells out of

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     sort_common.c
+* djinterp [c][utility]                                            sort_common.c
 *
 * TBA
 *

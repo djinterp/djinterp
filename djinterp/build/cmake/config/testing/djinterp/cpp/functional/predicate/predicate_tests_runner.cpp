@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     predicate_tests_runner.cpp
+* djinterp [cpp][functional]                          predicate_tests_runner.cpp
 *
 *   The runner for predicate.hpp's suite: it selects the suite header's spec
 * face (DTEST_SPEC_MODE) and hands the spec to run_module, which runs the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                option_generator_tests_emit.cpp
+* djinterp [cpp][option]                         option_generator_tests_emit.cpp
 *
 *   Section III - the emitter.  emit_set maps a spec tuple to the populated
 * option_set: ::type is option_set< each spec's option_t... > and make()

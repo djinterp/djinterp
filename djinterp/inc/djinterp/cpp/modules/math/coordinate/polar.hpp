@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                  polar.hpp
+* djinterp [cpp][math]                                                 polar.hpp
 *
 * Compile-time 2D polar coordinate system (r, θ).
 *   Provides the polar coordinate system type, point representation,

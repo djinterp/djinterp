@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      option_set_tests_core.cpp
+* djinterp [cpp][option]                               option_set_tests_core.cpp
 *
 *   Section IV of the option_set.hpp suite: the option_set pack surface that
 * option_set inherits from internal::DOptionSetPack.

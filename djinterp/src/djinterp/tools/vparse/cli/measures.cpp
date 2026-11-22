@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [cli]                                                      measures.cpp
+* djinterp [cpp][tools]                                             measures.cpp
 *
 * Definitions for commands.hpp's measures: bench, corpus and compare, which
 * run grammars over many inputs -- those given, the grammar's own corpus

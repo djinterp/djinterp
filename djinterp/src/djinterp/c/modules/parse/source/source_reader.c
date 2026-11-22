@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                             source_reader.c
+* djinterp [c][parse]                                            source_reader.c
 *
 * Definitions for the non-inline declarations in source_reader.h.
 *   Three rewritings happen here and nowhere else: a trigraph becomes the

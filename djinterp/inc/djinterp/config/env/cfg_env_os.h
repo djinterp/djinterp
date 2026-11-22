@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                 cfg_env_os.h
+* djinterp [c][env]                                                 cfg_env_os.h
 *
 * Configuration for env_os.h, the operating-system detection section of env.h.
 *   Resolves D_CFG_ENV_OS_ENABLED, which chooses between that section's

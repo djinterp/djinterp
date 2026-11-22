@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                              sqlite_transaction.c
+* djinterp [c][db]                                          sqlite_transaction.c
 *
 * Implementation of sqlite_transaction.h.
 *   Each function is one statement. Whether a transaction is open is

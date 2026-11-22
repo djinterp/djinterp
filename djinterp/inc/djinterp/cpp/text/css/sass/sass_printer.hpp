@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                sass_printer.hpp
+* djinterp [cpp][text]                                          sass_printer.hpp
 *
 *   Sink-based output for Sass / SCSS stylesheets - the Sass analogue
 * of DCssPrinter / pdf_printer.  A DSassPrinter<Sink> routes a

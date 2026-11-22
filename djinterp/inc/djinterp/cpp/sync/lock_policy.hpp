@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 lock_policy.hpp
+* djinterp [cpp][sync]                                           lock_policy.hpp
 *
 * Lock policy definitions for the thread-safe framework.
 *   Provides a hierarchy of lock policies that wrap different mutex types,

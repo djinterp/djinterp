@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                            option_factory_tests_make_value.cpp
+* djinterp [cpp][option]                     option_factory_tests_make_value.cpp
 *
 *   Section III - make_option(), the runtime option factory.  It returns a
 * value-initialized option<_Key, _Args...>, so the tests pin down its return

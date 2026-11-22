@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                         tcp_tests_sa_native.c
+* djinterp [c][net]                                        tcp_tests_sa_native.c
 *
 * The tcp suite's platform layer: what its tests ask of the system -- a
 * pause, a clock, a watchdog, a socket's flags, options and limits, native

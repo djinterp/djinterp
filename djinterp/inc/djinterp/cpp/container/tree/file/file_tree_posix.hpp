@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             file_tree_posix.hpp
+* djinterp [cpp][container]                                  file_tree_posix.hpp
 *
 * POSIX file tree scanner (portable baseline):
 *   Defines posix_scanner, the portable directory-walk backend used by

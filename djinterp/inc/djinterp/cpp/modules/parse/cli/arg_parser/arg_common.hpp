@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                            arg_common.hpp
+* djinterp [cpp][parse]                                           arg_common.hpp
 *
 * The argument parser's C++ face: the vocabulary its headers share.
 *   What arg_common.h is to the C headers, this is to the C++ ones: the

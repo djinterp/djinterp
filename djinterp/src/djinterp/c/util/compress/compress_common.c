@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 compress_common.c
+* djinterp [c][utility]                                        compress_common.c
 *
 *   The compression kernel.  Every declaration in compress_common.h is defined
 * here, and nothing else is: this is the ONE place a compression result is

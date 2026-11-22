@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     log_writers.c
+* djinterp [c][log]                                                log_writers.c
 *
 *   The log's three writers, and its times. Every value goes through the
 * stream's writer of values, so JSON is escaped by its one escaper; a

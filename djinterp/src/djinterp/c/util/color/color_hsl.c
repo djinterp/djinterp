@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       color_hsl.c
+* djinterp [c][utility]                                              color_hsl.c
 *
 *   External-definition unit for color_hsl.h. The HSL bodies live in the
 * header as `inline`; this unit re-declares their prototypes so one out-of-

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     AVLtree.hpp
+* djinterp [cpp][container]                                          AVLtree.hpp
 *
 * link(s):   TBA
 *

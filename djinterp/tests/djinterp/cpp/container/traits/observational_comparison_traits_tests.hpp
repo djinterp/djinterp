@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                   observational_comparison_traits_tests.hpp
+* djinterp [cpp][container]            observational_comparison_traits_tests.hpp
 *
 * Unit tests for observational_comparison_traits.hpp:
 *   Declarations, fixtures and assertion plumbing for the observational

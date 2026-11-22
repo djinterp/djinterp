@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              option_builder.hpp
+* djinterp [cpp][option]                                      option_builder.hpp
 *
 *   The flat-schema-to-option_set pipeline.  Takes a flat typename pack
 * of key carriers + opaque args (with optional passthroughs sitting

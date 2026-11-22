@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    registry.hpp
+* djinterp [cpp][container]                                         registry.hpp
 *
 *   registry -- a key-lookup-optimised map/multimap over a contiguous record
 * store, the runtime, dynamic generalisation of the value-carrying option_set.

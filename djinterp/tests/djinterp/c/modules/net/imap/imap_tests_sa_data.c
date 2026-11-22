@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                          imap_tests_sa_data.c
+* djinterp [c][net]                                         imap_tests_sa_data.c
 *
 * Tests of the IMAP kernel's response-data parsers: capability lists, flag
 * and mailbox-attribute lists, STATUS items, SEARCH results and LIST

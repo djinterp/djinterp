@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                            pool.c
+* djinterp [c][memory]                                                    pool.c
 *
 *   Implementation unit for pool.h. Carries the slot geometry, the block table
 * that makes handle resolution O(1), the index-linked free list, the three

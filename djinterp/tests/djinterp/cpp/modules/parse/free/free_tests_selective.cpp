@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [parse]                                      free_tests_selective.cpp
+* djinterp [cpp][parse]                                 free_tests_selective.cpp
 *
 *   Section VI of the parser/free.hpp suite: the selective stratum
 * (free_sel_parser) and its sel_pure / sel_lift / sel_select / sel_branch

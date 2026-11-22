@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                  expr_face_tests_face.cpp
+* djinterp [cpp][parse]                                 expr_face_tests_face.cpp
 *
 * The face suite's "face" block: the face's own rules, each where the C API
 * has none of its own to hold it to: storage, copies and moves, the

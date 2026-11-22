@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [cli]                                                           cli.cpp
+* djinterp [cpp][tools]                                                  cli.cpp
 *
 * Definitions for cli.hpp: the command tree, and the run of it.
 *   The tree is made fresh for every run, on the kit's program (tools/cli):
@@ -19,6 +19,7 @@
 *   `@file` stands for the arguments a file holds, as GCC's does, so that a
 * match over thousands of inputs is not held to a command line's length; an
 * argument after `--` is never read so.
+*
 *
 * path:      /src/djinterp/tools/vparse/cli/cli.cpp
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                             cross_ref.hpp
+* djinterp [cpp][parse]                                            cross_ref.hpp
 *
 * Cross-reference index:
 *   This header defines a type-erased cross-reference index that maps

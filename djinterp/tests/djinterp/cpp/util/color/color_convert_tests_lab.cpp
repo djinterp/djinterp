@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                     color_convert_tests_lab.cpp
+* djinterp [cpp][utility]                            color_convert_tests_lab.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/color/color_convert_tests_lab.cpp

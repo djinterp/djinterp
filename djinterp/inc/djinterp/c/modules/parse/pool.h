@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                      pool.h
+* djinterp [c][parse]                                                     pool.h
 *
 * An intern pool for the variable-length operands an instruction cannot hold.
 *   An instruction is a fixed-size POD, which is what makes a program copyable,

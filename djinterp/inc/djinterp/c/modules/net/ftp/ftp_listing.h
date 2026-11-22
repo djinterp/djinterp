@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 ftp_listing.h
+* djinterp [c][net]                                                ftp_listing.h
 *
 * FTP directory listings: Unix, DOS, MLSx, and bare names.
 *   Detects the dialect of a listing line and parses it into an entry -- type,

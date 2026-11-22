@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                       env_pop.h
+* djinterp [c][env]                                                    env_pop.h
 *
 * djinterp POP3 environment detection.
 *   Compile-time detection of everything the POP3 modules may depend on,

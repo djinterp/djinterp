@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                         arg_command_tests.c
+* djinterp [c][parse]                                        arg_command_tests.c
 *
 * The suite of the argument parser's commands, declared in
 * arg_command_tests.h.

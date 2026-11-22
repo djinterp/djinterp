@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            array_tests_cow.cpp
+* djinterp [cpp][container]                                  array_tests_cow.cpp
 *
 *   DCowArray tests: construction, reads, snapshots that writers never
 * disturb, clones taken only while a snapshot shares the storage, modify and

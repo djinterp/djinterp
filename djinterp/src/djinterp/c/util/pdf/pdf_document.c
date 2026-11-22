@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    pdf_document.c
+* djinterp [c][utility]                                           pdf_document.c
 *
 * The backend protocol's validation and the document facade.
 *   Defines what pdf_document.h declares. The facade follows the C++

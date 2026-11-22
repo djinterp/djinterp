@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               concepts_tests_std_reexports.cpp
+* djinterp [cpp][meta]                          concepts_tests_std_reexports.cpp
 *
 *   Tests for concepts.hpp sections I.1 - I.4: the standard-library
 * concept re-exports.  The standard library itself is established to

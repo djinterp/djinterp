@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                 container_traits_tests_method_detection.cpp
+* djinterp [cpp][container]          container_traits_tests_method_detection.cpp
 *
 *   Section I - the structural member/alias detectors: size & capacity
 * accessors, comparator/hasher and interval type aliases, the hierarchical

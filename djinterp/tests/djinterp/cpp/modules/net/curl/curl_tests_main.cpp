@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                         curl_tests_main.cpp
+* djinterp [cpp][net]                                        curl_tests_main.cpp
 *
 * Runs the libcurl binding's C++ tests.
 *

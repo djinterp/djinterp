@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 ssh_libssh2.h
+* djinterp [c][net]                                                ssh_libssh2.h
 *
 * The built-in libssh2 engine.
 *   Compiled where env_ssh.h finds libssh2 1.9.0 or later, the first with

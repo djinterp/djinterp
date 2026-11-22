@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              table_metadata.hpp
+* djinterp [cpp][container]                                   table_metadata.hpp
 *
 *   The table's metadata, derived from DContainerMetadata. A table carries the
 * same open key-value metadata any container may (title, name, description,

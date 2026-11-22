@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 type_traits.hpp
+* djinterp [cpp][meta]                                           type_traits.hpp
 *
 * djinterp type traits header:
 *   This header provides type trait utilities and extensions to the standard

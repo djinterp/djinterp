@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                         git.cpp
+* djinterp [cpp][utility]                                                git.cpp
 *
 *
 * path:      /src/djinterp/cpp/util/git.cpp

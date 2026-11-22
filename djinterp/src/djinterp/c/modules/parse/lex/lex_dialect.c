@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                               lex_dialect.c
+* djinterp [c][parse]                                              lex_dialect.c
 *
 * Definitions for the non-inline declarations in lex_dialect.h.
 *   Three lookups and one check, none of which knows a language.  Each

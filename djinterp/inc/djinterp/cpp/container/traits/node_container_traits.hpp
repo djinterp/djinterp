@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                       node_container_traits.hpp
+* djinterp [cpp][container]                            node_container_traits.hpp
 *
 * Node Container Traits:
 *   Compile-time SFINAE-based structural detection for node-based

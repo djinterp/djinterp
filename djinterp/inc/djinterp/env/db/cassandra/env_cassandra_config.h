@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                          env_cassandra_config.h
+* djinterp [c][env]                                       env_cassandra_config.h
 *
 * djinterp Apache Cassandra detection configuration.
 *   The settings env_cassandra.h reads: whether the DataStax C/C++ driver

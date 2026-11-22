@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [ui]                                                     host_win32.cpp
+* djinterp [cpp][tools]                                           host_win32.cpp
 *
 * The workbench's window on Win32 and Direct3D 11: the host on Windows, which
 * needs nothing the system does not have.
@@ -20,6 +20,7 @@
 *   <windows.h> is included here with NOMINMAX, which keeps its min and max
 * macros off std::min and std::max, and WIN32_LEAN_AND_MEAN; no djinterp
 * header comes after it, so wingdi.h's ERROR meets no opcode of that name.
+*
 *
 * path:      /src/ui/vparse/host_win32.cpp
 * link(s):   TBA

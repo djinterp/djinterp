@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                    starttls_tests_sa_secure.c
+* djinterp [c][net]                                   starttls_tests_sa_secure.c
 *
 * Standalone tests of a STARTTLS session once it is secure, against a
 * scripted peer and the SSL kernel's toy engine: how each way its connection

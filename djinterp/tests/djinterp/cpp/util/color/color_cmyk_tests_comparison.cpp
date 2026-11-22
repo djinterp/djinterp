@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                 color_cmyk_tests_comparison.cpp
+* djinterp [cpp][utility]                        color_cmyk_tests_comparison.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/color/color_cmyk_tests_comparison.cpp

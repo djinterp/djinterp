@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                      env_arch.h
+* djinterp [c][env]                                                   env_arch.h
 *
 * djinterp CPU architecture detection.
 *   Compile-time detection of the CPU architecture family, bit width, and

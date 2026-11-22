@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                            sorted_container_tests_range.cpp
+* djinterp [cpp][container]                     sorted_container_tests_range.cpp
 *
 *   Section TU: the runtime behaviour of is_sorted_range - both the
 * default-comparator and the supplied-comparator overloads - over sorted,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                           ssh_tests_sa_main.c
+* djinterp [c][net]                                          ssh_tests_sa_main.c
 *
 * The SSH standalone suite: its runner and entry point.
 *   Runs every test over the toy engine and exits 0 only if each passed. It

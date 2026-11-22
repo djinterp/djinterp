@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 ftp_feature.c
+* djinterp [c][net]                                                ftp_feature.c
 *
 * Implementation of the feature negotiation declared in ftp_feature.h.
 *

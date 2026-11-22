@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                           t_solve_face.cpp
+* djinterp [cpp][math]                                          t_solve_face.cpp
 *
 *   Tests for linear_algebra/solve.hpp, at every level from C++98, per
 * family: forward and back substitution on known triangular systems; solve

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       ostream_template_tests.c
+* djinterp [c][text]                                    ostream_template_tests.c
 *
 *   The template engine's suite (c/text/ostream_template.h), in DTest's C face
 * (c/modules/test/test_suite.h): values, one value's formatting, the four

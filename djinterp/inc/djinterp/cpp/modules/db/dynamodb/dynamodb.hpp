@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    dynamodb.hpp
+* djinterp [cpp][db]                                                dynamodb.hpp
 *
 * djinterp DynamoDB connection module:
 *   This header provides the Amazon DynamoDB-specific connection

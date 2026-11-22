@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       extractor.h
+* djinterp [c][functional]                                           extractor.h
 *
 * Extractors (projections) and the contravariant mapping that consumes them.
 *   An extractor reads one feature out of a value: `Source -> Target`. That is

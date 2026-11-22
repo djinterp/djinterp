@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                                    smtp.hpp
+* djinterp [cpp][net]                                                   smtp.hpp
 *
 * djinterp SMTP -- C++ facade.
 *   The C++ face of the SMTP kernel in net/smtp. It derives from the kernel

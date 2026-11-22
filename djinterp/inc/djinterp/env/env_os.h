@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                        env_os.h
+* djinterp [c][env]                                                     env_os.h
 *
 * djinterp operating-system detection (core classification).
 *   The OS block / flag classification system, the D_ENV_IS_OS_* helper

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                color_tests.hpp
+* djinterp [cpp][utility]                                        color_tests.hpp
 *
 *   Suite header for color.hpp, the color module's umbrella.  The umbrella
 * defines nothing of its own: what it promises is reach and coexistence, so

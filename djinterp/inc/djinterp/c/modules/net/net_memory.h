@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                  net_memory.h
+* djinterp [c][net]                                                 net_memory.h
 *
 * In-memory connections: net.h's connection over caller memory.
 *   Two backends, each embedding dj_net_connection as its first member, so all

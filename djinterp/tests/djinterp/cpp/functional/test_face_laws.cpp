@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              test_face_laws.cpp
+* djinterp [cpp][functional]                                  test_face_laws.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/test_face_laws.cpp

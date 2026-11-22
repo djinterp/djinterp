@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                 cli_program.h
+* djinterp [c][tools]                                              cli_program.h
 *
 * A command-line program as the kit runs it: the grammar's conventions over
 * the argument parser.

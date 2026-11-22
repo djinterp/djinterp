@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                        container_transform_traits_tests.hpp
+* djinterp [cpp][container]                 container_transform_traits_tests.hpp
 *
 *   Declarations, shared helpers, and helper TYPES for the
 * container_transform_traits.hpp unit-test suite.  The Transformability axis is

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                            structural_traits_tests_optional.cpp
+* djinterp [cpp][functional]                structural_traits_tests_optional.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/structural_traits_tests_optional.cpp

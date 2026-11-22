@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                         arg_setting_tests.c
+* djinterp [c][parse]                                        arg_setting_tests.c
 *
 * The suite of the parser's setting hook, declared in arg_setting_tests.h.
 *   Most sections are case tables (arg_tests_support.h): each case makes a

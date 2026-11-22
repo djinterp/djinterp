@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                        view.hpp
+* djinterp [cpp][functional]                                            view.hpp
 *
 * Lazy, pull-based views and a pipeline operator for functional dataflow (C++).
 *   A view is a non-owning, lazily-evaluated wrapper around a sequence of

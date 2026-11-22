@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                               lex_literal.h
+* djinterp [c][parse]                                              lex_literal.h
 *
 * Phase 7 for literals: classify a numeric, character or string literal, check
 * it against its dialect, and compute its value.

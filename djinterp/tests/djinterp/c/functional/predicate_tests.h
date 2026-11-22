@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              predicate_tests.h
+* djinterp [c][functional]                                     predicate_tests.h
 *
 *   Unit test declarations for `predicate.h` module.
 *   Provides comprehensive testing of all d_predicate combinator functions

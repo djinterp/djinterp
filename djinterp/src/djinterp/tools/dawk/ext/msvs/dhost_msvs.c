@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  dhost_msvs.c
+* djinterp [c][tools]                                               dhost_msvs.c
 *
 * Definitions for the declarations in dhost_msvs.h.
 *   The two parts are made, installed and freed with the umbrella; the
@@ -8,6 +8,7 @@
 * with a wildcard is matched against every name the directory holds, as
 * CMake's file(GLOB) does, and the paths found are sorted as CMake sorts
 * them, byte by byte.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/msvs/dhost_msvs.c
 * link(s):   TBA

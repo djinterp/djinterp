@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              dynamodb_table.hpp
+* djinterp [cpp][db]                                          dynamodb_table.hpp
 *
 * djinterp DynamoDB table module:
 *   A typed wrapper over a single native Amazon DynamoDB table. Unlike

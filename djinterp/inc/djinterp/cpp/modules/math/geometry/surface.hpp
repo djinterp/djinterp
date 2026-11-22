@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                surface.hpp
+* djinterp [cpp][math]                                               surface.hpp
 *
 * 2-manifold surface primitives embedded in 3D (and higher) space.
 *   The structural surface interface mirrors the edge interface but

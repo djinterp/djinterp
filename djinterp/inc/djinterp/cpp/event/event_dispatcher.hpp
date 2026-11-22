@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            event_dispatcher.hpp
+* djinterp [cpp][event]                                     event_dispatcher.hpp
 *
 * The facade:
 *   The unified front end of the event system. DEventDispatcher composes an

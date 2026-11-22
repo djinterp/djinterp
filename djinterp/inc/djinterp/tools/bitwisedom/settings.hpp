@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                           settings.hpp
+* djinterp [cpp][tools]                                             settings.hpp
 *
 * A sheet's settings, by path.
 *   A setting is a path -- "grid.minor.thickness", "gen.level" -- with a
@@ -25,6 +25,7 @@
 * an array or object as JSON -- then the sheet is read back from the file's
 * object, and must keep the value, or nothing changes: a value the sheet
 * does not keep is refused, never dropped in silence (ruling cli-taken 16).
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/settings.hpp
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                               bits.cpp
+* djinterp [cpp][tools]                                                 bits.cpp
 *
 * Bits within a width: the definitions behind bits.hpp.
 *   All arithmetic is unsigned, so a 64-bit width never shifts by 64 or
@@ -10,6 +10,7 @@
 * Its arithmetic goes a word at a time with the carry beside it; its product
 * with an integer builds each 128-bit partial product from 32-bit halves,
 * which every compiler has.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/bits.cpp
 * link(s):   TBA

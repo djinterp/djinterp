@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [tests]                                                  tool_tests.hpp
+* djinterp [cpp][tools]                                           tool_tests.hpp
 *
 * What the tool's suites share: the grammars they run, the few helpers they
 * read runs with, and the loop that runs a table of sections.

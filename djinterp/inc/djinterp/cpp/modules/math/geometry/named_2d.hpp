@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                               named_2d.hpp
+* djinterp [cpp][math]                                              named_2d.hpp
 *
 * Named 2D shapes with closed-form measurements.
 *   Each type here is a shorthand for a specific geometric configuration

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      option_set.c
+* djinterp [c][option]                                              option_set.c
 *
 * The option set's pristine mark and the by-value status reader.
 *   Defines the three functions option_set.h declares; the rest of the set

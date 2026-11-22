@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                      encode.hpp
+* djinterp [cpp][binary]                                              encode.hpp
 *
 *   The foundational half of the SERIALIZATION externalisation axis on the WRITE
 * side: the ENCODER.  The formal model (containers.tex, Serialization) casts a

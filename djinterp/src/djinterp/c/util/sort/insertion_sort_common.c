@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                           insertion_sort_common.c
+* djinterp [c][utility]                                  insertion_sort_common.c
 *
 * TBA
 *

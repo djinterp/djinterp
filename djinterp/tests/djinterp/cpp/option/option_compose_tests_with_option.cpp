@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                           option_compose_tests_with_option.cpp
+* djinterp [cpp][option]                    option_compose_tests_with_option.cpp
 *
 *   Section II of the option_compose.hpp suite: define-and-add for one surface.
 *

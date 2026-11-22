@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   fn_builder_tests_reorder.cpp
+* djinterp [cpp][functional]                        fn_builder_tests_reorder.cpp
 *
 * Slicing / reordering fluent-operation tests (section ii, part 2):
 *   test_take_skip    -- take and skip, including edge counts.

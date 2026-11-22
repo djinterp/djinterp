@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                      writer.hpp
+* djinterp [cpp][text]                                                writer.hpp
 *
 *   Generic, type-agnostic IO foundation: output sinks plus the `printer`
 * and `writer` functors. Nothing here knows about documents, XML, HTML,

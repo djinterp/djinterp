@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                              view_tests_adapters_combining.cpp
+* djinterp [cpp][functional]                   view_tests_adapters_combining.cpp
 *
 * Combining adapter view tests (section IV, part 2): adapters that pair,
 * join, reorder, or regroup elements.

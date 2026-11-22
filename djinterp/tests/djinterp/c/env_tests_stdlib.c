@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c][env]                                           env_tests_stdlib.c
+* djinterp [c]                                                env_tests_stdlib.c
 *
 * Unit tests for `env.h` Standard Library Feature Detection section.
 * Tests header availability, POSIX features, string functions, file I/O,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                              cfg_env_build.h
+* djinterp [c][env]                                              cfg_env_build.h
 *
 * Configuration for env_build.h, the build-configuration detection section of
 * env.h.

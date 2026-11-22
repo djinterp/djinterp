@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                              arg_type.hpp
+* djinterp [cpp][parse]                                             arg_type.hpp
 *
 * The argument parser's C++ face: value types.
 *   A C++ type becomes the dj_arg_type descriptor the C library converts

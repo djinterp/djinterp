@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  foldable_tests_predicates.cpp
+* djinterp [cpp][functional]                       foldable_tests_predicates.cpp
 *
 *   Section II.7 of the foldable.hpp suite: fold_any (existential) and fold_all
 * (universal).  Covers a matching element, no match, the empty foldable (any is

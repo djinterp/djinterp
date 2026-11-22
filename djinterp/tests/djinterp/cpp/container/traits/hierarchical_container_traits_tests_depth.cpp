@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]               hierarchical_container_traits_tests_depth.cpp
+* djinterp [cpp][container]        hierarchical_container_traits_tests_depth.cpp
 *
 *   Section II - the value_type-chain nesting depth: 1 for a flat container, 2 for
 * vector<vector<T>>, 0 for a non-container.  It measures the REGULAR (uniform)

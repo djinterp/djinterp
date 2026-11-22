@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             ptr_vector_tests.h
+* djinterp [c][container]                                     ptr_vector_tests.h
 *
 *   Unit test declarations for `ptr_vector.h` module.
 *   Provides comprehensive testing of all dj_ptr_vector struct wrapper functions

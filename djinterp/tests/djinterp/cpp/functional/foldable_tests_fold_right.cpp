@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  foldable_tests_fold_right.cpp
+* djinterp [cpp][functional]                       foldable_tests_fold_right.cpp
 *
 *   Section II.2 of the foldable.hpp suite: fold_right, derived by materializing
 * the foldable (fold_to_vector) and folding the buffer in reverse.  Covers the

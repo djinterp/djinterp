@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                mariadb_internal.c
+* djinterp [c][db]                                            mariadb_internal.c
 *
 * Implementation of the plumbing mariadb_internal.h declares for the MariaDB
 * layer's modules: server facts, name checks and quoting, statements run and

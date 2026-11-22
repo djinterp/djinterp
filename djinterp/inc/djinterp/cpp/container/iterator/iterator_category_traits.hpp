@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    iterator_category_traits.hpp
+* djinterp [cpp][container]                         iterator_category_traits.hpp
 *
 *   The CATEGORY refinement of the iterability axis: given an iterable
 * container,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                          monoid.h
+* djinterp [c][functional]                                              monoid.h
 *
 * The monoid protocol: a semigroup with a two-sided identity, its
 * identity-aware operations, and the standard numeric and boolean instances.

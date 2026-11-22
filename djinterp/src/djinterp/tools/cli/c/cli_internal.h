@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                cli_internal.h
+* djinterp [c][tools]                                             cli_internal.h
 *
 * Private helpers shared by the command-line kit's C sources.
 *   What the kit asks of the operating system -- terminals, the standard

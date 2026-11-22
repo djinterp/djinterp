@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    foldable_tests_protocol.cpp
+* djinterp [cpp][functional]                         foldable_tests_protocol.cpp
 *
 *   Section 0 + I of the foldable.hpp suite: the protocol and its detection
 * vocabulary.  Covers is_foldable (and its _v shorthand), the std::vector

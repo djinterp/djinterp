@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 sftp_client.h
+* djinterp [c][net]                                                sftp_client.h
 *
 * An SFTP client: files and directories on an SSH server.
 *   The client speaks SFTP version 3 over the "sftp" subsystem of a channel on

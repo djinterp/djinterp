@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                optionator_tests_configures.cpp
+* djinterp [cpp][option]                         optionator_tests_configures.cpp
 *
 *   Section I - the Pattern-C adapter trait.  configures<_Tag> is the opt-in
 * point: its primary is left undefined so an unconfigured tag is a hard, named

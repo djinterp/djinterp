@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                mariadb_tests.c
+* djinterp [c][db]                                               mariadb_tests.c
 *
 *   Conformance tests for djinterp's MariaDB/MySQL convenience layer: every
 * function in c/modules/db/mariadb/mariadb_*.h, its success paths, its

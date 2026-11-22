@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                   storage.c
+* djinterp [c][parse]                                                  storage.c
 *
 *   Definitions for the non-inline declarations in storage.h.
 *

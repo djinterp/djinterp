@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [core]                                             t_mariadb_core.cpp
+* djinterp [cpp][db]                                          t_mariadb_core.cpp
 *
 *   core/db's MySQL-family connections, mariadb_connection and
 * mysql_connection, over the MariaDB layer, against a live server -- MariaDB

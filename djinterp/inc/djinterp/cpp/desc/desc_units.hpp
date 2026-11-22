@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  desc_units.hpp
+* djinterp [cpp][desc]                                            desc_units.hpp
 *
 *   desc's C++ face: the C units engine, with a type's description chosen by
 * the type. A type T gives its description as units<T> -- a specialization

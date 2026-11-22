@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                        pool.hpp
+* djinterp [cpp][memory]                                                pool.hpp
 *
 * C++ face of the fixed-slot pool.
 *   `DRawPool` DERIVES from dj_pool and adds no data members. `DPool<T>` derives

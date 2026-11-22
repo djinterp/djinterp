@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    postgres.cpp
+* djinterp [cpp][db]                                                postgres.cpp
 *
 * Definitions for postgres.hpp: pg_connection's hooks and members, and the
 * PostgreSQL layer's failures, over the layer's face.

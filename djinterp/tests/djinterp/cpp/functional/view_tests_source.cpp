@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          view_tests_source.cpp
+* djinterp [cpp][functional]                               view_tests_source.cpp
 *
 * Source view tests (section III): views that produce elements with no input
 * view.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                     arg_tests_support.cpp
+* djinterp [cpp][parse]                                    arg_tests_support.cpp
 *
 * What the argument parser's C++ suites share: the run, its report, the
 * section runners and the text they write.

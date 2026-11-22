@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                  arg_argv.h
+* djinterp [c][parse]                                                 arg_argv.h
 *
 * Arguments from text: splitting command lines and response files, quoting
 * words to survive a split, finding a program's name, and converting wide

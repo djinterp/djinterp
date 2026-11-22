@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                   program.c
+* djinterp [c][parse]                                                  program.c
 *
 *   Definitions for the non-inline declarations in program.h.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        sequential_container.hpp
+* djinterp [cpp][container]                             sequential_container.hpp
 *
 * CRTP base for sequential (order-preserving) containers.
 *   A sequential container is any container for which element order is

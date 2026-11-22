@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    multiset.hpp
+* djinterp [cpp][container]                                         multiset.hpp
 *
 * link(s):   TBA
 *

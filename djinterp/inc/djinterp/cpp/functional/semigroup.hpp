@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   semigroup.hpp
+* djinterp [cpp][functional]                                       semigroup.hpp
 *
 * Semigroup protocol and its associative combine (C++).
 *   A semigroup is a type T with one operation: an associative binary combine

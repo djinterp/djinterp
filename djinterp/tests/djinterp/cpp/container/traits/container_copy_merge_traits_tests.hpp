@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                       container_copy_merge_traits_tests.hpp
+* djinterp [cpp][container]                container_copy_merge_traits_tests.hpp
 *
 * Unit tests for container_copy_merge_traits.hpp:
 *   Declarations, fixtures and assertion plumbing for the copy and merge

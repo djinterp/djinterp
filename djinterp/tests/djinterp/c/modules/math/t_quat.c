@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                     t_quat.c
+* djinterp [c][math]                                                    t_quat.c
 *
 *   Conformance harness for c/math/quat.h, all three families.
 *

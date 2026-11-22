@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                  container_filter_traits_tests_strategy.cpp
+* djinterp [cpp][container]           container_filter_traits_tests_strategy.cpp
 *
 *   Section II - the DFilterStrategy vocabulary and DContainerFilterStrategy,
 * the strongest selection realization a type's iterability grants.  The

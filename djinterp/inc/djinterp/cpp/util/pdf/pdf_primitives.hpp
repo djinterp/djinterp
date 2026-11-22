@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              pdf_primitives.hpp
+* djinterp [cpp][utility]                                     pdf_primitives.hpp
 *
 *
 * path:      /inc/djinterp/cpp/util/pdf/pdf_primitives.hpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                        pop_tests_sa_support.c
+* djinterp [c][net]                                       pop_tests_sa_support.c
 *
 * What the POP3 kernel's tests share: a scripted connection, and the sinks
 * and comparisons the tests check their results with.

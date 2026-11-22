@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                       cfg_event_dispatcher.h
+* djinterp [c][event]                                     cfg_event_dispatcher.h
 *
 *   Configuration for deferred delivery and the facade: whether the queue
 * exists at all, how large it is by default, and what it does when full.

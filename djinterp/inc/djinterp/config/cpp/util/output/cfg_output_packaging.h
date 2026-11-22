@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                       cfg_output_packaging.h
+* djinterp [cpp][utility]                                 cfg_output_packaging.h
 *
 *   Build-time defaults for output packaging: what output_config does with a
 * document when its caller does not say -- write it as it is, compress it, or

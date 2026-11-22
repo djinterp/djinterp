@@ -1,9 +1,10 @@
 /*******************************************************************************
-* bitwisedom [tools]                                         bitwisedom_main.cpp
+* djinterp [cpp][tools]                                      bitwisedom_main.cpp
 *
 * bitwisedom: the command line's main.
 *   Everything is run_cli's (cli.hpp): the commands that read a sheet, those
 * that make or change one, and `gui`, which loads the window's module.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/tools/bitwisedom_main.cpp
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [binary/test]                                        encode_tests.hpp
+* djinterp [cpp][binary]                                        encode_tests.hpp
 *
 *   Declarations, fixtures, and the per-suite assertion macro for the encode.hpp
 * unit tests.  encode.hpp owns the binary medium (byte / byte_string), the leaf

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            threadsafe_array.hpp
+* djinterp [cpp][container]                                 threadsafe_array.hpp
 *
 * djinterp threadsafe_array.hpp
 *

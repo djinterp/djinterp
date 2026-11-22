@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                                      array_tests_memory.c
+* djinterp [c][container]                                   array_tests_memory.c
 *
 * Unit tests for `array.h` memory management functions.
 * Part of the array suite, on DTest's C face.

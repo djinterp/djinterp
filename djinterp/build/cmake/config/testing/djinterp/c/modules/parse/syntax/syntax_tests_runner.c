@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                       syntax_tests_runner.c
+* djinterp [c][parse]                                      syntax_tests_runner.c
 *
 * The runner for the syntax items' suite: its options and its spec.
 *   It defines DTEST_SPEC_MODE before the suite header, which then gives it

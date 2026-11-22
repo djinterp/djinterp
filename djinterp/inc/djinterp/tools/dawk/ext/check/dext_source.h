@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                              dext_source.h
+* djinterp [c][tools]                                              dext_source.h
 *
 * Source trees for a driver that walks files: read one C or C++ file from disk
 * and build its token, group and item tree beneath the driver's file node.

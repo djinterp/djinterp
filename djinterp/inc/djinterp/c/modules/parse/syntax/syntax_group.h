@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                              syntax_group.h
+* djinterp [c][parse]                                             syntax_group.h
 *
 * Bracket and directive structure over a token stream: the first layer
 * above lexing, and the one every other structural question rests on.

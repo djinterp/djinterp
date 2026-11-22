@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                    parse_tests_status.cpp
+* djinterp [cpp][parse]                                   parse_tests_status.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/parse/parse_tests_status.cpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    quick_sort_tests_runner.cpp
+* djinterp [cpp][utility]                            quick_sort_tests_runner.cpp
 *
 *   main() for the quick_sort_tests executable.  Defines DTEST_SPEC_MODE so
 * the suite header presents its spec-provider face (no fixtures compiled

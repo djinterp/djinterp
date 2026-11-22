@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                     env_c_lib.h
+* djinterp [c][env]                                                  env_c_lib.h
 *
 * djinterp C standard-library feature detection.
 *   Compile-time detection of C standard-library features, POSIX headers,

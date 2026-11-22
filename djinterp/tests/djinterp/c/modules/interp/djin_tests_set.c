@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               djin_tests_set.c
+* djinterp [c][interp]                                          djin_tests_set.c
 *
 *   The set's tests: making one, registering a djin and its settings, every
 * record the set refuses -- with nothing changed by a refusal -- and finding

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     text_buffer_tests_filter.c
+* djinterp [c][container]                             text_buffer_tests_filter.c
 *
 *   Standalone tests of text_buffer.h's filter functions: filter,
 * filter_in_place, filter_indices, count_matching and filter_chunked, with

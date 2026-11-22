@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                               predicate_tests_binary.cpp
+* djinterp [cpp][functional]                          predicate_tests_binary.cpp
 *
 *   Tests for the binary predicate combinators (AND, OR, XOR) and their
 * factory functions (predicate_and, predicate_or, predicate_xor).

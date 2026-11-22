@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           value_list_tests.hpp
+* djinterp [cpp][meta]                                      value_list_tests.hpp
 *
 *   Unit-test declarations for core/meta/value_list.hpp -- the NTTP sequence, the
 * value-domain counterpart of dtuple's std::tuple type sequence.  One declaration

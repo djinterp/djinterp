@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     memento.hpp
+* djinterp [cpp][paradigm]                                           memento.hpp
 *
 * Memento Pattern Module:
 *   Provides a comprehensive, container-agnostic, version-portable foundation

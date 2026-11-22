@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                            expr_common.hpp
+* djinterp [cpp][math]                                           expr_common.hpp
 *
 * The common part of math/expr/, the run-time expression language: the error
 * every fallible step reports, the switches of the syntax, and the context a

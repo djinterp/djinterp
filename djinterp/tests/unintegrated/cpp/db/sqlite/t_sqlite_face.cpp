@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 t_sqlite_face.cpp
+* djinterp [cpp][db]                                           t_sqlite_face.cpp
 *
 *   The C++ face of the SQLite layer, sqlite_face.hpp, compiled as C++ at
 * every level from ISO strict C++98 to C++26 and driven against in-memory

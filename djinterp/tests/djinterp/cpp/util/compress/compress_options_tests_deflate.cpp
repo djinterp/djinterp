@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                             compress_options_tests_deflate.cpp
+* djinterp [cpp][utility]                     compress_options_tests_deflate.cpp
 *
 *   Tests for the DEFLATE block (DDeflateOptions): window bits, memory level and
 * strategy (compress_options.hpp section II).

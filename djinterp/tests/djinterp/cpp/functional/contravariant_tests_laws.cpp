@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    contravariant_tests_laws.cpp
+* djinterp [cpp][functional]                        contravariant_tests_laws.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/contravariant_tests_laws.cpp

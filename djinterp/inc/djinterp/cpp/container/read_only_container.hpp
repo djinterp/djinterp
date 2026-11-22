@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                         read_only_container.hpp
+* djinterp [cpp][container]                              read_only_container.hpp
 *
 *   The read_only access wrapper: a handle that observes its container but
 * cannot modify it.  It HOLDS the container privately, is populated at

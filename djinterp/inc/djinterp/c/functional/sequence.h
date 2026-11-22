@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                        sequence.h
+* djinterp [c][functional]                                            sequence.h
 *
 * Sequence operations over contiguous arrays, and the distinct and flat_map
 * transducer stages.

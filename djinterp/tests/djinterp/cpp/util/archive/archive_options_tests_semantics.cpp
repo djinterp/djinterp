@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                            archive_options_tests_semantics.cpp
+* djinterp [cpp][utility]                    archive_options_tests_semantics.cpp
 *
 *   Tests for the value semantics archive_options relies on -- copy, assign, and
 * the deep independence its std::string members require -- and for the shared

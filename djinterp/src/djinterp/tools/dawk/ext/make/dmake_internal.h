@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                              dmake_internal.h
+* djinterp [c][tools]                                           dmake_internal.h
 *
 * What the Makefile reader's units share, and no other unit sees.
 *   The reader's state as each dialect's reader grows the records: a
@@ -7,6 +7,7 @@
 * scanning every dialect's reader does: blanks skipped, a continuation among
 * them; a word's end; the first of a set of bytes outside every reference
 * and every backslash's escape.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/make/dmake_internal.h
 * link(s):   TBA

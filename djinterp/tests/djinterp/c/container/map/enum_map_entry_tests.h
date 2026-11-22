@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         enum_map_entry_tests.h
+* djinterp [c][container]                                 enum_map_entry_tests.h
 *
 *   Unit tests for the enum_map_entry module (entry structure and macros only).
 *   Tests entry creation macros, comparison macros, and sentinel markers.

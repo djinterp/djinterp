@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                        postgres.h
+* djinterp [c][db]                                                    postgres.h
 *
 * Umbrella for djinterp's PostgreSQL convenience layer -- includes every
 * module.

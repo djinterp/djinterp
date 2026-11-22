@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    memory_discipline_tests.hpp
+* djinterp [cpp][meta]                               memory_discipline_tests.hpp
 *
 *   Declarations, fixtures, the per-suite assertion macro and the spec for the
 * memory_discipline.hpp unit tests.  Two faces, selected by DTEST_SPEC_MODE:

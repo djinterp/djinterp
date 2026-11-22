@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     condvar.hpp
+* djinterp [cpp][sync]                                               condvar.hpp
 *
 * Portable condition variable, call-once, and concurrency query utilities
 * for the thread-safe module.

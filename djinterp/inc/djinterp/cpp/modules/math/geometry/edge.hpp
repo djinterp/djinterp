@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                   edge.hpp
+* djinterp [cpp][math]                                                  edge.hpp
 *
 * Dimension-agnostic edge / curve primitives.
 *   Provides edge types satisfying the structural edge interface defined

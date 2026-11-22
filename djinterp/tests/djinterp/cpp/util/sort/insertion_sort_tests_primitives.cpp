@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                             insertion_sort_tests_primitives.cpp
+* djinterp [cpp][utility]                    insertion_sort_tests_primitives.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/sort/insertion_sort_tests_primitives.cpp

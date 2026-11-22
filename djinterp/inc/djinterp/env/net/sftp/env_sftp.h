@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                      env_sftp.h
+* djinterp [c][env]                                                   env_sftp.h
 *
 * SFTP environment detection.
 *   What the SFTP client needs to reach a server: SFTP rides the "sftp"

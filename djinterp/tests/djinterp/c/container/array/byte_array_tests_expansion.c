@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   byte_array_tests_expansion.c
+* djinterp [c][container]                           byte_array_tests_expansion.c
 *
 *   Unit tests for byte_array.h byte expansion macros.
 *   Tests D_BYTES_1, D_BYTES_2, D_BYTES_4, D_BYTES_8, and D_BYTES_N macros

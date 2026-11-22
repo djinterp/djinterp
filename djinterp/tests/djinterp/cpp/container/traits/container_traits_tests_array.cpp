@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                            container_traits_tests_array.cpp
+* djinterp [cpp][container]                     container_traits_tests_array.cpp
 *
 *   Section IV - array detection: is_c_array (a built-in T[N]) and is_std_array
 * (a std::array<T,N>).  These are the fixed-extent signals the bounds and storage

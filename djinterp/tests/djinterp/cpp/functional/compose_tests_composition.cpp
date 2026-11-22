@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  compose_tests_composition.cpp
+* djinterp [cpp][functional]                       compose_tests_composition.cpp
 *
 *   Tests for compose.hpp Section II: the binary factories compose,
 * pipe, and compose_transformer.  Verifies application order (math vs

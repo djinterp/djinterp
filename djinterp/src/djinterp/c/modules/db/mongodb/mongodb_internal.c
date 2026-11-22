@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                mongodb_internal.c
+* djinterp [c][db]                                            mongodb_internal.c
 *
 * Implementation of the plumbing mongodb_internal.h declares for the MongoDB
 * layer's modules: failures packed and recorded, JSON read and written,

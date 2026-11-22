@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                   env_archive.c
+* djinterp [c][env]                                                env_archive.c
 *
 *   Runtime implementations for the query declarations in env_archive.h. The
 * notable one is d_env_archive_has_tool, a cross-platform PATH probe used to

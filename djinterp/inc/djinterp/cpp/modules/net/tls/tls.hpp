@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                                     tls.hpp
+* djinterp [cpp][net]                                                    tls.hpp
 *
 * TLS for net.hpp: the SSL kernel's contexts and sessions as C++ classes.
 *   tls_context is a configuration of ssl.h's kernel, made live in an engine

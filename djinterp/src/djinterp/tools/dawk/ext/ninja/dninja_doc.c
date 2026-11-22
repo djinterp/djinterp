@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  dninja_doc.c
+* djinterp [c][tools]                                               dninja_doc.c
 *
 * Definitions for the declarations in dninja_doc.h.
 *   Every change is a candidate first: the new text, read into records of
@@ -15,6 +15,7 @@
 * line ending, not past it -- so that the statement is one the splice cuts.
 *   Files are read and written with c/text's helpers, the directories a
 * file goes in made with dfs's.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/ninja/dninja_doc.c
 * link(s):   TBA

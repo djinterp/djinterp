@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                      dcmake.c
+* djinterp [c][tools]                                                   dcmake.c
 *
 * Reads the CMake language into records: see dcmake.h.
 *   One pass over the text, by hand, in the order cmake-language(7) gives:
@@ -7,6 +7,7 @@
 * line, and a command is a name, `(`, arguments and `)`, with comments and
 * newlines free among the arguments. A second pass over the commands pairs
 * each block's opener with its closer.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/cmake/dcmake.c
 * link(s):   TBA

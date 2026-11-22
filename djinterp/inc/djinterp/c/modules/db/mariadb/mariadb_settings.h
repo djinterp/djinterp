@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                mariadb_settings.h
+* djinterp [c][db]                                            mariadb_settings.h
 *
 * A connection's session settings, read and written in pairs, and what the
 * server reports changing in the session.

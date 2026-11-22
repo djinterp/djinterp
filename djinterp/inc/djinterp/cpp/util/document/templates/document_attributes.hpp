@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                         document_attributes.hpp
+* djinterp [cpp][utility]                                document_attributes.hpp
 *
 *   The hint bag every document-template node carries.  A document template
 * (a table, a title page, a table of contents) is DIALECT-AGNOSTIC: it names

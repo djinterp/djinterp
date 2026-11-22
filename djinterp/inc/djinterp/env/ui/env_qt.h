@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                        env_qt.h
+* djinterp [c][env]                                                     env_qt.h
 *
 * djinterp Qt environment detection.
 *   Compile-time detection of the Qt framework across its major versions, Qt 1

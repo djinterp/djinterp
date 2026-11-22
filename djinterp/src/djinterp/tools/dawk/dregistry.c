@@ -1,11 +1,12 @@
 /*******************************************************************************
-* djinterp [dawk]                                                    dregistry.c
+* djinterp [c][tools]                                                dregistry.c
 *
 * Property registry:
 *   Evaluation, derivation and repair for every property a sheet may name.  A
 * property that is parsed but has no evaluator reports as unevaluated rather
 * than passing: a rule that silently holds is worse than one that visibly
 * cannot run yet.
+*
 *
 * path:      /src/djinterp/tools/dawk/dregistry.c
 * link(s):   TBA

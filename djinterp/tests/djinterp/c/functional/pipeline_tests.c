@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                         pipeline_tests.c
+* djinterp [c][functional]                                      pipeline_tests.c
 *
 *
 * path:      /tests/djinterp/c/functional/pipeline_tests.c

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                 metadata_concepts_tests.hpp
+* djinterp [cpp][utility]                            metadata_concepts_tests.hpp
 *
 *   Unit-test suite for the C++20 concept companions to the metadata protocol
 * (util/metadata/metadata_concepts.hpp).  Two-faced per the DTest authoring

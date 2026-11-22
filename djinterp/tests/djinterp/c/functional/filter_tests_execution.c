@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                 filter_tests_execution.c
+* djinterp [c][functional]                              filter_tests_execution.c
 *
 *
 * path:      /tests/djinterp/c/functional/filter_tests_execution.c

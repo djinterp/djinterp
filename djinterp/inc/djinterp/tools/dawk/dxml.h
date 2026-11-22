@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                        dxml.h
+* djinterp [c][tools]                                                     dxml.h
 *
 * XML, read as a stream of tokens.
 *   Enough of XML to find elements and read their attributes and text in the
@@ -13,6 +13,7 @@
 * its prefix, which is what reading a known format needs.
 *   A stand-in, local to dawk: XML belongs to the parse tier, and when that
 * tier reads it, this unit gives way to it.
+*
 *
 * path:      /inc/djinterp/tools/dawk/dxml.h
 * link(s):   TBA

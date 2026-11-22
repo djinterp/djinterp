@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         monad_tests_traits.cpp
+* djinterp [cpp][functional]                              monad_tests_traits.cpp
 *
 *   Tests for monad.hpp Section 0: the predicate SFINAE structural
 * traits and the C++20 concept mirrors.  Almost all coverage here is

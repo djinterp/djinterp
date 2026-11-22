@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [cli]                                                           cli.hpp
+* djinterp [cpp][tools]                                                  cli.hpp
 *
 * vparse's command line: the program `vparse`, as a function.
 *   The command line is djinterp's command-line kit (tools/cli) over its
@@ -30,6 +30,7 @@
 *
 *   LEVELS. The command line's floor is the model's, C++17: below it this
 * file is empty rather than an error.
+*
 *
 * path:      /src/djinterp/tools/vparse/cli/cli.hpp
 * link(s):   TBA

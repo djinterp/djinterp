@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                container_memory_traits_tests_discipline.cpp
+* djinterp [cpp][container]         container_memory_traits_tests_discipline.cpp
 *
 *   Section II - container_memory_discipline, the resolution engine, exercised
 * across all five disciplines and every step of the precedence:

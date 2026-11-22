@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                     dbanner.c
+* djinterp [c][tools]                                                  dbanner.c
 *
 * Banner extension:
 *   The reference extension.  It supplies node types, attributes and source
@@ -10,6 +10,7 @@
 * `* ` before every line between, and the `#` form a CMake file carries, `#`
 * and a run of stars at either end, with `# ` before every line between.
 * The columns are the same in both, so one sheet judges both.
+*
 *
 * path:      /src/djinterp/tools/dawk/dbanner.c
 * link(s):   TBA

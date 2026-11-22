@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                  cfg_value.h
+* djinterp [c][math]                                                 cfg_value.h
 *
 *   Build-time configuration of the generic value's boxed kinds
 * (c/math/value.h): how a box counts the values that hold it. Every boxed

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 keyed_table.hpp
+* djinterp [cpp][container]                                      keyed_table.hpp
 *
 *   keyed_table -- the KEYED relational overlay (Overlays: containers as
 * restriction bundles), the axis-typed table realised as an array of records.

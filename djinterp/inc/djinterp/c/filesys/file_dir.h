@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                        file_dir.h
+* djinterp [c][filesys]                                               file_dir.h
 *
 * Directories -- creating, removing, walking -- and the path operations that
 * must ask the filesystem.

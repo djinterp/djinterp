@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   cow_array.hpp
+* djinterp [cpp][container]                                        cow_array.hpp
 *
 * Copy-on-write concurrent array.
 *   Composes the canonical `DArray<Options...>` inside a DCowState,

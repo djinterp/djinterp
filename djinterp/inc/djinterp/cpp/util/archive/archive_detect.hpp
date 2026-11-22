@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              archive_detect.hpp
+* djinterp [cpp][utility]                                     archive_detect.hpp
 *
 *   Container recognition: "what format are these bytes, and how many members
 * does the directory claim?"  The archive counterpart of compress_detect.hpp.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                  env_dynamodb.h
+* djinterp [c][env]                                               env_dynamodb.h
 *
 * djinterp Amazon DynamoDB environment detection.
 *   Compile-time detection of an Amazon DynamoDB environment: the AWS SDK for

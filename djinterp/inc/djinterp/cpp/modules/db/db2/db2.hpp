@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                         db2.hpp
+* djinterp [cpp][db]                                                     db2.hpp
 *
 * djinterp IBM Db2 connection module:
 *   This header provides the Db2-specific connection implementation and

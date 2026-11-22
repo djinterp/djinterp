@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 text_buffer.hpp
+* djinterp [cpp][container]                                      text_buffer.hpp
 *
 * Concrete text buffer for the djinterp container framework.
 *   A text buffer is a growable, staged accumulator for character data.

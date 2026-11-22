@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          view_tests_traits.cpp
+* djinterp [cpp][functional]                               view_tests_traits.cpp
 *
 * SFINAE trait & concept tests for view.hpp (sections I and VIII):
 *   is_view, has_begin_end, is_pipeable_to_view, view_value_type, is_adapter,

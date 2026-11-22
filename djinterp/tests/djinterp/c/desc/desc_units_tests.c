@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             desc_units_tests.c
+* djinterp [c][desc]                                          desc_units_tests.c
 *
 *   The suite of c/desc's units engine, its derived facts, its djin and its
 * macro layer, in DTest's C face. A toy type, a shelf of books, is described

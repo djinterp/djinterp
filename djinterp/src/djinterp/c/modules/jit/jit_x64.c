@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/jit]                                                     jit_x64.c
+* djinterp [c][jit]                                                    jit_x64.c
 *
 * djinterp x86-64 JIT encoder -- implementation (jit_x64.h).
 *   The instruction emitters: each encodes one x86-64 instruction from the

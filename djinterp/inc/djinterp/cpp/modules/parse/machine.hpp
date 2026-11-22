@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                               machine.hpp
+* djinterp [cpp][parse]                                              machine.hpp
 *
 *   The C++ face of the execution substrate declared in machine.h.
 *   `machine` derives from dj_parse_machine and `op_set` from dj_parse_op_set,

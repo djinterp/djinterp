@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                               lifetime_tests_classification.cpp
+* djinterp [cpp][meta]                         lifetime_tests_classification.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/lifetime_tests_classification.cpp

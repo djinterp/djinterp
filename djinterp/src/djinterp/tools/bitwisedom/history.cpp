@@ -1,7 +1,8 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                            history.cpp
+* djinterp [cpp][tools]                                              history.cpp
 *
 * Undo and redo, as whole-sheet snapshots.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/history.cpp
 * link(s):   TBA

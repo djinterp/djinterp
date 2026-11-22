@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                       env_db2.h
+* djinterp [c][env]                                                    env_db2.h
 *
 * djinterp IBM Db2 environment detection.
 *   Compile-time detection of an IBM Db2 environment: the CLI/ODBC client

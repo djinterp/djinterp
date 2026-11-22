@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                              sqlite_maintenance.c
+* djinterp [c][db]                                          sqlite_maintenance.c
 *
 * Implementation of sqlite_maintenance.h.
 *   Version-dependent statements are checked against the library loaded, so an

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                         compose.c
+* djinterp [c][functional]                                             compose.c
 *
 * Transformer composition and partial consumers, as compose.h declares.
 *   A composed transformer owns one scratch block for the intermediate value,

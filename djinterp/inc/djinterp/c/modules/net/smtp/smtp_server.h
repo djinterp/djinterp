@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 smtp_server.h
+* djinterp [c][net]                                                smtp_server.h
 *
 * djinterp SMTP server.
 *   The receiving side of RFC 5321 as a session engine: d_smtp_server_session()

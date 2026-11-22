@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                compose_tests.h
+* djinterp [c][functional]                                       compose_tests.h
 *
 *   Unit test declarations for `compose.h` module.
 *   Provides comprehensive testing of all function composition and partial

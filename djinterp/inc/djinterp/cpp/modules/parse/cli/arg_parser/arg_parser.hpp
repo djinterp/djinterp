@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                            arg_parser.hpp
+* djinterp [cpp][parse]                                           arg_parser.hpp
 *
 * The argument parser's C++ face: the parser.
 *   `cli::DArgParser` is CLI11's App at the root of a command tree. It derives

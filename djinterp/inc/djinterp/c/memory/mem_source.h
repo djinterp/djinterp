@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      mem_source.h
+* djinterp [c][memory]                                              mem_source.h
 *
 * Upstream byte sources -- the shared C core (tier 0):
 *   The protocol every allocator in this subframework obtains its backing

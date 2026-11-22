@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                               dhost_vcxproj.h
+* djinterp [c][tools]                                            dhost_vcxproj.h
 *
 * The vcxproj extension: MSBuild's files, read, changed and made from awk.
 *   A .vcxproj, its .vcxproj.filters and .vcxproj.user, a .props or a
@@ -21,6 +21,7 @@
 * $(...) unexpanded; imports are not followed.
 *   One of the two parts of the msvs extension, which adds sln besides; each
 * can be installed alone.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/msvs/dhost_vcxproj.h
 * link(s):   TBA

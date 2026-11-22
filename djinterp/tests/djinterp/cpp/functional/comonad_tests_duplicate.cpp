@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    comonad_tests_duplicate.cpp
+* djinterp [cpp][functional]                         comonad_tests_duplicate.cpp
 *
 *   Section II.3 of the comonad.hpp suite: duplicate, which nests a comonad one
 * level (W<A> -> W<W<A>>) and is defined as extend with the identity.  Covers

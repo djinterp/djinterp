@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [ui]                                                 elements_imgui.cpp
+* djinterp [cpp][tools]                                       elements_imgui.cpp
 *
 * The workbench's elements on Dear ImGui: their renderers, and the theme.
 *   Listings are green-bar tables -- bands of three rows, as on fanfold
@@ -13,6 +13,7 @@
 * one layer per depth. The cell under the machine's cursor at the current step
 * is highlighted; for a failed run the frontier is marked and everything past it
 * is greyed.
+*
 *
 * path:      /src/ui/vparse/elements_imgui.cpp
 * link(s):   TBA

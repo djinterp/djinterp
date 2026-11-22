@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                  eigen.hpp
+* djinterp [cpp][math]                                                 eigen.hpp
 *
 * Eigenvalue / eigenvector routines for the linear-algebra subframework.
 *   Three complementary approaches, each as a free factory returning a small

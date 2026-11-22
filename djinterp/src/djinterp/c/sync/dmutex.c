@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                          dmutex.c
+* djinterp [c][sync]                                                    dmutex.c
 *
 * Implementation of cross-platform mutex and threading operations.
 *

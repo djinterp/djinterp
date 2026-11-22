@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                              cfg_container.h
+* djinterp [c][container]                                        cfg_container.h
 *
 * Feature configuration for the container module.
 *   Provides hierarchical enable/disable toggles for optional functionality

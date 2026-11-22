@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  archive_common.h
+* djinterp [c][utility]                                         archive_common.h
 *
 *   The shared archive kernel: tier 0.  One definition of every container
 * format, every entry, every container option, and the two transforms (create,

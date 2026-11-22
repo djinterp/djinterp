@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 markup_string_tests_runner.cpp
+* djinterp [cpp][text]                            markup_string_tests_runner.cpp
 *
 * The runner for markup_string's suite: options, then the module.
 *

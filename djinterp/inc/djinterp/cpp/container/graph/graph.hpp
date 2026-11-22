@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                       graph.hpp
+* djinterp [cpp][container]                                            graph.hpp
 *
 * Versatile, version-portable graph container.
 *   The `DGraph<>` template fulfills axes 1-8 of the djinterp container

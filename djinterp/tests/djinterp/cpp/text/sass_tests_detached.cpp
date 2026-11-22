@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        sass_tests_detached.cpp
+* djinterp [cpp][text]                                   sass_tests_detached.cpp
 *
 *   The groups for css/sass/sass_template.hpp's eight factories and its adopt
 * functions, on the default backend. Each factory returns its rule in a

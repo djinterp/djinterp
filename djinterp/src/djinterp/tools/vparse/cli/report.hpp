@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [cli]                                                        report.hpp
+* djinterp [cpp][tools]                                               report.hpp
 *
 * What the command line prints, in its two formats: aligned text for a
 * reader, JSON for a program.
@@ -14,6 +14,7 @@
 * can hold any byte -- is written as the visible escape `\xHH` the listings
 * already use for control characters, since JSON has no way to carry a raw
 * byte, and a document with one in it would not parse.
+*
 *
 * path:      /src/djinterp/tools/vparse/cli/report.hpp
 * link(s):   TBA

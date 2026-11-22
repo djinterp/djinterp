@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              option_factory.hpp
+* djinterp [cpp][option]                                      option_factory.hpp
 *
 *   Factories for assembling option<> values - both at the type level
 * (`make_option_t`) and at the value level (`make_option()`).  Plus

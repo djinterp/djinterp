@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 view_tests.hpp
+* djinterp [cpp][functional]                                      view_tests.hpp
 *
 *   DTest declarations and shared fixtures for the view.hpp unit-test suite.
 * Declares one section function per like-group semantic section of view.hpp

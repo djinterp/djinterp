@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                       env_cli.h
+* djinterp [c][env]                                                    env_cli.h
 *
 * Environment detection for the command-line kit.
 *   What the platform decides for a program built with the kit: how a

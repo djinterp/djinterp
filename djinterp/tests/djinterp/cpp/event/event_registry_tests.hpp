@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       event_registry_tests.hpp
+* djinterp [cpp][event]                                 event_registry_tests.hpp
 *
 *   Declarations for the unit-test suite covering event_registry.hpp.  Each
 * free function exercises one entity of the typed subscription layer and

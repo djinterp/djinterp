@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                   iterable_container_traits.hpp
+* djinterp [cpp][container]                        iterable_container_traits.hpp
 *
 *   SFINAE structural traits for the ITERABILITY axis - in what mode a
 * container's contents may be traversed. To iterate a container is to visit

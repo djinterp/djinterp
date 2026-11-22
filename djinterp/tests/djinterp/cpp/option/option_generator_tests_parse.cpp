@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               option_generator_tests_parse.cpp
+* djinterp [cpp][option]                        option_generator_tests_parse.cpp
 *
 *   Section II - the compile-time stream parser.  parse_stream folds a flat
 * interleaved NTTP stream into a std::tuple of specs, using four productions

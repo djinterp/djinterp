@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                             hierarchical_container_concepts.hpp
+* djinterp [cpp][container]                  hierarchical_container_concepts.hpp
 *
 * C++20 concepts for the STRUCTURE (nesting) axis -- the `requires`-facing
 * view of hierarchical_container_traits.hpp.

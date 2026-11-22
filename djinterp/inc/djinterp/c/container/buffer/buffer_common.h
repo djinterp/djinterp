@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   buffer_common.h
+* djinterp [c][container]                                        buffer_common.h
 *
 * Common utilities and helper functions for buffer implementations.
 *

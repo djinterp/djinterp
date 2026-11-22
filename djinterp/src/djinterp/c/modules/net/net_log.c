@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                     net_log.c
+* djinterp [c][net]                                                    net_log.c
 *
 * net's table of codes, defined, and its registration.
 *

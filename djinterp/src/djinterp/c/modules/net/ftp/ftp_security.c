@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                ftp_security.c
+* djinterp [c][net]                                               ftp_security.c
 *
 * Implementation of the security settings declared in ftp_security.h.
 *

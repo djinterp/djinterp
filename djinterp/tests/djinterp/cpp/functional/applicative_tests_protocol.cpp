@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 applicative_tests_protocol.cpp
+* djinterp [cpp][functional]                      applicative_tests_protocol.cpp
 *
 *   Section 0 + I of the applicative.hpp suite: the protocol and its detection
 * vocabulary.  Covers is_applicative (and its _v shorthand), the monad-bridge

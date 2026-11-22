@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                          filter.c
+* djinterp [c][functional]                                              filter.c
 *
 *   The filtering framework filter.h declares: filter operations (take, skip,
 * range, slice, where, at indices, distinct, reverse), chains that apply them

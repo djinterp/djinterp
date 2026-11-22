@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                        smtp_tests_sa_common.c
+* djinterp [c][net]                                       smtp_tests_sa_common.c
 *
 * djinterp SMTP kernel tests -- protocol vocabulary.
 *   Standalone tests of smtp_common: buffers, reply parsing and formatting,

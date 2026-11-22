@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                              cfg_file_seek.h
+* djinterp [c][filesys]                                          cfg_file_seek.h
 *
 * Build-time configuration for c/filesys/file_seek.h -- 64-bit positioning and
 * truncation.

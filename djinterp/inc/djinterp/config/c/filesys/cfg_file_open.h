@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                              cfg_file_open.h
+* djinterp [c][filesys]                                          cfg_file_open.h
 *
 * Build-time configuration for c/filesys/file_open.h -- opening, reopening and
 * closing FILE* streams.

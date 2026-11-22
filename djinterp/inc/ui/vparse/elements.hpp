@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [ui]                                                       elements.hpp
+* djinterp [cpp][tools]                                             elements.hpp
 *
 * The workbench's own elements, and how they draw under ImGui.
 *   Two element types that no general UI kit would carry:
@@ -21,6 +21,7 @@
 *   The theme lives here too, so every colour the workbench draws with is
 * defined in one place: listing paper, green bars, ribbon ink, a highlighter
 * for the current step and red for what went wrong.
+*
 *
 * path:      /inc/ui/vparse/elements.hpp
 * link(s):   TBA

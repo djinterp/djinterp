@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                       t_transform_face.cpp
+* djinterp [cpp][math]                                      t_transform_face.cpp
 *
 *   Tests for linear_algebra/transform.hpp, at every level from C++98: each
 * rotation's entries are the C library's cosine and sine of the angle, bit

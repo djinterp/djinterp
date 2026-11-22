@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [core]                                                      drive.cpp
+* djinterp [cpp]                                                       drive.cpp
 *
 *
 * path:      /tests/djinterp/cpp/drive.cpp

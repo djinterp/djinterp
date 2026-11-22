@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                  iterator_category_concepts.hpp
+* djinterp [cpp][container]                       iterator_category_concepts.hpp
 *
 * C++20 concepts for the runtime ITERATOR-CATEGORY layer -- the
 * `requires`-facing view of iterator/iterator_category_traits.hpp.

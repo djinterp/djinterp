@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                 test_table_option_partition.cpp
+* djinterp [cpp][container]                      test_table_option_partition.cpp
 *
 *
 * path:      /tests/djinterp/cpp/container/table/test_table_option_partition.cpp

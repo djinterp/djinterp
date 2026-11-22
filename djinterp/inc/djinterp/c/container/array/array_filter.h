@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    array_filter.h
+* djinterp [c][container]                                         array_filter.h
 *
 * Zero-overhead filter functionality for contiguous containers.
 *   Provides thin wrappers around the functional module's filter.h that are

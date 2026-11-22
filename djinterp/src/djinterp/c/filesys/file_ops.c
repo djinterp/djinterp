@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                        file_ops.c
+* djinterp [c][filesys]                                               file_ops.c
 *
 * Implementation of the whole-file operations declared in file_ops.h.
 *   Removal and renaming are thin wrappers that settle the platforms'

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  t_sqlite_cpp.cpp
+* djinterp [cpp][db]                                            t_sqlite_cpp.cpp
 *
 *   The SQLite layer as C++ sees it: one translation unit, compiled as C++ at
 * every level from ISO strict C++98 to C++26, that includes the layer's

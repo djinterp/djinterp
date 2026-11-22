@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                         set.hpp
+* djinterp [cpp][container]                                              set.hpp
 *
 *   The djinterp SET family, in one header: the set OVERLAY traits, their
 * C++20

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                          option_set_compare.hpp
+* djinterp [cpp][option]                                  option_set_compare.hpp
 *
 *   Compile-time comparison/evaluation traits for option_set<>.  Three
 * layers of congruity, from weakest to strongest, plus a parameterized

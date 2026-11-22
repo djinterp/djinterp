@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                     transducer_tests.hpp
+* djinterp [cpp][functional]                                transducer_tests.hpp
 *
 * Unit-test declarations for transducer.hpp.
 *   This header declares the full battery of transducer tests and the helpers

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    array_common.h
+* djinterp [c][container]                                         array_common.h
 *
 * Common utilities and helper functions for array implementations.
 *

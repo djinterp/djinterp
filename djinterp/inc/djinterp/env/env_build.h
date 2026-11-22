@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                     env_build.h
+* djinterp [c][env]                                                  env_build.h
 *
 * djinterp build-configuration detection.
 *   Compile-time detection of Debug vs. Release builds, exposing the

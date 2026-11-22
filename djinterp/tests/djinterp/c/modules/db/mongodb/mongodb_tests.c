@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                mongodb_tests.c
+* djinterp [c][db]                                               mongodb_tests.c
 *
 *   Conformance tests for djinterp's MongoDB convenience layer: every
 * function in c/modules/db/mongodb/mongodb_*.h, its success paths, its

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   compress_tests_roundtrip.cpp
+* djinterp [cpp][utility]                           compress_tests_roundtrip.cpp
 *
 *   The reproduction battery.  For every codec, running the shared corpus
 * (empty, tiny, text, long run, byte-cycle, medium and large prose, medium and

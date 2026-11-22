@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      compress_tests_traits.cpp
+* djinterp [cpp][utility]                              compress_tests_traits.cpp
 *
 *   Tests for the codec identity surface: the DCodecId enum, the per-codec
 * codec_traits<> specializations (id / name / is_available), and the runtime

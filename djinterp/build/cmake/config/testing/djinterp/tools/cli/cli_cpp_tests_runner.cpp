@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                      cli_cpp_tests_runner.cpp
+* djinterp [cpp][tools]                                 cli_cpp_tests_runner.cpp
 *
 * Entry point for the command-line kit's C++ suite.
 *   Built as C++ and linked against the kit and the argument parser, built as

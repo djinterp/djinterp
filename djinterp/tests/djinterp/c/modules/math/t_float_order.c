@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                              t_float_order.c
+* djinterp [c][math]                                             t_float_order.c
 *
 *   Conformance harness for c/math/float_order.h, all three families: next_up
 * and next_down against the C library's nextafter -- over windows of every

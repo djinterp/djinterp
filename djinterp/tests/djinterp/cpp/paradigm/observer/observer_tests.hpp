@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             observer_tests.hpp
+* djinterp [cpp][paradigm]                                    observer_tests.hpp
 *
 *   Unit-test suite header for inc/djinterp/paradigm/pattern/observer.hpp - the
 * three-tier observer pattern (delegate / event / observer) plus its connection

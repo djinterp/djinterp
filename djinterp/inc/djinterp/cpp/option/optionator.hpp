@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  optionator.hpp
+* djinterp [cpp][option]                                          optionator.hpp
 *
 *   The bridge between the options subframework and the functional
 * dataflow subframework: an option-configured, operator|-pluggable

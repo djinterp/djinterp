@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                  cfg_table.h
+* djinterp [cpp][container]                                          cfg_table.h
 *
 *   Build-time configuration for the table DSL subframework -- the two
 * declaration front ends (table_builder, table_parser), the model they meet at,

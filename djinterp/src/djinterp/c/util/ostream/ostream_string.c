@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  ostream_string.c
+* djinterp [c][utility]                                         ostream_string.c
 *
 *   The dj_string destination: a storage destination whose window is the
 * string's spare capacity, so a byte is written once, into its final place.

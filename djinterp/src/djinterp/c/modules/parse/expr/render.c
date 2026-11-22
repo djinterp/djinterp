@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                    render.c
+* djinterp [c][parse]                                                   render.c
 *
 * Expression core v2: definitions for render.h, the renderer.
 *   A TASK STACK holds what is still to be written: a node, or a piece of

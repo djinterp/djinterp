@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       color_rgb.c
+* djinterp [c][utility]                                              color_rgb.c
 *
 *   External-definition unit for color_rgb.h. The RGB-family bodies live in the
 * header as `inline`; this unit re-declares their prototypes so one out-of-

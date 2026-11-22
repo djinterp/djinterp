@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                               colormap.hpp
+* djinterp [cpp][tools]                                             colormap.hpp
 *
 *   Colormaps: piecewise-linear colour ramps that turn a normalised metric in
 * [0, 1] into a colour. A colormap is a list of stops, each a position and a

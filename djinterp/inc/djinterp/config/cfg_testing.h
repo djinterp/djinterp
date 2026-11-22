@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c][test]                                               cfg_testing.h
+* djinterp [c][config]                                             cfg_testing.h
 *
 * The testing / debug preset.
 *   The one visible home for what differs in a test or debug build.

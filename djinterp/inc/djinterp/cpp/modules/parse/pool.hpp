@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                                  pool.hpp
+* djinterp [cpp][parse]                                                 pool.hpp
 *
 *   The C++ face of the intern pool declared in pool.h.
 *   `pool` derives from dj_parse_pool, adds no data member, and is asserted

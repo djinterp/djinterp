@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     printer.hpp
+* djinterp [cpp][text]                                               printer.hpp
 *
 *   Common, protocol-generic pretty-printer for document node trees. The
 * printer walks ANY type that satisfies the XML node protocol detected in

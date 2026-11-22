@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        html_string_template.hpp
+* djinterp [cpp][text]                                  html_string_template.hpp
 *
 *   HTML facade over `DMarkupStringTemplate<EscapePolicy>`. Binds
 * `DHtmlEscapePolicy` and re-exports the templating engine under

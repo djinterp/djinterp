@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                         expr_tests_output.c
+* djinterp [c][parse]                                        expr_tests_output.c
 *
 * Expression core v2's C suite, block "output": round trips through the
 * renderer, folds and walks, and places in a text.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                            arg_type_tests.h
+* djinterp [c][parse]                                           arg_type_tests.h
 *
 * The suite of the argument parser's value types (arg_type.h).
 *   The built-in descriptors and what they describe; the readers of integers

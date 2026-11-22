@@ -1,9 +1,10 @@
 /*******************************************************************************
-* bitwisedom [tests]                                        win32_window_style.c
+* djinterp [c][tools]                                       win32_window_style.c
 *
 * The window-style example against winuser.h: every style, its second
 * names and its combinations, compared with the platform's own at
 * compile time. Built where the build targets Windows.
+*
 *
 * path:      /tests/djinterp/tools/bitwisedom/platform/win32_window_style.c
 * link(s):   TBA

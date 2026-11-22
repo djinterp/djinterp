@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                             mariadb_maintenance.c
+* djinterp [c][db]                                         mariadb_maintenance.c
 *
 * Implementation of mariadb_maintenance.h.
 *   ANALYZE, OPTIMIZE and CHECK TABLE answer with rows of Table, Op, Msg_type

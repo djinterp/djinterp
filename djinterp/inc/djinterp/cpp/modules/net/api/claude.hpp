@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                                  claude.hpp
+* djinterp [cpp][net]                                                 claude.hpp
 *
 *   Vendor integration for automating Anthropic's Claude via the Messages API.
 * It layers a typed request/response surface and a client over net's neutral

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                           element_relation_traits_tests.hpp
+* djinterp [cpp][container]                    element_relation_traits_tests.hpp
 *
 *   Declarations, shared helpers, and helper TYPES for the
 * element_relation_traits.hpp unit-test suite.  Where the other container traits

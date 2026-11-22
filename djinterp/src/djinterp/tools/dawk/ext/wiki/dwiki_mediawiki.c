@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                             dwiki_mediawiki.c
+* djinterp [c][tools]                                          dwiki_mediawiki.c
 *
 * The MediaWiki driver: wikitext.
 *   Read as MediaWiki 1.43 reads it, in its order, and checked against it,
@@ -28,6 +28,7 @@
 * its text, each run of white space one underscore, a direction's marks
 * gone; one an anchor before it has, compared without the case of ASCII
 * letters, has the first of _2, _3, ... that no anchor before it has.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/wiki/dwiki_mediawiki.c
 * link(s):   TBA

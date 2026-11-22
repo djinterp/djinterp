@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                      markup_string_template.hpp
+* djinterp [cpp][text]                                markup_string_template.hpp
 *
 *   Delimiter-agnostic string-templating engine for producing markup
 * (XML, HTML, or any other format) via variable interpolation,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  insertion_sort.h
+* djinterp [c][utility]                                         insertion_sort.h
 *
 *   Insertion sort: the sequential driver.
 * In-place, iterative, stable, comparison-based.  Each element is placed into

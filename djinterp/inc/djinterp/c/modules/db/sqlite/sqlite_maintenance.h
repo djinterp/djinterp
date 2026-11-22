@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                              sqlite_maintenance.h
+* djinterp [c][db]                                          sqlite_maintenance.h
 *
 * Looking after an SQLite database: compacting it, keeping the planner's
 * statistics current, checking it, moving its write-ahead log into it, and

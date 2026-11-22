@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                        registry.c
+* djinterp [c][container]                                             registry.c
 *
 *   The dj_registry functions registry.h declares: rows of a user-defined
 * struct kept in an array, with a sorted lookup array of every key and alias

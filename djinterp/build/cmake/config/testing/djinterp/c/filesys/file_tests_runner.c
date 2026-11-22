@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            file_tests_runner.c
+* djinterp [c][filesys]                                      file_tests_runner.c
 *
 * Entry point for the fs subframework's C unit tests, in DTest's C face.
 *   It reads the command line into the suite's options, creates one suite,

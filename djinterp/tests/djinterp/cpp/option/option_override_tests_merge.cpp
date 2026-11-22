@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                option_override_tests_merge.cpp
+* djinterp [cpp][option]                         option_override_tests_merge.cpp
 *
 *   Section II of the option_override.hpp suite: the option-aware merge metafn
 * merge_args_union<_B, _D>.

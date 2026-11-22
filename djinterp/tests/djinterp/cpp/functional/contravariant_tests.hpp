@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                     contravariant_tests.hpp
+* djinterp [cpp][functional]                             contravariant_tests.hpp
 *
 * Unit test suite for contravariant.hpp -- the contravariant functor protocol.
 *   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):

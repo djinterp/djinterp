@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                              env_cpp_features.h
+* djinterp [c][env]                                           env_cpp_features.h
 *
 * djinterp C++ feature detection.
 *   Compile-time detection of C++ language and standard-library features,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                              env_redis_config.h
+* djinterp [c][env]                                           env_redis_config.h
 *
 * djinterp Redis detection configuration.
 *   The settings env_redis.h reads: whether the hiredis client header is

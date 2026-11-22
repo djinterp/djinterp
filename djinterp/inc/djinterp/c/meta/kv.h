@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                              kv.h
+* djinterp [c][meta]                                                        kv.h
 *
 * Reading and writing a datum at an offset and a width the caller supplies,
 * without the alignment, aliasing, endian, sign-extension and overflow faults

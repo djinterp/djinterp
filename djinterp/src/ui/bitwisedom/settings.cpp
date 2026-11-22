@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                   settings.cpp
+* djinterp [cpp][tools]                                             settings.cpp
 *
 * The settings registries, and settings files.
 *   A sheet's settings are the model's, each given a write that takes a
@@ -13,6 +13,7 @@
 * number, a colour as #RRGGBBAA and text as a string. Reading it gives back
 * the payloads a "set" of each would post, so a file is applied exactly as
 * the controls would apply it.
+*
 *
 * path:      /src/ui/bitwisedom/settings.cpp
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  event_table_tests_buckets.cpp
+* djinterp [cpp][event]                            event_table_tests_buckets.cpp
 *
 *   Section III (bucket access + iteration) -- the per-key views over the
 * store.  Covers entries_for on a missing key (nullptr) and a present key

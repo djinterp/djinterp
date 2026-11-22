@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                      arg_option_tests.hpp
+* djinterp [cpp][parse]                                     arg_option_tests.hpp
 *
 * The argument parser's C++ option suite: CLI11's Option interface through
 * the C++ face's handle, cli::option.

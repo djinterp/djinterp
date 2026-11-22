@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      option_set.h
+* djinterp [c][option]                                              option_set.h
 *
 * The C face of the option_set module. Tier 1a -- C ERGONOMICS over the tier 0
 * core, adding no semantics of its own.

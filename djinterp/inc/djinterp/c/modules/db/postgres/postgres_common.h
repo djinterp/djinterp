@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 postgres_common.h
+* djinterp [c][db]                                             postgres_common.h
 *
 * Shared foundation of djinterp's PostgreSQL convenience layer.
 *   The layer works directly on libpq's connection, PGconn -- which libpq

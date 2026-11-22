@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                              arg_internal.h
+* djinterp [c][parse]                                             arg_internal.h
 *
 * Private helpers shared by the argument parser's C sources.
 *   Locale-independent ASCII classification, span trimming and comparison,

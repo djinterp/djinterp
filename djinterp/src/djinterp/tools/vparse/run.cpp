@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [vparse]                                                        run.cpp
+* djinterp [cpp][tools]                                                  run.cpp
 *
 * Executing a run and describing what it did.
 *   Reading notation is done the way notation::parse_grammar does it --
@@ -10,6 +10,7 @@
 * runs rather than left to the machine: a reference to an undefined rule (the
 * generator would resolve it to address 0 and loop until the step limit) and
 * an empty program (which the driver would index past its end).
+*
 *
 * path:      /src/djinterp/tools/vparse/run.cpp
 * link(s):   TBA

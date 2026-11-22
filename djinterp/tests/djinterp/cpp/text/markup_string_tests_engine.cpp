@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 markup_string_tests_engine.cpp
+* djinterp [cpp][text]                            markup_string_tests_engine.cpp
 *
 *   The groups for markup_string_template.hpp: the escape policies, variables,
 * sections, literals, partials, the bundled syntaxes, and a template's life

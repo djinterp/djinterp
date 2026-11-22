@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                              stress_tests.h
+* djinterp [c][parse]                                             stress_tests.h
 *
 * Expression core v2's stress suite in DTest's C face: seeded round trips
 * and seeded random bytes, the same cases on every compiler and every run.

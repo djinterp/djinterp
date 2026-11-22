@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                dgit_inflate.c
+* djinterp [c][tools]                                             dgit_inflate.c
 *
 * Definitions for the inflating of dgit_internal.h.
 *   A zlib stream as RFC 1950 has it, around deflated blocks as RFC 1951 has
@@ -10,6 +10,7 @@
 * significant first, and a longer one bit by bit. The whole output is kept,
 * so a distance reaches back into it directly; a stream whose length is
 * known is held to it.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/git/dgit_inflate.c
 * link(s):   TBA

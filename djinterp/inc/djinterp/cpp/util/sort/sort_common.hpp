@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 sort_common.hpp
+* djinterp [cpp][utility]                                        sort_common.hpp
 *
 * The ordering vocabulary the C++ sort algorithms share: the direction a sort
 * arranges its range in, and the adapter that folds that direction into a

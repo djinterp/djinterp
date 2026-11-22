@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                   dmatch.c
+* djinterp [c][tools]                                                   dmatch.c
 *
 * Selector matching:
 *   Right-to-left evaluation of a complex selector.  The descendant and

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                          arg_command_util.c
+* djinterp [c][parse]                                         arg_command_util.c
 *
 * CLI11's free functions over commands, declared in arg_command.h (section
 * 7) and arg_internal.h (7.3.9).

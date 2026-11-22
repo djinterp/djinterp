@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                           concurrency_strategy_tag_concepts.hpp
+* djinterp [cpp][container]                concurrency_strategy_tag_concepts.hpp
 *
 * C++20 concepts for the CONCURRENCY-STRATEGY tag / protection contracts --
 * the `requires`-facing view of sync/concurrency_strategy_tags.hpp.

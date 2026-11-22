@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                    ssh_auth.h
+* djinterp [c][net]                                                   ssh_auth.h
 *
 * SSH user authentication.
 *   Methods are tried in OpenSSH's order, each only if the server offers

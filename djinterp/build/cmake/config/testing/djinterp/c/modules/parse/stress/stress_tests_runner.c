@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                       stress_tests_runner.c
+* djinterp [c][parse]                                      stress_tests_runner.c
 *
 * The runner for expression core v2's stress suite: its options and its
 * spec.

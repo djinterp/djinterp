@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   file_pipe.hpp
+* djinterp [cpp][filesys]                                          file_pipe.hpp
 *
 * djinterp::process -- a child process run through the shell, its standard
 * input or output connected to this handle by a pipe (the popen model,

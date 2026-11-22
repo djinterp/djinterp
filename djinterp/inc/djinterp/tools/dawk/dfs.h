@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                         dfs.h
+* djinterp [c][tools]                                                      dfs.h
 *
 * What the tools ask of a file system that ISO C cannot answer.
 *   Three questions: what a path names, what a directory holds, and what the
@@ -10,6 +10,7 @@
 *   A path is bytes, in the encoding the system's narrow interface takes, with
 * `/` between its parts. Windows takes `/` as it takes `\`, so a path built
 * here reads the same on both.
+*
 *
 * path:      /inc/djinterp/tools/dawk/dfs.h
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              report_dialect.hpp
+* djinterp [cpp][utility]                                     report_dialect.hpp
 *
 *   A worked DIALECT over the layout foundation -- the template the rest follow.
 * It shows the whole "constructs derive separately, nothing hardcoded in the

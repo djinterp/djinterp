@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 ftp_listing.c
+* djinterp [c][net]                                                ftp_listing.c
 *
 * Implementation of the listing parsers declared in ftp_listing.h: detection,
 * the line dispatcher, and the token scanning every dialect shares.

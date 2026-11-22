@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                            net_tests_sa_url.c
+* djinterp [c][net]                                           net_tests_sa_url.c
 *
 * Standalone tests of net.h's URLs (section 8).
 *   Resolution is checked against every example in RFC 3986, section 5.4,

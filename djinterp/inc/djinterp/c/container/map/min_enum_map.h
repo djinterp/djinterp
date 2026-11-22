@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    min_enum_map.h
+* djinterp [c][container]                                         min_enum_map.h
 *
 *   A min-enum-map (minimal enum map) is a lightweight associative container
 * optimized to consume minimal space and code complexity.

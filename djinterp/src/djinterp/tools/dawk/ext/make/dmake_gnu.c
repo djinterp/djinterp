@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                   dmake_gnu.c
+* djinterp [c][tools]                                                dmake_gnu.c
 *
 * Reads a makefile's statements as GNU make 4.3 reads them: see dmake.h.
 *   Each logical line is taken in the order make's eval takes it. Within a
@@ -15,6 +15,7 @@
 * what make's record_waiting_files ends one at: an assignment, a directive
 * but a conditional, a rule or an expansion; a comment or an empty line
 * does not. A literal `.RECIPEPREFIX` sets the prefix from the next line.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/make/dmake_gnu.c
 * link(s):   TBA

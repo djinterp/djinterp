@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                          runtime_container_traits_tests.hpp
+* djinterp [cpp][container]                   runtime_container_traits_tests.hpp
 *
 * Unit tests for runtime_container_traits.hpp:
 *   Declarations, fixtures and assertion plumbing for the runtime end of the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                 dninja_eval.c
+* djinterp [c][tools]                                              dninja_eval.c
 *
 * Definitions for the declarations in dninja_eval.h.
 *   Each file is read whole by dninja, then its statements taken in order,
@@ -12,6 +12,7 @@
 * paths.
 *   The files are kept with the build, as a rule's bindings are evaluated
 * from the records of the file that defined it.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/ninja/dninja_eval.c
 * link(s):   TBA

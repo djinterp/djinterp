@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 type_traits_tests_callable.cpp
+* djinterp [cpp][meta]                            type_traits_tests_callable.cpp
 *
 *   Unit tests for the callable traits in Section I.2 of type_traits.hpp:
 *     - invoke_result, invoke_result_t

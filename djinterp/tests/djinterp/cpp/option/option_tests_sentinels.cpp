@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     option_tests_sentinels.cpp
+* djinterp [cpp][option]                              option_tests_sentinels.cpp
 *
 *   Section I of the option.hpp suite: the reserved arg-search sentinels.
 *

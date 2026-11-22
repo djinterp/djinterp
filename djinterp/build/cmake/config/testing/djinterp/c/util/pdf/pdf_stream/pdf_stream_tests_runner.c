@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      pdf_stream_tests_runner.c
+* djinterp [c][utility]                                pdf_stream_tests_runner.c
 *
 * The runner for pdf_stream's suite: options, then the module.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                     font_tests_convert_size.cpp
+* djinterp [cpp][text]                               font_tests_convert_size.cpp
 *
 *
 * path:      /tests/djinterp/cpp/text/font_tests_convert_size.cpp

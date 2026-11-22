@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  predicate_tests_constructor.c
+* djinterp [c][functional]                         predicate_tests_constructor.c
 *
 *   Standalone tests of predicate.h's constructors: d_predicate_and_new,
 * _or_new, _xor_new and _not_new, including their refusal of NULL operands.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                codec_digest.c
+* djinterp [c][net]                                               codec_digest.c
 *
 * Definitions for codec_digest.h: MD5, SHA-1 and SHA-256, HMAC over each, and
 * the comparison and wiping that digests of secrets need.

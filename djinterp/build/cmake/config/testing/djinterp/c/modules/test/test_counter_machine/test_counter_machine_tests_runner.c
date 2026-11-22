@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                            test_counter_machine_tests_runner.c
+* djinterp [c][test]                         test_counter_machine_tests_runner.c
 *
 * The runner for the suite of DTest's C counters' opt-in machine: one module
 * spec, the suite's own.

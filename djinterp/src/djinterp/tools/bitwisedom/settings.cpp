@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                           settings.cpp
+* djinterp [cpp][tools]                                             settings.cpp
 *
 * A sheet's settings, by path.
 *   Each entry is made by a small factory per kind, from a function that
@@ -12,6 +12,7 @@
 * locale-independent conversions, std::from_chars and std::to_chars, where
 * the library has them for reals, and otherwise by strtod in the "C" locale
 * a program starts in.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/settings.cpp
 * link(s):   TBA

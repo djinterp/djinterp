@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 sqlite_tests.c
+* djinterp [c][db]                                                sqlite_tests.c
 *
 *   Conformance tests for djinterp's SQLite convenience layer: every
 * function in c/modules/db/sqlite/sqlite_*.h and c/modules/db/db_common.h, its

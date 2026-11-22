@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               array_options.hpp
+* djinterp [cpp][container]                                    array_options.hpp
 *
 *   Convenience facade for constructing `DArray<...>` instances from a
 * template option pack.  Three things live here:

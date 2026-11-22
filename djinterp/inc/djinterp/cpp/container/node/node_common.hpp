@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 node_common.hpp
+* djinterp [cpp][container]                                      node_common.hpp
 *
 * Common node definitions and node structural traits:
 *   This header is the single home for the framework's concrete node types

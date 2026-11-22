@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                   dmsvs_doc.h
+* djinterp [c][tools]                                                dmsvs_doc.h
 *
 * A Visual Studio file held for change.
 *   A document is a file's text and its records, read by dmsvs. A change is
@@ -21,6 +21,7 @@
 *   A document is made from a file, or from a text not yet on disk, and saved
 * to its own path or another; saving writes only a file that would change,
 * and makes the directories it needs.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/msvs/dmsvs_doc.h
 * link(s):   TBA

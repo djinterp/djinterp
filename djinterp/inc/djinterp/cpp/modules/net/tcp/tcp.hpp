@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                                     tcp.hpp
+* djinterp [cpp][net]                                                    tcp.hpp
 *
 * The TCP transport for net.hpp: tcp.h's sockets as C++ connections.
 *   socket_connection is a net::connection over a dj_tcp_connection it holds

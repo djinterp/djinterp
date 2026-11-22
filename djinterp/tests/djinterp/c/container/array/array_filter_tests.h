@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           array_filter_tests.h
+* djinterp [c][container]                                   array_filter_tests.h
 *
 *   Unit test declarations for the `contiguous_filter.h` module.
 *   Provides comprehensive testing of all contiguous_filter functions including

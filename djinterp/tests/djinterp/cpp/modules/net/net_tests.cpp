@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                               net_tests.cpp
+* djinterp [cpp][net]                                              net_tests.cpp
 *
 * djinterp net foundation C++ tests.
 *   Every test runs over in-memory connections: a C++ one defined here, and

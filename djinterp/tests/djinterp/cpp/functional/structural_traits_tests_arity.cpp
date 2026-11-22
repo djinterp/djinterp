@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                               structural_traits_tests_arity.cpp
+* djinterp [cpp][functional]                   structural_traits_tests_arity.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/structural_traits_tests_arity.cpp

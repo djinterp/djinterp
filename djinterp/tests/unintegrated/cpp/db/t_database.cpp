@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [core]                                                 t_database.cpp
+* djinterp [cpp][db]                                              t_database.cpp
 *
 *   core/db's vocabulary and utilities, database.hpp's, which every vendor
 * shares and no server is needed for: the exceptions and the refusals, the

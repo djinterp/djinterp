@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         consumer_tests_tee.cpp
+* djinterp [cpp][functional]                              consumer_tests_tee.cpp
 *
 *   Tests for consumer.hpp Section II tee: variadic broadcast.  Covers
 * the single-consumer degenerate case, two- and three-way broadcast,

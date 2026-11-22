@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                           ascii.c
+* djinterp [c][text]                                                     ascii.c
 *
 * ASCII classification and case conversion.
 *   Defines the functions ascii.h declares. Each answers for 7-bit ASCII only,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                            css_engine.hpp
+* djinterp [cpp][parse]                                           css_engine.hpp
 *
 * CSS engine -- top-level facade:
 *   This header bundles parsing, rule indexing, and cascade resolution

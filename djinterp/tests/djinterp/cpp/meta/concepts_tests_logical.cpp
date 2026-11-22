@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     concepts_tests_logical.cpp
+* djinterp [cpp][meta]                                concepts_tests_logical.cpp
 *
 *   Tests for concepts.hpp section II.8: logical concepts.
 * Covers: all_of, any_of, none_of, exactly_one_of, xor_of.

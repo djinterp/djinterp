@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                            arg_config.hpp
+* djinterp [cpp][parse]                                           arg_config.hpp
 *
 * The argument parser's C++ face: configuration formats.
 *   `cli::config_format` is CLI11's ConfigBase -- its ConfigTOML -- and

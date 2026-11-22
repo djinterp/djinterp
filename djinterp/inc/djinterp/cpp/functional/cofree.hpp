@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                      cofree.hpp
+* djinterp [cpp][functional]                                          cofree.hpp
 *
 * Cofree comonad: turn any functor into a comonad (C++).
 *   The cofree comonad over a functor F is the dual of the free monad -- where

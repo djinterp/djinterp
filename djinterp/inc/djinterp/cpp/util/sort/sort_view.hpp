@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   sort_view.hpp
+* djinterp [cpp][utility]                                          sort_view.hpp
 *
 *   The dataflow bridge: sort as a terminal of the lazy view pipeline.
 * view.hpp builds lazy pipelines with operator| -- adapters (transform,

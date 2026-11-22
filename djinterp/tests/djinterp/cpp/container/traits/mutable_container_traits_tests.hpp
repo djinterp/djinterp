@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                             mutable_container_traits_tests.hpp
+* djinterp [cpp][container]                   mutable_container_traits_tests.hpp
 *
 *   Declarations and shared fixtures for the mutable_container_traits.hpp unit
 * suite.  The suite is split one translation unit per section of the header

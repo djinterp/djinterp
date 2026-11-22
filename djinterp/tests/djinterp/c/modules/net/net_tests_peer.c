@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                              net_tests_peer.c
+* djinterp [c][net]                                             net_tests_peer.c
 *
 * The scripted peer and the toy engine net's protocol suites run against.
 *   Definitions for net_tests_peer.h: a net.h connection that plays the

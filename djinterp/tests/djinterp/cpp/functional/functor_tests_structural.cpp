@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    functor_tests_structural.cpp
+* djinterp [cpp][functional]                        functor_tests_structural.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/functor_tests_structural.cpp

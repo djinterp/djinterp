@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                         functor.c
+* djinterp [c][functional]                                             functor.c
 *
 * TBA
 *

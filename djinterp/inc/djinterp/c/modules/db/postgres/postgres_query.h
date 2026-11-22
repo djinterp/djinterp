@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  postgres_query.h
+* djinterp [c][db]                                              postgres_query.h
 *
 * Running SQL on a PostgreSQL connection without handling results by hand.
 *   d_postgres_exec runs SQL and discards any rows it returns; the SQL may

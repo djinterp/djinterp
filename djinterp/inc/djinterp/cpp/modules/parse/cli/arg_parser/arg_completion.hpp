@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                        arg_completion.hpp
+* djinterp [cpp][parse]                                       arg_completion.hpp
 *
 * The argument parser's C++ face: shell completion.
 *   The C library's completion scripts (arg_completion.h) for a command

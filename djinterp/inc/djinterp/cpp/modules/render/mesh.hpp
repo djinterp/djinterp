@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                   mesh.hpp
+* djinterp [cpp][render]                                                mesh.hpp
 *
 *   A runtime, attribute-carrying render mesh: a flat vertex-position buffer,
 * optional per-vertex normals, and a triangle-list index buffer. This is the

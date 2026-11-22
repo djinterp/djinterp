@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                                render.hpp
+* djinterp [cpp][parse]                                               render.hpp
 *
 * Expression core v2's C++ face (design section 13): rendering.
 *   render() writes a subtree as text with d_parse_expr_render: into a

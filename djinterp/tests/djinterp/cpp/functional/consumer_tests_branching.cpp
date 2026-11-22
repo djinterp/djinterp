@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   consumer_tests_branching.cpp
+* djinterp [cpp][functional]                        consumer_tests_branching.cpp
 *
 *   Tests for consumer.hpp Section II branching combinators: conditional
 * (route on a predicate) and fallback (try primary, on exception run

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                     container_copy_merge_traits_tests_class.cpp
+* djinterp [cpp][container]          container_copy_merge_traits_tests_class.cpp
 *
 *
 * path:      /tests/djinterp/cpp/container/traits/container_copy_merge_traits_tests_class.cpp

@@ -1,9 +1,10 @@
 /*******************************************************************************
-* bitwisedom [tests]                                        linux_epoll_events.c
+* djinterp [c][tools]                                       linux_epoll_events.c
 *
 * The epoll example against sys/epoll.h: every event and mode,
 * compared with the platform's own at compile time. Built where the
 * build targets Linux.
+*
 *
 * path:      /tests/djinterp/tools/bitwisedom/platform/linux_epoll_events.c
 * link(s):   TBA

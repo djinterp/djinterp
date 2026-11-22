@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        compress_tests_gzip.cpp
+* djinterp [cpp][utility]                                compress_tests_gzip.cpp
 *
 *   Tests for the gzip pair, compress.hpp's face of the kernel's gzip header
 * functions: try_compress_gzip and try_decompress_gzip, the throwing

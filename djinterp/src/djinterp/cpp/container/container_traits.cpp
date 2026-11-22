@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            container_traits.cpp
+* djinterp [cpp][container]                                 container_traits.cpp
 *
 *
 * path:      /src/djinterp/cpp/container/container_traits.cpp

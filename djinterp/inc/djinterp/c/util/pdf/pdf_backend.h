@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     pdf_backend.h
+* djinterp [c][utility]                                            pdf_backend.h
 *
 * Backend capabilities and the backend taxonomy.
 *   A PDF backend is whatever actually writes bytes: the built-in serializer,

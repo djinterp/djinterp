@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     interpolate.c
+* djinterp [c][functional]                                         interpolate.c
 *
 * TBA
 *

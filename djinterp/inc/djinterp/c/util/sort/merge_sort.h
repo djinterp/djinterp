@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      merge_sort.h
+* djinterp [c][utility]                                             merge_sort.h
 *
 *   Merge sort: the sequential driver.
 * Stable, comparison-based, O(n log n) in every case -- no input defeats it,

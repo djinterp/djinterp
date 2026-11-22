@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                    ftp_path.h
+* djinterp [c][net]                                                   ftp_path.h
 *
 * FTP pathnames: quoting and resolution.
 *   The doubled-quote pathname encoding of 257 replies (RFC 959 Appendix II),

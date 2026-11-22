@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                        runtime_container_traits_tests_class.cpp
+* djinterp [cpp][container]             runtime_container_traits_tests_class.cpp
 *
 *
 * path:      /tests/djinterp/cpp/container/traits/runtime_container_traits_tests_class.cpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    type_traits_tests_arity.cpp
+* djinterp [cpp][meta]                               type_traits_tests_arity.cpp
 *
 *   Unit tests for the arity / single-arg detection traits in Section
 * III of type_traits.hpp:

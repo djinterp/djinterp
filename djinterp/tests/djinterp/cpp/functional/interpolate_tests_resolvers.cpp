@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                interpolate_tests_resolvers.cpp
+* djinterp [cpp][functional]                     interpolate_tests_resolvers.cpp
 *
 * Section III (leaf resolvers) -- DEmptyResolver (identity: everything misses),
 * DMapResolver (linear {key,value} lookup; a miss is a real miss), and

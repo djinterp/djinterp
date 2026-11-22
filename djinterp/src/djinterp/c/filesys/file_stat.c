@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_stat.c
+* djinterp [c][filesys]                                              file_stat.c
 *
 * Implementation of the metadata queries declared in file_stat.h.
 *   Every status query ends in one translation, d_internal_stat_fill, the only

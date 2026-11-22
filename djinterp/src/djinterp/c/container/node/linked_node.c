@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     linked_node.c
+* djinterp [c][container]                                          linked_node.c
 *
 * TBA
 *

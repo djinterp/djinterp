@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                          option_override_common.h
+* djinterp [c][option]                                  option_override_common.h
 *
 * The merge engine: two sets in, one set out, under a policy. Tier 0 -- the
 * shared core both faces compile.

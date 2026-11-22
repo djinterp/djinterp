@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                                 reactor.hpp
+* djinterp [cpp][net]                                                reactor.hpp
 *
 *   Non-blocking, event-driven backend for the net subframework, built on the
 * readiness mechanism env_net.h selects (epoll on Linux). Where the blocking

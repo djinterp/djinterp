@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            option_generator.hpp
+* djinterp [cpp][option]                                    option_generator.hpp
 *
 *   The one-statement authoring front-end for option_set: a flat interleaved
 * NTTP stream of keys and values is parsed ONCE, at compile time, and emitted

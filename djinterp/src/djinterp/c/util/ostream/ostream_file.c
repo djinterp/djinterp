@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    ostream_file.c
+* djinterp [c][utility]                                           ostream_file.c
 *
 *   The FILE* destination: a transport over fwrite and fflush, closed through
 * c/filesys when the stream owns the file.  And the append destination: a

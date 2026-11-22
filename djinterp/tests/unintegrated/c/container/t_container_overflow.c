@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         t_container_overflow.c
+* djinterp [c][container]                                 t_container_overflow.c
 *
 *   Regression tests for the two heap overflows the upgrade audit of
 * 2026.11.01 confirmed, both a size computed as count * element size without

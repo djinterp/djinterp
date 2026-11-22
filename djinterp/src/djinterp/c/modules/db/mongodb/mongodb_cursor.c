@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  mongodb_cursor.c
+* djinterp [c][db]                                              mongodb_cursor.c
 *
 * Implementation of mongodb_cursor.h.
 *   A cursor is the driver's, opened as d_mongodb_find, d_mongodb_aggregate

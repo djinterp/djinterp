@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 ssh_session.h
+* djinterp [c][net]                                                ssh_session.h
 *
 * The SSH session: one connection, from key exchange to disconnect.
 *   A session runs over a connected stream socket the caller supplies. Its

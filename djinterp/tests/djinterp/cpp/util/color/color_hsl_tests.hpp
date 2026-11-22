@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                           color_hsl_tests.hpp
+* djinterp [cpp][utility]                                    color_hsl_tests.hpp
 *
 *   Suite header for color_hsl.hpp - the C++ ergonomic layer over the HSL
 * shared kernel: `hsl` derives from dj_color_hsl without adding state and

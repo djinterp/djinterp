@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      functional_common_tests.h
+* djinterp [c][functional]                             functional_common_tests.h
 *
 *   Standalone unit tests for the functional_common module.
 *   Provides comprehensive coverage for all utility functions declared in

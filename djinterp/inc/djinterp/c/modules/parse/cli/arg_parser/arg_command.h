@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                               arg_command.h
+* djinterp [c][parse]                                              arg_command.h
 *
 * Commands: the parser's root, its subcommands, and option groups.
 *   A `struct dj_arg_command` is CLI11's App in C. A command owns its options

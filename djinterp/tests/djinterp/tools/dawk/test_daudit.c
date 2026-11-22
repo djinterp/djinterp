@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                 test_daudit.c
+* djinterp [c][tools]                                              test_daudit.c
 *
 * Exercises `daudit.h`.
 *

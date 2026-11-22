@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       maybe_tests_lifetime.cpp
+* djinterp [cpp][functional]                            maybe_tests_lifetime.cpp
 *
 * Lifetime, value access, and mutation tests for maybe<T> (section I of
 * maybe.hpp: the primitive itself).

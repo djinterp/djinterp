@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                 t_numeric_compare_face.cpp
+* djinterp [cpp][math]                                t_numeric_compare_face.cpp
 *
 *   Tests for math/numeric_compare.hpp at every level from C++98:
 *   - numeric_text from a C string, a pointer and a length, a std::string,

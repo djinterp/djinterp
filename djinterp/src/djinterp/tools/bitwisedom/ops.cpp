@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                                ops.cpp
+* djinterp [cpp][tools]                                                  ops.cpp
 *
 * Operations on symbols: the arithmetic, the bit flow, and the rewrites.
 *   preview_op and apply_op_to share one view of a target: its value before,
@@ -7,6 +7,7 @@
 * describes the rewrite in words; applying performs it. Both read values
 * from the resolution taken before the operation, so a target's result never
 * depends on another target already having been rewritten.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/ops.cpp
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                   cfg_text.h
+* djinterp [cpp][text]                                                cfg_text.h
 *
 *   Feature configuration for the djinterp text module (cpp/text). It defines
 * no knobs yet.

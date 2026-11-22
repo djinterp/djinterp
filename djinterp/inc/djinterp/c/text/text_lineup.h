@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     text_lineup.h
+* djinterp [c][text]                                               text_lineup.h
 *
 *   Text lineup: tokens laid out in aligned columns across wrapped lines, with
 * a separator between them, a prefix before the first line and a suffix after

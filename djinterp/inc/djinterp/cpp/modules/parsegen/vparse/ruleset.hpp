@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                            ruleset.hpp
+* djinterp [cpp][parsegen]                                           ruleset.hpp
 *
 *   The runtime grammar value -- the mutable twin of grammar<N, Σ, P, S>.  An
 * ordered list of named rules; each rule a choice of alternatives; each

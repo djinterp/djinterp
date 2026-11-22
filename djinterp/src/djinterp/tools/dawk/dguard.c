@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                   dguard.c
+* djinterp [c][tools]                                                   dguard.c
 *
 * Include-guard extension:
 *   Scans a header for its guard and emits three nodes carrying the symbol

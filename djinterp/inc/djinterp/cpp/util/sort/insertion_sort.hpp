@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              insertion_sort.hpp
+* djinterp [cpp][utility]                                     insertion_sort.hpp
 *
 *   Insertion sort: the sequential driver.
 * In-place, iterative, stable, comparison-based.  Each element is placed into

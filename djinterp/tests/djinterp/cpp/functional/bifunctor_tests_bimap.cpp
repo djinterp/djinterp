@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      bifunctor_tests_bimap.cpp
+* djinterp [cpp][functional]                           bifunctor_tests_bimap.cpp
 *
 *   Section II.1 of the bifunctor.hpp suite: bimap, the one obligation, which
 * maps f : A -> C over the first parameter and g : B -> D over the second,

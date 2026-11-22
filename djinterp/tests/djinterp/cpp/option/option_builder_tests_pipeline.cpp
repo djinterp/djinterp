@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                              option_builder_tests_pipeline.cpp
+* djinterp [cpp][option]                       option_builder_tests_pipeline.cpp
 *
 *   Section III of the option_builder.hpp suite: the end-to-end pipeline.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                   constexpr_container_traits_tests_snapshot.cpp
+* djinterp [cpp][container]        constexpr_container_traits_tests_snapshot.cpp
 *
 *
 * path:      /tests/djinterp/cpp/container/traits/constexpr_container_traits_tests_snapshot.cpp

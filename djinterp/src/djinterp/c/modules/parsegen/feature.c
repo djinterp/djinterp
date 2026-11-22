@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parsegen]                                                feature.c
+* djinterp [c][parsegen]                                               feature.c
 *
 *   Definitions for the non-inline declarations in feature.h.
 *

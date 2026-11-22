@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                           math_tests_exact.h
+* djinterp [c][math]                                          math_tests_exact.h
 *
 *   The math harnesses' exact reference: signed integers of 256 bits or more,
 * exact rationals over them, an oracle for the floating-point value nearest an

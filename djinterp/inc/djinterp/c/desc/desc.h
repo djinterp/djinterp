@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                            desc.h
+* djinterp [c][desc]                                                      desc.h
 *
 *   Describing anything, facts first and text last. A describer never writes a
 * sentence: it emits facts -- a key, a label for prose, a value, the layer the

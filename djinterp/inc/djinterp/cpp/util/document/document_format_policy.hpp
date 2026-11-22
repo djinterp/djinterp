@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                      document_format_policy.hpp
+* djinterp [cpp][utility]                             document_format_policy.hpp
 *
 *   The runtime bridge from a `DDocumentFormat` selector to a boxed print
 * policy -- the piece that was split out of document_format.hpp so that header

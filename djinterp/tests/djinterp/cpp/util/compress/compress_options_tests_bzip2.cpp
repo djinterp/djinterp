@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               compress_options_tests_bzip2.cpp
+* djinterp [cpp][utility]                       compress_options_tests_bzip2.cpp
 *
 *   Tests for the bzip2 block (DBzip2Options): block size, work factor,
 * verbosity and the small-decompress flag (compress_options.hpp section II).

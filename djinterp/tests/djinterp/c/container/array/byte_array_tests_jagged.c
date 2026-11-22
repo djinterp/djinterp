@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      byte_array_tests_jagged.c
+* djinterp [c][container]                              byte_array_tests_jagged.c
 *
 *   Unit tests for byte_array.h jagged array builder macros.
 *   Tests D_BYTE_ARRAY_JAGGED and D_BYTE_ARRAY_JAGGED_EX macros for building

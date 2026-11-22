@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                sqlite_statement.h
+* djinterp [c][db]                                            sqlite_statement.h
 *
 * Prepared statements on an SQLite connection: SQL compiled once, values bound
 * to its parameters, and run as often as needed.

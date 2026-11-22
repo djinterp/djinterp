@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                     env_mysql.h
+* djinterp [c][env]                                                  env_mysql.h
 *
 * djinterp Oracle MySQL environment detection.
 *   Compile-time detection of an Oracle MySQL environment: the server version

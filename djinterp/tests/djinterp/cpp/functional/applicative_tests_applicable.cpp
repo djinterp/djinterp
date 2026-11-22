@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               applicative_tests_applicable.cpp
+* djinterp [cpp][functional]                    applicative_tests_applicable.cpp
 *
 *   Section 0 (applicability) of the applicative.hpp suite: is_applicable and
 * its _v shorthand / applicable_with concept, which answer "is ap(Ff, Fa) a

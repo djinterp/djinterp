@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                         pdf.hpp
+* djinterp [cpp][utility]                                                pdf.hpp
 *
 * djinterp foundational PDF header:
 *   This header provides the library-agnostic core of the djinterp PDF

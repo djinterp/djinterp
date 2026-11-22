@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                  cfg_arena.h
+* djinterp [c][memory]                                               cfg_arena.h
 *
 *   Configuration for the monotonic bump arena. Selects whether an arena may
 * chain regions at all, how a chained arena sizes each next region, whether

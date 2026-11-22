@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                fixed_string_tests_accessors.cpp
+* djinterp [cpp][meta]                          fixed_string_tests_accessors.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/fixed_string_tests_accessors.cpp

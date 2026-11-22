@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                  lex_scan.c
+* djinterp [c][parse]                                                 lex_scan.c
 *
 * Definitions for the non-inline declarations in lex_scan.h.
 *   One scanner, driven by a descriptor.  Sections 2 through 5 consult the

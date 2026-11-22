@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                 parse_substrate_tests.cpp
+* djinterp [cpp][parse]                                parse_substrate_tests.cpp
 *
 * The execution-substrate suite's sections: the diagnostic channel, the machine
 * and its operator registry, and the two faces being one set of objects.

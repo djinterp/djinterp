@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            lookup_sentinels.hpp
+* djinterp [cpp][utility]                                   lookup_sentinels.hpp
 *
 *   The two lookup sentinels, factored into their own dependency-free header
 * so that both lookup.hpp (the search families) and bsearch.hpp (the engine

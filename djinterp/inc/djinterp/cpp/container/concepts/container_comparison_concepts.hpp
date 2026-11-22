@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                               container_comparison_concepts.hpp
+* djinterp [cpp][container]                    container_comparison_concepts.hpp
 *
 * C++20 concepts for the CROSS-CONTAINER COMPARISON axis -- the
 * `requires`-facing view of container_comparison_traits.hpp.

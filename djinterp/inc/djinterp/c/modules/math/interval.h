@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                   interval.h
+* djinterp [c][math]                                                  interval.h
 *
 * Integer intervals: the C core of math/interval.
 *   An interval is a lower and an upper bound, each closed or open, and a

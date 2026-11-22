@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                           arena_tree_traits.hpp
+* djinterp [cpp][container]                                arena_tree_traits.hpp
 *
 * Arena Tree SFINAE detection traits:
 *   This header provides compile-time structural traits specific to

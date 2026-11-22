@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         datomic_tests_runner.c
+* djinterp [c][sync]                                      datomic_tests_runner.c
 *
 * The runner for datomic.h's suite: options, then the module, which its
 * entry points build call by call (test_suite.h 3.2).

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    publisher_tests_message.cpp
+* djinterp [cpp][paradigm]                           publisher_tests_message.cpp
 *
 *   Tests of publisher.hpp's message envelope (section IV): pubsub_message's
 * constructors and type aliases.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                  env_compress.h
+* djinterp [c][env]                                               env_compress.h
 *
 * djinterp compression-codec detection.
 *   Compile-time detection of the third-party compression libraries the

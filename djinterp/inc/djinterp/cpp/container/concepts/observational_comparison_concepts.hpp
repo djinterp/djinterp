@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                           observational_comparison_concepts.hpp
+* djinterp [cpp][container]                observational_comparison_concepts.hpp
 *
 * C++20 concepts for the OBSERVATIONAL COMPARISON axis -- the
 * `requires`-facing view of observational_comparison_traits.hpp.

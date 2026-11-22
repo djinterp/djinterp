@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                             postgres_connection.h
+* djinterp [c][db]                                         postgres_connection.h
 *
 * Making and closing connections, and what a connection reports.
 *   d_postgres_connect makes a connection from a struct of the usual fields,

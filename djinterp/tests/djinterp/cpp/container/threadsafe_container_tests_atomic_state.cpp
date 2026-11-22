@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                    threadsafe_container_tests_atomic_state.cpp
+* djinterp [cpp][container]          threadsafe_container_tests_atomic_state.cpp
 *
 *   Layer 3 - DAtomicState, the bundled atomic size + version metadata.
 * Defines the "DAtomicState" block.

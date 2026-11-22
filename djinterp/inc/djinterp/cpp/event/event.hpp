@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                       event.hpp
+* djinterp [cpp][event]                                                event.hpp
 *
 * The event submodule umbrella:
 *   Single include for the entire event system. The submodule was refactored

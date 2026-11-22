@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                             mongodb_transaction.h
+* djinterp [c][db]                                         mongodb_transaction.h
 *
 * Multi-document transactions.
 *   A transaction runs in a session, which the handle starts at its first

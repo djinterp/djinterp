@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                    cfg_pdf.h
+* djinterp [cpp][utility]                                              cfg_pdf.h
 *
 *   Build-time defaults for the C++ PDF writer's built-in backend: whether it
 * compresses its streams, and how hard. Each is a default only: a document's

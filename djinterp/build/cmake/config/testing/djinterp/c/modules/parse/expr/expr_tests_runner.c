@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                         expr_tests_runner.c
+* djinterp [c][parse]                                        expr_tests_runner.c
 *
 * The runner for expression core v2's C suite: its options and its spec.
 *   It defines DTEST_SPEC_MODE before the suite header, which then gives it

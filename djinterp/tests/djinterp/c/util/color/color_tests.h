@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                  color_tests.h
+* djinterp [c][utility]                                            color_tests.h
 *
 * The color module's C suite in DTest's C face (c/modules/test/test_suite.h):
 * color.h's CIEDE2000 difference, d_color_delta_e and d_color_rgb_delta_e,

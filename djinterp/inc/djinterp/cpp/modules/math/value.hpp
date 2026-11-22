@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                  value.hpp
+* djinterp [cpp][math]                                                 value.hpp
 *
 * The generic value in C++: math::value, one number of any kind the math
 * module computes with, over the C core's struct dj_math_value

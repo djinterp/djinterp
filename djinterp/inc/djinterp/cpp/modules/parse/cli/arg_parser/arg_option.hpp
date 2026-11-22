@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                            arg_option.hpp
+* djinterp [cpp][parse]                                           arg_option.hpp
 *
 * The argument parser's C++ face: options.
 *   `cli::option` is a handle on a struct dj_arg_option -- one pointer, the

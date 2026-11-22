@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                            server_tests.hpp
+* djinterp [cpp][net]                                           server_tests.hpp
 *
 * Tests of net/server.hpp: the HTTP/1.1 server, over loopback.
 *

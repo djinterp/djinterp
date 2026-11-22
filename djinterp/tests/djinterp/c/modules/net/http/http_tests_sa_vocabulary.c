@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                    http_tests_sa_vocabulary.c
+* djinterp [c][net]                                   http_tests_sa_vocabulary.c
 *
 * Standalone tests of http.h: methods, versions, status codes, reason
 * phrases, field syntax, common names, and errors.

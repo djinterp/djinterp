@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/interp]                                                spine.hpp
+* djinterp [cpp][interp]                                               spine.hpp
 *
 *   The runtime spine of the functional command line.  Where the parse
 * subframework builds parsers and the paradigm subframework matches and

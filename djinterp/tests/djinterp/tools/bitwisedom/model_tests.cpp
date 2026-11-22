@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [tests]                                             model_tests.cpp
+* djinterp [cpp][tools]                                          model_tests.cpp
 *
 * The model's suite: bits, expressions, sheets, resolution, operations, the
 * generator, files and history, and the C environment and importer -- and
@@ -13,6 +13,7 @@
 * loop over the table that prints each verdict and the totals. The count is
 * the same at every level, and a run that prints another count fails in
 * CTest.
+*
 *
 * path:      /tests/djinterp/tools/bitwisedom/model_tests.cpp
 * link(s):   TBA

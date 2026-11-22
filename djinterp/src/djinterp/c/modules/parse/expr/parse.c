@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                     parse.c
+* djinterp [c][parse]                                                    parse.c
 *
 * Expression core v2: definitions for parse.h, the parser.
 *   THE MACHINE. Two explicit stacks: operands, each a node and the extent of

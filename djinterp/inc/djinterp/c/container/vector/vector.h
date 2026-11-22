@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                          vector.h
+* djinterp [c][container]                                               vector.h
 *
 *   A `dj_vector` is a dynamically-resizable vector. This module provides a
 * struct-based wrapper around the vector_common functions for convenient use.

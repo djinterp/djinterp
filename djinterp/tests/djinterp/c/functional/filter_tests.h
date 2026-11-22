@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 filter_tests.h
+* djinterp [c][functional]                                        filter_tests.h
 *
 *   Unit test declarations for `filter.h` module.
 *   Provides comprehensive testing of all filter operations, chain management,

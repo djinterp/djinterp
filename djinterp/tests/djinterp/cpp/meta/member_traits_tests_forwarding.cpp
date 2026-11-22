@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                              member_traits_tests_forwarding.cpp
+* djinterp [cpp][meta]                        member_traits_tests_forwarding.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/member_traits_tests_forwarding.cpp

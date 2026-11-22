@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   mongodb_stubs_tests_runner.c
+* djinterp [c][db]                                  mongodb_stubs_tests_runner.c
 *
 * The runner for c/modules/db/mongodb's suite, the layer built without the
 * driver: options, then the suite's one section, d_tests_mongodb_stubs, which

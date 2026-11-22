@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            recursion_tests.hpp
+* djinterp [cpp][functional]                                 recursion_tests.hpp
 *
 *   Unit-test declarations for core/functional/recursion.hpp.  One declaration
 * group per section of the module under test:

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                     env_cpp98.h
+* djinterp [c][env]                                                  env_cpp98.h
 *
 * djinterp C++98 standard-library header detection.
 *   Detects which C++98 standard-library headers are available. They predate

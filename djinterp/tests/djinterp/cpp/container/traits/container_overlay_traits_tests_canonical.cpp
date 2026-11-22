@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                container_overlay_traits_tests_canonical.cpp
+* djinterp [cpp][container]         container_overlay_traits_tests_canonical.cpp
 *
 *   Section V - the canonical overlays, the named 2x2 of keyed? against
 * repeatable?  classify_canonical maps (multiplicity, keyed) to the named overlay:

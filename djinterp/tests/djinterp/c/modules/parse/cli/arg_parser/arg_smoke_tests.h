@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                           arg_smoke_tests.h
+* djinterp [c][parse]                                          arg_smoke_tests.h
 *
 * The argument parser's smoke suite: the C API end to end, from C.
 *   Each section defines a command line the way a program would, parses it,

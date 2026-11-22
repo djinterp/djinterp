@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                       env_bsd.h
+* djinterp [c][env]                                                    env_bsd.h
 *
 * djinterp BSD environment detection.
 *   Compile-time detection of the BSD compilation environment across the major

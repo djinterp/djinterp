@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   table_overlay.h
+* djinterp [c][container]                                        table_overlay.h
 *
 *   The restriction bundle a table wears -- the finite vocabulary
 * containers.tex fixes (mu, gamma, delta, sigma, eta) and its composition

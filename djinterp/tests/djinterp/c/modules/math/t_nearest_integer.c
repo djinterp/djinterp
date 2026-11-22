@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                          t_nearest_integer.c
+* djinterp [c][math]                                         t_nearest_integer.c
 *
 *   Conformance harness for c/math/nearest_integer.h. floor_c, ceil_c,
 * trunc_c and round_c must be exact, and so the C library's floor, ceil,

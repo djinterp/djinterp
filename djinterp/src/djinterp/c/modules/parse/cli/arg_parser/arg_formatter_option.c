@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                      arg_formatter_option.c
+* djinterp [c][parse]                                     arg_formatter_option.c
 *
 * The default steps for an option's help, declared in arg_formatter.h (4.2).
 *   CLI11's Formatter, one C function for each of its make_* functions that

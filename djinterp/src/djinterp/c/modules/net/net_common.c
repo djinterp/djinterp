@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                  net_common.c
+* djinterp [c][net]                                                 net_common.c
 *
 * The net foundation's implementation.
 *   Error names, port and endpoint text, the dispatch that gives every

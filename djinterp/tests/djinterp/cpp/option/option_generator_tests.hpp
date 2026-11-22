@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     option_generator_tests.hpp
+* djinterp [cpp][option]                              option_generator_tests.hpp
 *
 *   Shared surface for the option_generator.hpp unit suite.  Declares the four
 * section block-providers - one per section of the header under test - and the

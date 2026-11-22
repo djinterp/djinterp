@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       counter_tests_runner.cpp
+* djinterp [cpp][utility]                               counter_tests_runner.cpp
 *
 *   The runner for counter.hpp's suite: registers each test with report_builder
 * in one module, and writes the console report and counter_tests.pdf.

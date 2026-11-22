@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     sort_common.h
+* djinterp [c][utility]                                            sort_common.h
 *
 *   The C sort subsystem's shared base.
 * Everything here is vocabulary the algorithms have in common: how an ordering

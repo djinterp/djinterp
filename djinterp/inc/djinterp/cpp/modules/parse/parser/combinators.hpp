@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                           combinators.hpp
+* djinterp [cpp][parse]                                          combinators.hpp
 *
 * Higher-level combinators — each a concrete CRTP class.
 *   The named combinators here are the workhorses of a typical

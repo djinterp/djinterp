@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 interpolate.hpp
+* djinterp [cpp][functional]                                     interpolate.hpp
 *
 *   The type-agnostic interpolation engine: the find-and-replace common to
 * DTextTemplate and binary_template, factored out so neither owns it.  An

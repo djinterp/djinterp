@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                   dhost_git.c
+* djinterp [c][tools]                                                dhost_git.c
 *
 * Definitions for the declarations in dhost_git.h.
 *   Each file open is a dgit document, and each repository a dgit repository;
@@ -11,6 +11,7 @@
 * unless it holds a byte that would break the line or its reading -- a
 * control byte, a quote, a backslash -- when it is quoted as git quotes
 * one.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/git/dhost_git.c
 * link(s):   TBA

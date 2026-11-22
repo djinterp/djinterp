@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                            archive_options_tests_aggregate.cpp
+* djinterp [cpp][utility]                    archive_options_tests_aggregate.cpp
 *
 *   Tests for the archive_options aggregate (section III of
 * archive_options.hpp): its archive-level knobs are pristine until set and

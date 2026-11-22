@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                            cimport.cpp
+* djinterp [cpp][tools]                                              cimport.cpp
 *
 * C and C++ code read into a sheet.
 *   One pass over the tokens, comments included. Directives are read as
@@ -12,6 +12,7 @@
 *   A body keeps its layout: each of its lines is its tokens with the
 * spacing between them, and is indented as far past the body's first token
 * as it was in the file, tabs counted to the next multiple of four.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/cimport.cpp
 * link(s):   TBA

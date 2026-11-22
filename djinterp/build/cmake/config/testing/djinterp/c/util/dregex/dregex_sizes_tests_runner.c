@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    dregex_sizes_tests_runner.c
+* djinterp [c][utility]                              dregex_sizes_tests_runner.c
 *
 * The runner for c/util/dregex's sizes: options, then its one section,
 * d_tests_dregex_sizes, which opens its module and builds it call by call

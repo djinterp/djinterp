@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      cli_option.c
+* djinterp [c][cli]                                                 cli_option.c
 *
 *   Implementation of generic string-to-void* lookup and CLI parsing.
 *

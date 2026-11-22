@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                        test_functional.cpp
+* djinterp [cpp][math]                                       test_functional.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/test_functional.cpp

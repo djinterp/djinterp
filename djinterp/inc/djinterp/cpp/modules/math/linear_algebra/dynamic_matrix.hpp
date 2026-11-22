@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                         dynamic_matrix.hpp
+* djinterp [cpp][math]                                        dynamic_matrix.hpp
 *
 * Runtime-sized matrix companion for the linear-algebra subframework.
 *   dynamic_matrix<T> mirrors the fixed-size matrix API but chooses its

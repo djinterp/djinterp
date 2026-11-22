@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                      buffer.hpp
+* djinterp [cpp][container]                                           buffer.hpp
 *
 * Foundational buffer module for the djinterp container framework.
 *   A buffer is temporary storage that is written in stages and consumed

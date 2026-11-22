@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           dregex_sizes_tests.c
+* djinterp [c][utility]                                     dregex_sizes_tests.c
 *
 * Checks that every size dregex.c computes for an allocation refuses to wrap,
 * in DTest's C face.

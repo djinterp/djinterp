@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/render]                                render3d_tests_camera.cpp
+* djinterp [cpp][render]                               render3d_tests_camera.cpp
 *
 * Unit tests for render3d::camera::frame.
 *

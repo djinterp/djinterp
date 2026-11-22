@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                           net_tests_ssh_toy.c
+* djinterp [c][net]                                          net_tests_ssh_toy.c
 *
 * The toy SSH engine net's SSH and SFTP suites run against.
 *   Definitions for net_tests_ssh_toy.h: an engine whose sessions let anyone

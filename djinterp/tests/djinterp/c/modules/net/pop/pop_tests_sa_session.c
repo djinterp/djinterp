@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                        pop_tests_sa_session.c
+* djinterp [c][net]                                       pop_tests_sa_session.c
 *
 * A POP3 client and server talking over net_memory.h's pipe, in one thread.
 *   Both ends use only this module and net.h: each sends with the helpers,

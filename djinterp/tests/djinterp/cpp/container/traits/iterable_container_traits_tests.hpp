@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                         iterable_container_traits_tests.hpp
+* djinterp [cpp][container]                  iterable_container_traits_tests.hpp
 *
 *   Declarations, shared helpers, and helper TYPES for the
 * iterable_container_traits.hpp unit-test suite.  The ITERABILITY axis asks in what

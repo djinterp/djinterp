@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   mongodb_query.c
+* djinterp [c][db]                                               mongodb_query.c
 *
 * Implementation of mongodb_query.h.
 *   A command runs through mongoc_client_command_with_opts, which applies

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_link.h
+* djinterp [c][filesys]                                              file_link.h
 *
 * Symbolic links.
 *   The whole API is compiled out when D_INTERNAL_FILE_HAS_SYMLINKS is 0, so

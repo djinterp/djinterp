@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                      expr_tests_languages.c
+* djinterp [c][parse]                                     expr_tests_languages.c
 *
 * Expression core v2's C suite, block "languages": the cases of math's,
 * the command language's, an awk-like language's and dawk's tables.

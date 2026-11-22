@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                ftp_endpoint.c
+* djinterp [c][net]                                               ftp_endpoint.c
 *
 * Implementation of the endpoint encodings declared in ftp_endpoint.h.
 *   Addresses are validated for their family before they are written, so no

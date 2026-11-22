@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                         memory_discipline_tests_classifier.cpp
+* djinterp [cpp][meta]                    memory_discipline_tests_classifier.cpp
 *
 *   Classifier tests: discipline_of sorts a strategy as unknown, none, arena,
 * pooled or individual from its signals; either allocate shape counts as

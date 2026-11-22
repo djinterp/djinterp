@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                           djinterp_commands.c
+* djinterp [c][tools]                                        djinterp_commands.c
 *
 * The djinterp program's 0.8 preview, declared in djinterp_commands.h.
 *   The program registers every core djin -- parse's, desc's, the

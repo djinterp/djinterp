@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  enum_map_entry.h
+* djinterp [c][container]                                       enum_map_entry.h
 *
 *   Defines the key-value entry structure used by d_enum_map. Each entry maps
 * an integer enum key to an arbitrary pointer value.

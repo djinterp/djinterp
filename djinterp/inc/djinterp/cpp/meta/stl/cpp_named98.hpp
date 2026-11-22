@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 cpp_named98.hpp
+* djinterp [cpp][meta]                                           cpp_named98.hpp
 *
 * C++98 named requirement type traits:
 *   Provides compile-time detection of fundamental named requirements using

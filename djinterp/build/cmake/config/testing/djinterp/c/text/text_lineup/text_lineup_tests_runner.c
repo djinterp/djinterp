@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     text_lineup_tests_runner.c
+* djinterp [c][text]                                  text_lineup_tests_runner.c
 *
 * The runner for c/text/text_lineup unit tests: options, then the module,
 * which the suite's entry point fills with its blocks (test_suite.h 3.2).

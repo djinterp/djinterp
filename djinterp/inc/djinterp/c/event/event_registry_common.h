@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                           event_registry_common.h
+* djinterp [c][event]                                    event_registry_common.h
 *
 * The registry and its folds -- the shared C core (tier 0):
 *   The subscription layer: a registry rho is a table read as a family of

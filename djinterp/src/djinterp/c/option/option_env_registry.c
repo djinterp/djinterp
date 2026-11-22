@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                             option_env_registry.c
+* djinterp [c][option]                                     option_env_registry.c
 *
 *   The djin registry (option_env_registry.h): the program's root frame, its
 * list of djins, and settings by full name routed to the frame they name.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [parse]                               arg_parser_cpp_tests_runner.cpp
+* djinterp [c][parse]                            arg_parser_cpp_tests_runner.cpp
 *
 * Entry point for the argument parser's C++ suites.
 *   Built as C++ and linked against the parser's library, built as C at the

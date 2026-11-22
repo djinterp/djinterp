@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                      bsearch_tests_ordering.cpp
+* djinterp [cpp][meta]                                bsearch_tests_ordering.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/bsearch_tests_ordering.cpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                lifetime_tests_literal_probe.cpp
+* djinterp [cpp][meta]                          lifetime_tests_literal_probe.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/lifetime_tests_literal_probe.cpp

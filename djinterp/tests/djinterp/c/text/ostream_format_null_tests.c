@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    ostream_format_null_tests.c
+* djinterp [c][text]                                 ostream_format_null_tests.c
 *
 *   printf's heap fallback (c/text/ostream_format.h) on a build whose default
 * memory source is the null source, in DTest's C face

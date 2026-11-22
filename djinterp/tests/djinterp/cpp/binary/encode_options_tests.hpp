@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [binary/test]                                encode_options_tests.hpp
+* djinterp [cpp][binary]                                encode_options_tests.hpp
 *
 *   Declarations, fixtures, and the per-suite assertion macro for the
 * encode_options.hpp unit tests.  encode_options.hpp owns the serial parameter

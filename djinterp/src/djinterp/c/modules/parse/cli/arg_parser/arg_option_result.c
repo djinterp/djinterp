@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                         arg_option_result.c
+* djinterp [c][parse]                                        arg_option_result.c
 *
 * What an option reports, declared in arg_option.h (sections 5 and 6, but
 * for what arg_option_value.c defines), and CLI11's reduced_results, declared

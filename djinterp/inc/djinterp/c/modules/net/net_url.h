@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                     net_url.h
+* djinterp [c][net]                                                    net_url.h
 *
 * URI references as RFC 3986 defines them.
 *   Parsing into views of the caller's text, recomposition, resolution against

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            publisher_tests.hpp
+* djinterp [cpp][paradigm]                                   publisher_tests.hpp
 *
 *   Unit-test suite header for the publish-subscribe paradigm foundation -
 * status codes, subscription tokens, the three subscription handle types, the

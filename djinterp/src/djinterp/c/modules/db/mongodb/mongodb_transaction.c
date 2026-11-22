@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                             mongodb_transaction.c
+* djinterp [c][db]                                         mongodb_transaction.c
 *
 * Implementation of mongodb_transaction.h.
 *   The handle's session is started at its first transaction and kept,

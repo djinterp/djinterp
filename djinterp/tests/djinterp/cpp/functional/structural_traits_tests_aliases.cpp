@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                             structural_traits_tests_aliases.cpp
+* djinterp [cpp][functional]                 structural_traits_tests_aliases.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/structural_traits_tests_aliases.cpp

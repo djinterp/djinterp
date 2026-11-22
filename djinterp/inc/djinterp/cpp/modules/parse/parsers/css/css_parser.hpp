@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                            css_parser.hpp
+* djinterp [cpp][parse]                                           css_parser.hpp
 *
 * CSS parser:
 *   This header implements the parser for a CSS-3-shaped grammar atop the

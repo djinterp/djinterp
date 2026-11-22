@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           profunctor_tests.hpp
+* djinterp [cpp][functional]                                profunctor_tests.hpp
 *
 *   Unit-test declarations for core/functional/profunctor.hpp.  One declaration
 * group per section of the module under test:

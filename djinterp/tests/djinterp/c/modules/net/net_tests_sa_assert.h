@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                         net_tests_sa_assert.h
+* djinterp [c][net]                                        net_tests_sa_assert.h
 *
 * The assertion the net standalone suites count with.
 *   The net foundation, TCP and HTTP suites need two things from a test

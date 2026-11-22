@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      array_tests_iterators.cpp
+* djinterp [cpp][container]                            array_tests_iterators.cpp
 *
 *   Iterator tests for array_iterator.hpp: the DChunkRef view, the circular
 * iterator, and the chunk and window iterators with their factories.

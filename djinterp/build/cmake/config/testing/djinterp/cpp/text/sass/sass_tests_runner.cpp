@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          sass_tests_runner.cpp
+* djinterp [cpp][text]                                     sass_tests_runner.cpp
 *
 * The runner for sass's suite: options, then the module.
 *

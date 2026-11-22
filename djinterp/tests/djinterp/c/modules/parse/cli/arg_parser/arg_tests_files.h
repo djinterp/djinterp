@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                           arg_tests_files.h
+* djinterp [c][parse]                                          arg_tests_files.h
 *
 * A scratch directory for the argument parser's suites: files and
 * directories a section makes, by name, in a fresh directory that is the

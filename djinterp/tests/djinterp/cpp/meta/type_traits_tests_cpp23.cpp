@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    type_traits_tests_cpp23.cpp
+* djinterp [cpp][meta]                               type_traits_tests_cpp23.cpp
 *
 *   Unit tests for the C++23-features section (I.4) of type_traits.hpp:
 *     - is_scoped_enum

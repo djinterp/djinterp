@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       comonad_tests_extend.cpp
+* djinterp [cpp][functional]                            comonad_tests_extend.cpp
 *
 *   Section II.2 of the comonad.hpp suite: extend, the co-bind, which recomputes
 * the focus from the WHOLE context (f : W<A> -> B), keeping the environment, to

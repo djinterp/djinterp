@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                   cfg_sort.h
+* djinterp [cpp][utility]                                             cfg_sort.h
 *
 *   Build-time tuning for the C++ sort subsystem.  One knob so far: the size
 * below which quicksort stops partitioning and finishes a sub-range with

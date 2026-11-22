@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                mongodb_internal.h
+* djinterp [c][db]                                            mongodb_internal.h
 *
 * Private to the MongoDB layer's sources: the driver's headers, the handle's
 * and the cursors' layouts, and the plumbing every module shares.

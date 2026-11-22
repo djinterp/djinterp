@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  dext_cmake.c
+* djinterp [c][tools]                                               dext_cmake.c
 *
 * Builds a CMake file's node tree from dcmake's records: see dext_cmake.h.
 *   The reader gives commands and comments in two arrays, each in source
@@ -8,6 +8,7 @@
 * with the reader's own pairing: an opener pushes, its closer pops, and a
 * closer that pairs with a block further down pops the blocks above it,
 * which were never closed.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/check/dext_cmake.c
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                                 array_common_tests_init.c
+* djinterp [c][container]                              array_common_tests_init.c
 *
 *   Unit tests for `array_common.h` initialization functions.
 *   Part of the array_common suite, on DTest's C face.

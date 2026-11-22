@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                   dparse.h
+* djinterp [c][tools]                                                   dparse.h
 *
 *   Syntax tree and recursive-descent parser for POSIX awk.
 *     One node type carries every construct. Fixed children live in `a` to

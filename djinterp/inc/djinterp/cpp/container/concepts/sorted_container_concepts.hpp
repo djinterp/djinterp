@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                   sorted_container_concepts.hpp
+* djinterp [cpp][container]                        sorted_container_concepts.hpp
 *
 * C++20 concepts for the SORTEDNESS axis -- the `requires`-facing view of
 * sorted_container_traits.hpp.

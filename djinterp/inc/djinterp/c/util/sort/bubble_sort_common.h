@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                              bubble_sort_common.h
+* djinterp [c][utility]                                     bubble_sort_common.h
 *
 *   The primitives every bubble sort is built from, sequential or concurrent.
 * A bubble sort is a driver wrapped around two operations: exchange an adjacent

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                 djinterp-iterval-tests.cpp
+* djinterp [cpp][math]                                djinterp-iterval-tests.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/djinterp-iterval-tests.cpp

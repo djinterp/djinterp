@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                            dtuple_wrap_partition_tests_cat.cpp
+* djinterp [cpp][meta]                       dtuple_wrap_partition_tests_cat.cpp
 *
 *   Section I of dtuple_wrap_partition.hpp: internal::pwe_cat, the type-level
 * concatenation of two std::tuples that the walk uses to stitch each emitted

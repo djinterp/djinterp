@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        visitor_tests_static.cpp
+* djinterp [cpp][paradigm]                              visitor_tests_static.cpp
 *
 *
 * path:      /tests/djinterp/cpp/paradigm/visitor/visitor_tests_static.cpp

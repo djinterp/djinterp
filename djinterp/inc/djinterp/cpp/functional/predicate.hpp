@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   predicate.hpp
+* djinterp [cpp][functional]                                       predicate.hpp
 *
 * Template predicate combinators for the functional module (C++).
 *   Provides type-safe, SFINAE-constrained predicate combinators that compose

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       db_common.c
+* djinterp [c][db]                                                   db_common.c
 *
 * Implementation of db_common.h: type names, the release functions for the
 * lists and rows the vendor layers return, and reading rows.

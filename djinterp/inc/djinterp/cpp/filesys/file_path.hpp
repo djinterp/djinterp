@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   file_path.hpp
+* djinterp [cpp][filesys]                                          file_path.hpp
 *
 * djinterp::path -- a lexical path.
 *   Header-only, C++98 through C++26, and a value type: copyable, comparable,

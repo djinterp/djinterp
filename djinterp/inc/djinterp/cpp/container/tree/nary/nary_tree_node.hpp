@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              nary_tree_node.hpp
+* djinterp [cpp][container]                                   nary_tree_node.hpp
 *
 * N-ary tree node:
 *   LCRS-based n-ary tree node carrying parent, first_child,

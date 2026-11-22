@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                      transducer_tests_state.cpp
+* djinterp [cpp][functional]                          transducer_tests_state.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/transducer_tests_state.cpp

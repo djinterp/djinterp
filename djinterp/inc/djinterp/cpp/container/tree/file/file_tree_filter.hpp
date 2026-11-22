@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            file_tree_filter.hpp
+* djinterp [cpp][container]                                 file_tree_filter.hpp
 *
 * Filterable file tree with predicate combinator integration:
 *   This header bridges file_tree and the functional module, providing

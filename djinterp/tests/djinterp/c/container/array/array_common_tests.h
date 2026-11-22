@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           array_common_tests.h
+* djinterp [c][container]                                   array_common_tests.h
 *
 *   Comprehensive unit test suite header for `array_common.h`, on DTest's
 *   C face (struct dj_test_suite). It tests every array_common function.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                            ftp_listing_mlsx.c
+* djinterp [c][net]                                           ftp_listing_mlsx.c
 *
 * Implementation of the MLSx listing dialect: MLSD and MLST lines (RFC 3659).
 *   Each line is a list of "name=value;" facts, a space, and the name. Unknown

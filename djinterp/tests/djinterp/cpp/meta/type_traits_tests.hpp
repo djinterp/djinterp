@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          type_traits_tests.hpp
+* djinterp [cpp][meta]                                     type_traits_tests.hpp
 *
 *   Test-suite header for the djinterp type_traits.hpp module.
 *

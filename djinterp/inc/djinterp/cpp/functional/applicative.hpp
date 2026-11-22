@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 applicative.hpp
+* djinterp [cpp][functional]                                     applicative.hpp
 *
 * Applicative protocol and its generic operations: ap and lift_a2 (C++).
 *   An applicative functor sits between Functor and Monad: it is a context

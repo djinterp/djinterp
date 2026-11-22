@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        archive_tests_entry.cpp
+* djinterp [cpp][utility]                                archive_tests_entry.cpp
 *
 *   Tests for the archive entry model: the entry struct's field defaults,
 * entry_list basics, and the entry-construction helpers.

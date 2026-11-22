@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                    render.h
+* djinterp [c][parse]                                                   render.h
 *
 * Expression core v2: the renderer, a term written back as text.
 *   Brackets go where reading the text back would group otherwise, and

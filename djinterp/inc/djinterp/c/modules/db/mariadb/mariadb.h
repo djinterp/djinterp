@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                         mariadb.h
+* djinterp [c][db]                                                     mariadb.h
 *
 * Umbrella for djinterp's MariaDB/MySQL convenience layer -- includes every
 * module.

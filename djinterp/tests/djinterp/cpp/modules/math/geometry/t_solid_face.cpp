@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                           t_solid_face.cpp
+* djinterp [cpp][math]                                          t_solid_face.cpp
 *
 *   Tests for geometry/solid.hpp, at every level from C++98: a unit cube as
 * a triangle mesh -- its surface area 6, volume 1, centroid its centre,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                expr_face_tests_parity.cpp
+* djinterp [cpp][parse]                               expr_face_tests_parity.cpp
 *
 * The face suite's "parity" block: the face held to the C API it stands on.
 * The calculator is built both ways, and each text parsed both ways: the C

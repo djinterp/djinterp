@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                constexpr_container_concepts.hpp
+* djinterp [cpp][container]                     constexpr_container_concepts.hpp
 *
 * C++20 concepts for the LIFETIME (compile-time end) axis -- the
 * `requires`-facing view of constexpr_container_traits.hpp.

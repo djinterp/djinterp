@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                  net_memory.c
+* djinterp [c][net]                                                 net_memory.c
 *
 * The in-memory connections of net_memory.h.
 *   A pipe end and a memory stream are each a table of operations over plain

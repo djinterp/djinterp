@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                          tcp_tests_main.cpp
+* djinterp [cpp][net]                                         tcp_tests_main.cpp
 *
 * Entry point for the TCP transport's C++ tests.
 *   A watchdog alarm ends a run that hangs -- an accept that never woke --

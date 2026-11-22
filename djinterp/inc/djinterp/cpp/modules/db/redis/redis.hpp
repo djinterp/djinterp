@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                       redis.hpp
+* djinterp [cpp][db]                                                   redis.hpp
 *
 * djinterp Redis connection module:
 *   This header provides the Redis-specific connection implementation and

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                  container_overlay_traits_tests_algebra.cpp
+* djinterp [cpp][container]           container_overlay_traits_tests_algebra.cpp
 *
 *   Section III - the overlay descriptor and its meet-semilattice algebra:
 * overlay_top (the empty overlay worn by everything), is_order_blind (bears no

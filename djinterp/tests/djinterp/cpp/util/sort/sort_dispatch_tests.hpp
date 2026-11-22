@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        sort_dispatch_tests.hpp
+* djinterp [cpp][utility]                                sort_dispatch_tests.hpp
 *
 *   unit-test suite for sort_dispatch.hpp.
 * Declares every tests_sort_dispatch_* predicate and the adapters the suite's

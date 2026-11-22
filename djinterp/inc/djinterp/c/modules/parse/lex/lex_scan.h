@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                  lex_scan.h
+* djinterp [c][parse]                                                 lex_scan.h
 *
 * The scanner: translation phase 3, driven by a dialect descriptor.
 *   There is one engine.  C and C++ differ to it only by the descriptor they

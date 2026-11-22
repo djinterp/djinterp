@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                            document_templates_tests_runner.cpp
+* djinterp [cpp][text]                       document_templates_tests_runner.cpp
 *
 *   The runner for the document-template suite: one module per header under
 * test, each predicate registered with report_builder, and the report written

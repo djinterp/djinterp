@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                     container_conversion_traits_tests_paths.cpp
+* djinterp [cpp][container]          container_conversion_traits_tests_paths.cpp
 *
 *   Section V - the construction paths in depth: the range constructor, the
 * two-argument insert, the iterable gate both share, and their disjunction.

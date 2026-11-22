@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                      overflow_tests_sites.c
+* djinterp [c][parse]                                     overflow_tests_sites.c
 *
 * The overflow suite, block "sites": each allocation site that takes a count
 * from a caller, driven past what it can allocate.

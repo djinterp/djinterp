@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                               cfg_env_imap.h
+* djinterp [c][env]                                               cfg_env_imap.h
 *
 * Configuration for env_imap.h, the IMAP library detection header under
 * env/net/imap/.

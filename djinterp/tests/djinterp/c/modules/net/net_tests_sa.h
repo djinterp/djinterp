@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                net_tests_sa.h
+* djinterp [c][net]                                               net_tests_sa.h
 *
 * djinterp net foundation standalone tests.
 *   Declarations for the tests of net/net.h. The doubles they run against

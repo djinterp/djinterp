@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                mongodb_settings.c
+* djinterp [c][db]                                            mongodb_settings.c
 *
 * Implementation of mongodb_settings.h.
 *   The concerns and the preference are the client's: the driver hands each

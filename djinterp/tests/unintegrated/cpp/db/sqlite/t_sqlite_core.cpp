@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [core]                                              t_sqlite_core.cpp
+* djinterp [cpp][db]                                           t_sqlite_core.cpp
 *
 *   core/db's SQLite connection, sqlite_connection, over the SQLite layer:
 * the operations every vendor shares (t_db_core.hpp), on an in-memory

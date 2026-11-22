@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          sort_monoid_tests.hpp
+* djinterp [cpp][utility]                                  sort_monoid_tests.hpp
 *
 *   unit-test suite for sort_monoid.hpp.
 * Declares every tests_sort_monoid_* predicate and the helpers the suite's

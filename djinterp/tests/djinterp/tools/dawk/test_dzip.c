@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                   test_dzip.c
+* djinterp [c][tools]                                                test_dzip.c
 *
 * Exercises `dzip.h`.
 *   The archive below was written by Python's zipfile over zlib, so reading it
@@ -9,6 +9,7 @@
 * what was saved, and by keeping every entry not replaced byte for byte.
 *
 *   test_dzip [directory]    the directory holds the files the test writes
+*
 *
 * path:      /tests/djinterp/tools/dawk/test_dzip.c
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                         parse_context.hpp
+* djinterp [cpp][parse]                                        parse_context.hpp
 *
 * Parse session bundle.
 *   `parse_context` is the per-session bundle threaded through a

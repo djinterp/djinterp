@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       color_hsl.h
+* djinterp [c][utility]                                              color_hsl.h
 *
 *   HSL shared kernel for the djinterp color module. Defines the HSL POD and
 * its construction, validation, and clamping. Conversions to and from other

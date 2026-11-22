@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        cofree_tests_unfold.cpp
+* djinterp [cpp][functional]                             cofree_tests_unfold.cpp
 *
 *   Section II.3 (unfold) of the cofree.hpp suite: unfold_cofree, which
 * coiteratively grows a cofree from a seed -- head_fn : S -> A gives each node's

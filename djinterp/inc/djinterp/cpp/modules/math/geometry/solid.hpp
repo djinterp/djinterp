@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                  solid.hpp
+* djinterp [cpp][math]                                                 solid.hpp
 *
 * General-purpose 3D shape composers.
 *   Provides the four ways a user can describe an arbitrary 3D solid:

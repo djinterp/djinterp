@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                arango_table.hpp
+* djinterp [cpp][db]                                            arango_table.hpp
 *
 * djinterp ArangoDB table module:
 *   ArangoDB-specific database_table subclass providing a tabular

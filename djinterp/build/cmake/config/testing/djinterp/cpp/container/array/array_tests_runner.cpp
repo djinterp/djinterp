@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         array_tests_runner.cpp
+* djinterp [cpp][container]                               array_tests_runner.cpp
 *
 *   Runner for the array suite (array_tests.hpp): defines DTEST_SPEC_MODE,
 * takes the suite's spec and hands it to DTest.

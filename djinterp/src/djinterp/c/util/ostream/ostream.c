@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                         ostream.c
+* djinterp [c][utility]                                                ostream.c
 *
 *   The stream's slow path, lifecycle and state, the integer writers, the
 * bridge back to a sink, and the destinations that need nothing but memory: a

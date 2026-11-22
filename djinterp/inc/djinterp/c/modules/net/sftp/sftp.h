@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                        sftp.h
+* djinterp [c][net]                                                       sftp.h
 *
 * Umbrella header for SFTP, the SSH File Transfer Protocol.
 *   Includes both SFTP modules: sftp_common.h, the version 3 vocabulary and

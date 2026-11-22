@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     monad_tests_operations.cpp
+* djinterp [cpp][functional]                          monad_tests_operations.cpp
 *
 *   Tests for monad.hpp Section II core operations: monad_unit,
 * monad_bind, monad_map, and monad_join.  Covers the success path and

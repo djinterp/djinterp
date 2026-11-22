@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                              postgres_statement.h
+* djinterp [c][db]                                          postgres_statement.h
 *
 * Prepared statements on a PostgreSQL connection: SQL the server parses and
 * plans once, values bound to its parameters, and run as often as needed.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                        net_tests_sa_support.h
+* djinterp [c][net]                                       net_tests_sa_support.h
 *
 * The doubles the net foundation tests run against.
 *   A scripted in-memory connection that can cut reads and writes short, fail

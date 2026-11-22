@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                         ostream_template_refuse_tests_runner.c
+* djinterp [c][text]                      ostream_template_refuse_tests_runner.c
 *
 * The runner for the template engine with the refusing UTF-8 knob: options,
 * then the module.

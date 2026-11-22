@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 compress_options_tests_lz4.cpp
+* djinterp [cpp][utility]                         compress_options_tests_lz4.cpp
 *
 *   Tests for the LZ4 frame block (DLz4Options): level, block size and mode, and
 * the four framing flags (compress_options.hpp section II).

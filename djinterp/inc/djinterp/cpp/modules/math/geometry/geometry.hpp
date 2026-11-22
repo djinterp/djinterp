@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                               geometry.hpp
+* djinterp [cpp][math]                                              geometry.hpp
 *
 * Umbrella header for the geometry subframework.
 *   Includes every public geometry header. Users may also include the

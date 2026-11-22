@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                        ssh_tests_sa_channel.c
+* djinterp [c][net]                                       ssh_tests_sa_channel.c
 *
 * Tests of what a channel asks of its engine, and keeps of its failures.
 *   A read must bring at least a byte and no more than fit, or a read of

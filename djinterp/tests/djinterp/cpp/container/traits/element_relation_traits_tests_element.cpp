@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                   element_relation_traits_tests_element.cpp
+* djinterp [cpp][container]            element_relation_traits_tests_element.cpp
 *
 *   Section II - the element relation, read of a container's value_type.
 * element_type_of extracts that type (void where there is none); the has_*_elements

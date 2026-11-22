@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp                                                            cli_unix.c
+* djinterp [c][cli]                                                   cli_unix.c
 *
 *   Implementation of Unix CLI convention parsing.
 *

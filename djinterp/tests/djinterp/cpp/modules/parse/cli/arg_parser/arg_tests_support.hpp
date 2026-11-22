@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                     arg_tests_support.hpp
+* djinterp [cpp][parse]                                    arg_tests_support.hpp
 *
 * What the argument parser's C++ suites share: a parse to test through the
 * C++ face, and what it came to, written out as text.

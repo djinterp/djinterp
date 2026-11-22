@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/jit]                                                         jit.c
+* djinterp [c][jit]                                                        jit.c
 *
 * djinterp portable JIT core -- implementation (jit.h).
 *   Executable-memory lifecycle, the emit primitives, and diagnostics. The

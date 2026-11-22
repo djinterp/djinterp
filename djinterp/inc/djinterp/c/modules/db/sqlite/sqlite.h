@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                          sqlite.h
+* djinterp [c][db]                                                      sqlite.h
 *
 * Umbrella for djinterp's SQLite convenience layer -- includes every module.
 *   Convenience, not architecture: each module is its own source, so a

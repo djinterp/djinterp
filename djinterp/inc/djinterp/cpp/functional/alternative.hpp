@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 alternative.hpp
+* djinterp [cpp][functional]                                     alternative.hpp
 *
 * Alternative protocol: a monoid on a functor -- empty and choice (C++).
 *   An Alternative is a context F<A> that carries a monoid structure at every

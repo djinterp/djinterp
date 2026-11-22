@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          compose_tests_tap.cpp
+* djinterp [cpp][functional]                               compose_tests_tap.cpp
 *
 *   Tests for compose.hpp Section V: tap, the pass-through side-effect
 * injector.  Covers value pass-through, observation of the side effect,

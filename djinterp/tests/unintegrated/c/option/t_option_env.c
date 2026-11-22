@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 t_option_env.c
+* djinterp [c][option]                                            t_option_env.c
 *
 *   The machine environment's C harness (c/option/option_env.h): declaring,
 * reading defaults, binding by value and by text, scopes, parent frames,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                          lookup.h
+* djinterp [c][meta]                                                    lookup.h
 *
 * Finding a record in a contiguous array of records, by a key whose position
 * and width the record itself declares. Tier 0 -- compiled by BOTH faces.

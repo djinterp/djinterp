@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                            cli_plugin_tests.h
+* djinterp [c][tools]                                         cli_plugin_tests.h
 *
 * The suite of the command-line kit's plugins (cli_plugin.c): the program's
 * own file; finding a command's module along PROGRAM_PLUGIN_PATH, beside the

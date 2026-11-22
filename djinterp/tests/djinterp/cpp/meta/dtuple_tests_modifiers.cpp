@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     dtuple_tests_modifiers.cpp
+* djinterp [cpp][meta]                                dtuple_tests_modifiers.cpp
 *
 *   Unit tests for the type-modifier section of dtuple.hpp:
 *     - DWrapAll (and the empty / general / explicit-empty

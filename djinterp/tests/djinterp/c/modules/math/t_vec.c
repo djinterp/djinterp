@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                      t_vec.c
+* djinterp [c][math]                                                     t_vec.c
 *
 *   Conformance harness for c/math/vec.h, all three families: every kernel
 * against the formula it implements, written out here in the same type and

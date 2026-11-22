@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               sass_template.hpp
+* djinterp [cpp][text]                                         sass_template.hpp
 *
 *   Templated Sass / SCSS rule and stylesheet facades and the
 * bundled default backend. Mirrors `xml_template.hpp` /

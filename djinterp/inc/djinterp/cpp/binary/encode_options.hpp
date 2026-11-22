@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              encode_options.hpp
+* djinterp [cpp][binary]                                      encode_options.hpp
 *
 *   The CONFIGURABLE face of the leaf encoder.  encode.hpp fixes one encoding
 * (big-endian scalars, an 8-byte length prefix) - the sensible default.  This

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                         map.hpp
+* djinterp [cpp][container]                                              map.hpp
 *
 * Map overlay module for djinterp containers.
 *   Defines the compile-time traits, strategy dispatch, vocabulary types,

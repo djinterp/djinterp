@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       compose_tests_traits.cpp
+* djinterp [cpp][functional]                            compose_tests_traits.cpp
 *
 *   Tests for compose.hpp Section 0: the predicate SFINAE structural
 * traits and the C++20 concept mirrors.  Almost all coverage here is

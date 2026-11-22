@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                         arg_suggest_tests.c
+* djinterp [c][parse]                                        arg_suggest_tests.c
 *
 * The suite of the parser's suggestions, declared in arg_suggest_tests.h.
 *   Each section is a case table (arg_tests_support.h) its runner runs

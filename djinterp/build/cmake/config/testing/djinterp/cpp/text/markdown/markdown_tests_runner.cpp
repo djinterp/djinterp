@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      markdown_tests_runner.cpp
+* djinterp [cpp][text]                                 markdown_tests_runner.cpp
 *
 * The runner for markdown's suite: options, then the module.
 *

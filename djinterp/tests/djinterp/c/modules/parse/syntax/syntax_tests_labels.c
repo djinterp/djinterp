@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                       syntax_tests_labels.c
+* djinterp [c][parse]                                      syntax_tests_labels.c
 *
 * The syntax items' suite, block "labels": the levels of what a `case` or a
 * `default` holds (F24). A braced block right after a label is the label's

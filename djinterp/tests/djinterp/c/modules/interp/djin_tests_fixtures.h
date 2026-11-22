@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          djin_tests_fixtures.h
+* djinterp [c][interp]                                     djin_tests_fixtures.h
 *
 *   The suite's fixtures: a frame's room, the schema rows two test djins
 * declare, the program's reserved names, and a frame made from rows in its

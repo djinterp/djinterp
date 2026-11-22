@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                archive_options_tests_enums.cpp
+* djinterp [cpp][utility]                        archive_options_tests_enums.cpp
 *
 *   Tests for the categorical enums (section I of archive_options.hpp): each is
 * an alias of the kernel's enum with the kernel's values, which are the values

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_stat.h
+* djinterp [c][filesys]                                              file_stat.h
 *
 * File metadata -- what the filesystem knows about a path.
 *   Every query here is a syscall. The convenience predicates look free and

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                      fold.c
+* djinterp [c][parse]                                                     fold.c
 *
 * Expression core v2: definitions for fold.h, folds and walks.
 *   A fold marks what the root reaches in one pass down from it, then computes

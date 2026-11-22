@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  ui_tests.hpp
+* djinterp [cpp][tools]                                             ui_tests.hpp
 *
 * Shared declarations and fixtures for the djinterp::ui unit tests.
 *   Covers the parts that need no window: colormaps, the visit-counting state

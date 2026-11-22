@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    table_domain.h
+* djinterp [c][container]                                         table_domain.h
 *
 *   THE INDEX SPACE.  The multi-index i in N^k, the k-box I_T it ranges over,
 * and the order both carry.  Index and domain are one concept and one file

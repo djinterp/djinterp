@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                  env_compiler.h
+* djinterp [c][env]                                               env_compiler.h
 *
 * djinterp compiler detection and preprocessor limits.
 *   Compiler identification and version (the D_ENV_COMPILER_* interface),

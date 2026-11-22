@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          mongodb_stubs_tests.c
+* djinterp [c][db]                                         mongodb_stubs_tests.c
 *
 *   The MongoDB layer built without the driver (D_CFG_MONGODB 0): every
 * function answers as such a build must -- D_DB_UNSUPPORTED, or false, 0, ""

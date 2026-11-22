@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   rcu_array.hpp
+* djinterp [cpp][container]                                        rcu_array.hpp
 *
 * djinterp rcu_array.hpp
 *

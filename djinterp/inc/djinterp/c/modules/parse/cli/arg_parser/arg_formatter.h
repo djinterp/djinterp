@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                             arg_formatter.h
+* djinterp [c][parse]                                            arg_formatter.h
 *
 * Help: the formatter that lays out a command's help text.
 *   A `struct dj_arg_formatter` is CLI11's Formatter in C: the column widths,

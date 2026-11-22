@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                         bsearch_tests_guard.cpp
+* djinterp [cpp][meta]                                   bsearch_tests_guard.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/bsearch_tests_guard.cpp

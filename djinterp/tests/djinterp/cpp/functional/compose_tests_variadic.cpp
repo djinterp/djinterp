@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     compose_tests_variadic.cpp
+* djinterp [cpp][functional]                          compose_tests_variadic.cpp
 *
 *   Tests for compose.hpp Section III: variadic compose_all (right-to-
 * left) and pipe_all (left-to-right).  Covers the single-function base

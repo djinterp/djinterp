@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                           dfile.h
+* djinterp [c][filesys]                                                  dfile.h
 *
 * Umbrella for the filesys subframework -- includes every c/filesys module.
 *   CONVENIENCE, NOT ARCHITECTURE. The whole point of the split is that a

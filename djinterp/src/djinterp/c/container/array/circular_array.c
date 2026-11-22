@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  circular_array.c
+* djinterp [c][container]                                       circular_array.c
 *
 *   Implementation of the circular array (ring buffer) data structure.
 *

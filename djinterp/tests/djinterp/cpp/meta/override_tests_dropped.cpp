@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                      override_tests_dropped.cpp
+* djinterp [cpp][meta]                                override_tests_dropped.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/override_tests_dropped.cpp

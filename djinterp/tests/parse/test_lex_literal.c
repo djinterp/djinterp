@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             test_lex_literal.c
+* djinterp [c][parse]                                         test_lex_literal.c
 *
 * Unit tests: the literal decoder, especially what diff_literal.py cannot ask.
 *

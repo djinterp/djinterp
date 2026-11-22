@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     text_core_tests_runner.cpp
+* djinterp [cpp][text]                                text_core_tests_runner.cpp
 *
 * The runner for text_core's suite: options, then the module.
 *

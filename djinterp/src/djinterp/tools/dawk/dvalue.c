@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                      dvalue.c
+* djinterp [c][tools]                                                   dvalue.c
 *
 *   Definitions for the non-inline declarations in dvalue.h.
 *     One scanner serves both numeric questions. d_awk_looks_numeric asks

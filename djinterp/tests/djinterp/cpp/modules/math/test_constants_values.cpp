@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                  test_constants_values.cpp
+* djinterp [cpp][math]                                 test_constants_values.cpp
 *
 *
 * path:      /tests/djinterp/cpp/modules/math/test_constants_values.cpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                         css.hpp
+* djinterp [cpp][text]                                                   css.hpp
 *
 *   Foundational CSS module for the djinterp framework. Models a
 * CSS stylesheet as a tree of *rules*: style rules carry selector

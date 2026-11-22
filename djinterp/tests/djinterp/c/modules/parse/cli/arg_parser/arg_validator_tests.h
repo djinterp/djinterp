@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                       arg_validator_tests.h
+* djinterp [c][parse]                                      arg_validator_tests.h
 *
 * The suite of the argument parser's validators (arg_validator.h).
 *   A value under validation; the validator record, its copies and its

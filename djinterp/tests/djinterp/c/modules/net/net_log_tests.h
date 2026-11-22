@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                net_log_tests.h
+* djinterp [c][net]                                              net_log_tests.h
 *
 * The suite of net's codes for the log: its table and its registration, in
 * DTest's C face.

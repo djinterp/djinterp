@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                                 parse.hpp
+* djinterp [cpp][parse]                                                parse.hpp
 *
 * Common primitives of the parsing subframework.
 *   Per the formal definition in ch-parsing.tex, a parser is a function

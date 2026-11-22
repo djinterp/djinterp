@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                        math_tests_exp_refs.h
+* djinterp [c][math]                                       math_tests_exp_refs.h
 *
 *   The double family's exponential's references (S416), for
 * t_exponential.c: arguments x, each a double, with e^x correctly rounded

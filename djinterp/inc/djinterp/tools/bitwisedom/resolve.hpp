@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                            resolve.hpp
+* djinterp [cpp][tools]                                              resolve.hpp
 *
 * Resolving a sheet: every row's macro name, value, colour and issues.
 *   A sheet says what each symbol is defined as; its resolution says what
@@ -23,6 +23,7 @@
 *   The order rows are shown in is the sheet's own, or each group's rows
 * sorted by a key -- a name, the value, the lowest bit -- which a window
 * asks for; the header follows the sheet's own order either way.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/resolve.hpp
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                             functional.hpp
+* djinterp [cpp][math]                                            functional.hpp
 *
 * Bridge between the math module and the functional subframework.
 *   Math expressions, math_function, and math relations all expose operator(),

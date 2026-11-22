@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        heap_sort_tests_sift.cpp
+* djinterp [cpp][utility]                               heap_sort_tests_sift.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/sort/heap_sort_tests_sift.cpp

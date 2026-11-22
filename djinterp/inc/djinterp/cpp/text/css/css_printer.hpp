@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 css_printer.hpp
+* djinterp [cpp][text]                                           css_printer.hpp
 *
 *   Sink-based output for CSS stylesheets - the CSS analogue of
 * pdf_printer / DDocumentPrinter.  A DCssPrinter<Sink> routes a

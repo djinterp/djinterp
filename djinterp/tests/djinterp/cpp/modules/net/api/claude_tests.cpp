@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                            claude_tests.cpp
+* djinterp [cpp][net]                                           claude_tests.cpp
 *
 * Tests of the Claude clients, net/api/claude.hpp and claude_api.hpp.
 *   No call reaches Anthropic: a stand-in of net's TCP layer answers on a

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                             mariadb_transaction.h
+* djinterp [c][db]                                         mariadb_transaction.h
 *
 * Transactions and savepoints on a MariaDB or MySQL connection.
 *   A transaction is begun explicitly, in one of the modes START TRANSACTION

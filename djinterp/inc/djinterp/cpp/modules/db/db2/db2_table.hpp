@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   db2_table.hpp
+* djinterp [cpp][db]                                               db2_table.hpp
 *
 * djinterp IBM Db2 table module:
 *   Db2-specific database_table subclass adding vendor features on top of

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                     dschema.h
+* djinterp [c][tools]                                                  dschema.h
 *
 * Property registry: what properties a host understands, known at load.
 *   A host describes each property once -- its name, whether it inherits, its

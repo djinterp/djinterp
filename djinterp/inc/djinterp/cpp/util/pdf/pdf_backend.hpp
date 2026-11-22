@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 pdf_backend.hpp
+* djinterp [cpp][utility]                                        pdf_backend.hpp
 *
 *
 * path:      /inc/djinterp/cpp/util/pdf/pdf_backend.hpp

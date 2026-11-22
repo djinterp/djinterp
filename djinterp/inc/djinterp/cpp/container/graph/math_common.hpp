@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 math_common.hpp
+* djinterp [cpp][container]                                      math_common.hpp
 *
 * Foundational mathematical types shared by the `math` and `container`
 * submodules.

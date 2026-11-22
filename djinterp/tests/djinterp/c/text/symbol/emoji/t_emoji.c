@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                         t_emoji.c
+* djinterp [c][text]                                                   t_emoji.c
 *
 *   Conformance harness for emoji.h's UTF-8 encoders. It checks
 * d_text_emoji_utf8_encode at both ends of every UTF-8 length and on each kind

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                           arg_command_set.c
+* djinterp [c][parse]                                          arg_command_set.c
 *
 * A command's settings, declared in arg_command.h (section 5).
 *   CLI11's App setters: the name, aliases and texts -- a subcommand's names

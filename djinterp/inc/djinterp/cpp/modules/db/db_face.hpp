@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     db_face.hpp
+* djinterp [cpp][db]                                                 db_face.hpp
 *
 * The C++ face of the database layers: what each layer's face shares.
 *   A layer's face -- sqlite_face.hpp, mariadb_face.hpp, postgres_face.hpp,

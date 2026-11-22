@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                      cfg_sqlite_connection.h
+* djinterp [c][db]                                       cfg_sqlite_connection.h
 *
 * Build-time configuration for c/modules/db/sqlite/sqlite_connection.h: what a
 * connection opened by d_sqlite_open, d_sqlite_open_readonly or

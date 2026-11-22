@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                               cfg_file_ops.h
+* djinterp [c][filesys]                                           cfg_file_ops.h
 *
 * Build-time configuration for c/filesys/file_ops.h -- whole-file operations
 * (remove, unlink, rename, copy).

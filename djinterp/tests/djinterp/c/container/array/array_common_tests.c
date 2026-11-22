@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                                      array_common_tests.c
+* djinterp [c][container]                                   array_common_tests.c
 *
 *   Comprehensive test runner for `array_common.h` unit tests.
 *   Contains helper functions and the main test suite runners.

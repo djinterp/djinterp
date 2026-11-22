@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                codec_base64.c
+* djinterp [c][net]                                               codec_base64.c
 *
 * Definitions for codec_base64.h: base64 in the variants net's protocols use.
 *   Decoding takes two passes. The first reads the whole text -- digits,

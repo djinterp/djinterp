@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                       dfile.hpp
+* djinterp [cpp][filesys]                                              dfile.hpp
 *
 * Umbrella for the C++ filesystem layer.
 *   Including this one header pulls in the whole layer -- the common base,

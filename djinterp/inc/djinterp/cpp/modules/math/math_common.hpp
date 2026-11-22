@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                            math_common.hpp
+* djinterp [cpp][math]                                           math_common.hpp
 *
 * Common foundation for the math subsystem.
 *   Establishes the math namespace macro and the shared environment include

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]               concurrency_strategy_traits_tests_predicates.cpp
+* djinterp [cpp][container]     concurrency_strategy_traits_tests_predicates.cpp
 *
 *   Section IV - the five per-strategy predicates.  Each is checked on its tag
 * path, on its structural path, and (where it matters) on the boundary where a

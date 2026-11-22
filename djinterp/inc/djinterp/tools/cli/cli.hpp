@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                       cli.hpp
+* djinterp [cpp][tools]                                                  cli.hpp
 *
 * The command-line kit's C++ umbrella: every header of the kit's C++ face,
 * and so the argument parser's face and both C libraries.

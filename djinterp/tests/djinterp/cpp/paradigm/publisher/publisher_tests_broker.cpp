@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     publisher_tests_broker.cpp
+* djinterp [cpp][paradigm]                            publisher_tests_broker.cpp
 *
 *   Tests of publisher.hpp's broker CRTP base (section VI): subscribe, publish
 * and unsubscribe, and the bookkeeping it inherits from the registry,

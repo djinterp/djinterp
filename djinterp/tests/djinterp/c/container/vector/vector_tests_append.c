@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                                     vector_tests_append.c
+* djinterp [c][container]                                  vector_tests_append.c
 *
 *
 * path:      /tests/djinterp/c/container/vector/vector_tests_append.c

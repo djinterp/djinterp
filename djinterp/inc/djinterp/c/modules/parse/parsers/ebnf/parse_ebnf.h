@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                parse_ebnf.h
+* djinterp [c][parse]                                               parse_ebnf.h
 *
 *   Extended BNF grammar parser. Supports standard BNF plus:
 *     - { X }   : zero or more repetitions

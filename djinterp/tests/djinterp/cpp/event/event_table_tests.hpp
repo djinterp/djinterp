@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          event_table_tests.hpp
+* djinterp [cpp][event]                                    event_table_tests.hpp
 *
 *   Declarations for the unit-test suite covering event_table.hpp.  Each free
 * function exercises one entity of the erased-store header and returns true if

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                          visualization.hpp
+* djinterp [cpp][tools]                                        visualization.hpp
 *
 *   The top-level, UI-framework-agnostic handle (roadmap phase 1d): binds a
 * `config`, a `state_source`, and a `lens` into one renderable object.  Every

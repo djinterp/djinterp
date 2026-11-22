@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]               container_transform_traits_tests_strategy.cpp
+* djinterp [cpp][container]        container_transform_traits_tests_strategy.cpp
 *
 *   Section II - the mapping strategy, the strongest realization a type's
 * iterability grants.  Priority: native (its own transform()) first, then a

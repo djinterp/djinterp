@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  archive_common.c
+* djinterp [c][utility]                                         archive_common.c
 *
 *   The archive kernel.  Every declaration in archive_common.h is defined here.
 *

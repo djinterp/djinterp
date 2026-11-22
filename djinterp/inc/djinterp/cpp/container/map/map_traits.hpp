@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  map_traits.hpp
+* djinterp [cpp][container]                                       map_traits.hpp
 *
 * Compile-time structural traits for map-like containers.
 *   Provides three layers of detection for any type that exhibits map

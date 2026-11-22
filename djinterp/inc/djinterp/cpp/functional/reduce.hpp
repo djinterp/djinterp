@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                      reduce.hpp
+* djinterp [cpp][functional]                                          reduce.hpp
 *
 * The drivers - the iteration half of the step/driver split:
 *   The dual-domain design separates a pure step (a reducer (acc, x) -> acc,

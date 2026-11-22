@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                           container_options.hpp
+* djinterp [cpp][container]                                container_options.hpp
 *
 * Universal per-axis option keys, enums, and canonical aliases for
 *   container configuration.

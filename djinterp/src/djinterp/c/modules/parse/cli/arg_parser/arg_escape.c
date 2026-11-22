@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                arg_escape.c
+* djinterp [c][parse]                                               arg_escape.c
 *
 * CLI11's string escapes, declared in arg_internal.h (section 5).
 *   Backslash escapes resolved as CLI11's remove_escaped_characters resolves

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 sftp_common.c
+* djinterp [c][net]                                                sftp_common.c
 *
 * Implementation of the SFTP vocabulary and codec declared in sftp_common.h.
 *   Every reader goes through dj_ssh_reader, whose failure is sticky, so each

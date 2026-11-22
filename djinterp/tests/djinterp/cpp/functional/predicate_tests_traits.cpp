@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                               predicate_tests_traits.cpp
+* djinterp [cpp][functional]                          predicate_tests_traits.cpp
 *
 *   Tests for the structural detection traits: is_predicate_and / _or / _xor /
 * _not / _nand / _nor, the aggregate is_predicate_combinator, and their _v

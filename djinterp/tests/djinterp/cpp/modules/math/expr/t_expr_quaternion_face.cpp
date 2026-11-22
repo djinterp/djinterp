@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                 t_expr_quaternion_face.cpp
+* djinterp [cpp][math]                                t_expr_quaternion_face.cpp
 *
 * Tests for math/expr/quaternion_kind.hpp, the language's quaternions, and for
 * what step 24's second part (3f) made of them in the language: the kind and the

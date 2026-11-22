@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   file_stat.hpp
+* djinterp [cpp][filesys]                                          file_stat.hpp
 *
 * djinterp::file_status -- what the filesystem knows about a path, captured
 * once (roadmap Phase 5).

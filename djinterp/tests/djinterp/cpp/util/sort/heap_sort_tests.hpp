@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            heap_sort_tests.hpp
+* djinterp [cpp][utility]                                    heap_sort_tests.hpp
 *
 *   unit-test suite for heap_sort.hpp.
 * Declares every tests_heap_sort_* predicate and the adapters the suite's

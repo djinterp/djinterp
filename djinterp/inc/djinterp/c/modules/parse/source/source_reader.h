@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                             source_reader.h
+* djinterp [c][parse]                                            source_reader.h
 *
 * Translation phases 1 and 2, and the line index every consumer needs.
 *   This module is below lexing and does not depend on it.  A verifier that

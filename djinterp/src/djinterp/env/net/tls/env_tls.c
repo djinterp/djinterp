@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                       env_tls.c
+* djinterp [c][env]                                                    env_tls.c
 *
 *   Runtime implementation of the probe env_tls.h declares: whether a TLS
 * library negotiates TLS 1.3 on the system the program runs on. Only

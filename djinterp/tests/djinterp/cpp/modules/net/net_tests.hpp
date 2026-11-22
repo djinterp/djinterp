@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                               net_tests.hpp
+* djinterp [cpp][net]                                              net_tests.hpp
 *
 * djinterp net foundation C++ tests.
 *   Declarations for the tests of net/net.hpp: the vocabulary's agreement

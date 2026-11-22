@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   pipeline_tests_aggregate.cpp
+* djinterp [cpp][functional]                        pipeline_tests_aggregate.cpp
 *
 * Aggregating-operation tests (section ii / iii):
 *   test_fold      -- left fold with an explicit init (incl. empty).

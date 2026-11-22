@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                             pdf_builtin_backend.c
+* djinterp [c][utility]                                    pdf_builtin_backend.c
 *
 * The built-in writer's serialization primitives.
 *   Defines what pdf_builtin_backend.h declares, byte for byte with the C++

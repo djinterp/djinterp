@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                           cli_program_tests.h
+* djinterp [c][tools]                                        cli_program_tests.h
 *
 * The suite of the command-line kit's program (cli_program.c): what making a
 * program gives its parser; the endings a parse calls for, and the statuses

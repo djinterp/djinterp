@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                        sass.hpp
+* djinterp [cpp][text]                                                  sass.hpp
 *
 *   Foundational Sass / SCSS module for the djinterp framework.
 * Layered on top of the CSS module: a Sass stylesheet IS a CSS

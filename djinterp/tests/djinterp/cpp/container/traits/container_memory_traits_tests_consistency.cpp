@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]               container_memory_traits_tests_consistency.cpp
+* djinterp [cpp][container]        container_memory_traits_tests_consistency.cpp
 *
 *   Section IV - container_memory_consistent, the cross-check between a
 * container's resolved DISCIPLINE and its independently classified SITING (from

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                html_dialect.hpp
+* djinterp [cpp][text]                                          html_dialect.hpp
 *
 *   Compile-time policy template that captures an HTML / XHTML
 * dialect via a single enum-parameterized template. Properties of the

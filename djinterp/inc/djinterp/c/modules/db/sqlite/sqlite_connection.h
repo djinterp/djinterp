@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                               sqlite_connection.h
+* djinterp [c][db]                                           sqlite_connection.h
 *
 * Opening and closing SQLite connections, what a connection can say about
 * itself, and the extensions it loads.

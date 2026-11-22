@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          db_log_tests_runner.c
+* djinterp [c][db]                                         db_log_tests_runner.c
 *
 * The runner for db's codes for the log: options, then its one section,
 * d_tests_db_log, which opens its module and builds it call by call

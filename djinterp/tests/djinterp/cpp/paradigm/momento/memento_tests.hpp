@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              memento_tests.hpp
+* djinterp [cpp][paradigm]                                     memento_tests.hpp
 *
 *   Unit-test suite header for inc/djinterp/paradigm/momento/memento.hpp - the
 * Memento pattern module. Two faces, selected by DTEST_SPEC_MODE:

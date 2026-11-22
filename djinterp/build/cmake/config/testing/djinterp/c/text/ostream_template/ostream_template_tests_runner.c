@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                ostream_template_tests_runner.c
+* djinterp [c][text]                             ostream_template_tests_runner.c
 *
 * The runner for ostream_template's suite: options, then the module.
 *

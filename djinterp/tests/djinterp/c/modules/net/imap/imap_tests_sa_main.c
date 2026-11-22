@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                          imap_tests_sa_main.c
+* djinterp [c][net]                                         imap_tests_sa_main.c
 *
 * The IMAP kernel's standalone suite: its runner and entry point.
 *   Runs every test and exits 0 only if each passed.

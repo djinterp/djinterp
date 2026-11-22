@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              option_compose.hpp
+* djinterp [cpp][option]                                      option_compose.hpp
 *
 *   Fluent idioms for defining an option SURFACE and folding it into an
 * option_set in ONE expression.  This is the "declare + add" sugar layer

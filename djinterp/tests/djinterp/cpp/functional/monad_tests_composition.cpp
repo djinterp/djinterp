@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    monad_tests_composition.cpp
+* djinterp [cpp][functional]                         monad_tests_composition.cpp
 *
 *   Tests for monad.hpp Section II sequencing/composition operations:
 * monad_then (sequence, discard the first value), kleisli_compose

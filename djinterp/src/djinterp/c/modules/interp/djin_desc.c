@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       djin_desc.c
+* djinterp [c][interp]                                               djin_desc.c
 *
 *   A djin, a frame and a djin's command as desc's facts, declared in
 * djin_desc.h. The settings are the option core's own reading of them

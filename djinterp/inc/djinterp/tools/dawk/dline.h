@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                       dline.h
+* djinterp [c][tools]                                                    dline.h
 *
 * Text-layer extension: the file as lines, before any language reads it.
 *   Emits one `text` node beneath a file node, carrying the facts that are

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                    starttls.h
+* djinterp [c][net]                                                   starttls.h
 *
 * STARTTLS common module: the in-band TLS upgrade every STARTTLS protocol
 * shares.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                complex.hpp
+* djinterp [cpp][math]                                               complex.hpp
 *
 * Complex numbers in C++: math::complex<T>, of float, double and long double,
 * the face of the C core's struct dj_cplx_f, _d and _ld (c/math/cplx.h), as

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                             cfg_bitwisedom.h
+* djinterp [c][tools]                                           cfg_bitwisedom.h
 *
 * Configuration of bitwisedom, the bitfield manager on djinterp's kit.
 *   What its command line takes as a setting's KEY: the names the window's

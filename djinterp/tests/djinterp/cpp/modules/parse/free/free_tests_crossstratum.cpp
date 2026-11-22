@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [parse]                                   free_tests_crossstratum.cpp
+* djinterp [cpp][parse]                              free_tests_crossstratum.cpp
 *
 *   Section VII of the parser/free.hpp suite: the cross-stratum lifts along the
 * chain  FreeAp F A  <=  FreeSel F A  <=  Free F A.  ap_to_sel rewraps the same

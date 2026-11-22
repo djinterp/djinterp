@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                 dinclude.h
+* djinterp [c][tools]                                                 dinclude.h
 *
 * Include extension:
 *   Builds include groups: each maximal run of consecutive `#include` lines is

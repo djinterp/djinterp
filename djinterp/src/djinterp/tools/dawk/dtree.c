@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                    dtree.c
+* djinterp [c][tools]                                                    dtree.c
 *
 * Filesystem tree record source:
 *   Yields one record per file beneath a root, in document order: a directory

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                               clex.hpp
+* djinterp [cpp][tools]                                                 clex.hpp
 *
 * C and C++ text as tokens, read by djinterp's scanners.
 *   bitwisedom reads C in three places -- a macro row's body, a header it is
@@ -15,6 +15,7 @@
 *   The scanners run in the preprocessor's view: identifiers are never
 * resolved to keywords, since a directive's names and a macro's body are
 * read before phase 7, and comments are reported only when asked for.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/clex.hpp
 * link(s):   TBA

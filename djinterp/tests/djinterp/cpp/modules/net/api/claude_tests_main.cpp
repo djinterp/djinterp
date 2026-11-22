@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                       claude_tests_main.cpp
+* djinterp [cpp][net]                                      claude_tests_main.cpp
 *
 * Runs the Claude clients' tests; without libcurl there are none to run.
 *

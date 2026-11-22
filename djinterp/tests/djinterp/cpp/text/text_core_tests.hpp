@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            text_core_tests.hpp
+* djinterp [cpp][text]                                       text_core_tests.hpp
 *
 *   text's core C++ headers -- text_align.hpp, text_template.hpp and
 * text_pattern.hpp -- in DTest's C face (c/modules/test/test_suite.h).

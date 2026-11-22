@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               contravariant.hpp
+* djinterp [cpp][functional]                                   contravariant.hpp
 *
 * Contravariant functor protocol and its map, contramap (C++).
 *   A contravariant functor is a type constructor F<T> that consumes values of

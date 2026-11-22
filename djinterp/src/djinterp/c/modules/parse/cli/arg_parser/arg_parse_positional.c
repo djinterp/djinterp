@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                      arg_parse_positional.c
+* djinterp [c][parse]                                     arg_parse_positional.c
 *
 * The positional step of the parse, declared in arg_internal.h (8.1.7).
 *   CLI11's _parse_positional: an argument recognized as nothing else is

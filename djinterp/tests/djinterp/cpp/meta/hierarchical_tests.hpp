@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                      hierarchical_tests.hpp
+* djinterp [cpp][meta]                                    hierarchical_tests.hpp
 *
 * Unit test suite for hierarchical.hpp -- the HIERARCHICAL structural-kind tag.
 *   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):

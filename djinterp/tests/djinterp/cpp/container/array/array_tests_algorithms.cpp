@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     array_tests_algorithms.cpp
+* djinterp [cpp][container]                           array_tests_algorithms.cpp
 *
 *   Algorithm tests: fill and swap, the free array_equal, array_copy and
 * array_swap, their lifetime gates, and their use in constant expressions.

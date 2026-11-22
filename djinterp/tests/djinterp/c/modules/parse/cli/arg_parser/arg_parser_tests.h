@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                          arg_parser_tests.h
+* djinterp [c][parse]                                         arg_parser_tests.h
 *
 * The suite of the argument parser itself (arg_parser.c): ending a parse,
 * as CLI11's exit() ends one, from the root and from any command, into

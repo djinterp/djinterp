@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        cofree_tests_extend.cpp
+* djinterp [cpp][functional]                             cofree_tests_extend.cpp
 *
 *   Section II.3 (extend) of the cofree.hpp suite, plus the comonad face of the
 * registration: cofree_extend re-decorates every node with a function of that

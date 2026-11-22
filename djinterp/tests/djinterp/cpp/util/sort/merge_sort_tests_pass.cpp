@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                       merge_sort_tests_pass.cpp
+* djinterp [cpp][utility]                              merge_sort_tests_pass.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/sort/merge_sort_tests_pass.cpp

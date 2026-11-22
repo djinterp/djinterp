@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       djin_desc.h
+* djinterp [c][interp]                                               djin_desc.h
 *
 *   A djin as facts: its name, version and summary, its commands, its
 * settings and what its own describe slot adds, given to a desc sink

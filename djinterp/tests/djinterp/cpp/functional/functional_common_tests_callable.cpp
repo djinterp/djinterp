@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                            functional_common_tests_callable.cpp
+* djinterp [cpp][functional]                functional_common_tests_callable.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/functional_common_tests_callable.cpp

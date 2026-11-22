@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         text_edit_tests_edit.c
+* djinterp [c][text]                                      text_edit_tests_edit.c
 *
 * The text_edit suite: every block. A helper applies a set to a text and
 * compares the result with what is expected, freeing it either way.

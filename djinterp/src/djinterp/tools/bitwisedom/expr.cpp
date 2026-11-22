@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                               expr.cpp
+* djinterp [cpp][tools]                                                 expr.cpp
 *
 * Integer expressions: tokenizer, recursive-descent parser, evaluator and
 * C printer.
@@ -7,6 +7,7 @@
 * unary operators, each building nodes in the expression's flat list and
 * returning the index of the node it built -- so the tree is a value, copied
 * with the sheet that holds it, and nothing points into it.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/expr.cpp
 * link(s):   TBA

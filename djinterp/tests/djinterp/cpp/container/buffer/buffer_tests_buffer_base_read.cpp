@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                              buffer_tests_buffer_base_read.cpp
+* djinterp [cpp][container]                    buffer_tests_buffer_base_read.cpp
 *
 *   Unit tests for DBufferBase's read surface, which is only available
 * when the cursor policy exposes a read cursor (dual_cursor_policy).

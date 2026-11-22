@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   color_convert.c
+* djinterp [c][utility]                                          color_convert.c
 *
 *   External-definition unit for color_convert.h. The cross-model conversion bodies live in the
 * header as `inline`; this unit re-declares their prototypes so one out-of-

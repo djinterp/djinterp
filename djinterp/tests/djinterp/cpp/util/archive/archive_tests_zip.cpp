@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          archive_tests_zip.cpp
+* djinterp [cpp][utility]                                  archive_tests_zip.cpp
 *
 *   Tests for the zip writer and reader: file and directory round-trips, the
 * store vs deflate method choice, the empty archive, and rejection of an

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                graph_common.hpp
+* djinterp [cpp][container]                                     graph_common.hpp
 *
 * Foundational graph types -- enums, descriptors, edge primitives, storage
 * policies, traversal tags, and sentinels.

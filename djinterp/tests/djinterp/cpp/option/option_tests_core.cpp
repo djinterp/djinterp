@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          option_tests_core.cpp
+* djinterp [cpp][option]                                   option_tests_core.cpp
 *
 *   Section II of the option.hpp suite: the core option<> type.
 *

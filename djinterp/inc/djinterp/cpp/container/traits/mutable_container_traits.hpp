@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    mutable_container_traits.hpp
+* djinterp [cpp][container]                         mutable_container_traits.hpp
 *
 * SFINAE structural traits for mutability classification - WHAT mutation a
 * container's public interface admits.

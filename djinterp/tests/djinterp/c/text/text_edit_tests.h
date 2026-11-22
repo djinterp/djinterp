@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              text_edit_tests.h
+* djinterp [c][text]                                           text_edit_tests.h
 *
 * The suite for c/text/text_edit.h, in DTest's C spec form: making a set of
 * changes, recording them and refusing overlaps, and applying them, one block

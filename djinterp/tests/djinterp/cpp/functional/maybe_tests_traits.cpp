@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         maybe_tests_traits.cpp
+* djinterp [cpp][functional]                              maybe_tests_traits.cpp
 *
 * Predicate & structural trait tests for maybe.hpp section II:
 *   is_maybe<T>, is_maybe_predicate<P, T>, the variable-template shorthands

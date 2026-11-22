@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                        differentiation.hpp
+* djinterp [cpp][math]                                       differentiation.hpp
 *
 * Symbolic and numerical differentiation.
 *   Symbolic differentiation rewrites the expression AST of expression.hpp

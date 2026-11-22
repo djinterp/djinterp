@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                            buffer_common_tests_capacity.c
+* djinterp [c][container]                         buffer_common_tests_capacity.c
 *
 *
 * path:      /tests/djinterp/c/container/buffer/buffer_common_tests_capacity.c

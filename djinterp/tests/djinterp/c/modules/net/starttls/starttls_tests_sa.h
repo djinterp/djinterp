@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                           starttls_tests_sa.h
+* djinterp [c][net]                                          starttls_tests_sa.h
 *
 * Standalone tests of the STARTTLS common module.
 *   Most tests run a session against net_tests_peer.h's scripted peer: a

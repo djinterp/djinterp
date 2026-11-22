@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                pdf_template.hpp
+* djinterp [cpp][utility]                                       pdf_template.hpp
 *
 *   A PDF-specialised DDocumentTemplate.  Everything a template IS -- an element
 * sequence, `{token}` interpolation, named styles, `repeat` over a bound

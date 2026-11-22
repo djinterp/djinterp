@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       option_factory_tests.hpp
+* djinterp [cpp][option]                                option_factory_tests.hpp
 *
 *   Shared surface for the option_factory.hpp unit suite.  Declares the three
 * section block-providers - each defined in its own translation unit, one per

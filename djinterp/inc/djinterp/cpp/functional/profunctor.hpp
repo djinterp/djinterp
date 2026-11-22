@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  profunctor.hpp
+* djinterp [cpp][functional]                                      profunctor.hpp
 *
 * Profunctor protocol: dimap over a two-parameter arrow (C++).
 *   A profunctor is a two-parameter type P<A, B> that is *contravariant* in its

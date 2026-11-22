@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             byte_array_tests.c
+* djinterp [c][container]                                     byte_array_tests.c
 *
 *   Module-level aggregation for byte_array.h unit tests.
 *   Runs all test categories for the byte_array module.

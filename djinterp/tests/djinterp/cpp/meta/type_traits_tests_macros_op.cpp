@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                type_traits_tests_macros_op.cpp
+* djinterp [cpp][meta]                           type_traits_tests_macros_op.cpp
 *
 *   Unit tests for the operator-detection macros (now in trait_detect.hpp)
 * and the legacy HAS_METHOD_OF_TYPE family (still in type_traits.hpp's

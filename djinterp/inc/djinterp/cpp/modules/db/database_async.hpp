@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              database_async.hpp
+* djinterp [cpp][db]                                          database_async.hpp
 *
 * Operations that do not block, over the C layers' calls that do not wait.
 *   async_operation<Result> is one operation of a connection or a prepared

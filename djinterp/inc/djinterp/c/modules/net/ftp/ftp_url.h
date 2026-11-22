@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                     ftp_url.h
+* djinterp [c][net]                                                    ftp_url.h
 *
 * FTP URLs (RFC 1738, RFC 3986): ftp://, ftps://, and ftpes://.
 *   Splits a URL into scheme, credentials, host, port, path, and ;type= code

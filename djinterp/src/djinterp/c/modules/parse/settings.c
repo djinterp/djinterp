@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                  settings.c
+* djinterp [c][parse]                                                 settings.c
 *
 * Parse's settings group (settings.h): the schema, the djin over storage of
 * its own, its registration, and the reader expression core v2 consults.

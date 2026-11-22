@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                   draw.hpp
+* djinterp [cpp][tools]                                                 draw.hpp
 *
 *   The framework-agnostic 2D draw layer.  project_scene() takes a scene and a
 * camera and flattens the 3D content into a depth-ordered list of 2D line

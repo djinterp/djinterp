@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                              event_dispatcher_tests_traits.cpp
+* djinterp [cpp][event]                        event_dispatcher_tests_traits.cpp
 *
 *   Sections V-VI -- STRUCTURAL DETECTION HELPERS and EVENT DISPATCHER TRAITS.
 * event_dispatcher_traits performs compile-time structural detection of the

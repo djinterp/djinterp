@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                    t_plane.c
+* djinterp [c][math]                                                   t_plane.c
 *
 *   Conformance harness for c/math/plane.h, all three families: each kernel
 * against the 2D shape header's former formulas, written out here in the

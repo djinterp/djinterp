@@ -1,9 +1,10 @@
 /*******************************************************************************
-* bitwisedom [tests]                                         macos_macho_flags.c
+* djinterp [c][tools]                                        macos_macho_flags.c
 *
 * The Mach-O example against mach-o/loader.h: every header flag,
 * compared with the platform's own at compile time. Built where the
 * build targets macOS.
+*
 *
 * path:      /tests/djinterp/tools/bitwisedom/platform/macos_macho_flags.c
 * link(s):   TBA

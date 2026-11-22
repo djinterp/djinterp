@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                            cfg_event_table.h
+* djinterp [c][event]                                          cfg_event_table.h
 *
 *   Configuration for the type-erased handler store: storage strategy, default
 * capacities, the rehash policy, and which optional operations compile.

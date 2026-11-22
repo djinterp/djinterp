@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [core]                                  database_tests_exceptions.cpp
+* djinterp [cpp][db]                               database_tests_exceptions.cpp
 *
 *
 * path:      /tests/unintegrated/cpp/db/database_tests_exceptions.cpp

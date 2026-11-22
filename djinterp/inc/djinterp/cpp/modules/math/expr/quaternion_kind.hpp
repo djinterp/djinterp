@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                        quaternion_kind.hpp
+* djinterp [cpp][math]                                       quaternion_kind.hpp
 *
 * Quaternions as values of the run-time expression language; roadmap Phase
 * 3, step 24 (3f), its second part.

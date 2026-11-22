@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                            test_tier34.c
+* djinterp [c][functional]                                         test_tier34.c
 *
 *
 * path:      /tests/djinterp/c/functional/test_tier34.c

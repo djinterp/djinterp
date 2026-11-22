@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                              dwiki_markdown.c
+* djinterp [c][tools]                                           dwiki_markdown.c
 *
 * The Markdown driver: a GitHub wiki's pages.
 *   Blocks are read as CommonMark reads them, a line at a time: the line is

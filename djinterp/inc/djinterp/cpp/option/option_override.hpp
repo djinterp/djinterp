@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             option_override.hpp
+* djinterp [cpp][option]                                     option_override.hpp
 *
 *   Option-aware override engine plus option-specific policies built on top
 * of the abstract override foundation.

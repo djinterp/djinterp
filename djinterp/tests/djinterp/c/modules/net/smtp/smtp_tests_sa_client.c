@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                        smtp_tests_sa_client.c
+* djinterp [c][net]                                       smtp_tests_sa_client.c
 *
 * djinterp SMTP kernel tests -- client sessions.
 *   Standalone tests of smtp_client.c over net_tests_peer.h's scripted peer,

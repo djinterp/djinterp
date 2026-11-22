@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             enum_map_traits.hpp
+* djinterp [cpp][container]                                  enum_map_traits.hpp
 *
 * Compile-time structural traits for enum-keyed map containers.
 *   Extends map_traits.hpp with detection and classification specific to

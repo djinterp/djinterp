@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                      pack_element_tests.hpp
+* djinterp [cpp][meta]                                    pack_element_tests.hpp
 *
 *   Unit-test surface for the positional pack accessor (core/meta/
 * pack_element.hpp).  This header carries ONLY declarations and the fixtures

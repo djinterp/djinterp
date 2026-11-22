@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                          reduce_tests_value.cpp
+* djinterp [cpp][functional]                              reduce_tests_value.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/reduce_tests_value.cpp

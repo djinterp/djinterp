@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   pipeline_tests_accessors.cpp
+* djinterp [cpp][functional]                        pipeline_tests_accessors.cpp
 *
 * Accessor / status / iteration tests (section iv):
 *   test_accessors -- size, empty, has_error, error_code, data, operator[],

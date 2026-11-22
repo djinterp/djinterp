@@ -1,10 +1,11 @@
 /*******************************************************************************
-* bitwisedom [tests]                                               linux_ioctl.c
+* djinterp [c][tools]                                              linux_ioctl.c
 *
 * The ioctl example against the kernel's headers: the fields, the
 * directions, the commands and the _IOC family, compared with the
 * platform's own at compile time. Built where the build targets
 * Linux.
+*
 *
 * path:      /tests/djinterp/tools/bitwisedom/platform/linux_ioctl.c
 * link(s):   TBA

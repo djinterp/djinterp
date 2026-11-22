@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                 cli_program.c
+* djinterp [c][tools]                                              cli_program.c
 *
 * A command-line program as the kit runs it, declared in cli_program.h, and
 * the text helpers of cli_internal.h's section 2.

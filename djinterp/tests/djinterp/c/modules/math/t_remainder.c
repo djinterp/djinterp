@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                t_remainder.c
+* djinterp [c][math]                                               t_remainder.c
 *
 *   Conformance harness for c/math/remainder.h. fmod_c, remainder_c and
 * remquo_c must be exact, and so the C library's fmod, remainder and

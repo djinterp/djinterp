@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  cli_system.c
+* djinterp [c][tools]                                               cli_system.c
 *
 * What the command-line kit asks of the operating system, declared in
 * cli_internal.h (section 1).

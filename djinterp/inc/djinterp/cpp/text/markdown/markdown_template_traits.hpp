@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    markdown_template_traits.hpp
+* djinterp [cpp][text]                              markdown_template_traits.hpp
 *
 *   Structural SFINAE detection traits for Markdown block /
 * inline / document / backend types. Mirrors the

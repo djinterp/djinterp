@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        color_tests_include.cpp
+* djinterp [cpp][utility]                                color_tests_include.cpp
 *
 *   The color umbrella suite, block "include": color.hpp alone, included
 * through the suite header and nothing else from the module, gives every

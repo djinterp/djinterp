@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     comonad_tests_protocol.cpp
+* djinterp [cpp][functional]                          comonad_tests_protocol.cpp
 *
 *   Section 0 + I of the comonad.hpp suite: the protocol and its detection
 * vocabulary.  Covers is_comonad (and its _v shorthand), comonad_value_type

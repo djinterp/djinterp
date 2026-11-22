@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          sqlite_tests_runner.c
+* djinterp [c][db]                                         sqlite_tests_runner.c
 *
 * The runner for c/modules/db/sqlite's suite, the layer against SQLite: options,
 * then the suite's one section, d_tests_sqlite, which opens its module and

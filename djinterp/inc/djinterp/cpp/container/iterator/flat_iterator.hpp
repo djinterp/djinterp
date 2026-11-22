@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               flat_iterator.hpp
+* djinterp [cpp][container]                                    flat_iterator.hpp
 *
 *   The foundational FLAT iterator: a positional traversal over a flat
 * container's

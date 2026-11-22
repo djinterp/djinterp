@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/jit]                                                     jit_x86.c
+* djinterp [c][jit]                                                    jit_x86.c
 *
 * djinterp x86 (32-bit) JIT encoder -- implementation (jit_x86.h).
 *   A general ModR/M + SIB + displacement encoder drives every operand-taking

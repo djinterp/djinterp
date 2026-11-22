@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                      sqlite.cpp
+* djinterp [cpp][db]                                                  sqlite.cpp
 *
 * Definitions for sqlite.hpp: sqlite_connection's hooks and members, and the
 * SQLite layer's failures, over the layer's face.

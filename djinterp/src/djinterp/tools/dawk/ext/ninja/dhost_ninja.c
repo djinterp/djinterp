@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                 dhost_ninja.c
+* djinterp [c][tools]                                              dhost_ninja.c
 *
 * Definitions for the declarations in dhost_ninja.h.
 *   Each file open is a dninja document, and each build loaded a dninja_eval
@@ -9,6 +9,7 @@
 * are now, each field by its name; a change is the document's, which keeps
 * it or says why not. A list -- of paths, of edges -- is given a line to an
 * item.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/ninja/dhost_ninja.c
 * link(s):   TBA

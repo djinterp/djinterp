@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         timer_tests_runner.cpp
+* djinterp [cpp][utility]                                 timer_tests_runner.cpp
 *
 *   The runner for timer.hpp's suite: registers each test with report_builder
 * in one module, and writes the console report and timer_tests.pdf.

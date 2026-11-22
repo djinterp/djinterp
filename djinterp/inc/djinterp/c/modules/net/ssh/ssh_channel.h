@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 ssh_channel.h
+* djinterp [c][net]                                                ssh_channel.h
 *
 * SSH channels: the services that run inside an authenticated session.
 *   A session channel takes exactly one of exec, a subsystem such as

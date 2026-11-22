@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  option_builder_tests_wrap.cpp
+* djinterp [cpp][option]                           option_builder_tests_wrap.cpp
 *
 *   Section I of the option_builder.hpp suite: the per-chunk wrapper.
 *

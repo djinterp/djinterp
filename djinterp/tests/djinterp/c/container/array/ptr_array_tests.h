@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              ptr_array_tests.h
+* djinterp [c][container]                                      ptr_array_tests.h
 *
 *   Unit test declarations for `ptr_array.h` module.
 *   Provides comprehensive testing of all dj_ptr_array functions including

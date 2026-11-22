@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                     container_memory_traits.hpp
+* djinterp [cpp][container]                          container_memory_traits.hpp
 *
 *   Container-side classification on the MEMORY-DISCIPLINE axis: given a
 * container type, what kind of memory does it draw upon - a general-purpose

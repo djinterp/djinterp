@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                             quaternion.hpp
+* djinterp [cpp][math]                                            quaternion.hpp
 *
 * Quaternions in linear algebra's namespace: linalg::quaternion and its
 * functions are math::quaternion and its (../quaternion.hpp), named here by

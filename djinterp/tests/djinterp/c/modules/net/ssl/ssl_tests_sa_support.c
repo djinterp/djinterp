@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                        ssl_tests_sa_support.c
+* djinterp [c][net]                                       ssl_tests_sa_support.c
 *
 * What the SSL kernel's tests share: the run's contexts, and a client and a
 * server session over the two ends of a pipe.

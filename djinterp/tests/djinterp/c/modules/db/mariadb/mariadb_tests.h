@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                mariadb_tests.h
+* djinterp [c][db]                                               mariadb_tests.h
 *
 *   The suite of c/modules/db/mariadb: the layer against a MariaDB or MySQL
 * server, in DTest's C face. It has one section, its entry point, and the runner

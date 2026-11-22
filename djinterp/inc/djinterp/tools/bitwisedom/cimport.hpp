@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                            cimport.hpp
+* djinterp [cpp][tools]                                              cimport.hpp
 *
 * C and C++ code read into a sheet: its #defines become rows.
 *   A header -- or any text with #defines in it, a snippet pasted from one --
@@ -24,6 +24,7 @@
 * and `#pragma once` become the generator's settings, and a djinterp
 * banner its author. Declarations and code are not definitions, and are
 * left out, and said to be.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/cimport.hpp
 * link(s):   TBA

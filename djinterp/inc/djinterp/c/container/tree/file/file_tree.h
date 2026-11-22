@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_tree.h
+* djinterp [c][container]                                            file_tree.h
 *
 *   A file-system tree container built on the N-ary tree infrastructure.
 * Represents hierarchical directory structures with typed nodes (files,

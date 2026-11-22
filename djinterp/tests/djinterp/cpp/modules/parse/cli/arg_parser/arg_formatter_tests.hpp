@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                   arg_formatter_tests.hpp
+* djinterp [cpp][parse]                                  arg_formatter_tests.hpp
 *
 * The argument parser's C++ formatter suite: help's formatter, through the
 * C++ face's cli::formatter.

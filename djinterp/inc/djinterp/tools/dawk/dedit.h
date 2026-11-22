@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                    dedit.h
+* djinterp [c][tools]                                                    dedit.h
 *
 * Line editing:
 *   Reads one line of a file by number, and replaces one line of a file in

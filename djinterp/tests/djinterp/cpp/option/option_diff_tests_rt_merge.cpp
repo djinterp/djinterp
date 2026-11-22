@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 option_diff_tests_rt_merge.cpp
+* djinterp [cpp][option]                          option_diff_tests_rt_merge.cpp
 *
 *   PART B / B.III - runtime merge (option_merge) over DTestOptionMap.
 * Exercises all three modes and, crucially, their two DIFFERENT count

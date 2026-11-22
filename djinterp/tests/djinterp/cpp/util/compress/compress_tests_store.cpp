@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       compress_tests_store.cpp
+* djinterp [cpp][utility]                               compress_tests_store.cpp
 *
 *   Tests for the store codec - the built-in, always-available verbatim copy
 * (compress.cpp section II, store_copy) reached through the facade for both

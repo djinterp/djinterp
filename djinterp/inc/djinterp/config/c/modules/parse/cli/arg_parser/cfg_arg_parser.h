@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                             cfg_arg_parser.h
+* djinterp [c][parse]                                           cfg_arg_parser.h
 *
 * Configuration of the command-line argument parser.
 *   Which optional parts of the parser are compiled -- configuration files,

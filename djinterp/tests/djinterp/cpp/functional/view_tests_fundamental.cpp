@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     view_tests_fundamental.cpp
+* djinterp [cpp][functional]                          view_tests_fundamental.cpp
 *
 * Fundamental view tests (section II): the non-owning, owning, and
 * iterator-pair wrappers.

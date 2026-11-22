@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                       dmake.c
+* djinterp [c][tools]                                                    dmake.c
 *
 * Reads a makefile into records, as its make reads it: see dmake.h.
 *   The logical lines first, in one pass over the text: each physical line
@@ -9,6 +9,7 @@
 * turn into statements and comments, through the records and the scanning
 * dmake_internal.h shares. The guess walks the same lines without keeping
 * them, and stops at the first that only one make reads.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/make/dmake.c
 * link(s):   TBA

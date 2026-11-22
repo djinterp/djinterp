@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                      lookup.hpp
+* djinterp [cpp][utility]                                             lookup.hpp
 *
 *   Compile-time lookup-by-key idioms over type packs.  Domain-agnostic:
 * knows nothing about options, settings, commands, configs, or any other

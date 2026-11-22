@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                  ssh_engine.h
+* djinterp [c][net]                                                 ssh_engine.h
 *
 * The SSH engine interface: the operations an SSH library provides.
 *   An engine owns the SSH transport -- key exchange, encryption, framing

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                               threadsafe_container_concepts.hpp
+* djinterp [cpp][container]                    threadsafe_container_concepts.hpp
 *
 * C++20 concepts for the THREAD SAFETY (the lock surface) axis -- the
 * `requires`-facing view of threadsafe_container_traits.hpp.

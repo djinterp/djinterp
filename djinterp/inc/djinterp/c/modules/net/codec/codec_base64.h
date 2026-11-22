@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                codec_base64.h
+* djinterp [c][net]                                               codec_base64.h
 *
 * Base64 (RFC 4648 section 4) for net's protocols, in each variant they use.
 *   One codec serves every module that encodes or decodes base64: SASL's,

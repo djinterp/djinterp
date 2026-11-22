@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_open.h
+* djinterp [c][filesys]                                              file_open.h
 *
 * Opening, reopening and closing FILE* streams.
 *   Every path this subframework opens as a stream goes through here, so the

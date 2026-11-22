@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                          arg_option_tests.h
+* djinterp [c][parse]                                         arg_option_tests.h
 *
 * The suite of the argument parser's options (arg_option.h): what a
 * definition string makes of names, and the names a command refuses; how a

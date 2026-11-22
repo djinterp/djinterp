@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     sink_common.c
+* djinterp [c][utility]                                            sink_common.c
 *
 *   The spans and the sink.  Nothing here allocates, opens anything, or knows
 * what the bytes mean -- which is what lets every producer in the framework

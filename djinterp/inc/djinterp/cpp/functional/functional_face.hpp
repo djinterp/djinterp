@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             functional_face.hpp
+* djinterp [cpp][functional]                                 functional_face.hpp
 *
 * The C++ face of the functional core: wrappers over the C types, never
 * redeclarations of them.

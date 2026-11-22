@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 cpp_named23.hpp
+* djinterp [cpp][meta]                                           cpp_named23.hpp
 *
 * C++23 named requirement type traits:
 *   Extends the C++20 named requirement traits with C++23 refinements:

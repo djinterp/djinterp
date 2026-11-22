@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                               cenv.hpp
+* djinterp [cpp][tools]                                                 cenv.hpp
 *
 * The define environment: macros, as the preprocessor expands them, and
 * integer constant expressions, as C and C++ evaluate them.
@@ -27,6 +27,7 @@
 * taken, the right of a decided && or ||, sizeof's) are typed but not
 * evaluated, so their problems are not problems.
 *   NOTHING HERE THROWS.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/cenv.hpp
 * link(s):   TBA

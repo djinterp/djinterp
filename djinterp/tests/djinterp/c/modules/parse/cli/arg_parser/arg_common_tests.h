@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                          arg_common_tests.h
+* djinterp [c][parse]                                         arg_common_tests.h
 *
 * The suite of the argument parser's shared vocabulary (arg_common.h).
 *   Statuses, their names, the messages they carry and the exit codes CLI11

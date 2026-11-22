@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                          lifetime_tests.hpp
+* djinterp [cpp][meta]                                        lifetime_tests.hpp
 *
 * Unit test suite for lifetime.hpp -- the compile-time / runtime lifetime
 * vocabulary, its lattice algebra, and the type classifier built on it.

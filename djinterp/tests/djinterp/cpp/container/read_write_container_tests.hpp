@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                read_write_container_tests.hpp
+* djinterp [cpp][container]                       read_write_container_tests.hpp
 *
 *   Suite header for read_write_container.hpp - the full-capability member of
 * the access trio, the unrestricted baseline its two siblings restrict.

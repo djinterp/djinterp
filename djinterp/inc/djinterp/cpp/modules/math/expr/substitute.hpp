@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                             substitute.hpp
+* djinterp [cpp][math]                                            substitute.hpp
 *
 * Substitution: a term with a variable put in place of by another term; the
 * fifth layer's first rewrite.

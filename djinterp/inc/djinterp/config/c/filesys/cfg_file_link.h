@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                              cfg_file_link.h
+* djinterp [c][filesys]                                          cfg_file_link.h
 *
 * Build-time configuration for c/filesys/file_link.h -- symbolic links.
 *

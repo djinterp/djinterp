@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                dwiki_driver.h
+* djinterp [c][tools]                                             dwiki_driver.h
 *
 * What a dialect's driver gives the wiki reader, and what the reader gives
 * its drivers.
@@ -9,6 +9,7 @@
 * holds. The reader does the rest, the same for every dialect: the lines,
 * the records' places, the anchors made unique, the sections, the regions.
 *   Private to the wiki units: dwiki.c, dwiki_doc.c and the drivers.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/wiki/dwiki_driver.h
 * link(s):   TBA

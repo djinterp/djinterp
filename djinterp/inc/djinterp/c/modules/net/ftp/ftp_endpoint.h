@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                ftp_endpoint.h
+* djinterp [c][net]                                               ftp_endpoint.h
 *
 * FTP data-connection endpoints: PORT, PASV, EPRT, and EPSV.
 *   Parses and formats the address-and-port encodings of RFC 959 and RFC 2428

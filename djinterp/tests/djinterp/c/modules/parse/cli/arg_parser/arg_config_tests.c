@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                          arg_config_tests.c
+* djinterp [c][parse]                                         arg_config_tests.c
 *
 * The suite of configuration files, declared in arg_config_tests.h.
 *   The reading sections are tables of texts, each read under the settings

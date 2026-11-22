@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                   threadsafe_container_tests_snapshot_view.cpp
+* djinterp [cpp][container]         threadsafe_container_tests_snapshot_view.cpp
 *
 *   Layer 6 - DSnapshotView, the read-locked copy that iterates without holding
 * the lock.  Defines the "DSnapshotView" block.

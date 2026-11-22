@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                      threadsafe_container_tests_locked_ref.cpp
+* djinterp [cpp][container]            threadsafe_container_tests_locked_ref.cpp
 *
 *   Layer 2 - the RAII locked accessors (DLockedRef, DConstLockedRef) and the
 * locked_apply helpers.  Defines the "DLockedRef" block.

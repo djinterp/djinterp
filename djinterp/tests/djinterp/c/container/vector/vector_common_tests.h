@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          vector_common_tests.h
+* djinterp [c][container]                                  vector_common_tests.h
 *
 *   Unit test declarations for `vector_common.h` module.
 *   Provides comprehensive testing of all vector_common utility functions

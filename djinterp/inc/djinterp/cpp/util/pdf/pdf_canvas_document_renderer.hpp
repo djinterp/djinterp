@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                pdf_canvas_document_renderer.hpp
+* djinterp [cpp][utility]                       pdf_canvas_document_renderer.hpp
 *
 *   The SECOND PDF realisation of DDocumentRenderer -- the one backed by
 * DPdfCanvas rather than pdf_template.  It exists because the two PDF flow

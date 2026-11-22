@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                       color.hpp
+* djinterp [cpp][utility]                                              color.hpp
 *
 *   The color module's umbrella: one include for all of it.  It brings every
 * model (rgb and rgba, cmyk, hsv, hsl, ycbcr, cie_xyz and cie_lab), the

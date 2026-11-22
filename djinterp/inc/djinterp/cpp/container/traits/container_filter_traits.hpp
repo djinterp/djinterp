@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                     container_filter_traits.hpp
+* djinterp [cpp][container]                          container_filter_traits.hpp
 *
 *   The Filterability axis: whether a container may be FILTERED - reduced to
 * the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                   desc_tests.h
+* djinterp [c][desc]                                                desc_tests.h
 *
 *   The suite of c/desc's core, in DTest's C face: the sink a describer emits
 * facts into, what it wants, how it stops and how it nests, the machine it

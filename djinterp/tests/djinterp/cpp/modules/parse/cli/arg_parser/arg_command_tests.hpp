@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                     arg_command_tests.hpp
+* djinterp [cpp][parse]                                    arg_command_tests.hpp
 *
 * The argument parser's C++ command suite: CLI11's App interface through the
 * C++ face -- the parser, which is CLI11's App at the root, and the handles

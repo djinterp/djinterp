@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                         curry_tests_uncurry.cpp
+* djinterp [cpp][functional]                             curry_tests_uncurry.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/curry_tests_uncurry.cpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                       t_dd.c
+* djinterp [c][math]                                                      t_dd.c
 *
 *   Conformance harness for c/math/dd.h, the pairs of doubles, every result
 * checked exactly, against integers of up to 768 bits (math_tests_exact.h).

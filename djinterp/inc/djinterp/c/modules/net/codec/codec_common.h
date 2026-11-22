@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                codec_common.h
+* djinterp [c][net]                                               codec_common.h
 *
 * The vocabulary net's codec units share: the errors their encoders and
 * decoders report, and how they map onto net.h's.

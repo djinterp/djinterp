@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                              circular_array_mtx.c
+* djinterp [c][container]                                   circular_array_mtx.c
 *
 *   The thread-safe circular array circular_array_mtx.h declares: each
 * function takes the dj_circular_array_mtx's mutex (sync/dmutex.h), calls the

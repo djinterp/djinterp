@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  mariadb_common.h
+* djinterp [c][db]                                              mariadb_common.h
 *
 * Shared foundation of djinterp's MariaDB/MySQL convenience layer.
 *   One layer serves both servers, MariaDB and Oracle's MySQL, through either

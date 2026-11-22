@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              decode_literals.c
+* djinterp [c][parse]                                          decode_literals.c
 *
 * Literal decoder driver: one literal per line of a file, lexed and decoded.
 *

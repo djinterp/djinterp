@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                      cli_io.h
+* djinterp [c][tools]                                                   cli_io.h
 *
 * The command-line kit's streams, terminals and files.
 *   A program's result goes to standard output and everything said about it

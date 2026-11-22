@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                pop_tests_sa.h
+* djinterp [c][net]                                               pop_tests_sa.h
 *
 * Standalone tests of the POP3 kernel where it meets net.h: the send
 * helpers, the reader over a connection, and the errors a connection's

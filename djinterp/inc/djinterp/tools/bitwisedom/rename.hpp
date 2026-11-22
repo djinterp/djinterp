@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                             rename.hpp
+* djinterp [cpp][tools]                                               rename.hpp
 *
 * Renaming a row, and everything that refers to it.
 *   A symbol is referred to by name in three places: an expression's text,
@@ -11,6 +11,7 @@
 * range is referred to by id, and needs nothing.
 *   A group's name is in no macro name, so renaming one changes nothing
 * else; a group's prefix or suffix would, and is not a rename.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/rename.hpp
 * link(s):   TBA

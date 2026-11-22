@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                 cfg_option.h
+* djinterp [cpp][option]                                            cfg_option.h
 *
 * Configuration knobs for the option subframework.
 *

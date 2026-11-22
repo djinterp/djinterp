@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                    ssh_auth.c
+* djinterp [c][net]                                                   ssh_auth.c
 *
 *   Definitions for ssh_auth.h. The engine reports each attempt; which
 * attempts are made, in what order, and what their failures add up to

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                        list.hpp
+* djinterp [cpp][container]                                             list.hpp
 *
 * Abstract foundation for all list-like containers:
 *   A "list" in the djinterp framework is an ordered linear sequence of

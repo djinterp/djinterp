@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                     net_log.h
+* djinterp [c][net]                                                    net_log.h
 *
 * net's codes for the log, "net" (the log's decisions 75 to 77).
 *   net_common.h holds the table as text, beside dj_net_error; this header

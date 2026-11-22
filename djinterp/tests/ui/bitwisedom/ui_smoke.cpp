@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [tests]                                                ui_smoke.cpp
+* djinterp [cpp][tools]                                             ui_smoke.cpp
 *
 * The window, driven headless through Dear ImGui's null backend.
 *   Every frame of every section is checked for ImGui assertions -- which
@@ -52,6 +52,7 @@
 * and opened again, as it was, in a second window; and the Options --
 * every page, its search, the settings files exported, applied, forgotten
 * and deleted.
+*
 *
 * path:      /tests/ui/bitwisedom/ui_smoke.cpp
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                         smtp_tests_main.cpp
+* djinterp [cpp][net]                                        smtp_tests_main.cpp
 *
 * Runs the SMTP C++ facade's tests; without a 64-bit integer type there
 * are none, and it says so.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parsegen]                                                grammar.h
+* djinterp [c][parsegen]                                               grammar.h
 *
 * The notation-neutral grammar: what every frontend produces and every family
 * consumes.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [parse/test]                                          parse_tests.hpp
+* djinterp [cpp][parse]                                          parse_tests.hpp
 *
 *   The two-faced suite header for parse.hpp (the DTest DTEST_SPEC_MODE
 * idiom).  parse.hpp carries the support types that face into a parser:

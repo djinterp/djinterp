@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                    dgit_doc.c
+* djinterp [c][tools]                                                 dgit_doc.c
 *
 * Definitions for the declarations in dgit_doc.h.
 *   Every change is a splice, or several, each made on a copy of the text and
@@ -11,6 +11,7 @@
 * changed too -- so renaming a section changes its entries' keys and nothing
 * else does. A change of several splices keeps the text it began with, to
 * go back to when one of them is refused.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/git/dgit_doc.c
 * link(s):   TBA

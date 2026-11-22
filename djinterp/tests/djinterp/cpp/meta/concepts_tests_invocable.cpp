@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   concepts_tests_invocable.cpp
+* djinterp [cpp][meta]                              concepts_tests_invocable.cpp
 *
 *   Tests for concepts.hpp section II.9: invocable concepts.
 * Covers: invocable_r, nothrow_invocable, nothrow_invocable_r.

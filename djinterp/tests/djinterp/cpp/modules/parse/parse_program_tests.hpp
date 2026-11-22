@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                   parse_program_tests.hpp
+* djinterp [cpp][parse]                                  parse_program_tests.hpp
 *
 * The program-IR suite: the canonical character class, the operand pool, and
 * the instruction stream they serve.

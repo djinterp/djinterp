@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                     cfg_container_iterator.h
+* djinterp [cpp][container]                             cfg_container_iterator.h
 *
 *   Build-time configuration for the C++ container iterators
 * (cpp/container/iterator). It defines no knobs yet.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                               t_functional_core.c
+* djinterp [c][functional]                                   t_functional_core.c
 *
 *   Conformance harness for the functional module's utilities, higher-order
 * functions, searches, predicate combinators, composition, builder and

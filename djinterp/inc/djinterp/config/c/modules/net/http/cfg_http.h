@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                   cfg_http.h
+* djinterp [c][net]                                                   cfg_http.h
 *
 * Configuration of HTTP.
 *   The limits HTTP/1.1's head parser enforces by default, resolved into

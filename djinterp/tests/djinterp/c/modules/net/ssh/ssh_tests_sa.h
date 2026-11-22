@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                ssh_tests_sa.h
+* djinterp [c][net]                                               ssh_tests_sa.h
 *
 * Standalone tests of SSH channels, and of a channel as a net.h connection.
 *   Each test runs a real session -- options, connect, authenticate -- over

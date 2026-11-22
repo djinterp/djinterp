@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                               t_elementary.c
+* djinterp [c][math]                                              t_elementary.c
 *
 *   Conformance harness for c/math/elementary.h. sqrt_c must be the C
 * library's sqrt, bit for bit: every float in [1, 4) -- every mantissa the

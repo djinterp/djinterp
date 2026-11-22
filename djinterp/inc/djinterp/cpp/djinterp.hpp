@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                               djinterp.hpp
+* djinterp [cpp]                                                    djinterp.hpp
 *
 * C++ core header for the djinterp framework.
 *   Extends the C core with the namespace macros and the C++ qualifier kit,

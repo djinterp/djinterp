@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                           arg_sweep_tests.h
+* djinterp [c][parse]                                          arg_sweep_tests.h
 *
 * The argument parser's allocation sweep: every allocation refused in turn.
 *   Each section runs one scenario -- a program written with the C API, from

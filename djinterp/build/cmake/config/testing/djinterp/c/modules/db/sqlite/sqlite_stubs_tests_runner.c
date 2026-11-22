@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    sqlite_stubs_tests_runner.c
+* djinterp [c][db]                                   sqlite_stubs_tests_runner.c
 *
 * The runner for c/modules/db/sqlite's suite, the layer built without SQLite:
 * options, then the suite's one section, d_tests_sqlite_stubs, which opens its

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                     mediator_tests_dispatch.cpp
+* djinterp [cpp][paradigm]                           mediator_tests_dispatch.cpp
 *
 *
 * path:      /tests/djinterp/cpp/paradigm/mediator/mediator_tests_dispatch.cpp

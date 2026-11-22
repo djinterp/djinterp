@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                     cfg_mariadb_connection.h
+* djinterp [c][db]                                      cfg_mariadb_connection.h
 *
 * Build-time configuration for c/modules/db/mariadb/mariadb_connection.h: what a
 * connection d_mariadb_connect makes is set up with before it is handed back.

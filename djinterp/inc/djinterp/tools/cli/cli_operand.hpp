@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                               cli_operand.hpp
+* djinterp [cpp][tools]                                          cli_operand.hpp
 *
 * The command-line kit's C++ face: operands that name something other than
 * a file (GRAMMAR.md, R13).

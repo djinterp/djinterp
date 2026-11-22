@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                              option_conformance.c
+* djinterp [c][option]                                      option_conformance.c
 *
 *   The conformance suite for body-options.tex. Goal 1: "Every formal relation
 * and operator ships with tests that transcribe the .tex's own claims --

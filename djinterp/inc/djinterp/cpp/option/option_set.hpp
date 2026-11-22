@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  option_set.hpp
+* djinterp [cpp][option]                                          option_set.hpp
 *
 *   The option_set<> core type plus the structural machinery needed to
 * CONSTRUCT one safely.

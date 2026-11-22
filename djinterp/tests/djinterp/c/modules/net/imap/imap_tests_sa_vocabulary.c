@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                    imap_tests_sa_vocabulary.c
+* djinterp [c][net]                                   imap_tests_sa_vocabulary.c
 *
 * Tests of the IMAP kernel's vocabulary: its errors and backends, every
 * enumeration's names and lookups, and the states each command may be sent

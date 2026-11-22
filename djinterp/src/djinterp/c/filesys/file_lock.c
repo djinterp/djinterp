@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_lock.c
+* djinterp [c][filesys]                                              file_lock.c
 *
 * Implementation of the advisory locks declared in file_lock.h.
 *   Three backends, chosen at build time, one helper each

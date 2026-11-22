@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 interpolate_tests_concepts.cpp
+* djinterp [cpp][functional]                      interpolate_tests_concepts.cpp
 *
 * Section IX (C++20) -- the concept parallels of the scanner / resolver / sink
 * contracts: scanner_for, resolver_for, sink_for.  Verifies each accepts the

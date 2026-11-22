@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 list_traits.hpp
+* djinterp [cpp][container]                                      list_traits.hpp
 *
 * Compile-time SFINAE detection for list-like containers:
 *   This header provides the abstract-layer traits that identify any

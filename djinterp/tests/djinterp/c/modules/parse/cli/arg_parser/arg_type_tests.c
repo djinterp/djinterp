@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                            arg_type_tests.c
+* djinterp [c][parse]                                           arg_type_tests.c
 *
 * The suite of the argument parser's value types, declared in
 * arg_type_tests.h.

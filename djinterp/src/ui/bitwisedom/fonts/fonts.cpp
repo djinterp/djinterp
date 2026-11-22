@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                      fonts.cpp
+* djinterp [cpp][tools]                                                fonts.cpp
 *
 * The two fonts bitwisedom draws with, compressed into the program.
 *   MACHINE-GENERATED, and so exempt from the style guide's formatting: the
@@ -9,6 +9,7 @@
 * (the interface) and Cousine-Regular.ttf (values and code) that uxoxo's
 * ImGui carries. Both are under the Apache License 2.0. Regenerate rather
 * than edit.
+*
 *
 * path:      /src/ui/bitwisedom/fonts/fonts.cpp
 * link(s):   TBA

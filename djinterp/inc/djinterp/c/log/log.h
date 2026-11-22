@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                             log.h
+* djinterp [c][log]                                                        log.h
 *
 *   The log: a record is an event, a message code and desc facts, written by
 * a writer (docs/djinterp/log/log_design.md).

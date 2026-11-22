@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          alternative_tests.hpp
+* djinterp [cpp][functional]                               alternative_tests.hpp
 *
 *   Declarations and shared fixtures for the alternative.hpp unit suite.  The
 * individual tests_* predicates and their block-providers are defined per

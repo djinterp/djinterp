@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               output_stream.hpp
+* djinterp [cpp][utility]                                      output_stream.hpp
 *
 *   The C++ face of the output stream in c/util/ostream/ostream.h:
 * DOutputStream, one object that writes to the console, a file, a dj_string, a

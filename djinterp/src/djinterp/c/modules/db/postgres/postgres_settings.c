@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                               postgres_settings.c
+* djinterp [c][db]                                           postgres_settings.c
 *
 * Implementation of postgres_settings.h.
 *   Settings are set with set_config(), whose name and value are values the

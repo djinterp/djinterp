@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                             coordinate.hpp
+* djinterp [cpp][math]                                            coordinate.hpp
 *
 * Unified coordinate system header.
 *   This header includes all coordinate sub-modules (Cartesian, polar,

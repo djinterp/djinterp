@@ -11,6 +11,7 @@
 * Each value answers exactly as its djinterp env counterpart did (noted at
 * each), so a build that read both before sees no difference.
 *
+*
 * path:      /inc/re_std/config.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.01

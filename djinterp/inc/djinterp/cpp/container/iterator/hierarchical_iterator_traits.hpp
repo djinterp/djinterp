@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                hierarchical_iterator_traits.hpp
+* djinterp [cpp][container]                     hierarchical_iterator_traits.hpp
 *
 * Hierarchical iterator traits for the djinterp container framework.
 *   Detects the tree navigation capabilities of a hierarchical

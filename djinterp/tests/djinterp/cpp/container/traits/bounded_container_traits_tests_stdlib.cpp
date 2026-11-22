@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                       bounded_container_traits_tests_stdlib.cpp
+* djinterp [cpp][container]            bounded_container_traits_tests_stdlib.cpp
 *
 *
 * path:      /tests/djinterp/cpp/container/traits/bounded_container_traits_tests_stdlib.cpp

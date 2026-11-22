@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                       curry.hpp
+* djinterp [cpp][functional]                                           curry.hpp
 *
 * Function currying, uncurrying, and related combinators (C++).
 *   Provides type-safe, SFINAE-constrained currying for callables of any

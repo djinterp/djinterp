@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                   daudit.c
+* djinterp [c][tools]                                                   daudit.c
 *
 * Repair audit:
 *   Each check restates what a repair kind may do in the simplest form that

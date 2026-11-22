@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  interpolate_tests_builder.cpp
+* djinterp [cpp][functional]                       interpolate_tests_builder.cpp
 *
 * Section VII -- the lazy `interpolation` functor: a bound template plus a
 * resolver chain carried in the type, forced by a terminal.  Verifies the

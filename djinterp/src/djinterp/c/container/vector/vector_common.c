@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   vector_common.c
+* djinterp [c][container]                                        vector_common.c
 *
 *   The raw-pointer building blocks vector_common.h declares for the vector
 * types, each working on an elements pointer, a count, a capacity and an

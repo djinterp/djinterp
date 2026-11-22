@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      array_tests_iteration.cpp
+* djinterp [cpp][container]                            array_tests_iteration.cpp
 *
 *   Iteration tests: begin/end and their const and reverse forms, standard
 * algorithms over an array, the iterability gate, and the empty array.

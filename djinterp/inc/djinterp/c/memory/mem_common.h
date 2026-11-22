@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      mem_common.h
+* djinterp [c][memory]                                              mem_common.h
 *
 * Memory foundations -- the shared C core (tier 0):
 *   The vocabulary layer of the memory subframework, declared once in C and

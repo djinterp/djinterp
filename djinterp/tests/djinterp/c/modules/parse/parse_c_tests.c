@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                             parse_c_tests.c
+* djinterp [c][parse]                                            parse_c_tests.c
 *
 * The parse substrate's C suite: the diagnostic channel, the machine and its
 * registry, and the instruction stream, each through the C API alone.

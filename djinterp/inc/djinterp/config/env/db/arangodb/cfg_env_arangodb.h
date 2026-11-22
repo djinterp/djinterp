@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                           cfg_env_arangodb.h
+* djinterp [c][env]                                           cfg_env_arangodb.h
 *
 * Per-module configuration for env_arangodb.h. Owns all
 * D_CFG_ENV_ARANGODB_* defaults plus D_CFG_ENV_ARANGO_CUSTOM and the

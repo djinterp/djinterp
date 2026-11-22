@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [ui]                                                           view.hpp
+* djinterp [cpp][tools]                                                 view.hpp
 *
 * The workbench: its state, the view of that state, and how events change it.
 *   The shape is model-view-update. workbench holds everything the screen shows
@@ -9,6 +9,7 @@
 * realizes and draws it, and feeds the events the drawing posted back through
 * update. Widget-local state (a text cursor, a scroll position) stays with
 * ImGui, so the template can be rebuilt from scratch every frame.
+*
 *
 * path:      /inc/ui/vparse/view.hpp
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/jit]                                                     jit_arm.h
+* djinterp [c][jit]                                                    jit_arm.h
 *
 * djinterp AArch32 / ARM (A32) JIT encoder (fixed-width ARM instructions):
 *   The 32-bit ARM half of the djinterp JIT, targeting the A32 instruction set

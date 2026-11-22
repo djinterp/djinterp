@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                     drepair.c
+* djinterp [c][tools]                                                  drepair.c
 *
 * Implements drepair.h: notes the repair a rule states for a finding, and
 * makes a file's noted repairs once its pass is over.
@@ -7,6 +7,7 @@
 * and is verified against the line on disk first. The edits are made from the
 * last line up: an insertion or a removal moves only the lines below it, and
 * those are done.
+*
 *
 * path:      /src/djinterp/tools/dawk/drepair.c
 * link(s):   TBA

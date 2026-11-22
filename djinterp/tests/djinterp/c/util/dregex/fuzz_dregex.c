@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     fuzz_dregex.c
+* djinterp [c][utility]                                            fuzz_dregex.c
 *
 *   Differential test of the ERE engine against the system POSIX matcher.
 *     Random patterns are generated over a three-letter alphabet and run

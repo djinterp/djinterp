@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   pipeline_tests_transform.cpp
+* djinterp [cpp][functional]                        pipeline_tests_transform.cpp
 *
 * Transforming-operation tests (section ii, part 1):
 *   test_map      -- element-wise map, including a type-changing map.

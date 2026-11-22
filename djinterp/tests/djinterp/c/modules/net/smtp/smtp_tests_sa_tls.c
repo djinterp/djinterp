@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                           smtp_tests_sa_tls.c
+* djinterp [c][net]                                          smtp_tests_sa_tls.c
 *
 * djinterp SMTP kernel tests -- STARTTLS.
 *   Standalone tests of STARTTLS on both sides, with net_tests_peer.h's

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c][env]                                                  env_tests.c
+* djinterp [c]                                                       env_tests.c
 *
 *   Master test suite aggregator for all env module tests.
 *   Calls all submodule test functions and aggregates results.

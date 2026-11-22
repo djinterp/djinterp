@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                test_dselect.c
+* djinterp [c][tools]                                             test_dselect.c
 *
 * Test_dselect.c -- selector engine: the Selectors Level 4 pseudo-classes.
 *

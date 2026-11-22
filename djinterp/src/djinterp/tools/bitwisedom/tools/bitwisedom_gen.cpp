@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [tools]                                          bitwisedom_gen.cpp
+* djinterp [cpp][tools]                                       bitwisedom_gen.cpp
 *
 * bitwisedom-gen: a sheet to a header, as build scripts have always called
 * it.
@@ -29,6 +29,7 @@
 * self-test it writes is the model's (selftest.hpp), which CTest compiles at
 * every language level, and runs for a wide sheet: how the generator is
 * proved, not just run.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/tools/bitwisedom_gen.cpp
 * link(s):   TBA

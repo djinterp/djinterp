@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                         color_ycbcr_tests.hpp
+* djinterp [cpp][utility]                                  color_ycbcr_tests.hpp
 *
 *   Suite header for color_ycbcr.hpp - the C++ ergonomic layer over the YCbCr
 * shared kernel (full-range BT.601): `ycbcr` derives from dj_color_ycbcr without

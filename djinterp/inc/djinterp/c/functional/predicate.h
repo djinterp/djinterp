@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       predicate.h
+* djinterp [c][functional]                                           predicate.h
 *
 * Predicate combinator types and operations for the functional module.
 *   Provides structs and functions for combining predicates with logical AND,

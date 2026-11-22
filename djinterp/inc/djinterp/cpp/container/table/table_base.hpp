@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  table_base.hpp
+* djinterp [cpp][container]                                       table_base.hpp
 *
 *   Shared support for the rank-2 table containers of Part II (static_table,
 * fixed_table, table).  A table is a container whose positions are addressed

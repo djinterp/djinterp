@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  mongodb_common.h
+* djinterp [c][db]                                              mongodb_common.h
 *
 * Shared foundation of djinterp's MongoDB convenience layer.
 *   The layer works over MongoDB's C driver, libmongoc with libbson, through

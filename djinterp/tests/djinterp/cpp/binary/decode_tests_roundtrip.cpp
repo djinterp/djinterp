@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                      decode_tests_roundtrip.cpp
+* djinterp [cpp][binary]                              decode_tests_roundtrip.cpp
 *
 *
 * path:      /tests/djinterp/cpp/binary/decode_tests_roundtrip.cpp

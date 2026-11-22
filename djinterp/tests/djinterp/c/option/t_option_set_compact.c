@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         t_option_set_compact.c
+* djinterp [c][option]                                    t_option_set_compact.c
 *
 *   The option core's removal and compaction (option_set_common.h): removing
 * by key and by index keeps the other cells in their order and moves no

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                             vector_common_tests_cleanup.c
+* djinterp [c][container]                          vector_common_tests_cleanup.c
 *
 *
 * path:      /tests/djinterp/c/container/vector/vector_common_tests_cleanup.c

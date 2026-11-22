@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                         compose.h
+* djinterp [c][functional]                                             compose.h
 *
 * Function composition and partial application for the functional module.
 *   Provides transformer composition, partial application helpers, convenience

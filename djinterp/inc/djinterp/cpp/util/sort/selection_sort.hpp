@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              selection_sort.hpp
+* djinterp [cpp][utility]                                     selection_sort.hpp
 *
 *   Selection sort: the sequential driver.
 * In-place, iterative, comparison-based, NOT stable.  Each position takes the

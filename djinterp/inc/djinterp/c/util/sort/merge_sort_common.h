@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                               merge_sort_common.h
+* djinterp [c][utility]                                      merge_sort_common.h
 *
 *   The primitives every merge sort is built from.
 * A merge sort is a driver wrapped around two operations: merge two adjacent

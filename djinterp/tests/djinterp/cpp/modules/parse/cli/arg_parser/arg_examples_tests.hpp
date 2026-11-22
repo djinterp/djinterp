@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                    arg_examples_tests.hpp
+* djinterp [cpp][parse]                                   arg_examples_tests.hpp
 *
 * The argument parser's C++ examples suite: CLI11's own examples, ported to
 * the C++ face.

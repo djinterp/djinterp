@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                          arg_common_tests.c
+* djinterp [c][parse]                                         arg_common_tests.c
 *
 * The suite of the argument parser's shared vocabulary, declared in
 * arg_common_tests.h.

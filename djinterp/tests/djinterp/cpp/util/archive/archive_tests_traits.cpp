@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       archive_tests_traits.cpp
+* djinterp [cpp][utility]                               archive_tests_traits.cpp
 *
 *   Tests for the format tags, the format_traits identity and capability
 * flags, and the format_is_writable / format_is_readable queries.

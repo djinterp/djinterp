@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                             signature.hpp
+* djinterp [cpp][parse]                                            signature.hpp
 *
 * Expression core v2's C++ face (design section 13): the signature.
 *   DSignature holds a dj_parse_expr_signature and builds it with the C

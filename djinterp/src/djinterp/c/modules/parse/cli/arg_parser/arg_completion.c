@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                            arg_completion.c
+* djinterp [c][parse]                                           arg_completion.c
 *
 * Shell completion, declared in arg_completion.h and arg_internal.h (11.1 and
 * 11.2.1 to 11.2.3).

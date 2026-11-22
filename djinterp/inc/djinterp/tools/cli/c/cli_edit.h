@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                    cli_edit.h
+* djinterp [c][tools]                                                 cli_edit.h
 *
 * The command-line kit's commands that change a file: where the result goes
 * (ruling 12).

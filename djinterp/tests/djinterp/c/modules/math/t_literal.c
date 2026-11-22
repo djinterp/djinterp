@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                  t_literal.c
+* djinterp [c][math]                                                 t_literal.c
 *
 *   Conformance harness for number literals read as values
 * (c/math/literal.h), against the exact reference of math_tests_exact.h.

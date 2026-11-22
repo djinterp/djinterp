@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                           write_only_container_tests_append.cpp
+* djinterp [cpp][container]                write_only_container_tests_append.cpp
 *
 *
 * path:      /tests/djinterp/cpp/container/write_only_container_tests_append.cpp

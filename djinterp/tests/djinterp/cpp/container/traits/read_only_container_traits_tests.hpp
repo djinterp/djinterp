@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                        read_only_container_traits_tests.hpp
+* djinterp [cpp][container]                 read_only_container_traits_tests.hpp
 *
 * Unit tests for read_only_container_traits.hpp:
 *   Declarations, fixtures and assertion plumbing for the read_only corner of

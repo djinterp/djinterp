@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                   dgit_text.c
+* djinterp [c][tools]                                                dgit_text.c
 *
 * Definitions for the declarations in dgit_text.h.
 *   Each kind is read as git reads it, by a reader of its own over the same
@@ -12,6 +12,7 @@
 *   Matching is wildmatch written again from what git's does -- the same
 * answers, the same early abandoning of a search that cannot succeed -- and
 * the lookups walk the scopes as git walks its stacks.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/git/dgit_text.c
 * link(s):   TBA

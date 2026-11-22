@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                           table.h
+* djinterp [c][container]                                                table.h
 *
 *   TIER 1a -- the C FACE of the table.  Ergonomics only: macros and generated
 * typed wrappers over the tier-0 kernel in table_common.h.  Not one line of

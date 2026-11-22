@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]             container_multiplicity_traits_tests_verdict.cpp
+* djinterp [cpp][container]      container_multiplicity_traits_tests_verdict.cpp
 *
 *   Section II - multiplicity_kind_of and multiplicity_bound_of, exercised across
 * all five kinds and the full precedence:

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                          sort_tests_surface.cpp
+* djinterp [cpp][utility]                                 sort_tests_surface.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/sort/sort_tests_surface.cpp

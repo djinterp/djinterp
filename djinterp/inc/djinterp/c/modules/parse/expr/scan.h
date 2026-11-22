@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                      scan.h
+* djinterp [c][parse]                                                     scan.h
 *
 * Expression core v2's default scanner: a source (parse.h) over a text, for
 * the clients that need no lexer of their own (design section 10): the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                     t_wide.c
+* djinterp [c][math]                                                    t_wide.c
 *
 *   Conformance harness for the wide integers (c/math/wide.h): every kernel
 * against an exact reference of the harness's own, naturals of 640 bits in

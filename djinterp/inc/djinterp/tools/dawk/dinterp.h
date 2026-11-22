@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                     dinterp.h
+* djinterp [c][tools]                                                  dinterp.h
 *
 *   Tree-walking interpreter for the syntax tree in dparse.h.
 *     Fields are split lazily: a record is not divided until a field or NF is

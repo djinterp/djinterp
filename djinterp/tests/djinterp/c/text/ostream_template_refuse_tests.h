@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                ostream_template_refuse_tests.h
+* djinterp [c][text]                             ostream_template_refuse_tests.h
 *
 *   The template engine's refusing UTF-8 knob (D_CFG_OSTREAM_TEMPLATE_UTF8 =
 * D_CFG_OSTREAM_TEMPLATE_UTF8_REFUSE), in DTest's C face

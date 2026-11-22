@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                             t_svd_face.cpp
+* djinterp [cpp][math]                                            t_svd_face.cpp
 *
 *   Tests for linear_algebra/svd.hpp, at every level from C++98, per family:
 * the SVD of a known matrix -- its singular values, U S V^T = A, V

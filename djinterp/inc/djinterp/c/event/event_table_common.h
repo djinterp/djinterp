@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                              event_table_common.h
+* djinterp [c][event]                                       event_table_common.h
 *
 * The erased store -- the shared C core (tier 0):
 *   Type-erased handler storage: the realization of erasure. The table maps

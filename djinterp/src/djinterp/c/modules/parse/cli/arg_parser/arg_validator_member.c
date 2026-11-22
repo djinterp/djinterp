@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                      arg_validator_member.c
+* djinterp [c][parse]                                     arg_validator_member.c
 *
 * CLI11's sets and mappings -- IsMember, Transformer and CheckedTransformer --
 * declared in arg_validator_extra.h (2).

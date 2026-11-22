@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     text_source_tests_source.c
+* djinterp [c][text]                                  text_source_tests_source.c
 *
 * The text_source suite: every block. A helper asks a source for a line's
 * span and compares it with what is expected; another for an offset's line

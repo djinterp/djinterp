@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    traversable_tests_vector.cpp
+* djinterp [cpp][functional]                        traversable_tests_vector.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/traversable_tests_vector.cpp

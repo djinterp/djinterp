@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/jit]                                                   jit_arm64.h
+* djinterp [c][jit]                                                  jit_arm64.h
 *
 * djinterp AArch64 (ARM64) JIT encoder (fixed-width A64 instructions):
 *   The 64-bit ARM half of the djinterp JIT. AArch64 instructions are all one

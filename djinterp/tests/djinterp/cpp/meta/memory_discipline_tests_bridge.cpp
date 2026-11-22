@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                              memory_discipline_tests_bridge.cpp
+* djinterp [cpp][meta]                        memory_discipline_tests_bridge.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/memory_discipline_tests_bridge.cpp

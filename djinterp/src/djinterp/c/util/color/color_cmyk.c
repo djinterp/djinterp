@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      color_cmyk.c
+* djinterp [c][utility]                                             color_cmyk.c
 *
 *   External-definition unit for color_cmyk.h. The CMYK bodies live in the
 * header as `inline`; this unit re-declares their prototypes so one out-of-

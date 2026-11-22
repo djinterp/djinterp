@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               registry_tests.h
+* djinterp [c][container]                                       registry_tests.h
 *
 *   Test declarations for the registry module's suite, on DTest's C face.
 *   Organises tests by header section; each section has individual test

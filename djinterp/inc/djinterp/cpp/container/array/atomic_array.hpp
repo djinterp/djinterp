@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                atomic_array.hpp
+* djinterp [cpp][container]                                     atomic_array.hpp
 *
 * djinterp atomic_array.hpp
 *

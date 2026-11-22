@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               mongodb_table.hpp
+* djinterp [cpp][db]                                           mongodb_table.hpp
 *
 * A collection of a MongoDB database held in memory: its documents, read,
 * changed in place, and written back.

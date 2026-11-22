@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                               cfg_file_dir.h
+* djinterp [c][filesys]                                           cfg_file_dir.h
 *
 * Build-time configuration for c/filesys/file_dir.h -- directory creation,
 * removal, traversal, and the path operations that must ask the filesystem

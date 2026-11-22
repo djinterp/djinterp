@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tests]                                           color_rgb_tests.hpp
+* djinterp [cpp][utility]                                    color_rgb_tests.hpp
 *
 *   Suite header for color_rgb.hpp.  This header supplies TWO types with
 * deliberately different standing:

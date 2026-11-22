@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    multimap.cpp
+* djinterp [cpp][container]                                         multimap.cpp
 *
 * Definitions for `multimap.hpp`.
 *   The container is a template and its definitions live in the header, so this

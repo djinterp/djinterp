@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                          override_tests.hpp
+* djinterp [cpp][meta]                                        override_tests.hpp
 *
 *   Unit-test surface for the container-agnostic override-policy module
 * (core/paradigm/override.hpp).  This header carries ONLY declarations and

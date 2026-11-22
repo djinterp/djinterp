@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                          http_tests_sa_main.c
+* djinterp [c][net]                                         http_tests_sa_main.c
 *
 * The runner for net/http/http.h's standalone tests.
 *   Runs every test in order, reports each, and prints tests before

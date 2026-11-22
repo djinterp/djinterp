@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  postgres_stubs_tests_runner.c
+* djinterp [c][db]                                 postgres_stubs_tests_runner.c
 *
 * The runner for c/modules/db/postgres's suite, the layer built without libpq:
 * options, then the suite's one section, d_tests_postgres_stubs, which opens its

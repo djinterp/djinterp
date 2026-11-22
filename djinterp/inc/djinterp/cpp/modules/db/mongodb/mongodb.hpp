@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     mongodb.hpp
+* djinterp [cpp][db]                                                 mongodb.hpp
 *
 * djinterp MongoDB connection module:
 *   The MongoDB connection, mongo_connection, over the MongoDB layer's C++

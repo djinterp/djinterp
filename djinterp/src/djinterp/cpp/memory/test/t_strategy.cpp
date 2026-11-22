@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  t_strategy.cpp
+* djinterp [cpp][memory]                                          t_strategy.cpp
 *
 *   Memory-strategy conformance harness. Writes ONE container against the
 * strategy contract and instantiates it over every binding, checking that each

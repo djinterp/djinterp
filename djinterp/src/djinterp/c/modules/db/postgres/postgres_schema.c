@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 postgres_schema.c
+* djinterp [c][db]                                             postgres_schema.c
 *
 * Implementation of postgres_schema.h.
 *   Existence and listing are pg_catalog lookups (postgres_internal.c);

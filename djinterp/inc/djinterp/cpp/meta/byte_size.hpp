@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   byte_size.hpp
+* djinterp [cpp][meta]                                             byte_size.hpp
 *
 *   The byte footprint of a container, split as the model splits its storage
 * (Storage axis): a STATIC part - the container object itself, whose inline cells

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                         arg_formatter.hpp
+* djinterp [cpp][parse]                                        arg_formatter.hpp
 *
 * The argument parser's C++ face: help's formatter.
 *   `cli::formatter` is CLI11's Formatter: a struct dj_arg_formatter -- the

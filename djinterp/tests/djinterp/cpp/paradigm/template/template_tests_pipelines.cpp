@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    template_tests_pipelines.cpp
+* djinterp [cpp][paradigm]                          template_tests_pipelines.cpp
 *
 *
 * path:      /tests/djinterp/cpp/paradigm/template/template_tests_pipelines.cpp

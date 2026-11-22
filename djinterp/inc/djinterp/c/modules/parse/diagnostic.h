@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                diagnostic.h
+* djinterp [c][parse]                                               diagnostic.h
 *
 * The parse subframework's diagnostic channel.
 *   A stage reports what it found -- where, how badly, and why -- into a sink

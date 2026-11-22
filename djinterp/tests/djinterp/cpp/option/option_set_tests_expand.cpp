@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    option_set_tests_expand.cpp
+* djinterp [cpp][option]                             option_set_tests_expand.cpp
 *
 *   Sections I + II of the option_set.hpp suite: the normalization machinery
 * that turns a user's entry list into the flat option tuple.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                   starttls_tests_sa_openssl.c
+* djinterp [c][net]                                  starttls_tests_sa_openssl.c
 *
 * Standalone tests of STARTTLS with the SSL kernel's OpenSSL-family engine.
 *   A server thread and the test's own thread each hold one end of an

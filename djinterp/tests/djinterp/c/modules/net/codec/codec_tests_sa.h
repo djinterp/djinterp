@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                              codec_tests_sa.h
+* djinterp [c][net]                                             codec_tests_sa.h
 *
 * Standalone tests of net's codec: the digests, HMAC, and the comparison and
 * wiping that go with them; base64 in each of its variants; hex; ASCII's

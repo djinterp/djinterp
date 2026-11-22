@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    interval_protocol_tests.cpp
+* djinterp [cpp][container]                          interval_protocol_tests.cpp
 *
 * Tests for container/traits/interval_protocol.hpp: is_interval_protocol
 * holds for a type with the interval protocol's shape (static lower_bound

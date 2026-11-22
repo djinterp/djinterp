@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                     test_dfs.c
+* djinterp [c][tools]                                                 test_dfs.c
 *
 * Exercises `dfs.h`, and the walk over a tree that is built on it.
 *   Run from the repository's root, over the small tree kept beside this file
@@ -7,6 +7,7 @@
 * every system, so the same file is the test on POSIX and on Windows; where
 * the two differ by design -- what `\` is, whether a full name is looked up
 * -- each answer the header allows is accepted, and none it does not.
+*
 *
 * path:      /tests/dawk/test_dfs.c
 * link(s):   TBA

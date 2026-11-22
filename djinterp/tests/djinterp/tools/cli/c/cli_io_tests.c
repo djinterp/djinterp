@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                cli_io_tests.c
+* djinterp [c][tools]                                             cli_io_tests.c
 *
 * The suite of the command-line kit's streams and files, declared in
 * cli_io_tests.h.

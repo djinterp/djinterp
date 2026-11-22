@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   color_hsv.hpp
+* djinterp [cpp][utility]                                          color_hsv.hpp
 *
 *   C++ ergonomic layer for the HSV color model. `hsv` derives from the
 * shared-kernel POD (color_hsv.h) without adding state, providing constexpr

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     result_tests_transform.cpp
+* djinterp [cpp][functional]                          result_tests_transform.cpp
 *
 * Transform / fluent method tests for result<T, E> (section I methods that
 * map or thread the active branch).

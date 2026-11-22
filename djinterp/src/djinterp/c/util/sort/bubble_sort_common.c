@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                              bubble_sort_common.c
+* djinterp [c][utility]                                     bubble_sort_common.c
 *
 * TBA
 *

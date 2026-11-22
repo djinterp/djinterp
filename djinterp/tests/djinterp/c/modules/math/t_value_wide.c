@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                               t_value_wide.c
+* djinterp [c][math]                                              t_value_wide.c
 *
 *   Conformance harness for the wide integer as a boxed kind
 * (c/math/value_wide.h): its table, its arithmetic with itself and with every

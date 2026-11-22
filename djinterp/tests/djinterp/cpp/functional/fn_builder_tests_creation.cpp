@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  fn_builder_tests_creation.cpp
+* djinterp [cpp][functional]                       fn_builder_tests_creation.cpp
 *
 * Builder creation tests (sections i / III):
 *   test_creation -- create(), make_builder(), the identity seed chain, the

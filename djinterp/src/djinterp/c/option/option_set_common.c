@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                               option_set_common.c
+* djinterp [c][option]                                       option_set_common.c
 *
 *   Implementation of the flat option set and the relation algebra of
 * body-options.tex. See option_set_common.h for the rationale.

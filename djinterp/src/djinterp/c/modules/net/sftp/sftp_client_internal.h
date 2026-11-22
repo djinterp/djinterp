@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                        sftp_client_internal.h
+* djinterp [c][net]                                       sftp_client_internal.h
 *
 * Private helpers shared by the two halves of the SFTP client.
 *   sftp_client.c holds the session and every single-request operation, and

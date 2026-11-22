@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                html_printer.hpp
+* djinterp [cpp][text]                                          html_printer.hpp
 *
 *   The HTML serialisation policy -- the format half of the printer retargeted
 * from XML to HTML. The single behavioural difference that matters is the

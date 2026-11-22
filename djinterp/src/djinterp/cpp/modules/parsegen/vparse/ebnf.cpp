@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                               ebnf.cpp
+* djinterp [cpp][parsegen]                                              ebnf.cpp
 *
 *   Definitions for ebnf.hpp: the tokenizer, the recursive-descent parser, and
 * the compiler from syntax tree to PEG program.

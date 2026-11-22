@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                              net_common.hpp
+* djinterp [cpp][net]                                             net_common.hpp
 *
 * The C++ layer of the net foundation; net.hpp is the C++ umbrella, and
 * includes it.

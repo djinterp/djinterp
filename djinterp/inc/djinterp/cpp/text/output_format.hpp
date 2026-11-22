@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               output_format.hpp
+* djinterp [cpp][text]                                         output_format.hpp
 *
 *   Number formatting onto a DOutputStream: the C++ face of
 * c/text/ostream_format.h. A double in the C locale's form, whatever the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                         set.cpp
+* djinterp [cpp][container]                                              set.cpp
 *
 *
 * path:      /src/djinterp/cpp/container/set/set.cpp

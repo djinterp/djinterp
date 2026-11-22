@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                                 parse.hpp
+* djinterp [cpp][parse]                                                parse.hpp
 *
 * Expression core v2's C++ face (design section 13): parsing.
 *   parse() reads one expression with d_parse_expr_parse and returns a

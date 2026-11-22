@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                             http_fuzz_http1.c
+* djinterp [c][net]                                            http_fuzz_http1.c
 *
 * A libFuzzer harness for http1.h's head parsers.
 *   An input's first three bytes choose the piece size and the two limits,

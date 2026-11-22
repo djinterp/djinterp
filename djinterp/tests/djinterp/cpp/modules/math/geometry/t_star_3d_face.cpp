@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                         t_star_3d_face.cpp
+* djinterp [cpp][math]                                        t_star_3d_face.cpp
 *
 *   Tests for geometry/star_3d.hpp, at every level from C++98, per family:
 * stellate at height 0 keeps the base solid's volume and at a positive

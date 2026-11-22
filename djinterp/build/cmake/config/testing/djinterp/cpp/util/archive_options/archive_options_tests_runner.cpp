@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               archive_options_tests_runner.cpp
+* djinterp [cpp][utility]                       archive_options_tests_runner.cpp
 *
 *   Entry point (main) for the archive_options.hpp unit-test suite.  It includes
 * the suite's test header and calls every tests_* function the section

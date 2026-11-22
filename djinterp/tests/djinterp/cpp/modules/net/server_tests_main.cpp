@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                       server_tests_main.cpp
+* djinterp [cpp][net]                                      server_tests_main.cpp
 *
 * Runs net/server.hpp's tests.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 xml_dialect.hpp
+* djinterp [cpp][text]                                           xml_dialect.hpp
 *
 *   Compile-time policy template that captures an XML dialect /
 * profile via a single enum-parameterized template. Properties of the

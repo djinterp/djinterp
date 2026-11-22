@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                            cfg_env_archive.h
+* djinterp [c][env]                                            cfg_env_archive.h
 *
 * Configuration for env_archive.h, the archive-library detection header under
 * env/util/archive/.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                       flat_container_traits.hpp
+* djinterp [cpp][container]                            flat_container_traits.hpp
 *
 *   SFINAE structural traits for the FLAT side of the structure axis - whether
 * a

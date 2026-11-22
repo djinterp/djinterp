@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      option_env.h
+* djinterp [c][option]                                              option_env.h
 *
 *   An abstract machine's environment: the variables a machine -- a printer,
 * a parser, a test runner -- is configured by. They are named and typed, and

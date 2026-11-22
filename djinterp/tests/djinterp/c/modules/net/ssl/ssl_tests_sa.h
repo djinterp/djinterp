@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                ssl_tests_sa.h
+* djinterp [c][net]                                               ssl_tests_sa.h
 *
 * Standalone tests of the SSL kernel's contexts and sessions, and of a
 * session as a net.h connection.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           xml_tests_runner.cpp
+* djinterp [cpp][text]                                      xml_tests_runner.cpp
 *
 * The runner for xml's suite: options, then the module.
 *

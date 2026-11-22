@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                          maybe_tests.hpp
+* djinterp [cpp][functional]                                     maybe_tests.hpp
 *
 *   DTest declarations and shared fixtures for the maybe.hpp unit-test
 * suite.  Declares one section function per like-group semantic section of

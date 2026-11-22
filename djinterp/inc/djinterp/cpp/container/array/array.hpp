@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                       array.hpp
+* djinterp [cpp][container]                                            array.hpp
 *
 * Concrete array container.
 *   `DArray<typename... Options>` is the framework's options-pack form

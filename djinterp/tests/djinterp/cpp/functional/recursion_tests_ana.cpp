@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                         recursion_tests_ana.cpp
+* djinterp [cpp][functional]                             recursion_tests_ana.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/recursion_tests_ana.cpp

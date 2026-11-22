@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    min_enum_map.c
+* djinterp [c][container]                                         min_enum_map.c
 *
 *   Implementation of the dj_min_enum_map container - a minimal associative
 * array mapping integer enum keys to arbitrary pointer values.

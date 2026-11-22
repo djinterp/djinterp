@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                  vparse_tests_memo.cpp
+* djinterp [cpp][parsegen]                                 vparse_tests_memo.cpp
 *
 * vparse tests: what a run counts as it runs, and the memo -- where a
 * program's rules are, a profile held to the trace of the same run, a rule's

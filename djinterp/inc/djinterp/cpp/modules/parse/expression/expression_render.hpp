@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                     expression_render.hpp
+* djinterp [cpp][parse]                                    expression_render.hpp
 *
 *   Turning an expression back into text, correctly parenthesized.  Rendering
 * is a fold: each sub-term becomes a string together with the precedence of

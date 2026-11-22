@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                  sort_conformance_tests_adl.cpp
+* djinterp [cpp][utility]                         sort_conformance_tests_adl.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/sort/sort_conformance_tests_adl.cpp

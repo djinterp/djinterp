@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                compress_options_tests_lzma.cpp
+* djinterp [cpp][utility]                        compress_options_tests_lzma.cpp
 *
 *   Tests for the lzma / xz block (DLzmaOptions, compress_options.hpp
 * section II): eleven knobs, pristine at UNSET, and what the core's resolver

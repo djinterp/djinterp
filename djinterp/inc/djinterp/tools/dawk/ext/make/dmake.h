@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                       dmake.h
+* djinterp [c][tools]                                                    dmake.h
 *
 * Makefiles, read without loss, as each make reads them.
 *   Four makes are read -- GNU make, POSIX make as pdpmake reads it, BSD make
@@ -30,6 +30,7 @@
 * make reads one it evaluates, its `define`s nested; in a branch make skips,
 * make nests none, and an `endef` led by the prefix ends one there too.
 *   GNU make is read as 4.3 reads it: `:::=` is not an operator there.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/make/dmake.h
 * link(s):   TBA

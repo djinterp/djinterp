@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     storage.hpp
+* djinterp [cpp][meta]                                               storage.hpp
 *
 *   The framework's foundational STORAGE vocabulary - the static / dynamic
 * classification of WHERE a container sites its cells, factored out so every

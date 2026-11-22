@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                 dext_cpp.c
+* djinterp [c][tools]                                                 dext_cpp.c
 *
 * Definitions for the non-inline declarations in dext_cpp.h.
 *

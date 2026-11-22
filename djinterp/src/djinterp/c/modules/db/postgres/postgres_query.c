@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  postgres_query.c
+* djinterp [c][db]                                              postgres_query.c
 *
 * Implementation of postgres_query.h.
 *   Each function is a face of the plumbing in postgres_internal.c: the plain

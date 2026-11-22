@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                     container_multiplicity_traits_tests.hpp
+* djinterp [cpp][container]              container_multiplicity_traits_tests.hpp
 *
 *   Declarations, shared helpers, and helper TYPES for the
 * container_multiplicity_traits.hpp unit-test suite.  The section translation

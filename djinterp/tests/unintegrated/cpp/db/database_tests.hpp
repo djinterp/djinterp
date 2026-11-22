@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [database]                                         database_tests.hpp
+* djinterp [cpp][db]                                          database_tests.hpp
 *
 * djinterp database unit-test header:
 *   Declarations, check macros, and shared test fixtures (mock CRTP

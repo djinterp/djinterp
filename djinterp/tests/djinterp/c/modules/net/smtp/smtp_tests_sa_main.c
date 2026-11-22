@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                          smtp_tests_sa_main.c
+* djinterp [c][net]                                         smtp_tests_sa_main.c
 *
 * djinterp SMTP kernel tests -- runner.
 *   Runs the standalone SMTP suite and exits non-zero if any test failed.

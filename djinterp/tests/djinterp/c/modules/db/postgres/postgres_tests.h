@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               postgres_tests.h
+* djinterp [c][db]                                              postgres_tests.h
 *
 *   The suite of c/modules/db/postgres: the layer against a PostgreSQL server,
 * in DTest's C face. It has one section, its entry point, and the runner in its

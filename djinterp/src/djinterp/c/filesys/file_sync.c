@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_sync.c
+* djinterp [c][filesys]                                              file_sync.c
 *
 * Implementation of the durability calls declared in file_sync.h.
 *   What "durable" means is answered once per platform, in

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                        expression_ops.hpp
+* djinterp [cpp][parse]                                       expression_ops.hpp
 *
 *   The verbs over an expression term.  expression.hpp defined the noun --
 * the term is mu<expr_layer>, and cata (recursion.hpp) already folds it.

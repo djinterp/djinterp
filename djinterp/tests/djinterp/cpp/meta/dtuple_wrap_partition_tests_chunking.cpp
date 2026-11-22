@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                       dtuple_wrap_partition_tests_chunking.cpp
+* djinterp [cpp][meta]                  dtuple_wrap_partition_tests_chunking.cpp
 *
 *   Section II of dtuple_wrap_partition.hpp: the core chunk-and-wrap behavior
 * over runs of consecutive NON-passthrough slots (no passthroughs here -- that

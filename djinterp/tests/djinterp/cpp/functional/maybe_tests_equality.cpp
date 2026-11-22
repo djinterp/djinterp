@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       maybe_tests_equality.cpp
+* djinterp [cpp][functional]                            maybe_tests_equality.cpp
 *
 * Equality-operator tests for maybe<T>.
 *

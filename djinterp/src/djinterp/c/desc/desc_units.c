@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      desc_units.c
+* djinterp [c][desc]                                                desc_units.c
 *
 *   The units engine, and the facts a field list derives. A description is
 * made in two steps: decide, from the object's values, which units show and

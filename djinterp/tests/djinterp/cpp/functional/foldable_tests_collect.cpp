@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     foldable_tests_collect.cpp
+* djinterp [cpp][functional]                          foldable_tests_collect.cpp
 *
 *   Sections II.4 - II.6 of the foldable.hpp suite: the materialize-and-measure
 * derivations.  fold_to_vector collects elements in fold order (covering the

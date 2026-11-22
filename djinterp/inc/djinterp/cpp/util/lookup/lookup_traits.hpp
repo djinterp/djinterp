@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               lookup_traits.hpp
+* djinterp [cpp][utility]                                      lookup_traits.hpp
 *
 * Row classification and column access traits for lookup tables.
 *

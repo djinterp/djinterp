@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [core]                                      database_tests_vendor.cpp
+* djinterp [cpp][db]                                   database_tests_vendor.cpp
 *
 *
 * path:      /tests/unintegrated/cpp/db/database_tests_vendor.cpp

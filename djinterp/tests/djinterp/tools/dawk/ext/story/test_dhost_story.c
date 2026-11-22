@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                            test_dhost_story.c
+* djinterp [c][tools]                                         test_dhost_story.c
 *
 * Exercises `ext/story/dhost_story.h` and the Articulate driver behind it.
 *   The story tested is built here, to the layout dhost_articulate.h assumes,
@@ -13,6 +13,7 @@
 *   test_dhost_story                     run the checks
 *   test_dhost_story --fixture <path>    write the story, for story.sh
 *   test_dhost_story --part <zip> <name> write one part's bytes to stdout
+*
 *
 * path:      /tests/djinterp/tools/dawk/ext/story/test_dhost_story.c
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/jit]                                                   jit_riscv.c
+* djinterp [c][jit]                                                  jit_riscv.c
 *
 * djinterp RISC-V (RV32I / RV64I) JIT encoder -- implementation (jit_riscv.h).
 *   Emitters assemble each instruction from its opcode and funct fields via the

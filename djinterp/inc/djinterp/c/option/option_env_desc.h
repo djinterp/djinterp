@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 option_env_desc.h
+* djinterp [c][option]                                         option_env_desc.h
 *
 *   A frame's settings as facts: each variable a frame can see, its value in
 * force, where that came from, its default, the knob behind the default, its

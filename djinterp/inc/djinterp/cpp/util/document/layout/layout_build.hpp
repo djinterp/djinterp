@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                layout_build.hpp
+* djinterp [cpp][utility]                                       layout_build.hpp
 *
 *   The PROCEDURAL construction surface -- a stateful cursor that assembles a
 * DLayoutDoc through imperative open / close / leaf calls, the counterpart to

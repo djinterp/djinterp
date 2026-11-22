@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                                array_common_tests_manip.c
+* djinterp [c][container]                             array_common_tests_manip.c
 *
 *   Unit tests for `array_common.h` manipulation functions.
 *   Part of the array_common suite, on DTest's C face.

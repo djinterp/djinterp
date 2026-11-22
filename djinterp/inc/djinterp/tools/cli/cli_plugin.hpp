@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                cli_plugin.hpp
+* djinterp [cpp][tools]                                           cli_plugin.hpp
 *
 * The command-line kit's C++ face: modules.
 *   A program's side of a plugin is program::add_plugin (cli_program.hpp),

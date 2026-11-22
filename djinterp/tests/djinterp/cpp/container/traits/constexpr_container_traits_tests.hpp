@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                        constexpr_container_traits_tests.hpp
+* djinterp [cpp][container]                 constexpr_container_traits_tests.hpp
 *
 *   Declarations, fixtures and the check macro for the constexpr_container_traits
 * suite.  The section TUs define the tests_* functions declared at the bottom;

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                          arg_option_tests.c
+* djinterp [c][parse]                                         arg_option_tests.c
 *
 * The suite of the argument parser's options, declared in arg_option_tests.h.
 *   Each section makes its options as CLI11's App("d", "prog") would, on a

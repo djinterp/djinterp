@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                     member_traits_tests.hpp
+* djinterp [cpp][meta]                                   member_traits_tests.hpp
 *
 * Unit test suite for member_traits.hpp -- the DEPRECATED transitional shim.
 *   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):

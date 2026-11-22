@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                container_filter_traits_tests_capability.cpp
+* djinterp [cpp][container]         container_filter_traits_tests_capability.cpp
 *
 *   Section I - capability detection: the READ capability (is_filter_source: an
 * iterable, typed container), the READ+BUILD capability (is_container_filterable:

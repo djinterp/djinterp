@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                   ftp_reply.h
+* djinterp [c][net]                                                  ftp_reply.h
 *
 * FTP replies (RFC 959 4.2): codes, parsing, and formatting.
 *   Classifies reply codes; parses control-connection bytes, in chunks of any

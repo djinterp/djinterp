@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   event_registry_tests_run.cpp
+* djinterp [cpp][event]                             event_registry_tests_run.cpp
 *
 *   Section III (run) -- the outer fold over a homogeneous trace.  run folds
 * dispatch across [first, last), building one payload per element, and returns

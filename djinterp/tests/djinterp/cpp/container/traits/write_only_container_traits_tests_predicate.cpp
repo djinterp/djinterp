@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                 write_only_container_traits_tests_predicate.cpp
+* djinterp [cpp][container]      write_only_container_traits_tests_predicate.cpp
 *
 *
 * path:      /tests/djinterp/cpp/container/traits/write_only_container_traits_tests_predicate.cpp

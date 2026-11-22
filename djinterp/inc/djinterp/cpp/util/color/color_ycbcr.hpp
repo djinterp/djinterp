@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 color_ycbcr.hpp
+* djinterp [cpp][utility]                                        color_ycbcr.hpp
 *
 *   C++ ergonomic layer for the YCbCr color model (full-range BT.601).
 * `ycbcr` derives from the shared-kernel POD (color_ycbcr.h) without adding

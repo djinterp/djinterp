@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                              mongodb_connection.h
+* djinterp [c][db]                                          mongodb_connection.h
 *
 * Making, adopting and closing connections, and what a connection reports.
 *   d_mongodb_connect makes a connection from a struct of the usual fields,

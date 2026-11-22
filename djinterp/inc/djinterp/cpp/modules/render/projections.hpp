@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                            projections.hpp
+* djinterp [cpp][render]                                         projections.hpp
 *
 * The projective and view transforms a camera needs, built as 4x4 linalg
 * matrices.

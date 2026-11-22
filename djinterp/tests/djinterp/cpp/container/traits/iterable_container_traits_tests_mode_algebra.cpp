@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]            iterable_container_traits_tests_mode_algebra.cpp
+* djinterp [cpp][container]     iterable_container_traits_tests_mode_algebra.cpp
 *
 *   Section III, value level - the iteration_mode vocabulary and its capability
 * order, all plain constexpr over the three-valued enum and so exercised

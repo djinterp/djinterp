@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                           reactor_tests.cpp
+* djinterp [cpp][net]                                          reactor_tests.cpp
 *
 * Tests of net/reactor.hpp.
 *   The reactor dispatches over a pipe; then an event_server echoes on a

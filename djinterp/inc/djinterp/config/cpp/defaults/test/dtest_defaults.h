@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp][test]                                          dtest_defaults.h
+* djinterp [cpp][defaults]                                      dtest_defaults.h
 *
 *   Standalone test framework with simple tree structure for tests and
 * assertions. Supports nested test blocks/groups, template-based output,

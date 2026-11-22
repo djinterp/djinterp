@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                      fixed_string_tests.hpp
+* djinterp [cpp][meta]                                    fixed_string_tests.hpp
 *
 *   Unit-test surface for the structural string-literal carrier (core/meta/
 * fixed_string.hpp).  This header carries ONLY declarations and the fixtures

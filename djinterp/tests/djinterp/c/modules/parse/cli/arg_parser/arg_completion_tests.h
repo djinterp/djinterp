@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                      arg_completion_tests.h
+* djinterp [c][parse]                                     arg_completion_tests.h
 *
 * The suite of shell completion (arg_completion.h): the names the shells are
 * looked up by; what the scripts are made of -- the identifier a program's

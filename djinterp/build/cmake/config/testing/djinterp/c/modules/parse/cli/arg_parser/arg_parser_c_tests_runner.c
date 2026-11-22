@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [parse]                                   arg_parser_c_tests_runner.c
+* djinterp [c][parse]                                arg_parser_c_tests_runner.c
 *
 * Entry point for the argument parser's C suites.
 *   Built as C and linked against the parser's library, built as C at the C

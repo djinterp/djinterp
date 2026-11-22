@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                               t_hyperbolic.c
+* djinterp [c][math]                                              t_hyperbolic.c
 *
 *   Conformance harness for c/math/hyperbolic.h. For float, sinh_c, cosh_c
 * and tanh_c must be the correctly rounded result -- the long double

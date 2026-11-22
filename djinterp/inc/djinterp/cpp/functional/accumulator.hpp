@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 accumulator.hpp
+* djinterp [cpp][functional]                                     accumulator.hpp
 *
 * First-class accumulators with combinable folds (C++11+).
 *   An accumulator is a (state, step, finalize) triple that consumes a

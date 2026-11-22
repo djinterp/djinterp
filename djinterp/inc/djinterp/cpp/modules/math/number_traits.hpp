@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                          number_traits.hpp
+* djinterp [cpp][math]                                         number_traits.hpp
 *
 * The static side of the generic value: what generic code needs to know of a
 * number type, and which type two numbers combine to.

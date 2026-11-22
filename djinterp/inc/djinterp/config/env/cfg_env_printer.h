@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                            cfg_env_printer.h
+* djinterp [c][env]                                            cfg_env_printer.h
 *
 * Configuration for env_printer.h and env_printer.hpp, the printers of the
 * detected environment.

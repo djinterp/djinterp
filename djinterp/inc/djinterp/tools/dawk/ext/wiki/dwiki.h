@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                       dwiki.h
+* djinterp [c][tools]                                                    dwiki.h
 *
 * A wiki's pages, read without loss.
 *   One page model, read from any of the dialects a wiki is written in, each
@@ -32,6 +32,7 @@
 * itself.
 *   A stand-in, local to dawk: markup belongs to the parse tier, and when
 * that tier reads it, this unit gives way to it.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/wiki/dwiki.h
 * link(s):   TBA

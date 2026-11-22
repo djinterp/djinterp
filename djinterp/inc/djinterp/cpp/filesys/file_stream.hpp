@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 file_stream.hpp
+* djinterp [cpp][filesys]                                        file_stream.hpp
 *
 * djinterp::file -- an open file, owned.
 *   This is the RAII core of the C++ file layer (roadmap Phase 3), and it makes

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                   machine.h
+* djinterp [c][parse]                                                  machine.h
 *
 * The operator-agnostic execution substrate.
 *   A machine is run-state with no opinion about what is being run: a step

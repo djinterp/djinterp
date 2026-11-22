@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                           cli_rows.cpp
+* djinterp [cpp][tools]                                             cli_rows.cpp
 *
 * The commands that rearrange a sheet's rows or change the rest of it:
 * duplicate, remove, rename, move, sort, set, get and op.
@@ -15,6 +15,7 @@
 *   op previews an operation as a table, its result; with --apply the sheet
 * is the result, and the table is said about the work, to standard error,
 * with -v or -n.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/cli/cli_rows.cpp
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [cli]                                                      commands.cpp
+* djinterp [cpp][tools]                                             commands.cpp
 *
 * Definitions for commands.hpp: what the subcommands over one grammar and
 * over saved runs do; bench, corpus and compare are measures.cpp's, and the
@@ -21,6 +21,7 @@
 * given -q or --no-trace. A run match saves is traced from the start.
 * check and compile never trace: where a grammar's reading stops, the model
 * reads it again, traced, to say where.
+*
 *
 * path:      /src/djinterp/tools/vparse/cli/commands.cpp
 * link(s):   TBA

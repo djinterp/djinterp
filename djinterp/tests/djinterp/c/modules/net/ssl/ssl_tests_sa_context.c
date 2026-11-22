@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                        ssl_tests_sa_context.c
+* djinterp [c][net]                                       ssl_tests_sa_context.c
 *
 * Tests of the SSL kernel's contexts.
 *   A context is refused in one of two places: the kernel refuses what a

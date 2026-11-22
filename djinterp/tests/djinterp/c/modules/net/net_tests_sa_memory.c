@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                         net_tests_sa_memory.c
+* djinterp [c][net]                                        net_tests_sa_memory.c
 *
 * Tests of the in-memory connections of net/net_memory.h.
 *   The pipe's two ends talk to each other in one thread, so each test drives

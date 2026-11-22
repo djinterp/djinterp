@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                               json.hpp
+* djinterp [cpp][tools]                                                 json.hpp
 *
 * A small JSON value, reader and writer -- enough for a sheet file.
 *   Numbers are kept as the text they were read from, not as doubles: a
@@ -8,6 +8,7 @@
 * same way twice and a diff between two saves is a diff of what changed.
 *   The reader takes RFC 8259 JSON. It is not a validator of the sheet: that
 * is persist.hpp's job, on the value this produces.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/json.hpp
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                        arg_process_config.c
+* djinterp [c][parse]                                       arg_process_config.c
 *
 * Configuration in the parse, declared in arg_internal.h (8.2.4 to 8.2.6).
 *   CLI11's _add_flag_like_result, in every build, as a positional that

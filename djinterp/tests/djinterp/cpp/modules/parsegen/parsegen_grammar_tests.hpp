@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                             parsegen_grammar_tests.hpp
+* djinterp [cpp][parsegen]                            parsegen_grammar_tests.hpp
 *
 * The neutral-grammar suite: the tree a frontend builds, repetition as bounds,
 * the two kinds of choice, capability accumulation, and canonical rendering.

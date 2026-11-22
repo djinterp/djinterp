@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                    test_dss.c
+* djinterp [c][tools]                                                 test_dss.c
 *
 * Exercises `dss.h`.
 *

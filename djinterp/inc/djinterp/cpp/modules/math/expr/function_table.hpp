@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                         function_table.hpp
+* djinterp [cpp][math]                                        function_table.hpp
 *
 * The function and constant tables of the run-time expression language: the
 * tables a fold looks a call's function and a constant's value up in, their

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                                ops.hpp
+* djinterp [cpp][tools]                                                  ops.hpp
 *
 * Operations on symbols, and how they move the sheet's bits around.
 *   An operation -- a shift, a rotation, a logical or arithmetic operation, a
@@ -16,6 +16,7 @@
 * a field_value moved within its field is still a field_value, and an
 * expression is wrapped in the operation, so the header still spells it.
 * Otherwise the symbol becomes a literal of the bits it now has.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/ops.hpp
 * link(s):   TBA

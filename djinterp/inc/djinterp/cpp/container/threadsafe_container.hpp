@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        threadsafe_container.hpp
+* djinterp [cpp][container]                             threadsafe_container.hpp
 *
 * Foundation module for implementing thread-safe containers.
 *   Provides the runtime building blocks that all threadsafe_<container>

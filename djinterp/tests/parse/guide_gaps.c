@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                   guide_gaps.c
+* djinterp [c][parse]                                               guide_gaps.c
 *
 * Dogfood: measure the style guide's function tripwires on the bundle's own.
 *

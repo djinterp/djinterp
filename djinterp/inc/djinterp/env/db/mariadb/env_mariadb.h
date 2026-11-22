@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                   env_mariadb.h
+* djinterp [c][env]                                                env_mariadb.h
 *
 * djinterp MariaDB environment detection.
 *   Compile-time detection of a MariaDB environment: the server version and

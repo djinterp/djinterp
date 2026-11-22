@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                               edit.cpp
+* djinterp [cpp][tools]                                                 edit.cpp
 *
 * Edits as the window and the command line make them alike.
 *   A trial is the whole sheet copied, the row inserted or changed, and the
@@ -9,6 +9,7 @@
 * row is never inserted twice.
 *   A sort is the window's: display_order says where each row is shown, and
 * each group's rows are put in that order.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/edit.cpp
 * link(s):   TBA

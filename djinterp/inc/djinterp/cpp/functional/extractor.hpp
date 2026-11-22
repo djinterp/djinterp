@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   extractor.hpp
+* djinterp [cpp][functional]                                       extractor.hpp
 *
 * First-class extractors / projections (C++).
 *   An extractor is a callable of signature `Target(const Source&)` that

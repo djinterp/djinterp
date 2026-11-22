@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        compose_tests_helpers.h
+* djinterp [c][functional]                               compose_tests_helpers.h
 *
 *   Shared helper transformer and consumer functions used across compose test
 * files. Extracted to avoid duplication between transformer and partial

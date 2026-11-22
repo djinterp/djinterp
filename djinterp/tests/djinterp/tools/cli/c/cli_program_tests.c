@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                           cli_program_tests.c
+* djinterp [c][tools]                                        cli_program_tests.c
 *
 * The suite of the command-line kit's program, declared in
 * cli_program_tests.h.

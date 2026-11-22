@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      byte_array.h
+* djinterp [c][container]                                           byte_array.h
 *
 *  Macros for building byte arrays with counted/sized elements at compile
 * time.

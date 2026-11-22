@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                      reactor_tests_main.cpp
+* djinterp [cpp][net]                                     reactor_tests_main.cpp
 *
 * Runs net/reactor.hpp's tests; without epoll there are none.
 *

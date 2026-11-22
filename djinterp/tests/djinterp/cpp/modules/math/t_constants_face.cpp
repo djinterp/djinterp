@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                       t_constants_face.cpp
+* djinterp [cpp][math]                                      t_constants_face.cpp
 *
 *   Tests for math/constants.hpp at every level from C++98: each of the
 * nineteen constants, in float and double, is the correctly rounded value,

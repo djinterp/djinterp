@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                              smtp_tests.cpp
+* djinterp [cpp][net]                                             smtp_tests.cpp
 *
 * Tests of the SMTP C++ facade, net/smtp/smtp.hpp.
 *   A server runs on a loopback port, its accept loop on a thread of

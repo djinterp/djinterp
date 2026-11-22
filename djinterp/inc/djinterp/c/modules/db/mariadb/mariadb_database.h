@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                mariadb_database.h
+* djinterp [c][db]                                            mariadb_database.h
 *
 * The databases on a MariaDB or MySQL server, and the connection's current
 * one.

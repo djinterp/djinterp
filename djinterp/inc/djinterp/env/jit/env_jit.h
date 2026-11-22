@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                       env_jit.h
+* djinterp [c][env]                                                    env_jit.h
 *
 * djinterp JIT code-generation environment detection.
 *   Compile-time detection of the facilities a just-in-time code generator

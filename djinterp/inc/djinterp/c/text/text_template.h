@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   text_template.h
+* djinterp [c][text]                                             text_template.h
 *
 *   Marker-aware text templating engine built on top of `string_interp.h`.
 * Supports configurable prefix/suffix marker strings (e.g., "{{" / "}}",

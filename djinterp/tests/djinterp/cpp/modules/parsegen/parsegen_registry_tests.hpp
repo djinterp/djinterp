@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                            parsegen_registry_tests.hpp
+* djinterp [cpp][parsegen]                           parsegen_registry_tests.hpp
 *
 * The stage-registry suite: the capability vocabulary, the registry that selects
 * a stage by it, and the growth policy the parse containers share.

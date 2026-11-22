@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                ftp_transfer.c
+* djinterp [c][net]                                               ftp_transfer.c
 *
 * Implementation of the transfer handling declared in ftp_transfer.h.
 *   TYPE composition and parsing, the STRU and MODE codes, and the CR LF

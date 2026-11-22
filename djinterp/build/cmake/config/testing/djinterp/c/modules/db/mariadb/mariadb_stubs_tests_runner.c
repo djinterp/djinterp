@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   mariadb_stubs_tests_runner.c
+* djinterp [c][db]                                  mariadb_stubs_tests_runner.c
 *
 * The runner for c/modules/db/mariadb's suite, the layer built without a client:
 * options, then the suite's one section, d_tests_mariadb_stubs, which opens its

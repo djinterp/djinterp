@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     result_tests_factories.cpp
+* djinterp [cpp][functional]                          result_tests_factories.cpp
 *
 * Factory-function tests for result.hpp section III:
 *   test_factories -- ok<T, E> and err<T, E>, from lvalue and rvalue sources.

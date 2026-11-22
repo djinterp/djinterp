@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parsegen]                                                feature.h
+* djinterp [c][parsegen]                                               feature.h
 *
 * What a grammar uses, and what a stage can cope with, as one 64-bit mask.
 *   This is the vocabulary that keeps four notations times N parser families

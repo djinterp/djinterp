@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                        tcp_tests_sa_threads.c
+* djinterp [c][net]                                       tcp_tests_sa_threads.c
 *
 * Standalone tests of the TCP transport that need a second party.
 *   A POSIX thread plays the peer: blocked in accept while the listener

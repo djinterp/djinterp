@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                                    sftp.hpp
+* djinterp [cpp][net]                                                   sftp.hpp
 *
 * Umbrella for the SFTP module, in C++.
 *   Includes sftp.h, the C codec and client, and sftp_client.hpp, the

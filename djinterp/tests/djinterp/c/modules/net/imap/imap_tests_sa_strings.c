@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                       imap_tests_sa_strings.c
+* djinterp [c][net]                                      imap_tests_sa_strings.c
 *
 * Tests of the IMAP kernel's string writers: the form an astring takes,
 * quoted strings and their escapes, literal prefixes, modified UTF-7, and

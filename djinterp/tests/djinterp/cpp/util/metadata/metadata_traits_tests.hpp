@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                   metadata_traits_tests.hpp
+* djinterp [cpp][utility]                              metadata_traits_tests.hpp
 *
 *   Unit-test suite for the metadata protocol traits (util/metadata/
 * metadata_traits.hpp).  Two-faced per the DTest authoring guide: the section

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                         mongodb.h
+* djinterp [c][db]                                                     mongodb.h
 *
 * Umbrella for djinterp's MongoDB convenience layer -- includes every module.
 *   Convenience, not architecture: each module is its own source, so a

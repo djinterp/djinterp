@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                          database_statement.cpp
+* djinterp [cpp][db]                                      database_statement.cpp
 *
 * Definitions for database_statement.hpp: the session a connection shares
 * with its statements, and buffered_result_set.

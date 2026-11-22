@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             metadata_traits.hpp
+* djinterp [cpp][utility]                                    metadata_traits.hpp
 *
 * djinterp metadata traits module:
 *   Structural classification of types by their exposure of three canonical

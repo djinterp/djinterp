@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                cfg_ostream.h
+* djinterp [c][utility]                                            cfg_ostream.h
 *
 *   Configuration for the output stream: which backend writes to the console,
 * and the size of the buffers djinterp provides itself. The kernel is

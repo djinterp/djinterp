@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    consumer.hpp
+* djinterp [cpp][functional]                                        consumer.hpp
 *
 * First-class consumers (sinks) for functional dataflow (C++).
 *   A consumer is any callable of signature `void(const A&)`. This module

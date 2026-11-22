@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_seek.h
+* djinterp [c][filesys]                                              file_seek.h
 *
 * Positioning and truncation, at either width.
 *   Exists as its own module because "where am I in this file" and "how big is

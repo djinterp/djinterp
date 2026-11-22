@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/jit]                                                   jit_s390x.h
+* djinterp [c][jit]                                                  jit_s390x.h
 *
 * djinterp s390x (IBM z/Architecture) JIT encoder (variable-length, big-endian)
 *   The z/Architecture (64-bit s390x) half of the djinterp JIT. Unlike every

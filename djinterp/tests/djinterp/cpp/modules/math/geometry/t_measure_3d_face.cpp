@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                      t_measure_3d_face.cpp
+* djinterp [cpp][math]                                     t_measure_3d_face.cpp
 *
 *   Tests for geometry/measure_3d.hpp, at every level from C++98, per family:
 * a flat bilinear patch's area by the iterated Simpson rule against a

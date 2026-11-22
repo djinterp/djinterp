@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                 camera.hpp
+* djinterp [cpp][render]                                              camera.hpp
 *
 *   A viewport and an orbit (turntable) camera: the common interactive 3D
 * camera for inspecting a scene. The camera orbits a target at a distance with

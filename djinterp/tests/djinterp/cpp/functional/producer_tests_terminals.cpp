@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                             producer_tests_terminals.cpp
+* djinterp [cpp][functional]                        producer_tests_terminals.cpp
 *
 *   Tests for the free terminal conveniences: collect, for_each, and fold.
 * These differ from the inherited DProducerBase::collect() in that they take

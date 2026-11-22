@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                         arg_command_query.c
+* djinterp [c][parse]                                        arg_command_query.c
 *
 * What can be asked of a command, declared in arg_command.h (section 6).
 *   Its fields, as CLI11's getters read them; what the last parse did with

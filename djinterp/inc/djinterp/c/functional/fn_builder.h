@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      fn_builder.h
+* djinterp [c][functional]                                          fn_builder.h
 *
 * Fluent builder pattern for constructing function chains.
 *   Provides a builder that records a chain of steps -- transformers (map,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             mediator_tests.hpp
+* djinterp [cpp][paradigm]                                    mediator_tests.hpp
 *
 *   Unit-test suite header for inc/djinterp/patterns/mediator/mediator.hpp.
 * Two faces, selected by DTEST_SPEC_MODE:

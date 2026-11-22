@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                      ordered_container_tests_algorithms.cpp
+* djinterp [cpp][container]               ordered_container_tests_algorithms.cpp
 *
 *   Section TU: the free order algorithms.  Each of starts_with / ends_with /
 * contains_subsequence is exercised for the empty, partial, exact, mismatched,

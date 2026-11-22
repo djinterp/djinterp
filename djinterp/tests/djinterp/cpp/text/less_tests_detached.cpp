@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        less_tests_detached.cpp
+* djinterp [cpp][text]                                   less_tests_detached.cpp
 *
 *   The groups for css/less/less_template.hpp's five factories and its adopt
 * functions, on the default backend. Each factory returns its rule in a

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/jit]                                                     jit_ppc.c
+* djinterp [c][jit]                                                    jit_ppc.c
 *
 * djinterp PowerPC (PPC32 / PPC64) JIT encoder -- implementation (jit_ppc.h).
 *   Emitters assemble each instruction through the shared form encoders (X/XO,

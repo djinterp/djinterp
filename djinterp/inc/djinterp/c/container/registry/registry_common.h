@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 registry_common.h
+* djinterp [c][container]                                      registry_common.h
 *
 *   Shared types/utilities for:
 *     1) in-memory djinterp cvar registry (Source-style cvars)

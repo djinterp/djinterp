@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                      mutable_container_traits_tests_signals.cpp
+* djinterp [cpp][container]           mutable_container_traits_tests_signals.cpp
 *
 *
 * path:      /tests/djinterp/cpp/container/traits/mutable_container_traits_tests_signals.cpp

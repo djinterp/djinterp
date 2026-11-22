@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                              event_table_common.c
+* djinterp [c][event]                                       event_table_common.c
 *
 * The erased store -- tier 0 definitions.
 *   Implements event_table_common.h: an entry arena chained by 32-bit index,

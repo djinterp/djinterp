@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 output_stream_tests_runner.cpp
+* djinterp [cpp][utility]                         output_stream_tests_runner.cpp
 *
 * The runner for output_stream's suite: options, then the module.
 *

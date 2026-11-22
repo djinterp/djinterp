@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                               smtp_tests_sa.h
+* djinterp [c][net]                                              smtp_tests_sa.h
 *
 * djinterp SMTP kernel tests -- standalone.
 *   Declarations for the standalone tests of the C SMTP kernel: the protocol

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                  bench_cpp.cpp
+* djinterp [cpp][utility]                                          bench_cpp.cpp
 *
 *   The C++ face's cost against the standard library's, for the same
 * operations: iostreams (a std::ofstream to /dev/null with a 64 KiB buffer),

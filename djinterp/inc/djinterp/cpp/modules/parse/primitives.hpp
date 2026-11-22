@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                            primitives.hpp
+* djinterp [cpp][parse]                                           primitives.hpp
 *
 * Atomic parsers — the leaves of every CRTP composition tree.
 *   Each primitive is a concrete class inheriting from DParserExpr,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                arg_parser.c
+* djinterp [c][parse]                                               arg_parser.c
 *
 * The parser's own parts, declared in arg_parser.h (sections 3, 5, 6 and 7)
 * and arg_internal.h (7.1).

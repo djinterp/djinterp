@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                   dmsvs_doc.c
+* djinterp [c][tools]                                                dmsvs_doc.c
 *
 * A Visual Studio file held for change: see dmsvs_doc.h.
 *   Every change is one splice, read again whole. Handles follow the
@@ -8,6 +8,7 @@
 * inside it is gone, and one after it moves by the count the splice added
 * less the count it took. An element that has moved is held to its name, in
 * case the splice changed the tree around it.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/msvs/dmsvs_doc.c
 * link(s):   TBA

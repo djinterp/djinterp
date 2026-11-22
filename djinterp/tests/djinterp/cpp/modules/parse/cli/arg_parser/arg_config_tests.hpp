@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                      arg_config_tests.hpp
+* djinterp [cpp][parse]                                     arg_config_tests.hpp
 *
 * The argument parser's C++ configuration suite: configuration formats,
 * through the C++ face's cli::config_format.

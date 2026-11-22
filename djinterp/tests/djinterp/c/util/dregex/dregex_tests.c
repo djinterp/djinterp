@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 dregex_tests.c
+* djinterp [c][utility]                                           dregex_tests.c
 *
 *   The suite of the POSIX ERE engine in dregex.h, in DTest's C face.
 *     The cases that matter most are the leftmost-longest ones: a backtracking

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  pdf_canvas.hpp
+* djinterp [cpp][utility]                                         pdf_canvas.hpp
 *
 * djinterp high-level PDF writer:
 *   A cursor-based document writer layered over the agnostic DPdfDocument

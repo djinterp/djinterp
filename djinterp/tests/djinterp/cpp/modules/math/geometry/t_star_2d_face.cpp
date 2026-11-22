@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                         t_star_2d_face.cpp
+* djinterp [cpp][math]                                        t_star_2d_face.cpp
 *
 *   Tests for geometry/star_2d.hpp, at every level from C++98, per family: a
 * pentagram's hollow centre (even-odd) and filled points, its perimeter as

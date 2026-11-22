@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                         event_dispatcher_common.h
+* djinterp [c][event]                                  event_dispatcher_common.h
 *
 * The queue and the facade -- the shared C core (tier 0):
 *   Deferred delivery and the unified front end. A queue is a word of pending

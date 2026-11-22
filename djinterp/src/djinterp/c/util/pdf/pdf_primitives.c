@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  pdf_primitives.c
+* djinterp [c][utility]                                         pdf_primitives.c
 *
 * Units, geometry, page sizes, device colour and the standard-14 faces.
 *   Defines what pdf_primitives.h declares, value for value with the C++

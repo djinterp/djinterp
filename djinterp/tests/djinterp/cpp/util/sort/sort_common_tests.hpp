@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          sort_common_tests.hpp
+* djinterp [cpp][utility]                                  sort_common_tests.hpp
 *
 *   unit-test suite for sort_common.hpp.
 * Declares every tests_sort_common_* predicate and the helper types the

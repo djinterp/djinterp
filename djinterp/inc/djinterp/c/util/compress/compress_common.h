@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 compress_common.h
+* djinterp [c][utility]                                        compress_common.h
 *
 *   The shared compression kernel: tier 0.  One definition of every codec
 * identity, every option layout, and every transform, compiled by BOTH C and

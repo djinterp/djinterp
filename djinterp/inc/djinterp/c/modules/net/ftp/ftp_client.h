@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                  ftp_client.h
+* djinterp [c][net]                                                 ftp_client.h
 *
 * An FTP client, plain or secured with TLS: FTPS (RFC 4217).
 *   The client speaks the control protocol through the net/ftp/ vocabulary and

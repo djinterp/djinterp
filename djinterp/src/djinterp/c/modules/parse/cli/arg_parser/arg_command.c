@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                               arg_command.c
+* djinterp [c][parse]                                              arg_command.c
 *
 * Commands' lives and lookups, declared in arg_command.h (3.4.1, 6.1.3 and
 * 6.3.2) and arg_internal.h (7.3).

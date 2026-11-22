@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     event_dispatcher_tests.hpp
+* djinterp [cpp][event]                               event_dispatcher_tests.hpp
 *
 *   Declarations for the unit-test suite covering event_dispatcher.hpp.  Each
 * free function exercises one entity of the event front end and returns true

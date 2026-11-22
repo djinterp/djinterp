@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                              claude_api.hpp
+* djinterp [cpp][net]                                             claude_api.hpp
 *
 *   Higher-level programmatic-workflow layer for Anthropic's Claude, built on
 * the typed synchronous surface in claude.hpp. Its centerpiece is the Message

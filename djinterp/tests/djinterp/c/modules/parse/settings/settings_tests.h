@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                            settings_tests.h
+* djinterp [c][parse]                                           settings_tests.h
 *
 * Parse's settings group (settings.h) in DTest's C face (c/modules/test/
 * test_suite.h), by lane E's checklist (knob_and_option.md): the defaults

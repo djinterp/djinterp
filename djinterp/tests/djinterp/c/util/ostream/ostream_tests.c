@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                ostream_tests.c
+* djinterp [c][utility]                                          ostream_tests.c
 *
 *   The output stream's suite, in DTest's C face (c/modules/test/test_suite.h):
 * the kernel (c/util/ostream/ostream.h), its destinations -- a sink, a fixed

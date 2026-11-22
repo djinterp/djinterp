@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                           predicate_tests_behavioral.cpp
+* djinterp [cpp][functional]                      predicate_tests_behavioral.cpp
 *
 *   Tests for the behavioral detection trait is_predicate (+ is_predicate_v)
 * and the C++20 concepts predicate_combinator / predicate. Also defines the

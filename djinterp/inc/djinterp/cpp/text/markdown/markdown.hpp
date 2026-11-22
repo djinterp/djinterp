@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    markdown.hpp
+* djinterp [cpp][text]                                              markdown.hpp
 *
 *   Foundational Markdown module for the djinterp framework. Models
 * a CommonMark-aligned bipartite AST: documents contain *blocks*

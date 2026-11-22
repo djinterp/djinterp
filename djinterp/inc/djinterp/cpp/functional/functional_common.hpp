@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                           functional_common.hpp
+* djinterp [cpp][functional]                               functional_common.hpp
 *
 * Shared callable vocabulary for the functional module (C++).
 *   The combinator modules (filter, pipeline, DFnBuilder, and the accumulator /

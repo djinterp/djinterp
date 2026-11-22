@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                polynomial_tests_traversable.cpp
+* djinterp [cpp][functional]                    polynomial_tests_traversable.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/polynomial_tests_traversable.cpp

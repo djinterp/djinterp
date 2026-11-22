@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                      arg_common_tests.hpp
+* djinterp [cpp][parse]                                     arg_common_tests.hpp
 *
 * The argument parser's C++ common suite: the vocabulary the C++ face's
 * headers share.

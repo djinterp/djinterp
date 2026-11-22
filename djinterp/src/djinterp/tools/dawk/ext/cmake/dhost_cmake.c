@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                 dhost_cmake.c
+* djinterp [c][tools]                                              dhost_cmake.c
 *
 * Definitions for the declarations in dhost_cmake.h.
 *   Each file open is a dcmake document; its handle is its place in the list
@@ -7,6 +7,7 @@
 * it names nothing rather than another file. What a file holds is read from
 * the document's records as they are now, each field by its name; a change
 * is the document's, which keeps it or says why not.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/cmake/dhost_cmake.c
 * link(s):   TBA

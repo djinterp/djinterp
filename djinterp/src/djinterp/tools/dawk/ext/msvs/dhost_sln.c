@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                   dhost_sln.c
+* djinterp [c][tools]                                                dhost_sln.c
 *
 * Definitions for the declarations in dhost_sln.h.
 *   Each solution open is a dmsvs document. A .slnx is changed through its
@@ -13,6 +13,7 @@
 * ProjectConfigurationPlatforms. A section a change needs is made where
 * Visual Studio puts it. Every splice is read again before the next is made,
 * so each offset is taken from the reading of the text as it then is.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/msvs/dhost_sln.c
 * link(s):   TBA

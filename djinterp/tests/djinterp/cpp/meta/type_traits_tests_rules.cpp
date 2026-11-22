@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    type_traits_tests_rules.cpp
+* djinterp [cpp][meta]                               type_traits_tests_rules.cpp
 *
 *   Unit tests for the rule-of-N traits in Section III of type_traits.hpp:
 *     - follows_rule_of_five  + _v

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                           option_set_compare_tests_keylist.cpp
+* djinterp [cpp][option]                    option_set_compare_tests_keylist.cpp
 *
 *   Sections I + II of the option_set_compare.hpp suite: the key-list layer.
 *

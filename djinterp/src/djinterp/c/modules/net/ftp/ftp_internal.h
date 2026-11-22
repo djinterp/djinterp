@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                ftp_internal.h
+* djinterp [c][net]                                               ftp_internal.h
 *
 * Private helpers shared by the net/ftp/ sources.
 *   Bounded number parsing, span trimming, all-or-nothing buffer appends, the

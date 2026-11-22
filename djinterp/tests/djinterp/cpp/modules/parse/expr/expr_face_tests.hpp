@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                       expr_face_tests.hpp
+* djinterp [cpp][parse]                                      expr_face_tests.hpp
 *
 * Expression core v2's C++ face (cpp/modules/parse/expr/) in DTest's C face
 * (c/modules/test/test_suite.h), at every C++ level from C++98, in three

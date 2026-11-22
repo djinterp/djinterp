@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                         reducer.h
+* djinterp [c][functional]                                             reducer.h
 *
 * The reducer spine: accumulator state, the reducing step, and its drivers.
 *   Every dataflow shape in this subframework is one of three things: a reducer

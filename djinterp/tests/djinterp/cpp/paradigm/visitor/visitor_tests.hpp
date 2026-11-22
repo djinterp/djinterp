@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              visitor_tests.hpp
+* djinterp [cpp][paradigm]                                     visitor_tests.hpp
 *
 *   Unit-test module for the djinterp visitor pattern header.  Declarations and
 * shared fixtures only; each predicate is defined in the section translation unit

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            file_tree_common.hpp
+* djinterp [cpp][container]                                 file_tree_common.hpp
 *
 * File tree common core (OS-independent):
 *   This header carries the greatest common subset shared by every

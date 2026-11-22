@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                           emoji.h
+* djinterp [c][text]                                                     emoji.h
 *
 * Emoji utf-8 utilities and sequences.
 *   This header provides helpers for working with emoji without embedding

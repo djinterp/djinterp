@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                      container_metadata_tests_detection.cpp
+* djinterp [cpp][container]               container_metadata_tests_detection.cpp
 *
 *   The detection section of container_metadata's suite: the
 * is_container_metadata trait, and equality as a comparison of named entries

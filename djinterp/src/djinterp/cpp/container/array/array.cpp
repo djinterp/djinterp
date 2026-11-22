@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                       array.cpp
+* djinterp [cpp][container]                                            array.cpp
 *
 *
 * path:      /src/djinterp/cpp/container/array/array.cpp

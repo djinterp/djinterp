@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        recursion_tests_hylo.cpp
+* djinterp [cpp][functional]                            recursion_tests_hylo.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/recursion_tests_hylo.cpp

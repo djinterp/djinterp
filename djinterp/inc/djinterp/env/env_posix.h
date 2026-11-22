@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                     env_posix.h
+* djinterp [c][env]                                                  env_posix.h
 *
 * djinterp POSIX / XSI standards detection.
 *   Compile-time detection of the POSIX and X/Open System Interface levels and

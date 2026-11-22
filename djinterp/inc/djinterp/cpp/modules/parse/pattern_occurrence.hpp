@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                    pattern_occurrence.hpp
+* djinterp [cpp][parse]                                   pattern_occurrence.hpp
 *
 * Functional occurrence unfold for searchable patterns:
 *   This header provides a reusable functional unfold over a searchable

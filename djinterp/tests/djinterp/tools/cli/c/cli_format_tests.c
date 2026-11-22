@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                            cli_format_tests.c
+* djinterp [c][tools]                                         cli_format_tests.c
 *
 * The suite of the command-line kit's help, declared in cli_format_tests.h.
 *   LAYOUT is a program whose definitions reach every part of the page: on

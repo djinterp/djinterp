@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               html_template.hpp
+* djinterp [cpp][text]                                         html_template.hpp
 *
 *   Templated HTML element / document facades and the bundled default
 * backend. The facades inherit from their XML counterparts so that

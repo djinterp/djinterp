@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                             pdf_builtin_backend.h
+* djinterp [c][utility]                                    pdf_builtin_backend.h
 *
 * Serialization primitives for the built-in PDF writer.
 *   Escaping, number formatting, colour operators, date stamps and object

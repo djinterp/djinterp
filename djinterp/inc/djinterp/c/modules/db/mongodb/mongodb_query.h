@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   mongodb_query.h
+* djinterp [c][db]                                               mongodb_query.h
 *
 * Running a MongoDB command, written as a document, without handling the
 * driver's replies by hand.

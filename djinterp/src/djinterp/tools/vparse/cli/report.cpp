@@ -1,11 +1,12 @@
 /*******************************************************************************
-* vparse [cli]                                                        report.cpp
+* djinterp [cpp][tools]                                               report.cpp
 *
 * Definitions for report.hpp.
 *   The JSON here is written, never read, so it is made as text: a value is
 * JSON text from the moment it is made, and a document is its members' texts
 * joined. Pretty printing is a matter of where the line breaks go, and each
 * value that spans lines is made knowing the indent it will sit at.
+*
 *
 * path:      /src/djinterp/tools/vparse/cli/report.cpp
 * link(s):   TBA

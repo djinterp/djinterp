@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/jit]                                                     jit_x86.h
+* djinterp [c][jit]                                                    jit_x86.h
 *
 * djinterp x86 (32-bit) JIT encoder (byte constants + instruction emitters):
 *   The IA-32 half of the djinterp JIT, parallel to jit_x64.h but for 32-bit

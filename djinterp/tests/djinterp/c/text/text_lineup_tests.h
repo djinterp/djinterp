@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            text_lineup_tests.h
+* djinterp [c][text]                                         text_lineup_tests.h
 *
 *   Unit tests for the text_lineup module (text lineup and formatting
 * utilities). Tests cover the lightweight dj_text_buffer used for output

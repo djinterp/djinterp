@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                   container_memory_concepts.hpp
+* djinterp [cpp][container]                        container_memory_concepts.hpp
 *
 * C++20 concepts for the MEMORY DISCIPLINE axis -- the `requires`-facing view
 * of container_memory_traits.hpp.

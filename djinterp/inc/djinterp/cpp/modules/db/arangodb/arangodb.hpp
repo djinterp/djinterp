@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    arangodb.hpp
+* djinterp [cpp][db]                                                arangodb.hpp
 *
 * djinterp ArangoDB connection module:
 *   This header provides the ArangoDB-specific connection implementation

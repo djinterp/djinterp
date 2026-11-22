@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                              t_compensated.c
+* djinterp [c][math]                                             t_compensated.c
 *
 *   Conformance harness for the C core's compensated sums and refined solve
 * (S404, S406), all three families, against exact arithmetic. vec.h's dot,

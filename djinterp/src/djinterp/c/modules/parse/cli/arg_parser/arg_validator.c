@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                             arg_validator.c
+* djinterp [c][parse]                                            arg_validator.c
 *
 * Validators, declared in arg_validator.h.
 *   A value's validation -- its replacement and its rejection -- then the

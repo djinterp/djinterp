@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                   starttls_tests_sa_session.c
+* djinterp [c][net]                                  starttls_tests_sa_session.c
 *
 * Standalone tests of a STARTTLS session before any upgrade: its defaults,
 * its initialization, lifecycle and queries, the names of its values, and

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                   starttls_tests_sa_upgrade.c
+* djinterp [c][net]                                  starttls_tests_sa_upgrade.c
 *
 * Standalone tests of STARTTLS negotiation and the upgrade, against a
 * scripted peer and the SSL kernel's toy engine: the policies at the two

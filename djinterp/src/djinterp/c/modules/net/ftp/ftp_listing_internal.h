@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                        ftp_listing_internal.h
+* djinterp [c][net]                                       ftp_listing_internal.h
 *
 * Private helpers shared by the listing parser's files.
 *   ftp_listing.c holds detection, the line dispatcher, and the token scanning

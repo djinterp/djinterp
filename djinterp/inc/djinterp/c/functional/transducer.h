@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      transducer.h
+* djinterp [c][functional]                                          transducer.h
 *
 * Transducers: source-agnostic and sink-agnostic reducer transformers.
 *   A transducer is a function from one reducer to another. Because the reducer

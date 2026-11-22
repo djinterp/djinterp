@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 ssh_channel.c
+* djinterp [c][net]                                                ssh_channel.c
 *
 *   Definitions for ssh_channel.h. Every call checks the channel and its
 * session before reaching the engine, and a fatal engine result fails

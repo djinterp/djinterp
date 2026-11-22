@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   nary_tree.hpp
+* djinterp [cpp][container]                                        nary_tree.hpp
 *
 * N-ary tree container:
 *   A heap-allocated, owning n-ary tree using the LCRS (left-child /

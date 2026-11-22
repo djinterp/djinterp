@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                           t_value_face.cpp
+* djinterp [cpp][math]                                          t_value_face.cpp
 *
 *   Tests for math/value.hpp at every level from C++98, against the C core
 * (c/math/value.h), which t_value.c checks against an exact reference:

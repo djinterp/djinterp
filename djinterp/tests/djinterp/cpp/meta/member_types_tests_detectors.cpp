@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                member_types_tests_detectors.cpp
+* djinterp [cpp][meta]                          member_types_tests_detectors.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/member_types_tests_detectors.cpp

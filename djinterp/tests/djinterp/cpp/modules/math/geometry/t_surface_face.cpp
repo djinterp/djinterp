@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                         t_surface_face.cpp
+* djinterp [cpp][math]                                        t_surface_face.cpp
 *
 *   Tests for geometry/surface.hpp, at every level from C++98: a triangle's
 * corners at (0,0), (1,0), (0,1) and its area and normal; a unit square's

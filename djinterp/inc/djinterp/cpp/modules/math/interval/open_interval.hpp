@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                          open_interval.hpp
+* djinterp [cpp][math]                                         open_interval.hpp
 *
 * Compile-time open interval (lower, upper).
 *   Both endpoints are exclusive. The value type, bounds, and size type are

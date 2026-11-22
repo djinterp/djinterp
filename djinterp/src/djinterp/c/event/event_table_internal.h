@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                            event_table_internal.h
+* djinterp [c][event]                                     event_table_internal.h
 *
 * Private to the event core's sources: how the registry brackets a dispatch.
 *   Dispatch folds the word in force when the occurrence began, so a letter a

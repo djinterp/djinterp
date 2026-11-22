@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    multimap.hpp
+* djinterp [cpp][container]                                         multimap.hpp
 *
 * link(s):   TBA
 *

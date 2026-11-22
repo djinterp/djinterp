@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                                 token.hpp
+* djinterp [cpp][parse]                                                token.hpp
 *
 * Generic token primitives — token, traits, and concepts merged.
 *   A token, in the formal-language sense, is a discriminated lexeme:

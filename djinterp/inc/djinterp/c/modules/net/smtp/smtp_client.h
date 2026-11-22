@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 smtp_client.h
+* djinterp [c][net]                                                smtp_client.h
 *
 * djinterp SMTP client.
 *   A submission and relay client for RFC 5321 with the extensions a modern

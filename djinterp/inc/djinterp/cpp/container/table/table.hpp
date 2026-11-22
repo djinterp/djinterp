@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                       table.hpp
+* djinterp [cpp][container]                                            table.hpp
 *
 *   table -- the fully dynamic member of the table trio.  A rank-2,
 * rectangular, cell-homogeneous table whose two extents are read and changed

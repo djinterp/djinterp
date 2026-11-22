@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                        expr_tests_parsing.c
+* djinterp [c][parse]                                       expr_tests_parsing.c
 *
 * Expression core v2's C suite, block "parsing": the stop option, the
 * sub-parse and hole modes, hooks, the diagnostics, and the limits.

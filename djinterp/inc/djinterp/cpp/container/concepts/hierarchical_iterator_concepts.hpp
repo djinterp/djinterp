@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                              hierarchical_iterator_concepts.hpp
+* djinterp [cpp][container]                   hierarchical_iterator_concepts.hpp
 *
 * C++20 concepts for the HIERARCHICAL / FLAT iterator shapes -- the
 * `requires`-facing view of iterator/hierarchical_iterator_traits.hpp.

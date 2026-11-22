@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                mysql_common.cpp
+* djinterp [cpp][db]                                            mysql_common.cpp
 *
 * Definitions for mysql_common.hpp that are not the template's: the MariaDB
 * layer's failures -- described, then thrown -- and its prepared statements'

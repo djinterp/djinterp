@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                                  scan.hpp
+* djinterp [cpp][parse]                                                 scan.hpp
 *
 * Expression core v2's C++ face (design section 13): the default scanner.
 *   DScanner binds d_parse_expr_scan to a text and a sealed signature, and

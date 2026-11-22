@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                        t_named_3d_face.cpp
+* djinterp [cpp][math]                                       t_named_3d_face.cpp
 *
 *   Tests for geometry/named_3d.hpp, at every level from C++98, per family:
 * every named solid's known volume, surface area, centroid and containment

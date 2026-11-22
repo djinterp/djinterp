@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              event_registry.hpp
+* djinterp [cpp][event]                                       event_registry.hpp
 *
 * The registry:
 *   The typed subscription layer of the event system -- the realization of

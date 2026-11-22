@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                     concurrency_strategy_traits_tests_tags.cpp
+* djinterp [cpp][container]           concurrency_strategy_traits_tests_tags.cpp
 *
 *   Section I/II - the strategy enum and the concurrency_strategy_tag alias
 * detector.  Defines the "tags" block declared in the suite header.

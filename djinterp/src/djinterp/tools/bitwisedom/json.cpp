@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                               json.cpp
+* djinterp [cpp][tools]                                                 json.cpp
 *
 * A small JSON value, reader and writer.
 *   The reader is recursive descent with a depth limit, so a hostile file
@@ -8,6 +8,7 @@
 * where its line has room -- a bitfield's row is `{ "name": "EN", "bit": 0 }`
 * -- which keeps a sheet's settings readable, and a bitfield of a thousand
 * rows a thousand lines long.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/json.cpp
 * link(s):   TBA

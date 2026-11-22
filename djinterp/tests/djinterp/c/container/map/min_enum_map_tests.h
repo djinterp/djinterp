@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           min_enum_map_tests.h
+* djinterp [c][container]                                   min_enum_map_tests.h
 *
 *   Unit tests for the min_enum_map module (minimal enum-keyed map).
 *   Tests cover map creation, insertion, retrieval, removal, merging,

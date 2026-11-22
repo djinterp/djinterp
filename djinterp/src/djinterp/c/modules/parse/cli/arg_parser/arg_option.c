@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                arg_option.c
+* djinterp [c][parse]                                               arg_option.c
 *
 * Options' lifetime and names, declared in arg_option.h (sections 2 and 3)
 * and arg_internal.h (section 7.2): CLI11's Option in C, in four sources.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                arg_parser.h
+* djinterp [c][parse]                                               arg_parser.h
 *
 * The argument parser: the root of a command tree, and the parse itself.
 *   A `struct dj_arg_parser` is what a program makes first: CLI11's top-level

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                               t_desc_units.cpp
+* djinterp [cpp][desc]                                          t_desc_units.cpp
 *
 *   desc's C++ face's harness (cpp/desc/desc_units.hpp), at every level from
 * C++98: a template container whose units its parameters choose -- its

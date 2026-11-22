@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                              dtoken_node.h
+* djinterp [c][tools]                                              dtoken_node.h
 *
 * Builds a DSS node tree from source, through the /parse/ layers.
 *   This is the one place tokens become nodes, shared by the C and C++

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   concepts_tests_composite.cpp
+* djinterp [cpp][meta]                              concepts_tests_composite.cpp
 *
 *   Tests for concepts.hpp section II.2: composite type concepts.
 * Covers: is_arithmetic_c, is_fundamental_c, is_scalar_c, is_object_c,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                        ssh_tests_sa_support.c
+* djinterp [c][net]                                       ssh_tests_sa_support.c
 *
 * The SSH suite's fixture: a session over the toy engine with one channel.
 *

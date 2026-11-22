@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           merge_sort_tests.hpp
+* djinterp [cpp][utility]                                   merge_sort_tests.hpp
 *
 *   unit-test suite for merge_sort.hpp.
 * Declares every tests_merge_sort_* predicate and the adapters the suite's

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                               functional_common.c
+* djinterp [c][functional]                                   functional_common.c
 *
 * The functional core's utilities and higher-order functions.
 *   Defines what functional_common.h declares in its sections IX and X. Every

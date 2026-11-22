@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    file_dir.hpp
+* djinterp [cpp][filesys]                                           file_dir.hpp
 *
 * djinterp::directory -- an open directory you can walk with a range-for
 * (roadmap Phase 6).

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           maybe_tests_free.cpp
+* djinterp [cpp][functional]                                maybe_tests_free.cpp
 *
 * Free-function helper tests for maybe.hpp section VI:
 *   test_zip_with -- combine two maybes via a binary function; nothing if

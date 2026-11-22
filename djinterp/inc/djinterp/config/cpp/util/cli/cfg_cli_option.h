@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                             cfg_cli_option.h
+* djinterp [cpp][utility]                                       cfg_cli_option.h
 *
 *   Feature configuration for the command-line option module. It defines no
 * knobs yet.

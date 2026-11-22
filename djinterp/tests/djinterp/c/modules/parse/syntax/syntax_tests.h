@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                              syntax_tests.h
+* djinterp [c][parse]                                             syntax_tests.h
 *
 * The syntax items' suite in DTest's C face (c/modules/test/test_suite.h):
 * what dawk's checker, dcheck, reads beside each token (lane H): `pp_of`, the

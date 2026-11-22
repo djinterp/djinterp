@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                         http_tests_sa_http1.c
+* djinterp [c][net]                                        http_tests_sa_http1.c
 *
 * Standalone tests of http1.h: HTTP/1.1 message heads.
 *   Every refusal the header names has a case, each expecting its own error.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                           ui_tests_export.cpp
+* djinterp [cpp][tools]                                      ui_tests_export.cpp
 *
 * Unit tests for SVG export.
 *

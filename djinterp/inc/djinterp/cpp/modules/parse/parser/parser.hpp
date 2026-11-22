@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                                parser.hpp
+* djinterp [cpp][parse]                                               parser.hpp
 *
 * The parser carrier: a parsing function P A, presented as a CRTP expression.
 *   Per ch-parsing.tex the parser carrier is fixed as

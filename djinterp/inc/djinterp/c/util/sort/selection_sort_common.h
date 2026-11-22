@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                           selection_sort_common.h
+* djinterp [c][utility]                                  selection_sort_common.h
 *
 *   The primitives every selection sort is built from.
 * A selection sort is a driver wrapped around two operations: find the element

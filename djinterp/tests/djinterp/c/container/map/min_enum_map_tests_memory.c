@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    min_enum_map_tests_memory.c
+* djinterp [c][container]                            min_enum_map_tests_memory.c
 *
 *   Memory management and advanced tests for min_enum_map module.
 *   Tests clear, free, merge operations, and edge cases.

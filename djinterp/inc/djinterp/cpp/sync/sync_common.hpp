@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 sync_common.hpp
+* djinterp [cpp][sync]                                           sync_common.hpp
 *
 * Shared foundations for the thread-safe sync module.
 *   Container-agnostic utilities that several sync submodules were each

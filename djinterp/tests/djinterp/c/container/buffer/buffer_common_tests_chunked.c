@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                             buffer_common_tests_chunked.c
+* djinterp [c][container]                          buffer_common_tests_chunked.c
 *
 *
 * path:      /tests/djinterp/c/container/buffer/buffer_common_tests_chunked.c

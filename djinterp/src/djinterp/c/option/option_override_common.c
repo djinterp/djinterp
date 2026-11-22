@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                          option_override_common.c
+* djinterp [c][option]                                  option_override_common.c
 *
 *   Implementation of the merge engine and the named policies. See
 * option_override_common.h for the rationale and for the algebraic laws.

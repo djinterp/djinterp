@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 bubble_sort.hpp
+* djinterp [cpp][utility]                                        bubble_sort.hpp
 *
 *   Bubble sort: the sequential driver.
 * In-place, iterative, stable, comparison-based.  Each pass sweeps the adjacent

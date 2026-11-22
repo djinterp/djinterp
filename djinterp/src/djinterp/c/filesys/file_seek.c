@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_seek.c
+* djinterp [c][filesys]                                              file_seek.c
 *
 * Implementation of the positioning and truncation declared in file_seek.h,
 * at both widths.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     db_internal.c
+* djinterp [c][db]                                                 db_internal.c
 *
 * Implementation of the buffers, list builders, statement formatting and
 * number reading db_internal.h declares for the vendor layers.

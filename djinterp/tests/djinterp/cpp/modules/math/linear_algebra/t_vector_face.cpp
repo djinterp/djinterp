@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                          t_vector_face.cpp
+* djinterp [cpp][math]                                         t_vector_face.cpp
 *
 *   Tests for linear_algebra/vector.hpp, at every level from C++98. The
 * compile-time half -- the traits, the families, and from C++14 (C++20 for an

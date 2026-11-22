@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                           metadata_concepts.hpp
+* djinterp [cpp][utility]                                  metadata_concepts.hpp
 *
 * djinterp metadata concepts module:
 *   C++20 concept-based companions to `metadata_traits.hpp`. Provides

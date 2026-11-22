@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     emoji_flags.h
+* djinterp [c][text]                                               emoji_flags.h
 *
 * Emoji flag sequences.
 *   This header defines UTF-8 string constants for flag emoji using regional

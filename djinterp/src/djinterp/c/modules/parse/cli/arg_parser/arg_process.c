@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                               arg_process.c
+* djinterp [c][parse]                                              arg_process.c
 *
 * The processing that ends a parse, declared in arg_internal.h (8.2).
 *   CLI11's _process and its parts: the callbacks of each priority with the

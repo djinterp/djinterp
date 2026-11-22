@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                   dext_c.h
+* djinterp [c][tools]                                                   dext_c.h
 *
 * The C extension: binds C source to a DSS node tree.
 *   Separate from the C++ extension and linkable without it; this file

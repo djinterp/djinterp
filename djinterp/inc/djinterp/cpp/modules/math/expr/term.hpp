@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                   term.hpp
+* djinterp [cpp][math]                                                  term.hpp
 *
 * The term: what a text means, as parse/expression's expression over the run-
 * time language's operators and atoms; the third layer.

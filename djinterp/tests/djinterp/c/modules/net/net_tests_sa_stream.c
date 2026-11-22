@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                         net_tests_sa_stream.c
+* djinterp [c][net]                                        net_tests_sa_stream.c
 *
 * Tests of connections, the stream algorithms, and framing.
 *   Every test runs over the scripted connection of net_tests_sa_support.c,

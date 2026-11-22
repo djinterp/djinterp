@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                             ssh_known_hosts.h
+* djinterp [c][net]                                            ssh_known_hosts.h
 *
 * OpenSSH known_hosts files: looking up a host and the key it presents,
 * and recording a new one.

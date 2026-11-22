@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                       monoid_tests_protocol.cpp
+* djinterp [cpp][functional]                           monoid_tests_protocol.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/monoid_tests_protocol.cpp

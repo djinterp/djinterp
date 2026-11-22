@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     linked_node.h
+* djinterp [c][container]                                          linked_node.h
 *
 *   The module contains common building blocks for various graph data
 * structures

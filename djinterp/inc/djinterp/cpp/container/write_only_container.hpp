@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        write_only_container.hpp
+* djinterp [cpp][container]                             write_only_container.hpp
 *
 *   The write_only access wrapper: an append-only sink. It HOLDS its container
 * privately and forwards only the append surface - push_back / emplace_back /

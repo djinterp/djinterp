@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                             number_to_string_fr.c
+* djinterp [c][text]                                       number_to_string_fr.c
 *
 * TBA
 *

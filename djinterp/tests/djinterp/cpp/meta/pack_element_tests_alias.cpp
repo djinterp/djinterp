@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    pack_element_tests_alias.cpp
+* djinterp [cpp][meta]                              pack_element_tests_alias.cpp
 *
 *
 * path:      /tests/djinterp/cpp/meta/pack_element_tests_alias.cpp

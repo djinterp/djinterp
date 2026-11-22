@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                  container_storage_traits_tests_signals.cpp
+* djinterp [cpp][container]           container_storage_traits_tests_signals.cpp
 *
 *   Section I - the two raw shape signals: has_static_storage_signal (a bounded
 * C array, a member `extent` OR a std::tuple_size specialisation) and has_dynamic_storage_signal

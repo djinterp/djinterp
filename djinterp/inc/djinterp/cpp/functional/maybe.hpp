@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                       maybe.hpp
+* djinterp [cpp][functional]                                           maybe.hpp
 *
 * Maybe<T> -- a monadic optional value type (C++).
 *   Represents a value that may or may not be present. Equivalent in

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [cli]                                                        common.hpp
+* djinterp [cpp][tools]                                               common.hpp
 *
 * What the subcommands share: reading their options, reading what they are
 * given, the request a run is made from, and ending, with an output or a

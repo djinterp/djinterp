@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                 t_geometry_common_face.cpp
+* djinterp [cpp][math]                                t_geometry_common_face.cpp
 *
 *   Tests for geometry/geometry_common.hpp, at every level from C++98: the
 * detection traits on types that have, lack, and set false their flags and

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                            desc_tests_runner.c
+* djinterp [c][desc]                                         desc_tests_runner.c
 *
 * The runner for c/desc's suite: options, then its three sections,
 * d_tests_desc over desc.h's core, d_tests_desc_units over the units engine

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                         arg_setting_tests.h
+* djinterp [c][parse]                                        arg_setting_tests.h
 *
 * The suite of the parser's setting hook (d_arg_parser_set_setting_hook):
 * which long options it is offered, and which never; the arguments it sees

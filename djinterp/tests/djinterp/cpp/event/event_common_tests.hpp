@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         event_common_tests.hpp
+* djinterp [cpp][event]                                   event_common_tests.hpp
 *
 *   Declarations for the unit-test suite covering event_common.hpp.  Each free
 * function exercises one entity of the event foundations header and returns

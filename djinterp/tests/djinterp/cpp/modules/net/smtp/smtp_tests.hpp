@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                              smtp_tests.hpp
+* djinterp [cpp][net]                                             smtp_tests.hpp
 *
 * Tests of the SMTP C++ facade, net/smtp/smtp.hpp, over a loopback server --
 * in plaintext, by STARTTLS and in TLS from the first byte -- and over a

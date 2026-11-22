@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                          t_expr_quaternion_matrix_face.cpp
+* djinterp [cpp][math]                         t_expr_quaternion_matrix_face.cpp
 *
 * Tests for what step 24's third part, chunk 46, made of matrices of
 * quaternions in the language (math/expr/matrix_kind.hpp, matrix_function.hpp,

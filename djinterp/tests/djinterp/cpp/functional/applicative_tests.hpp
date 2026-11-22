@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          applicative_tests.hpp
+* djinterp [cpp][functional]                               applicative_tests.hpp
 *
 *   Declarations and shared fixtures for the applicative.hpp unit suite.  The
 * individual tests_* predicates and their block-providers are defined per

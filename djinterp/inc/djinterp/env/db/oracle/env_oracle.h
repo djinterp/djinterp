@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                    env_oracle.h
+* djinterp [c][env]                                                 env_oracle.h
 *
 * djinterp Oracle Database environment detection.
 *   Compile-time detection of an Oracle Database environment: the version,

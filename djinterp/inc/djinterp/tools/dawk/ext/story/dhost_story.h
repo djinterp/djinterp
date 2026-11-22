@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                 dhost_story.h
+* djinterp [c][tools]                                              dhost_story.h
 *
 * Storyline: the host extension for e-learning stories.
 *   A story is slides in order, each holding media -- audio, video, images --
@@ -12,6 +12,7 @@
 * the file it was read from, a media file used by two slides is not replaced
 * through one of them, and audio is replaced only by a file of the same kind
 * as the one it replaces. A driver can refuse more; it cannot refuse less.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/story/dhost_story.h
 * link(s):   TBA

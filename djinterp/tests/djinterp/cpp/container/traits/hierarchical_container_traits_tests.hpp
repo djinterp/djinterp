@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                     hierarchical_container_traits_tests.hpp
+* djinterp [cpp][container]              hierarchical_container_traits_tests.hpp
 *
 *   Declarations, shared helpers, and helper TYPES for the
 * hierarchical_container_traits.hpp unit-test suite.  A container factors as

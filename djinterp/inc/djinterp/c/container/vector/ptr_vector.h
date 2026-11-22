@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      ptr_vector.h
+* djinterp [c][container]                                           ptr_vector.h
 *
 *   A dynamic array (vector) optimized for storing pointers. This
 * implementation maintains both capacity and count, allowing for efficient

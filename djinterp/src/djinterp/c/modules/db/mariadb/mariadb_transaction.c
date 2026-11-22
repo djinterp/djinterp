@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                             mariadb_transaction.c
+* djinterp [c][db]                                         mariadb_transaction.c
 *
 * Implementation of mariadb_transaction.h.
 *   Every verb is the servers' own statement. Whether a transaction is open is

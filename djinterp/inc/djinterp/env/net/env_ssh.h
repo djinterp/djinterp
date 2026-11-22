@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                       env_ssh.h
+* djinterp [c][env]                                                    env_ssh.h
 *
 * djinterp SSH environment detection.
 *   Compile-time detection of what the SSH family of modules needs from the

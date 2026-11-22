@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                             predicate_tests_variadic.cpp
+* djinterp [cpp][functional]                        predicate_tests_variadic.cpp
 *
 *   Tests for the variadic fold factories all_of, any_of, and none_of, and
 * the internal fold helpers (all_of_fold / any_of_fold) that compute the

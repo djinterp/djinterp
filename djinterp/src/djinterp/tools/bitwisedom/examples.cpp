@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                           examples.cpp
+* djinterp [cpp][tools]                                             examples.cpp
 *
 * Twenty-one sheets that show what a sheet can hold.
 *   uart_cr is a control register: flags, ranges with named values,
@@ -26,6 +26,7 @@
 * examples/large, which the build embeds (cmake/EmbedExamples.cmake) and
 * this file reads as it would any bitfield; scripts/ holds the scripts that
 * made them.
+*
 *
 * path:      /src/djinterp/tools/bitwisedom/examples.cpp
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                      dninja.c
+* djinterp [c][tools]                                                   dninja.c
 *
 * Reads the Ninja build language into records: see dninja.h.
 *   One pass over the text, by hand, as ninja's re2c lexer and its manifest
@@ -10,6 +10,7 @@
 * in a path's sense or a value's. Where ninja's parser reports a fault, the
 * reader reports it at the token ninja's lexer last read, which is the line
 * ninja names.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/ninja/dninja.c
 * link(s):   TBA

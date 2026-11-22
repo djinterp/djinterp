@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           sqlite_stubs_tests.c
+* djinterp [c][db]                                          sqlite_stubs_tests.c
 *
 *   The SQLite layer built without SQLite (D_CFG_SQLITE 0): every function
 * answers as such a build must -- D_DB_UNSUPPORTED, or false, 0 or NULL where

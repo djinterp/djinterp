@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                ostream_tests.h
+* djinterp [c][utility]                                          ostream_tests.h
 *
 * The output stream's suite in DTest's C face (c/modules/test/test_suite.h).
 *   One entry point builds the module "ostream" imperatively: a block per

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                            bounded_registry.hpp
+* djinterp [cpp][container]                                 bounded_registry.hpp
 *
 *   bounded_registry -- a registry carrying a CAPACITY (the Boundedness axis).
 * The Boundedness section fixes a capacity

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                       pipeline_tests_query.cpp
+* djinterp [cpp][functional]                            pipeline_tests_query.cpp
 *
 * Query / consumption tests (section iii):
 *   test_query    -- any, all, none, count over populated and empty pipelines.

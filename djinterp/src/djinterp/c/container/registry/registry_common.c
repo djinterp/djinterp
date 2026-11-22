@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 registry_common.c
+* djinterp [c][container]                                      registry_common.c
 *
 * TBA
 *

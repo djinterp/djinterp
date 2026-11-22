@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     text_source_tests_runner.c
+* djinterp [c][text]                                  text_source_tests_runner.c
 *
 * The runner for c/text/text_source's suite: one module spec, the suite's own.
 *

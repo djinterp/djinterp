@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                       selection_sort_common.hpp
+* djinterp [cpp][utility]                              selection_sort_common.hpp
 *
 *   The primitives every selection sort is built from.
 * A selection sort is a driver wrapped around two operations: find the element

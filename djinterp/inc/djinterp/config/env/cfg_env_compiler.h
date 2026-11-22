@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                           cfg_env_compiler.h
+* djinterp [c][env]                                           cfg_env_compiler.h
 *
 * Configuration for env_compiler.h, the compiler detection section of env.h.
 *   Resolves D_CFG_ENV_COMPILER_ENABLED, which chooses between that section's

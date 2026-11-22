@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                            matrix_kind.hpp
+* djinterp [cpp][math]                                           matrix_kind.hpp
 *
 * Vectors and matrices as values of the run-time expression language: the
 * matrix kind, its values, its operators, transposes and blocks; roadmap

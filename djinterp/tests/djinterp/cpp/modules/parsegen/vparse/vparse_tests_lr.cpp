@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                    vparse_tests_lr.cpp
+* djinterp [cpp][parsegen]                                   vparse_tests_lr.cpp
 *
 * vparse tests: the LR family, over a hand-built SLR(1) table for a
 * left-recursive grammar -- the one the PEG family cannot run.

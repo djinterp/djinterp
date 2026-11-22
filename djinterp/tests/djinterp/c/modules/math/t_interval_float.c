@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                           t_interval_float.c
+* djinterp [c][math]                                          t_interval_float.c
 *
 *   Conformance harness for the floating-point interval families
 * (c/math/interval_float.h). The float family against brute force: every

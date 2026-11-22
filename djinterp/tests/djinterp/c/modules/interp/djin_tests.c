@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                   djin_tests.c
+* djinterp [c][interp]                                              djin_tests.c
 *
 *   The suite's aggregation: the set's tests, then the text's.
 *

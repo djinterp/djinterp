@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                              http_tests.hpp
+* djinterp [cpp][net]                                             http_tests.hpp
 *
 * Tests of net/http/http.hpp, HTTP's C++ layer.
 *   Each test returns true when every check held; the suite reports each test

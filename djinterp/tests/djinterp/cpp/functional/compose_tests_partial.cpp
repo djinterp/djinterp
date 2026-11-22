@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      compose_tests_partial.cpp
+* djinterp [cpp][functional]                           compose_tests_partial.cpp
 *
 *   Tests for compose.hpp Section IV: partial_back, which binds the last
 * argument of a function.  Covers binding the trailing argument of a

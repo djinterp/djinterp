@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                        rules.c
+* djinterp [c][tools]                                                    rules.c
 *
 * Rule harness: a sheet's findings over fixture files, one per line.
 *   Builds each file's source tree (dext_c or dext_cpp) and its text layer

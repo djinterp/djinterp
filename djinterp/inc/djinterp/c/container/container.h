@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       container.h
+* djinterp [c][container]                                            container.h
 *
 *   The root of the C container module: its configuration
 * (djinterp/config/c/container/cfg_container.h) and the merge-conflict flags

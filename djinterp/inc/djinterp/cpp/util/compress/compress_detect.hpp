@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             compress_detect.hpp
+* djinterp [cpp][utility]                                    compress_detect.hpp
 *
 *   Stream recognition: "what codec produced these bytes?"  Magic-byte
 * predicates and a detector over them, as a C++ face on compress_common.h's

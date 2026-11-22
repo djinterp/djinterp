@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                           complex_kind.hpp
+* djinterp [cpp][math]                                          complex_kind.hpp
 *
 * Complex numbers as values of the run-time expression language; roadmap
 * Phase 3, step 23 (3e), its first part.

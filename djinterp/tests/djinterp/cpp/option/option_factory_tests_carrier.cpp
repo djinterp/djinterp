@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               option_factory_tests_carrier.cpp
+* djinterp [cpp][option]                        option_factory_tests_carrier.cpp
 *
 *   Section I - key_carrier<auto>, the NTTP-to-type bridge.  Covers its two
 * members (::value carrying the NTTP, ::value_type reporting decltype of it)

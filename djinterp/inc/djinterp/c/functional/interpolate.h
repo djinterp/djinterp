@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     interpolate.h
+* djinterp [c][functional]                                         interpolate.h
 *
 * The type-agnostic interpolation engine: one left-to-right pass, three
 * policies.

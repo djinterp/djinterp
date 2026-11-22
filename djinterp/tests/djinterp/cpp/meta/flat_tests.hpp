@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                                              flat_tests.hpp
+* djinterp [cpp][meta]                                            flat_tests.hpp
 *
 * Unit test suite for flat.hpp -- the FLAT structural-kind tag.
 *   Two faces, selected by DTEST_SPEC_MODE (see djinterp_testing.md S3):

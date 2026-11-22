@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                           insertion_sort_common.h
+* djinterp [c][utility]                                  insertion_sort_common.h
 *
 *   The primitives every insertion sort is built from, sequential or otherwise.
 * An insertion sort is a driver wrapped around two operations: place one

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                           reactor_tests.hpp
+* djinterp [cpp][net]                                          reactor_tests.hpp
 *
 * Tests of net/reactor.hpp: the reactor, and an event_server echoing over
 * loopback.

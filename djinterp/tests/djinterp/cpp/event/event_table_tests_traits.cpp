@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   event_table_tests_traits.cpp
+* djinterp [cpp][event]                             event_table_tests_traits.cpp
 *
 *   Sections IV + V (structural detection) -- the fifteen internal detection
 * traits and the event_table_traits facade built on them.  For every trait the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      value_list_tests_fold.cpp
+* djinterp [cpp][meta]                                 value_list_tests_fold.cpp
 *
 *   Section VI -- fold: the left fold, and the value-domain driver reduce_ct
 * builds on.

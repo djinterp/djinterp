@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                        html.hpp
+* djinterp [cpp][text]                                                  html.hpp
 *
 *   Foundational HTML module for the djinterp framework. Layered on top
 * of the XML module: HTML elements ARE XML nodes plus HTML semantics.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     dtuple_tests_utilities.cpp
+* djinterp [cpp][meta]                                dtuple_tests_utilities.cpp
 *
 *   Unit tests for the tuple-utilities section of dtuple.hpp:
 *     - tuple_to_pack  (runtime apply / expand into a callable)

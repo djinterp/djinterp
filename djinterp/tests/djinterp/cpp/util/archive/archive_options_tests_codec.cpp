@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                archive_options_tests_codec.cpp
+* djinterp [cpp][utility]                        archive_options_tests_codec.cpp
 *
 *   Tests for the embedded codec (archive_options HAS-A compress_options):
 * its fifty-one knobs are pristine until set; resolution tunes only the format's

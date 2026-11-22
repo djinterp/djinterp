@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          html_tests_runner.cpp
+* djinterp [cpp][text]                                     html_tests_runner.cpp
 *
 * The runner for html's suite: options, then the module.
 *

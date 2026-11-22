@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                  types.hpp
+* djinterp [cpp][tools]                                                types.hpp
 *
 *   Foundational, UI-framework-agnostic types shared across the djinterp::ui
 * visualization module: the `scalar` value type, the `rgb`/`rgba` colour types

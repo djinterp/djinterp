@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                  cfg_parse.h
+* djinterp [c][parse]                                                cfg_parse.h
 *
 * Configuration for the parse subframework's execution substrate.
 *   Owns every knob the substrate reads: whether the diagnostic sink and the

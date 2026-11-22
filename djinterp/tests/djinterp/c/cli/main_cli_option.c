@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              main_cli_option.c
+* djinterp [c][cli]                                            main_cli_option.c
 *
 *   Test runner for cli_option module unit tests.
 *   Executes comprehensive standalone tests for convention-agnostic

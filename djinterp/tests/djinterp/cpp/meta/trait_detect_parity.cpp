@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        trait_detect_parity.cpp
+* djinterp [cpp][meta]                                   trait_detect_parity.cpp
 *
 * Parity test for trait_detect.hpp's engines (decision 4.8): the C++98 sizeof
 * engine, the void_t engine (C++11 and up) and the requires engine (C++20 with

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       semigroup.h
+* djinterp [c][functional]                                           semigroup.h
 *
 * The semigroup protocol: one associative binary combine, and no identity.
 *   A semigroup is a value type together with an associative operation

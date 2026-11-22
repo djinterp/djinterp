@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 smtp_common.h
+* djinterp [c][net]                                                smtp_common.h
 *
 * djinterp SMTP protocol vocabulary.
 *   The transport-independent half of the SMTP kernel: the ports and limits of

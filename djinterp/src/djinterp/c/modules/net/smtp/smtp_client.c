@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 smtp_client.c
+* djinterp [c][net]                                                smtp_client.c
 *
 * djinterp SMTP client -- implementation.
 *   The client state machine over a net.h connection, with TLS from the SSL

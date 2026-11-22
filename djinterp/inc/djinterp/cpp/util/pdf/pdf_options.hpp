@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 pdf_options.hpp
+* djinterp [cpp][utility]                                        pdf_options.hpp
 *
 *   The configuration vocabulary for the PDF subsystem: one description of "how
 * a PDF should look" - page geometry, default text presentation, and document

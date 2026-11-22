@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               less_template.hpp
+* djinterp [cpp][text]                                         less_template.hpp
 *
 *   Templated Less rule and stylesheet facades and the bundled
 * default backend. Mirrors `sass_template.hpp` but targets Less

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                  env_arangodb.h
+* djinterp [c][env]                                               env_arangodb.h
 *
 * djinterp ArangoDB environment detection.
 *   Compile-time detection of an ArangoDB environment: the server version and

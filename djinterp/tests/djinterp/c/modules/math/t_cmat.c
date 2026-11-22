@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                     t_cmat.c
+* djinterp [c][math]                                                    t_cmat.c
 *
 *   Conformance harness for c/math/cmat.h, all three families and both forms
 * where a function has two. First, the systems of math_tests_cmat_refs.h --

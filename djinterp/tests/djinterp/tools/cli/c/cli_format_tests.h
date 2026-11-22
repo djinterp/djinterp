@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                            cli_format_tests.h
+* djinterp [c][tools]                                         cli_format_tests.h
 *
 * The suite of the command-line kit's help (cli_format.c): the page laid out
 * as GNU programs lay it out -- the usage line, the description as a

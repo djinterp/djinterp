@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                    ftp_path.c
+* djinterp [c][net]                                                   ftp_path.c
 *
 * Implementation of the pathname handling declared in ftp_path.h.
 *   Resolution clamps ".." at the root; that clamp is the whole security

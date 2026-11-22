@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                      memento_tests_snapshot.cpp
+* djinterp [cpp][paradigm]                            memento_tests_snapshot.cpp
 *
 *
 * path:      /tests/djinterp/cpp/paradigm/momento/memento_tests_snapshot.cpp

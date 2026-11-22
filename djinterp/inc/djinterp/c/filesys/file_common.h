@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     file_common.h
+* djinterp [c][filesys]                                            file_common.h
 *
 * Shared foundation for the djinterp filesys subframework.
 *   Every c/filesys/file_*.h includes this one and nothing else of djinterp's

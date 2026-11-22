@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                            color_cie_lab_tests_construction.cpp
+* djinterp [cpp][utility]                   color_cie_lab_tests_construction.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/color/color_cie_lab_tests_construction.cpp

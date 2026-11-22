@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     visitor.hpp
+* djinterp [cpp][paradigm]                                           visitor.hpp
 *
 * djinterp visitor pattern template module:
 *   This header provides a comprehensive, version-portable implementation of

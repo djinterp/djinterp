@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   buffer_common.c
+* djinterp [c][container]                                        buffer_common.c
 *
 *   The building blocks buffer_common.h declares for the buffer types:
 * initialisation, capacity, element access, insertion in RESIZE mode

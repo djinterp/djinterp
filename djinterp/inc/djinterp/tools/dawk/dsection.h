@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                    dsection.h
+* djinterp [c][tools]                                                 dsection.h
 *
 * Section-delimiter extension:
 *   Emits one `delimiter` node for every full-line rule that separates the

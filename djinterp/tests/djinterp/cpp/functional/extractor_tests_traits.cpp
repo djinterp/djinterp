@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                      extractor_tests_traits.cpp
+* djinterp [cpp][functional]                          extractor_tests_traits.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/extractor_tests_traits.cpp

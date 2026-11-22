@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   sqlite_common.h
+* djinterp [c][db]                                               sqlite_common.h
 *
 * Shared foundation of djinterp's SQLite convenience layer.
 *   The layer is a set of plain functions over SQLite's own connection handle,

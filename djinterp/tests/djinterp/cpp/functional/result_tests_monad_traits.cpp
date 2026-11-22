@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  result_tests_monad_traits.cpp
+* djinterp [cpp][functional]                       result_tests_monad_traits.cpp
 *
 * Tests for the monad_traits<result<_T, _E>> specialization defined in
 * result.hpp section V. The generic monad protocol (monad_bind / map_with /

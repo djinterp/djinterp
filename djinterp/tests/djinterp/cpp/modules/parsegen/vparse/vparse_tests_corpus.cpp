@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                vparse_tests_corpus.cpp
+* djinterp [cpp][parsegen]                               vparse_tests_corpus.cpp
 *
 * vparse tests: a corpus made from a grammar, and two programs compared over
 * one -- the same corpus from the same seed, walks that end however the rules

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                     bubble_sort_tests_entry.cpp
+* djinterp [cpp][utility]                            bubble_sort_tests_entry.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/sort/bubble_sort_tests_entry.cpp

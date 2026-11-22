@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     dtuple_tests_relations.cpp
+* djinterp [cpp][meta]                                dtuple_tests_relations.cpp
 *
 *   Unit tests for the tuple-of-tuples type-relation section of
 * dtuple.hpp:

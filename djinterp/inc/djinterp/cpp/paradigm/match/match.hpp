@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                       match.hpp
+* djinterp [cpp][paradigm]                                             match.hpp
 *
 *   Ordered first-match dispatch over patterns.  Where pattern.hpp gives a
 * single four-faced view of one input and filter.hpp gives predicate-based

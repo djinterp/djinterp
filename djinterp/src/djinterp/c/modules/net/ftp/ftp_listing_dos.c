@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                             ftp_listing_dos.c
+* djinterp [c][net]                                            ftp_listing_dos.c
 *
 * Implementation of the DOS listing dialect: the lines IIS writes.
 *   Date, time, "<DIR>" or a size, then the name; two-digit years pivot at

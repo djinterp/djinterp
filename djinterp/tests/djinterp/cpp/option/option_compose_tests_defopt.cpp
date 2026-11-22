@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                option_compose_tests_defopt.cpp
+* djinterp [cpp][option]                         option_compose_tests_defopt.cpp
 *
 *   Section I of the option_compose.hpp suite: defopt.
 *

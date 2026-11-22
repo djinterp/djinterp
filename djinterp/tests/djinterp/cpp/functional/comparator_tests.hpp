@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                     comparator_tests.hpp
+* djinterp [cpp][functional]                                comparator_tests.hpp
 *
 * Unit-test declarations for comparator.hpp.
 *   This header declares the full battery of comparator tests and the small

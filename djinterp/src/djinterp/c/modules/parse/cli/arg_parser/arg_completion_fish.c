@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                       arg_completion_fish.c
+* djinterp [c][parse]                                      arg_completion_fish.c
 *
 * The completion script for fish, declared in arg_internal.h (11.2.4).
 *   The script holds the model as global lists named after the program --

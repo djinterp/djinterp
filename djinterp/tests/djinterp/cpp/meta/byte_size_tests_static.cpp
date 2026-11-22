@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     byte_size_tests_static.cpp
+* djinterp [cpp][meta]                                byte_size_tests_static.cpp
 *
 *   Section I of byte_size.hpp: static_byte_size / static_byte_size_v.
 *

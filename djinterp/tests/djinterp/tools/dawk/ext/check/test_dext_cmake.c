@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                             test_dext_cmake.c
+* djinterp [c][tools]                                          test_dext_cmake.c
 *
 * Exercises `dext_cmake.h` and what the checker reads of a CMake file beside
 * it: the tree a sheet selects -- commands, arguments, comments, blocks, a
@@ -10,6 +10,7 @@
 * node depends on once the CMake tree marks it.
 *
 *   test_dext_cmake [directory]    the directory holds the files it writes
+*
 *
 * path:      /tests/djinterp/tools/dawk/ext/check/test_dext_cmake.c
 * link(s):   TBA

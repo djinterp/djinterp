@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [text]                                        test_number_to_string.c
+* djinterp [c][text]                                     test_number_to_string.c
 *
 *
 * path:      /tests/djinterp/c/text/test_number_to_string.c

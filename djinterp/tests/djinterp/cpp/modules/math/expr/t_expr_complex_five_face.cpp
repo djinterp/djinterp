@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                               t_expr_complex_five_face.cpp
+* djinterp [cpp][math]                              t_expr_complex_five_face.cpp
 *
 * Tests for what step 23's second part, in its second chunk, chunk 42, made
 * of complex numbers in the language (math/expr/function_table.hpp,

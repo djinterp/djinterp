@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                               lex_unicode.c
+* djinterp [c][parse]                                              lex_unicode.c
 *
 * Definitions for lex_unicode.h.
 *   Every table is a sorted array of disjoint closed ranges, searched by

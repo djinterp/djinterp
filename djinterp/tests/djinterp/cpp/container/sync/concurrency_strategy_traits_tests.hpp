@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                          concurrency_strategy_traits_tests.hpp
+* djinterp [cpp][container]                concurrency_strategy_traits_tests.hpp
 *
 *   DTest suite for
 * /inc/djinterp/cpp/container/traits/concurrency_strategy_traits.hpp - the

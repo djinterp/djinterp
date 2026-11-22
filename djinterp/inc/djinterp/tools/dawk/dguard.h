@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                   dguard.h
+* djinterp [c][tools]                                                   dguard.h
 *
 * Include-guard extension:
 *   Builds the node tree for a header's include guard -- the `#ifndef`, the

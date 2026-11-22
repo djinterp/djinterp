@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                             postgres_connection.c
+* djinterp [c][db]                                         postgres_connection.c
 *
 * Implementation of postgres_connection.h.
 *   Every connect builds one plan -- libpq's keyword and value arrays, the

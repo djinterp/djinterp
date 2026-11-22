@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                codec_common.c
+* djinterp [c][net]                                               codec_common.c
 *
 * Definitions for codec_common.h: the codec's errors mapped onto net.h's.
 *

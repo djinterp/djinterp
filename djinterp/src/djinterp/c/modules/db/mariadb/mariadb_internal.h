@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                mariadb_internal.h
+* djinterp [c][db]                                            mariadb_internal.h
 *
 * Private to the MariaDB layer's sources: mysql.h, the client floor, the
 * handle's definition, and the plumbing every module repeats -- when the layer

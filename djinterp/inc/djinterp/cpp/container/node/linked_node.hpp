@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 linked_node.hpp
+* djinterp [cpp][container]                                      linked_node.hpp
 *
 * Generic linked node:
 *   Provides a self-referential node type with a fixed number of indexed

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                   t_number_traits_face.cpp
+* djinterp [cpp][math]                                  t_number_traits_face.cpp
 *
 *   Tests for math/number_traits.hpp at every level from C++98, and for the
 * linear-algebra subframework over number types the C core does not hold:

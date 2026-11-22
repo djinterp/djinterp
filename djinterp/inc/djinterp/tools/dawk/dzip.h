@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                        dzip.h
+* djinterp [c][tools]                                                     dzip.h
 *
 * ZIP archives, read and rewritten.
 *   Enough of ZIP to change a few entries of a package and keep the rest as
@@ -16,6 +16,7 @@
 *   A stand-in, local to dawk: the framework's archive tier is the place for
 * ZIP, and when it can read and rewrite a package without a third-party
 * backend, this unit gives way to it.
+*
 *
 * path:      /inc/djinterp/tools/dawk/dzip.h
 * link(s):   TBA

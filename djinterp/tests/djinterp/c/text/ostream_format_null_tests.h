@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    ostream_format_null_tests.h
+* djinterp [c][text]                                 ostream_format_null_tests.h
 *
 * printf's heap fallback with no heap, in DTest's C face
 * (c/modules/test/test_suite.h).

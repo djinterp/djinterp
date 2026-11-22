@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                        arg_argv_tests.cpp
+* djinterp [cpp][parse]                                       arg_argv_tests.cpp
 *
 * The argument parser's C++ argv suite's sections.
 *   The sections held to CLI11 run what the CASES section defines: lines

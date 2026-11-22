@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]           hierarchical_container_traits_tests_aggregate.cpp
+* djinterp [cpp][container]    hierarchical_container_traits_tests_aggregate.cpp
 *
 *   Section V - DHierarchicalContainerClass, the assembled snapshot: the three
 * detection signals (node_summand, has_structure_tag, is_container), the depth and

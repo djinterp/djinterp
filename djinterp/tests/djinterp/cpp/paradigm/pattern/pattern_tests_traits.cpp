@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        pattern_tests_traits.cpp
+* djinterp [cpp][paradigm]                              pattern_tests_traits.cpp
 *
 *
 * path:      /tests/djinterp/cpp/paradigm/pattern/pattern_tests_traits.cpp

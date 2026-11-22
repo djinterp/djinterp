@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 color_common_tests_channel.cpp
+* djinterp [cpp][utility]                         color_common_tests_channel.cpp
 *
 *   The color_common suite's channel block: channel_t is floating point, the
 * C kernel's float, keeps arithmetic's results, and holds values outside the

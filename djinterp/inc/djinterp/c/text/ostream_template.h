@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                ostream_template.h
+* djinterp [c][text]                                          ostream_template.h
 *
 *   Templates onto a stream: text with named fields in it, compiled once into
 * a small program and run as often as there is something to print. What the

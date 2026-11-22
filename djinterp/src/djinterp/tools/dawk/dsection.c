@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                    dsection.c
+* djinterp [c][tools]                                                 dsection.c
 *
 * Section-delimiter extension:
 *   A delimiter is a line comment's opening -- `//`, or `#` in a CMake file --
@@ -7,6 +7,7 @@
 * `=` or `-`, and nothing else.  Twenty is the floor because a short run is a
 * comment that happens to contain dashes, and the cost of mistaking one for a
 * delimiter is rewriting prose.
+*
 *
 * path:      /src/djinterp/tools/dawk/dsection.c
 * link(s):   TBA

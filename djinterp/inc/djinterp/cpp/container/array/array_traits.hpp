@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                array_traits.hpp
+* djinterp [cpp][container]                                     array_traits.hpp
 *
 * Array-specific compile-time classification traits.
 *   Detects capabilities unique to array-based (contiguous, random-

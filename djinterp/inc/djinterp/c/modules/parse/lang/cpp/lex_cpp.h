@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                   lex_cpp.h
+* djinterp [c][parse]                                                  lex_cpp.h
 *
 * The C++ dialect: a descriptor, and the convenience that builds a scanner
 * from it.

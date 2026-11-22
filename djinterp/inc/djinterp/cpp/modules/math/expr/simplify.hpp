@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                               simplify.hpp
+* djinterp [cpp][math]                                              simplify.hpp
 *
 * Simplification: a term rewritten to a simpler one of the same value; the
 * fifth layer's second rewrite.

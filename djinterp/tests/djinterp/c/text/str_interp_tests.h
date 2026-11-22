@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                             str_interp_tests.h
+* djinterp [c][text]                                          str_interp_tests.h
 *
 *   Unit tests for the string interpolation module (string_interp.h).
 *   Tests cover context lifecycle, specifier management, interpolation

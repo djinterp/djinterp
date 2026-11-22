@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 alternative_tests_protocol.cpp
+* djinterp [cpp][functional]                      alternative_tests_protocol.cpp
 *
 *   Section 0 + I of the alternative.hpp suite: the protocol and its detection
 * vocabulary.  Covers is_alternative (and its _v shorthand), the opt<T> fixture

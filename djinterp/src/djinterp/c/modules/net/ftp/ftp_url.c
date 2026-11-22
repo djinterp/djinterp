@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                     ftp_url.c
+* djinterp [c][net]                                                    ftp_url.c
 *
 * Implementation of the URL handling declared in ftp_url.h.
 *   Percent-encoding is net_url.h's: this file adds FTP's rules to it, the

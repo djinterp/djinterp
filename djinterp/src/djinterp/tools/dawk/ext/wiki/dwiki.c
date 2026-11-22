@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                       dwiki.c
+* djinterp [c][tools]                                                    dwiki.c
 *
 * Definitions for the declarations in dwiki.h and dwiki_driver.h.
 *   Reading is the same for every dialect but its middle: the lines are
@@ -8,6 +8,7 @@
 * template holding it; the headings are given anchors, made unique as the
 * dialect makes them; the sections are made from the headings at the top
 * level; and the regions from the comments standing alone there.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/wiki/dwiki.c
 * link(s):   TBA

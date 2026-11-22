@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        flat_iterator_traits.hpp
+* djinterp [cpp][container]                             flat_iterator_traits.hpp
 *
 * Flat iterator traits for the djinterp container framework.
 *   Detects whether a container's structure can be flattened into a

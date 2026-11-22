@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                           array.c
+* djinterp [c][container]                                                array.c
 *
 *   The dj_array functions array.h declares: constructors from arguments,
 * buffers, copies, fills, merges and slices (each with a d_array_s_ form),

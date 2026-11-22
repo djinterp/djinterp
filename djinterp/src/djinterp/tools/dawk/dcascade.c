@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                    dcascade.c
+* djinterp [c][tools]                                                 dcascade.c
 *
 * Definitions for the non-inline declarations in dcascade.h.
 *   Matches are appended as (node, rule, specificity) triples, then counted

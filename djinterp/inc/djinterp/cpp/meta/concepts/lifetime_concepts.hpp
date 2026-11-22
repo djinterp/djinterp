@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                           lifetime_concepts.hpp
+* djinterp [cpp][meta]                                     lifetime_concepts.hpp
 *
 *   C++20 concepts for the LIFETIME vocabulary -- the `requires`-facing view of
 * {traits}.

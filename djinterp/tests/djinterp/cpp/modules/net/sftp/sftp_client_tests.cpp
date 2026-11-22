@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                       sftp_client_tests.cpp
+* djinterp [cpp][net]                                      sftp_client_tests.cpp
 *
 * C++ tests for net/sftp/sftp_client.hpp: the tiered interface over the C
 * client, against OpenSSH's own sftp-server, run as a child process whose

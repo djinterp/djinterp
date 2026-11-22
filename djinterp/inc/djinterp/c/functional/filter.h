@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                          filter.h
+* djinterp [c][functional]                                              filter.h
 *
 * Collection filtering with expression-based selection.
 *   Provides a comprehensive filtering framework for arrays that supports

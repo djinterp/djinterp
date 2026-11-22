@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 table_index.hpp
+* djinterp [cpp][utility]                                        table_index.hpp
 *
 * Database-style secondary indices over lookup-table columns.
 *

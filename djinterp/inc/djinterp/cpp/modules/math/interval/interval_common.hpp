@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                        interval_common.hpp
+* djinterp [cpp][math]                                       interval_common.hpp
 *
 * What the four interval templates share: the road from a value type to the
 * kernels that compute with it, and the iterator over their members.

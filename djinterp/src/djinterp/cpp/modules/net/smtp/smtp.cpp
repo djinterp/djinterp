@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                                    smtp.cpp
+* djinterp [cpp][net]                                                   smtp.cpp
 *
 * djinterp SMTP -- C++ facade implementation.
 *   Lowering and lifting between the facade's owning types and the kernel's

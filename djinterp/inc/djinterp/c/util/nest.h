@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                            nest.h
+* djinterp [c][utility]                                                   nest.h
 *
 * Describing the shape of an n-ary node -- where its payload sits, where its
 * links sit, and what a link means -- so that one walker serves every node

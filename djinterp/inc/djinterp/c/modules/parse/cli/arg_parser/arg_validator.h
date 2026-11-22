@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                             arg_validator.h
+* djinterp [c][parse]                                            arg_validator.h
 *
 * Validators: the checks and transformations an option runs on its values.
 *   A `struct dj_arg_validator` is CLI11's Validator as a C value: a function

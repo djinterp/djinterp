@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                      imap_tests_sa_response.c
+* djinterp [c][net]                                     imap_tests_sa_response.c
 *
 * Tests of the IMAP kernel's response parser and lexer, and of the decoders
 * that turn tokens into strings and mailbox names.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                     ssh_key.h
+* djinterp [c][net]                                                    ssh_key.h
 *
 * SSH public keys and randomness.
 *   A key blob is a public key in SSH wire format: a string naming its

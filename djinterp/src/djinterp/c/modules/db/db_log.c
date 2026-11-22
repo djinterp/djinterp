@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                          db_log.c
+* djinterp [c][db]                                                      db_log.c
 *
 * db's two tables of codes, defined, and their registration.
 *

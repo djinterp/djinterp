@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                         codec_tests_sa_main.c
+* djinterp [c][net]                                        codec_tests_sa_main.c
 *
 * The codec's standalone test runner.
 *   Runs every test, reports each, and counts tests and assertions. Build with

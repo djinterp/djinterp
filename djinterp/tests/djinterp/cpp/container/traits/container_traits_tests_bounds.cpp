@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                           container_traits_tests_bounds.cpp
+* djinterp [cpp][container]                    container_traits_tests_bounds.cpp
 *
 *   Section VI - interval-aware bounds.  is_lower_bounded (a valid size_interval
 * OR a positive min_size()); is_upper_bounded (a valid size_interval OR a C/std

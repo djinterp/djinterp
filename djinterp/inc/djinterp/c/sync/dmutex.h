@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                          dmutex.h
+* djinterp [c][sync]                                                    dmutex.h
 *
 * Cross-platform mutex and threading interface.
 *   This header provides a unified interface for mutex operations and basic

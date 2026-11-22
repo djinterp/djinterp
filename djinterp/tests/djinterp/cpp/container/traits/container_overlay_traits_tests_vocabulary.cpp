@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]               container_overlay_traits_tests_vocabulary.cpp
+* djinterp [cpp][container]        container_overlay_traits_tests_vocabulary.cpp
 *
 *   Section I - the restriction vocabulary: the scope and kind enums, their
 * stable spellings, and scope_of_restriction, which records what each restriction

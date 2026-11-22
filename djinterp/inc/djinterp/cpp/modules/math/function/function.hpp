@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                               function.hpp
+* djinterp [cpp][math]                                              function.hpp
 *
 * Named functions, higher-order forms, and the fluent builder.
 *   This header sits on top of expression.hpp (the value-holding expression

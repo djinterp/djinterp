@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              pool_allocator.hpp
+* djinterp [cpp][memory]                                      pool_allocator.hpp
 *
 * Standard-library allocator adapters.
 *   `DPoolAllocator<T>` and `DArenaAllocator<T>` present the kernels as

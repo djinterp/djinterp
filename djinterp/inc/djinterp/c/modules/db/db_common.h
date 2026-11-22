@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       db_common.h
+* djinterp [c][db]                                                   db_common.h
 *
 * The vocabulary every djinterp database layer shares.
 *   Each vendor's convenience layer (c/modules/db/sqlite, and those to come)

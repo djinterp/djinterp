@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  applicative_tests_lift_a2.cpp
+* djinterp [cpp][functional]                       applicative_tests_lift_a2.cpp
 *
 *   Section II.3 of the applicative.hpp suite: lift_a2, the applicative binary
 * lift derived generically as ap(functor_map(fa, curry2(f)), fb).  Covers the

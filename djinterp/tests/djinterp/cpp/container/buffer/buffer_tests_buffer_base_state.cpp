@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                             buffer_tests_buffer_base_state.cpp
+* djinterp [cpp][container]                   buffer_tests_buffer_base_state.cpp
 *
 *   Unit tests for DBufferBase's type aliases, exposed constants, and
 * read-only state predicates: empty(), full(), size(), writable(), and

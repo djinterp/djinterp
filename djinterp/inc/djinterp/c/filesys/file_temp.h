@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_temp.h
+* djinterp [c][filesys]                                              file_temp.h
 *
 * Temporary files.
 *   Two shapes, and only one of them is safe:

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                   t_decomp.c
+* djinterp [c][math]                                                  t_decomp.c
 *
 *   Conformance harness for c/math/decomp.h, all three families: LU, its
 * solve and determinant, triangular substitution and Q^T b against the

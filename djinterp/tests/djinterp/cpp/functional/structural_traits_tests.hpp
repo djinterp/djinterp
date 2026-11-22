@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    structural_traits_tests.hpp
+* djinterp [cpp][functional]                         structural_traits_tests.hpp
 *
 *   Unit-test declarations for core/functional/structural_traits.hpp -- the
 * structural detection traits behind the parse/scanner/pattern layers and the

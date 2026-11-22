@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                                 prism.hpp
+* djinterp [cpp][parse]                                                prism.hpp
 *
 * Composition and parsing as a prism into the surface stream.
 *   Per ch-parsing.tex, parsing and composition are the two legs of a

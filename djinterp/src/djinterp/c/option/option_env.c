@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      option_env.c
+* djinterp [c][option]                                              option_env.c
 *
 *   An abstract machine's environment (option_env.h): frames of bindings over
 * the option core, reading through scopes, sources and parents to the

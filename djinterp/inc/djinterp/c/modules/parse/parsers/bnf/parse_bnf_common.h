@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                          parse_bnf_common.h
+* djinterp [c][parse]                                         parse_bnf_common.h
 *
 *   Common infrastructure for BNF-style grammar parsers. Contains:
 *     - Token and symbol enums

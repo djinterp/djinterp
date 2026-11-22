@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                 env_long_long.h
+* djinterp [c][env]                                              env_long_long.h
 *
 * djinterp `long long` feature detection.
 *   Detects whether the `long long` and `unsigned long long` integral types are

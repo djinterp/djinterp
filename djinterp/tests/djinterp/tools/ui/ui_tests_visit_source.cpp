@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                     ui_tests_visit_source.cpp
+* djinterp [cpp][tools]                                ui_tests_visit_source.cpp
 *
 * Unit tests for ui::visit_source, alone and under the heatmap lens.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    table_layout.h
+* djinterp [c][container]                                         table_layout.h
 *
 *   Gamma, the cover over the atomic positions: regions, the owner function,
 * anchors, layout-aware access, and the merge and split moves.

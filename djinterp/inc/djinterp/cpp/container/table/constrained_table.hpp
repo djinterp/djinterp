@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                           constrained_table.hpp
+* djinterp [cpp][container]                                constrained_table.hpp
 *
 *   constrained_table -- the BAG-LEVEL conjunction overlay over a table
 * backing

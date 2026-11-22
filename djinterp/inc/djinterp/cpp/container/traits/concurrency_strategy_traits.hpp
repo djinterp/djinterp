@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                 concurrency_strategy_traits.hpp
+* djinterp [cpp][container]                      concurrency_strategy_traits.hpp
 *
 * Concurrency-strategy classification traits.
 *   Orthogonal companion to threadsafe_container_traits.hpp.  Where the

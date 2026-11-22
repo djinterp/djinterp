@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 font_tests.hpp
+* djinterp [cpp][text]                                            font_tests.hpp
 *
 *   Declarations, probe types, and helpers for the font.hpp unit suite.
 * The section TUs (font_tests_*.cpp) define the tests_* functions, flat in

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                             cfg_value_wide.h
+* djinterp [c][math]                                            cfg_value_wide.h
 *
 *   Build-time configuration of the wide integer as a boxed kind
 * (c/math/value_wide.h): where its boxes are stored. Every box the kind makes

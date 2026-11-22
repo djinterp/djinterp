@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                       env_ftp.h
+* djinterp [c][env]                                                    env_ftp.h
 *
 * FTP environment detection.
 *   What the FTP client can be built on: a TCP backend, from env_tcp.h, for

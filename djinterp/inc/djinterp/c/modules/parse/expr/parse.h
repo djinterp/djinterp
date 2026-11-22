@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                     parse.h
+* djinterp [c][parse]                                                    parse.h
 *
 * Expression core v2: the parser.
 *   Text, as tokens, into a term, by a signature. The parse is operator

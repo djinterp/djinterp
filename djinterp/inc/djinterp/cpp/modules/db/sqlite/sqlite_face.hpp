@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 sqlite_face.hpp
+* djinterp [cpp][db]                                             sqlite_face.hpp
 *
 * The C++ face of djinterp's SQLite layer.
 *   face::sqlite owns a connection, sqlite3*, and closes it when it goes;

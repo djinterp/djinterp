@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    lifetime.hpp
+* djinterp [cpp][meta]                                              lifetime.hpp
 *
 *   The framework's foundational LIFETIME vocabulary - the compile-time /
 * runtime classification of a type, factored out so every subsystem draws its

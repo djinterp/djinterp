@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     pdf_metrics.c
+* djinterp [c][utility]                                            pdf_metrics.c
 *
 * Glyph and string widths for the standard-14 faces.
 *   The ten tabulated faces' advances were extracted from pdf_metrics.hpp by

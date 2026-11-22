@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                         ostream.h
+* djinterp [c][utility]                                                ostream.h
 *
 *   An output stream: one destination protocol for everything in the framework
 * that produces bytes -- a string, a file, the console, a place in a document,

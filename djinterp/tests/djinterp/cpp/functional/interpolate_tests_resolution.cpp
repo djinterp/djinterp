@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               interpolate_tests_resolution.cpp
+* djinterp [cpp][functional]                    interpolate_tests_resolution.cpp
 *
 * Section III.i -- resolution<value>: the minimal maybe a resolver answers with.
 * Verifies found()/value(), the resolved()/unresolved() factories, and the LAZY

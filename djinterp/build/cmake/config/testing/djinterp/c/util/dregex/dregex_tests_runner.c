@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          dregex_tests_runner.c
+* djinterp [c][utility]                                    dregex_tests_runner.c
 *
 * The runner for c/util/dregex's suite: options, then its one section,
 * d_tests_dregex, which opens its module and builds it call by call

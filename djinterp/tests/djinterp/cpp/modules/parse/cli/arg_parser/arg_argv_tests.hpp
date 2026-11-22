@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                        arg_argv_tests.hpp
+* djinterp [cpp][parse]                                       arg_argv_tests.hpp
 *
 * The argument parser's C++ argv suite: arguments from text, through the C++
 * face's functions over the standard library's strings.

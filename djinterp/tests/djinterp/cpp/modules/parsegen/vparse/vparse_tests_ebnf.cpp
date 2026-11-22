@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                  vparse_tests_ebnf.cpp
+* djinterp [cpp][parsegen]                                 vparse_tests_ebnf.cpp
 *
 * vparse tests: the EBNF frontend -- the standalone prototype's arithmetic
 * demo, the constructs the metacircular notation cannot express, and how a

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                     text_buffer.c
+* djinterp [c][container]                                          text_buffer.c
 *
 *   The dj_text_buffer functions text_buffer.h declares: a growable char
 * buffer, always NUL-terminated, in RESIZE mode (reallocated) or APPEND mode

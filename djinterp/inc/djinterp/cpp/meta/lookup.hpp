@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                      lookup.hpp
+* djinterp [cpp][meta]                                                lookup.hpp
 *
 * The C++ face of lookup.h: finding a record by a key whose position the record
 * declares, expressible as a typed compile-time scan or as a `dj_lookup_view`.

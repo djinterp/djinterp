@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                               postgres_internal.h
+* djinterp [c][db]                                           postgres_internal.h
 *
 * Private to the PostgreSQL layer's sources: libpq-fe.h, the client floor,
 * and the plumbing every module repeats -- when the layer is built over

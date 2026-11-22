@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                          http_tests_web.cpp
+* djinterp [cpp][net]                                         http_tests_web.cpp
 *
 * Checks that web.hpp's HTTP names are net/http/http.hpp's while HTTP moves
 * out of web.hpp.

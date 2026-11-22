@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               color_convert.hpp
+* djinterp [cpp][utility]                                      color_convert.hpp
 *
 *   C++ conversion facade for the djinterp color module. This is a thin
 * compile-time dispatch over the single C conversion kernel

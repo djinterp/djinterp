@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                           cfg_env_dynamodb.h
+* djinterp [c][env]                                           cfg_env_dynamodb.h
 *
 * djinterp Amazon DynamoDB detection configuration.
 *   The settings env_dynamodb.h reads. DynamoDB is a managed AWS service with

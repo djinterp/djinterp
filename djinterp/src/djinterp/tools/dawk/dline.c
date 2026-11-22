@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                       dline.c
+* djinterp [c][tools]                                                    dline.c
 *
 * Definitions for the non-inline declarations in dline.h.
 *   One pass decodes each line as UTF-8 and classifies every code point as

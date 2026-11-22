@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [parse]                                         free_tests_runner.cpp
+* djinterp [cpp][parse]                                    free_tests_runner.cpp
 *
 *   Entry point for the parser/free.hpp unit suite.  Assembles the section
 * blocks into a module and runs it, emitting a single whole-run PDF report.

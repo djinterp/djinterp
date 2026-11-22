@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                            arg_argv_tests.h
+* djinterp [c][parse]                                           arg_argv_tests.h
 *
 * The suite of arguments from text (arg_argv.c, arg_argv_source.c): lines
 * split by each set of rules -- a POSIX shell's, the C runtime's, CLI11's,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  markdown_tests_vocabulary.cpp
+* djinterp [cpp][text]                             markdown_tests_vocabulary.cpp
 *
 *   The groups for markdown/markdown.hpp: the block and inline kinds' category
 * masks and the predicates over them, headings' kinds and levels both ways,

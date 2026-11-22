@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                        observer_tests_event.cpp
+* djinterp [cpp][paradigm]                              observer_tests_event.cpp
 *
 *
 * path:      /tests/djinterp/cpp/paradigm/observer/observer_tests_event.cpp

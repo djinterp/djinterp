@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          text_tests_common.hpp
+* djinterp [cpp][text]                                     text_tests_common.hpp
 *
 *   What every suite of text's C++ headers shares, in DTest's C face
 * (c/modules/test/test_suite.h): the check its groups record through, a

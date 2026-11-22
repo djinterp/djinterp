@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              node_container.hpp
+* djinterp [cpp][container]                                   node_container.hpp
 *
 * Node Container Foundation:
 *   Foundational base class for all containers that manage their elements

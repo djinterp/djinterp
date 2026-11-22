@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                               cfg_env_lang.h
+* djinterp [c][env]                                               cfg_env_lang.h
 *
 * Configuration for env_lang.h, the language-standard detection section of
 * env.h.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                table_layout.hpp
+* djinterp [cpp][container]                                     table_layout.hpp
 *
 *   The LAYOUT overlay Gamma of a table -- the third layer of the model
 * T = (T_, I_T, Gamma) (containers.tex, The table).  Everything in table_shape

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  archive_kernel_tests_reader.c
+* djinterp [c][utility]                            archive_kernel_tests_reader.c
 *
 *   The tar reader on archives its writer would not make, built here record by
 * record: GNU long names, pax global headers, pax size records, typeflags it

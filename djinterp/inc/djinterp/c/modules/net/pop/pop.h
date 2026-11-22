@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                         pop.h
+* djinterp [c][net]                                                        pop.h
 *
 * The shared POP3 kernel: tier 0 of the POP modules.
 *   Everything a POP3 client, server, proxy, or test double has in common,

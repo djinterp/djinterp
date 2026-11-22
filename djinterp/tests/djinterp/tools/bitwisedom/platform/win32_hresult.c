@@ -1,9 +1,10 @@
 /*******************************************************************************
-* bitwisedom [tests]                                             win32_hresult.c
+* djinterp [c][tools]                                            win32_hresult.c
 *
 * The HRESULT example against winerror.h: every field, facility and
 * code, and the macros that build them, compared with the platform's
 * own at compile time. Built where the build targets Windows.
+*
 *
 * path:      /tests/djinterp/tools/bitwisedom/platform/win32_hresult.c
 * link(s):   TBA

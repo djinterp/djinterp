@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                              cfg_env_posix.h
+* djinterp [c][env]                                              cfg_env_posix.h
 *
 * Configuration for env_posix.h, the POSIX / XSI detection section of env.h.
 *   Resolves D_CFG_ENV_POSIX_ENABLED, which chooses between that section's

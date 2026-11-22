@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  concepts_tests_properties.cpp
+* djinterp [cpp][meta]                             concepts_tests_properties.cpp
 *
 *   Tests for concepts.hpp section II.3: type-property concepts.
 * Covers: is_const_c, is_volatile_c, is_trivial_c,

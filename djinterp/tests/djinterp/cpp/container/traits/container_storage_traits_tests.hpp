@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                          container_storage_traits_tests.hpp
+* djinterp [cpp][container]                   container_storage_traits_tests.hpp
 *
 *   Declarations, shared helpers, and helper TYPES for the
 * container_storage_traits.hpp unit-test suite.  The section translation units

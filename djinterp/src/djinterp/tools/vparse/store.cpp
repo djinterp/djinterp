@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [vparse]                                                      store.cpp
+* djinterp [cpp][tools]                                                store.cpp
 *
 * Run folders on disk.
 *   Everything goes through std::filesystem's error_code overloads and
@@ -9,6 +9,7 @@
 *   A path that becomes text -- a run's origin, its session's name, a message
 * -- becomes UTF-8 (utf8_from_path): path::string() is the system's code page
 * on Windows, which cannot spell every name, and throws where it cannot.
+*
 *
 * path:      /src/djinterp/tools/vparse/store.cpp
 * link(s):   TBA

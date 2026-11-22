@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                              option_override_tests_helpers.cpp
+* djinterp [cpp][option]                       option_override_tests_helpers.cpp
 *
 *   Section I of the option_override.hpp suite: the internal option
 * (re)construction helpers.

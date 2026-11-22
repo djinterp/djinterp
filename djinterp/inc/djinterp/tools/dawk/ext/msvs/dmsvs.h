@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                       dmsvs.h
+* djinterp [c][tools]                                                    dmsvs.h
 *
 * Visual Studio's files, read without loss.
 *   Two kinds of file. A solution -- .slnx, which is XML, or .sln, Visual
@@ -28,6 +28,7 @@
 * unexpanded, and imports are not followed.
 *   A stand-in, local to dawk: XML belongs to the parse tier, and when that
 * tier reads it, this unit gives way to it.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/msvs/dmsvs.h
 * link(s):   TBA

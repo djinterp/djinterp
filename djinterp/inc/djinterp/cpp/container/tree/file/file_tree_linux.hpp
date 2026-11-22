@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             file_tree_linux.hpp
+* djinterp [cpp][container]                                  file_tree_linux.hpp
 *
 * Linux file tree scanner:
 *   Defines linux_scanner, which builds on the BSD d_type fast path and

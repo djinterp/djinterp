@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                               calculus.hpp
+* djinterp [cpp][math]                                              calculus.hpp
 *
 * Calculus subframework umbrella.
 *   Pulls in every calculus header in dependency order. Include this to get

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  dhost_wiki.c
+* djinterp [c][tools]                                               dhost_wiki.c
 *
 * Definitions for the declarations in dhost_wiki.h.
 *   Each page open is a dwiki document; its handle is its place in the list
@@ -8,6 +8,7 @@
 * the document's records as they are now, each field by its name.
 *   A directory's files are found with dawk's file system, a level at a
 * time, names that begin with `.` passed over, and sorted byte by byte.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/wiki/dhost_wiki.c
 * link(s):   TBA

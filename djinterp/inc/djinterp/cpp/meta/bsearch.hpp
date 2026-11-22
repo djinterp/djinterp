@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     bsearch.hpp
+* djinterp [cpp][meta]                                               bsearch.hpp
 *
 *   A single compile-time binary-search ENGINE over a typename pack,
 * agnostic to what the entries are and how they are ordered.  The

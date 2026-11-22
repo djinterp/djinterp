@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                   codec_hex.c
+* djinterp [c][net]                                                  codec_hex.c
 *
 * Definitions for codec_hex.h's encoder and decoder. The single-digit
 * functions are the header's, inline.

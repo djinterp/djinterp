@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    database.cpp
+* djinterp [cpp][db]                                                database.cpp
 *
 * Definitions for database.hpp: its exceptions and configurations, and the
 * utilities -- connection strings, quoting and escaping, values as text, and

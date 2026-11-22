@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parsegen]                                               registry.c
+* djinterp [c][parsegen]                                              registry.c
 *
 *   Definitions for the non-inline declarations in registry.h.
 *

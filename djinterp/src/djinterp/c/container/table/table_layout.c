@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                    table_layout.c
+* djinterp [c][container]                                         table_layout.c
 *
 *   The out-of-line half of table_layout.h.  Every definition here is D_INLINE while its
 * declaration in the header is not, so C11 6.7.4p7 makes each an EXTERNAL

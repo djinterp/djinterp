@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     pipeline_tests_slicing.cpp
+* djinterp [cpp][functional]                          pipeline_tests_slicing.cpp
 *
 * Slicing / reordering tests (section ii, part 2):
 *   test_take    -- take, take_last, take_while (incl. edge counts).

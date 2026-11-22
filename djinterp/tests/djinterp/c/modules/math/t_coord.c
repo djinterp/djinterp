@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                                    t_coord.c
+* djinterp [c][math]                                                   t_coord.c
 *
 *   Conformance harness for c/math/coord.h, all three families. The library
 * forms against the coordinate headers' former formulas, written out here in

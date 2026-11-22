@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [parsegen]                                foundation_tests_runner.cpp
+* djinterp [c][parsegen]                             foundation_tests_runner.cpp
 *
 * Entry point for the parse/parsegen foundation's C++ suites.
 *   A suite is a table of sections its own source defines; this walks each

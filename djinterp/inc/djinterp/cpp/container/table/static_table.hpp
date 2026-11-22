@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                static_table.hpp
+* djinterp [cpp][container]                                     static_table.hpp
 *
 *   static_table -- the compile-time-constant member of the table trio.  A
 * rank-2, rectangular, cell-homogeneous table whose two extents R and C are

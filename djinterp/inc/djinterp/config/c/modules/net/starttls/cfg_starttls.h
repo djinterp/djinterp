@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                               cfg_starttls.h
+* djinterp [c][net]                                               cfg_starttls.h
 *
 *   Configuration for the STARTTLS common module: the defaults that
 * d_starttls_options_default hands out -- the upgrade policy, the treatment

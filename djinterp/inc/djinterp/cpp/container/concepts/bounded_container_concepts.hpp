@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                  bounded_container_concepts.hpp
+* djinterp [cpp][container]                       bounded_container_concepts.hpp
 *
 * C++20 concepts for the BOUNDEDNESS axis -- the `requires`-facing view of
 * bounded_container_traits.hpp.

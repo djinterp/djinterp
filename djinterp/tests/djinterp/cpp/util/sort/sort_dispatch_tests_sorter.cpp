@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                  sort_dispatch_tests_sorter.cpp
+* djinterp [cpp][utility]                         sort_dispatch_tests_sorter.cpp
 *
 *
 * path:      /tests/djinterp/cpp/util/sort/sort_dispatch_tests_sorter.cpp

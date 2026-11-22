@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  merge_sort.hpp
+* djinterp [cpp][utility]                                         merge_sort.hpp
 *
 *   Merge sort: the sequential driver.
 * Stable, comparison-based, O(n log n) in every case -- no input defeats it,

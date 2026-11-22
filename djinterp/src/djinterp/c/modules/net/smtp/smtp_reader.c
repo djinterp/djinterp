@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 smtp_reader.c
+* djinterp [c][net]                                                smtp_reader.c
 *
 *   Definitions for smtp_reader.h: the SMTP line reader over a net.h
 * connection, framed by net's line buffer.

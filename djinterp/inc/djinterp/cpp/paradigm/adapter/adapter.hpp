@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                     adapter.hpp
+* djinterp [cpp][paradigm]                                           adapter.hpp
 *
 * Adapter Pattern Module:
 *   Provides a comprehensive, abstract, version-portable foundation for the

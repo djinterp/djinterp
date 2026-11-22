@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  archive_options_tests_zip.cpp
+* djinterp [cpp][utility]                          archive_options_tests_zip.cpp
 *
 *   Tests for DZipOptions (section II.i of archive_options.hpp): a fresh block
 * is pristine, every knob unset and the password empty; the kernel resolves

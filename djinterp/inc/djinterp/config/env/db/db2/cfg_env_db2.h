@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                cfg_env_db2.h
+* djinterp [c][env]                                                cfg_env_db2.h
 *
 * djinterp IBM Db2 detection configuration.
 *   The settings env_db2.h reads: whether the Db2 CLI/ODBC client header is

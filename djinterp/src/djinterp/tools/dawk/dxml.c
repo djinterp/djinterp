@@ -1,11 +1,12 @@
 /*******************************************************************************
-* djinterp [tools]                                                        dxml.c
+* djinterp [c][tools]                                                     dxml.c
 *
 * Definitions for the declarations in dxml.h.
 *   A tag is found by its `<` and ended by the first `>` outside a quoted
 * attribute value, which is the one rule that keeps `>` inside a value from
 * ending the tag early. Everything between two tags is one text token, white
 * space included: a reader that does not want it skips it.
+*
 *
 * path:      /src/djinterp/tools/dawk/dxml.c
 * link(s):   TBA

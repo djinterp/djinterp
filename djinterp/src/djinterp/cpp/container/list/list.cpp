@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                        list.cpp
+* djinterp [cpp][container]                                             list.cpp
 *
 *
 * path:      /src/djinterp/cpp/container/list/list.cpp

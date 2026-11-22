@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                   dvalue.h
+* djinterp [c][tools]                                                   dvalue.h
 *
 *   awk's scalar model, its conversion rules, and its associative arrays.
 *     The subtlety here is not the representation but the comparison. A value

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                    lod.hpp
+* djinterp [cpp][tools]                                                  lod.hpp
 *
 *   The level-of-detail scheme and the focus-plus-context cell generator that
 * produces the "nested" multi-resolution layout: a coarse level covering the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                        tcp_tests_sa_support.c
+* djinterp [c][net]                                       tcp_tests_sa_support.c
 *
 * Support for the TCP transport's standalone tests.
 *   Endpoints, loopback pairs, and the few questions the tests put to the

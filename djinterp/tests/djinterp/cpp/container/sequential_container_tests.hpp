@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                              sequential_container_tests.hpp
+* djinterp [cpp][container]                       sequential_container_tests.hpp
 *
 *   DTest suite header for sequential_container.hpp - the (legacy) order-
 * preserving base that ordered_container.hpp supersedes.  Two faces gated by

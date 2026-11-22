@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                          mysql_common_table.hpp
+* djinterp [cpp][db]                                      mysql_common_table.hpp
 *
 * What a table of a MariaDB or a MySQL database adds to database_table, for
 * both servers: the base of mariadb_table and mysql_table.

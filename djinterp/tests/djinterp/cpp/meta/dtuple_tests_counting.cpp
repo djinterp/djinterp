@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      dtuple_tests_counting.cpp
+* djinterp [cpp][meta]                                 dtuple_tests_counting.cpp
 *
 *   Unit tests for the type-counting-and-filtering section of dtuple.hpp:
 *     - tuple_count_type / tuple_count_type_v

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                                peg.hpp
+* djinterp [cpp][parsegen]                                               peg.hpp
 *
 *   The PEG operator family, rebased onto the parse carrier.  run() consumes a
 * parse_state<char> (parsing from its offset) and follows the formal match-or-

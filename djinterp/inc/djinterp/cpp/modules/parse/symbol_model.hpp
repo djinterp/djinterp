@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                          symbol_model.hpp
+* djinterp [cpp][parse]                                         symbol_model.hpp
 *
 * Parser symbol model:
 *   This header carries the parse subframework's output model -- the payload

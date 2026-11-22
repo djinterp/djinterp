@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                              constants.hpp
+* djinterp [cpp][math]                                             constants.hpp
 *
 * Mathematical constants, compile-time rationals, and number bases.
 *   The single source of truth for numeric constants across the math module.

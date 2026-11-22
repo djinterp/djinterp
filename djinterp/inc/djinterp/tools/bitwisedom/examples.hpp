@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                           examples.hpp
+* djinterp [cpp][tools]                                             examples.hpp
 *
 * Built-in example sheets, for the File menu and the tests.
 *   Eighteen words of one to eight bytes, dense and sparse, signed and not:
@@ -10,6 +10,7 @@
 * header, 512 bits, wider than any integer. And two large ones, kept as
 * JSON in examples/large and built in: every HRESULT winerror.h defines,
 * 1,376 codes, and ten of CPUID's feature registers, 320 bits.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/examples.hpp
 * link(s):   TBA

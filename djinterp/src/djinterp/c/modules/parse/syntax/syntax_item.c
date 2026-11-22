@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                               syntax_item.c
+* djinterp [c][parse]                                              syntax_item.c
 *
 * Definitions for the non-inline declarations in syntax_item.h.
 *   A scope is walked child by child, where a child is a token or a whole

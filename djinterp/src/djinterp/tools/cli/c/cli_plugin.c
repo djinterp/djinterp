@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  cli_plugin.c
+* djinterp [c][tools]                                               cli_plugin.c
 *
 * A program's commands that live in modules of their own, declared in
 * cli_plugin.h.

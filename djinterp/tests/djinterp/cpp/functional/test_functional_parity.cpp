@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                      test_functional_parity.cpp
+* djinterp [cpp][functional]                          test_functional_parity.cpp
 *
 *
 * path:      /tests/djinterp/cpp/functional/test_functional_parity.cpp

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                       settings_tests_rows.c
+* djinterp [c][parse]                                      settings_tests_rows.c
 *
 * Parse's settings suite: its fixtures, and the tests of both blocks, "rows"
 * and "core"; where the group is compiled out, the same tests, skipped.

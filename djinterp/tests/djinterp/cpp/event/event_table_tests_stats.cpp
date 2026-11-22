@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    event_table_tests_stats.cpp
+* djinterp [cpp][event]                              event_table_tests_stats.cpp
 *
 *   Sections II + III (statistics) -- the DEventTableStats aggregate and the
 * get_stats snapshot that fills it.  The deterministic fields are asserted

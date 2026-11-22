@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    compress.hpp
+* djinterp [cpp][utility]                                           compress.hpp
 *
 * djinterp portable compression facade:
 *   A version-portable (C++98 - C++23), OS-cross-platform interface for buffer

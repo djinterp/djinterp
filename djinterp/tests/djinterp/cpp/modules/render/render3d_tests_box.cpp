@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/render]                                   render3d_tests_box.cpp
+* djinterp [cpp][render]                                  render3d_tests_box.cpp
 *
 * Unit tests for render3d's box topology and projection.
 *

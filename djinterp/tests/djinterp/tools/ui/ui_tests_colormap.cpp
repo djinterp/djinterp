@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                         ui_tests_colormap.cpp
+* djinterp [cpp][tools]                                    ui_tests_colormap.cpp
 *
 * Unit tests for ui::colormap.
 *

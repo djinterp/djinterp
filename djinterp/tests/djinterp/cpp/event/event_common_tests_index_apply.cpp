@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                             event_common_tests_index_apply.cpp
+* djinterp [cpp][event]                       event_common_tests_index_apply.cpp
 *
 *   Section I -- INDEX SEQUENCE POLYFILL + tuple-apply utilities.  Covers the
 * internal compile-time integer sequence (index_sequence / make_index_sequence)

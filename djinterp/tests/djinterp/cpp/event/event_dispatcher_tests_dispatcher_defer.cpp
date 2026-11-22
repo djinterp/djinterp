@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                    event_dispatcher_tests_dispatcher_defer.cpp
+* djinterp [cpp][event]              event_dispatcher_tests_dispatcher_defer.cpp
 *
 *   Section III (deferred surface) -- the DEventDispatcher facade's
 * asynchronous half and its integration with the registry.  queue enqueues an

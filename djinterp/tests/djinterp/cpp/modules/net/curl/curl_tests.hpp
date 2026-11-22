@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                              curl_tests.hpp
+* djinterp [cpp][net]                                             curl_tests.hpp
 *
 * Tests of the libcurl binding's C++ face, net/curl/curl.hpp, over a loopback
 * HTTP server.

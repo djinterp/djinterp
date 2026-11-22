@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                              arg_internal.c
+* djinterp [c][parse]                                             arg_internal.c
 *
 * Implementation of the private helpers declared in arg_internal.h.
 *   ASCII spans, heap copies, integer and floating-point text in both

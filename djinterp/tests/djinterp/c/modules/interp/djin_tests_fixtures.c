@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          djin_tests_fixtures.c
+* djinterp [c][interp]                                     djin_tests_fixtures.c
 *
 *   The suite's fixtures (djin_tests_fixtures.h).
 *

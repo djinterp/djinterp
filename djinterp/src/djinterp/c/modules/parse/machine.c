@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                   machine.c
+* djinterp [c][parse]                                                  machine.c
 *
 *   Definitions for the non-inline declarations in machine.h.
 *

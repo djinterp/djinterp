@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                 dmake_posix.c
+* djinterp [c][tools]                                              dmake_posix.c
 *
 * Reads a makefile's statements as POSIX make, as pdpmake reads one in its
 * POSIX mode: see dmake.h.
@@ -21,6 +21,7 @@
 * left side is not one word, an include that names nothing -- each at the
 * line pdpmake names, a continued line's last, and the line before for a
 * last line no line feed ends.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/make/dmake_posix.c
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              djin_tests_text.c
+* djinterp [c][interp]                                         djin_tests_text.c
 *
 *   The text's tests: the list, a djin's description and a frame's, each to
 * the byte by DTest's text check, with no CR; a full name and a default too

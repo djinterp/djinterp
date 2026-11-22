@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                mongodb_tests.h
+* djinterp [c][db]                                               mongodb_tests.h
 *
 *   The suite of c/modules/db/mongodb: the layer against a MongoDB deployment,
 * in DTest's C face. It has one section, its entry point, and the runner in its

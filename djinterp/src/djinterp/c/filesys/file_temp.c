@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_temp.c
+* djinterp [c][filesys]                                              file_temp.c
 *
 * Implementation of the temporary-file calls declared in file_temp.h.
 *   Anonymous files come from tmpfile, where the C library has it -- WASI's does

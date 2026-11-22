@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                      predicate_tests.hpp
+* djinterp [cpp][functional]                                 predicate_tests.hpp
 *
 *   Unit-test header for predicate.hpp. Provides a lightweight, self-contained
 * test harness in `djinterp::testing`, the shared helper predicate types every

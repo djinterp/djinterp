@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                  cli_edit.hpp
+* djinterp [cpp][tools]                                             cli_edit.hpp
 *
 * The command-line kit's C++ face: commands that change a file.
 *   `cli::edit` is the dj_cli_edit record a command keeps, with the C calls of

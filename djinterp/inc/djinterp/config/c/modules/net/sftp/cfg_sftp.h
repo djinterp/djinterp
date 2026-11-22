@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                   cfg_sftp.h
+* djinterp [c][net]                                                   cfg_sftp.h
 *
 * Configuration of the SFTP codec and client.
 *   How many requests a transfer keeps in flight, how much one READ or WRITE

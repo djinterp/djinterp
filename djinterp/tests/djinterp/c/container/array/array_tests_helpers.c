@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                                     array_tests_helpers.c
+* djinterp [c][container]                                  array_tests_helpers.c
 *
 * Helper functions for `array.h` unit tests.
 * Part of the array suite, on DTest's C face.

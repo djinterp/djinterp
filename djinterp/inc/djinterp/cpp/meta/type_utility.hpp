@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                type_utility.hpp
+* djinterp [cpp][meta]                                          type_utility.hpp
 *
 * The framework's foundational C++ type utilities: the void_t detection sink,
 * compile-time absolute value, type cleaning, a constexpr swap, type

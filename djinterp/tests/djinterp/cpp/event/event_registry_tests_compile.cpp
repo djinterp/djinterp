@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               event_registry_tests_compile.cpp
+* djinterp [cpp][event]                         event_registry_tests_compile.cpp
 *
 *   Section III (compile) -- the staging operation that evaluates a registry's
 * static effective word for one event into a single DFusedStep.  Covers an

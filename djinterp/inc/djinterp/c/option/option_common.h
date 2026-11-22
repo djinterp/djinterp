@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                   option_common.h
+* djinterp [c][option]                                           option_common.h
 *
 * The option cell: one key, one typed value slot. Tier 0 -- the shared core
 * both faces compile.

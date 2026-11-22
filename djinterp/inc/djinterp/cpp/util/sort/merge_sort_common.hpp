@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                           merge_sort_common.hpp
+* djinterp [cpp][utility]                                  merge_sort_common.hpp
 *
 *   The primitives every merge sort is built from.
 * A merge sort is a driver wrapped around two operations: merge two adjacent

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                      theme.cpp
+* djinterp [cpp][tools]                                                theme.cpp
 *
 * Dear ImGui's look, by theme and scheme.
 *   Each theme starts from one of ImGui's own and replaces the surfaces --
@@ -8,6 +8,7 @@
 *   Readable text is measured as WCAG measures it: a colour's relative
 * luminance, from its channels taken back to linear light, and the ratio of
 * two luminances, each lifted by 0.05 for the glare a screen adds.
+*
 *
 * path:      /src/ui/bitwisedom/theme.cpp
 * link(s):   TBA

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              postgres_table.hpp
+* djinterp [cpp][db]                                          postgres_table.hpp
 *
 * A table of a PostgreSQL database held in memory: database_table over a
 * pg_connection, with what PostgreSQL adds.

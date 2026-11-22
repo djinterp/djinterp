@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                          ordered_container_traits_tests.hpp
+* djinterp [cpp][container]                   ordered_container_traits_tests.hpp
 *
 * Unit tests for ordered_container_traits.hpp:
 *   Declarations, fixtures and assertion plumbing for the order-axis trait

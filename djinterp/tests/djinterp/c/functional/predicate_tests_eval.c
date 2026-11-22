@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                   predicate_tests_eval.c
+* djinterp [c][functional]                                predicate_tests_eval.c
 *
 *
 * path:      /tests/djinterp/c/functional/predicate_tests_eval.c

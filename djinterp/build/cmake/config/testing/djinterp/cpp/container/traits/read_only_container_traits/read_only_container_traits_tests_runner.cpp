@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                    read_only_container_traits_tests_runner.cpp
+* djinterp [cpp][container]          read_only_container_traits_tests_runner.cpp
 *
 *   The runner for read_only_container_traits.hpp's suite: it selects the suite header's spec
 * face (DTEST_SPEC_MODE) and hands the spec to run_module, which runs the

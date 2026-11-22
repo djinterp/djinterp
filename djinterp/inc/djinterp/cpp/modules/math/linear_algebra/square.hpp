@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                 square.hpp
+* djinterp [cpp][math]                                                square.hpp
 *
 * Square-matrix operations for the linear-algebra subframework.
 *   Free function templates over matrix<Type, N, N>: the determinant, the

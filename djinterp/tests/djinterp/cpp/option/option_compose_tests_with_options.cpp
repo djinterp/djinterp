@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                          option_compose_tests_with_options.cpp
+* djinterp [cpp][option]                   option_compose_tests_with_options.cpp
 *
 *   Section III of the option_compose.hpp suite: fold a whole pack of surfaces.
 *

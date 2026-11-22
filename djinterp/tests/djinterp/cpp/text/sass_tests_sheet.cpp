@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           sass_tests_sheet.cpp
+* djinterp [cpp][text]                                      sass_tests_sheet.cpp
 *
 *   The groups for css/sass/sass.hpp, css/sass/sass_template.hpp and
 * css/sass/sass_printer.hpp, on the default backend: the vocabulary, a

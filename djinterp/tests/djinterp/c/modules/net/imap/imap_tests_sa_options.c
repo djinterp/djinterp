@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                       imap_tests_sa_options.c
+* djinterp [c][net]                                      imap_tests_sa_options.c
 *
 * Tests of the IMAP kernel's session pieces: the tags a client prefixes to
 * its commands, the option block every backend accepts, and the choice of

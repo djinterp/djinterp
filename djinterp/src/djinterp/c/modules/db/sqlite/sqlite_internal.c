@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 sqlite_internal.c
+* djinterp [c][db]                                             sqlite_internal.c
 *
 * Implementation of the plumbing sqlite_internal.h declares for the SQLite
 * layer's modules: name checks, and statements formatted, prepared, run and

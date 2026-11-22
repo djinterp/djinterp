@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                     node_container_traits_tests_entry_point.cpp
+* djinterp [cpp][container]          node_container_traits_tests_entry_point.cpp
 *
 *
 * path:      /tests/djinterp/cpp/container/traits/node_container_traits_tests_entry_point.cpp

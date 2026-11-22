@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                    t_expr_program_face.cpp
+* djinterp [cpp][math]                                   t_expr_program_face.cpp
 *
 * Tests for a term compiled once (math/expr/program.hpp, S395):
 *   - the fold's answers: 2,000 random terms of every operator, call,

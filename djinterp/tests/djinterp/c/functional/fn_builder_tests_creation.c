@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                              fn_builder_tests_creation.c
+* djinterp [c][functional]                           fn_builder_tests_creation.c
 *
 *
 * path:      /tests/djinterp/c/functional/fn_builder_tests_creation.c

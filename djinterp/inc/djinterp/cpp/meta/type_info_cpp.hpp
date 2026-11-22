@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                               type_info_cpp.hpp
+* djinterp [cpp][meta]                                         type_info_cpp.hpp
 *
 *  C++-specific extensions to the common type-information system.
 *  Covers bits 32-47 of dj_type_info64:

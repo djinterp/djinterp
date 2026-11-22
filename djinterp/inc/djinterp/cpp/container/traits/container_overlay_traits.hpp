@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    container_overlay_traits.hpp
+* djinterp [cpp][container]                         container_overlay_traits.hpp
 *
 *   SFINAE traits for the OVERLAY view of a container (the spec, Restrictions
 * /

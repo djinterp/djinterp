@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [functional]                                         filter_tests.hpp
+* djinterp [cpp][functional]                                    filter_tests.hpp
 *
 * Unit-test declarations for filter.hpp (which now folds in the filterable
 * container traits formerly in filterable_traits.hpp).

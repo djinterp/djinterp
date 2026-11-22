@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                   dhost_git.h
+* djinterp [c][tools]                                                dhost_git.h
 *
 * The git extension: git's own files read and changed from awk, and a
 * repository read.
@@ -17,6 +17,7 @@
 * ignored files, attributes and status are each what git would give, with no
 * git run. A function that takes a handle to either reads the one it is
 * given: git_config, git_ignored, git_attr.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/git/dhost_git.h
 * link(s):   TBA

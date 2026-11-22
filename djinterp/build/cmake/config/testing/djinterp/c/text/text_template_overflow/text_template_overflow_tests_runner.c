@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                          text_template_overflow_tests_runner.c
+* djinterp [c][text]                       text_template_overflow_tests_runner.c
 *
 * The runner for text_template_overflow's suite: options, then the module.
 *

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              database_table.hpp
+* djinterp [cpp][db]                                          database_table.hpp
 *
 * A table of a database held in memory: the rows a query read, changed in
 * place, and written back.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                          arg_option_value.c
+* djinterp [c][parse]                                         arg_option_value.c
 *
 * The values given to an option, declared in arg_option.h (6.2.2, 6.3.1 and
 * 6.3.2) and arg_internal.h (7.2.3 to 7.2.7).

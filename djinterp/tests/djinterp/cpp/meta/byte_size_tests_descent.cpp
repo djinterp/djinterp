@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    byte_size_tests_descent.cpp
+* djinterp [cpp][meta]                               byte_size_tests_descent.cpp
 *
 *   Section IV of byte_size.hpp: byte_dynamic_helper's two specializations --
 * the primary (element is a leaf: stop at this level's own region) and the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                 postgres_schema.h
+* djinterp [c][db]                                             postgres_schema.h
 *
 * Tables, columns, indexes, views, triggers and sequences in a PostgreSQL
 * schema.

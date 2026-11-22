@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      functional.c
+* djinterp [c][functional]                                          functional.c
 *
 * The searches and the sortedness test functional.h declares.
 *   Their predicates and comparator take no context here, so each is called

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                           arena.c
+* djinterp [c][memory]                                                   arena.c
 *
 *   Implementation unit for arena.h. Carries the region geometry, the growth
 * policy, the bump path, mark and rewind, and the operation table that presents

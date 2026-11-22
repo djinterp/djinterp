@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/math]                                              t_exponential.c
+* djinterp [c][math]                                             t_exponential.c
 *
 *   Conformance harness for c/math/exponential.h. For float, exp_c and log_c
 * must be the correctly rounded result -- the long double library's, rounded

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    file_ops.hpp
+* djinterp [cpp][filesys]                                           file_ops.hpp
 *
 * Whole-file operations -- remove, rename, copy (roadmap Phase 7).
 *   These are free functions over paths, not a new handle type, so there is no

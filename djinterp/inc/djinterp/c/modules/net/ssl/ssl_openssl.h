@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                 ssl_openssl.h
+* djinterp [c][net]                                                ssl_openssl.h
 *
 * The built-in OpenSSL-family engine.
 *   Binds the SSL kernel of ssl.h to OpenSSL 1.1.0 or later, LibreSSL, or

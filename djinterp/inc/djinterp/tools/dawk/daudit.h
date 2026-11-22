@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                   daudit.h
+* djinterp [c][tools]                                                   daudit.h
 *
 * Repair audit:
 *   Every repair states what it claims to change, and this file checks the

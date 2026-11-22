@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                              array_iterator.hpp
+* djinterp [cpp][container]                                   array_iterator.hpp
 *
 * Array-specific iterator adapters.
 *   Thin zero-overhead wrappers for patterns unique to contiguous

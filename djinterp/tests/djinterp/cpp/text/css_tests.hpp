@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                  css_tests.hpp
+* djinterp [cpp][text]                                             css_tests.hpp
 *
 *   The suite for text's CSS headers -- css/css.hpp, css/css_template.hpp
 * and css/css_printer.hpp -- in DTest's C face (c/modules/test/test_suite.h).

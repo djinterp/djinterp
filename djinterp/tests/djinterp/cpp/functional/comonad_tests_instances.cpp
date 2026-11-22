@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    comonad_tests_instances.cpp
+* djinterp [cpp][functional]                         comonad_tests_instances.cpp
 *
 *   Section III of the comonad.hpp suite: the two shipped Env (co-reader)
 * instances, std::pair and DKvPair, exercised specifically.  Covers each

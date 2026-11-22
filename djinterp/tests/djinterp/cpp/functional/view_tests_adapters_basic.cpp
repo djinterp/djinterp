@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  view_tests_adapters_basic.cpp
+* djinterp [cpp][functional]                       view_tests_adapters_basic.cpp
 *
 * Basic adapter view tests (section IV, part 1): the element-wise and prefix
 * adapters.

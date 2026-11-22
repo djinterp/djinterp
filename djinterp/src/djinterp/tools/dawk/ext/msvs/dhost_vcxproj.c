@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                               dhost_vcxproj.c
+* djinterp [c][tools]                                            dhost_vcxproj.c
 *
 * Definitions for the declarations in dhost_vcxproj.h.
 *   Each file open is a dmsvs document, which keeps its elements' handles
@@ -12,6 +12,7 @@
 * element added beside its kind and in order, and, in a filters file, with
 * the <Filter> naming where it shows, each filter on the way made if it is
 * not there.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/msvs/dhost_vcxproj.c
 * link(s):   TBA

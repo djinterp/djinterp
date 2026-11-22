@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                          byte_array_tests_2d.c
+* djinterp [c][container]                                  byte_array_tests_2d.c
 *
 *   Unit tests for byte_array.h 2D array builder macros.
 *   Tests D_BYTE_ARRAY_2D and D_BYTE_ARRAY_2D_EX macros for building

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                           pop_tests_sa_main.c
+* djinterp [c][net]                                          pop_tests_sa_main.c
 *
 * The POP3 kernel's standalone suite: its runner and entry point.
 *   Runs every test and exits 0 only if each passed.

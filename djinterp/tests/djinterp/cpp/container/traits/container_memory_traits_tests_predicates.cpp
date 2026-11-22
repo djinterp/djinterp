@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                container_memory_traits_tests_predicates.cpp
+* djinterp [cpp][container]         container_memory_traits_tests_predicates.cpp
 *
 *   Section III - the boolean projections of container_memory_discipline:
 * container_has_inline_storage (none), container_uses_individual_heap

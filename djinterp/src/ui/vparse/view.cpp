@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [ui]                                                           view.cpp
+* djinterp [cpp][tools]                                                 view.cpp
 *
 * The workbench's view and update.
 *   The screen is one shell template with five holes -- toolbar, editors, runs,
@@ -7,6 +7,7 @@
 * is written once and each region is built by its own function. Everything is
 * made of uxoxo elements; the two the workbench defines itself, listing and
 * tape, come from workbench_elements.
+*
 *
 * path:      /src/ui/vparse/view.cpp
 * link(s):   TBA

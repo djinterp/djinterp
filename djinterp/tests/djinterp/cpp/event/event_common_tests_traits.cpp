@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  event_common_tests_traits.cpp
+* djinterp [cpp][event]                            event_common_tests_traits.cpp
 *
 *   Section IV -- EVENT TRAITS.  Covers event_traits<_Event>: the payload_type
 * it exposes, the args_type alias that mirrors it, the arity drawn from the

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                               cfg_env_curl.h
+* djinterp [c][env]                                               cfg_env_curl.h
 *
 * Configuration for env_curl.h, the libcurl detection header under
 * env/net/curl/.

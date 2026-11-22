@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                      fold.h
+* djinterp [c][parse]                                                     fold.h
 *
 * Expression core v2: folds and walks over a term.
 *   A FOLD is an algebra applied bottom-up: each node's value computed from

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                           sorted_container_tests_gating.cpp
+* djinterp [cpp][container]                    sorted_container_tests_gating.cpp
 *
 *   Section TU: the enable_if gate on is_sorted_range.  Positional sortedness
 *   is

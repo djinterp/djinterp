@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   type_traits_tests_traits.cpp
+* djinterp [cpp][meta]                              type_traits_tests_traits.cpp
 *
 *   Unit tests for the "container-shape" detection traits in Section III
 * of type_traits.hpp:

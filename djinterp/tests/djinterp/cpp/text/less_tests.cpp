@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 less_tests.cpp
+* djinterp [cpp][text]                                            less_tests.cpp
 *
 *   The module "less": its entry point, which opens a block per header and a
 * test per group, and runs each group or skips it below its header's floor.

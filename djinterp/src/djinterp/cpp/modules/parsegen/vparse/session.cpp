@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                            session.cpp
+* djinterp [cpp][parsegen]                                           session.cpp
 *
 * Definitions for session.hpp.
 *   Both frontends land on the same peg::program, which is the point: the
@@ -10,6 +10,7 @@
 * notation's generator looks for neither, and compiles a reference to nothing
 * into a call that never returns. A session refuses both with either
 * frontend, in the same words, so the check the generator lacks is made here.
+*
 *
 * path:      /src/djinterp/cpp/modules/parsegen/vparse/session.cpp
 * link(s):   TBA

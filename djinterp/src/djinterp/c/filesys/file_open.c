@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_open.c
+* djinterp [c][filesys]                                              file_open.c
 *
 * Implementation of the stream opening and closing declared in file_open.h.
 *   Three file-local steps shape every open: the caller's mode is decorated with

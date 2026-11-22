@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                   dmake_doc.c
+* djinterp [c][tools]                                                dmake_doc.c
 *
 * A makefile held for change: see dmake_doc.h.
 *   Every change is a splice tried as a candidate: the text before it, the
@@ -11,6 +11,7 @@
 * asked for holds the text asked for, the words the words, a command the
 * command, statements inserted the statements their text reads as alone.
 * Otherwise the candidate is discarded, the document as it was.
+*
 *
 * path:      /src/djinterp/tools/dawk/ext/make/dmake_doc.c
 * link(s):   TBA

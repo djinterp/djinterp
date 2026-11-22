@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                          linalg_common.hpp
+* djinterp [cpp][math]                                         linalg_common.hpp
 *
 * Foundation of the linear-algebra subframework.
 *   Single place for the things every linalg header needs: the nested

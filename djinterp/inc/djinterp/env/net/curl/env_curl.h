@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                      env_curl.h
+* djinterp [c][env]                                                   env_curl.h
 *
 * djinterp libcurl environment detection.
 *   The single home for all compile-time detection tied to cURL / libcurl,

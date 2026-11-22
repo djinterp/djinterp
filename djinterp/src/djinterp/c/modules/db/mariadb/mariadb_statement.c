@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                               mariadb_statement.c
+* djinterp [c][db]                                           mariadb_statement.c
 *
 * Implementation of mariadb_statement.h.
 *   A statement keeps its values itself, copies of what was bound, and builds

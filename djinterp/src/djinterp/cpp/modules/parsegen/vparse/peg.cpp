@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                                peg.cpp
+* djinterp [cpp][parsegen]                                               peg.cpp
 *
 * Definitions for `peg.hpp`: the operators, the driver, and the profile and
 * the memo a run can keep.

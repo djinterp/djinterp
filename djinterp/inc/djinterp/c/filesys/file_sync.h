@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_sync.h
+* djinterp [c][filesys]                                              file_sync.h
 *
 * Forcing data to durable storage.
 *   Three calls, three DIFFERENT promises, and confusing them is how programs

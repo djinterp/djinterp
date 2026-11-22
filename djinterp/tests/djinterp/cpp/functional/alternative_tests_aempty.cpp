@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                   alternative_tests_aempty.cpp
+* djinterp [cpp][functional]                        alternative_tests_aempty.cpp
 *
 *   Section II.1 of the alternative.hpp suite: aempty, the empty / failure
 * element of an alternative (the type supplied explicitly, as with mempty).

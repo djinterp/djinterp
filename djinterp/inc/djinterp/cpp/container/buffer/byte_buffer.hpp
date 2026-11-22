@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 byte_buffer.hpp
+* djinterp [cpp][container]                                      byte_buffer.hpp
 *
 * Concrete byte buffer for the djinterp container framework.
 *   A byte buffer is a growable, staged accumulator for raw binary data -

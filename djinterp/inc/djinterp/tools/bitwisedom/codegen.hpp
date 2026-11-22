@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                            codegen.hpp
+* djinterp [cpp][tools]                                              codegen.hpp
 *
 * The C/C++ header generator: a sheet as macros.
 *   Every symbol becomes an object-like macro -- or, for C++, a constant --
@@ -17,6 +17,7 @@
 * needs C23 or C++14, `ull` needs C99 or C++11, `inline constexpr` C++17. A
 * setting the level cannot honour is replaced by the nearest it can, and a
 * note says so.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/codegen.hpp
 * link(s):   TBA

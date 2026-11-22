@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                     element_relation_traits.hpp
+* djinterp [cpp][container]                          element_relation_traits.hpp
 *
 *   The element relation - the =tau (and <tau) the whole content hierarchy is
 * parameterised over.  Every content equality of the comparison model is taken

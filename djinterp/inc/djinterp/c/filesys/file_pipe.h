@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_pipe.h
+* djinterp [c][filesys]                                              file_pipe.h
 *
 * Process pipes.
 *   d_pipe_open runs its argument through a SHELL -- /bin/sh -c on POSIX,

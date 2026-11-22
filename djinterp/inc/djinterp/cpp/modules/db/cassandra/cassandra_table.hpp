@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             cassandra_table.hpp
+* djinterp [cpp][db]                                         cassandra_table.hpp
 *
 * djinterp Apache Cassandra typed table wrapper:
 *   This header provides a thin, typed wrapper over a single Cassandra

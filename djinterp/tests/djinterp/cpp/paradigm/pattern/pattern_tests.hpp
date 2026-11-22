@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                              pattern_tests.hpp
+* djinterp [cpp][paradigm]                                     pattern_tests.hpp
 *
 *   Unit-test suite header for inc/djinterp/cpp/paradigm/pattern/pattern.hpp -
 * the type-agnostic pattern primitive (capture map, match result, the CRTP

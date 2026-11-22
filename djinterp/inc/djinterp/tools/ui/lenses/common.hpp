@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [djinterp]                                                 common.hpp
+* djinterp [cpp][tools]                                               common.hpp
 *
 *   Shared building blocks for the concrete lenses, factored out so each lens
 * expresses only what makes it distinct.  Covers display-axis resolution, the

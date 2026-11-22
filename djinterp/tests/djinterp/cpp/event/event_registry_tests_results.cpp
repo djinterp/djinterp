@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                               event_registry_tests_results.cpp
+* djinterp [cpp][event]                         event_registry_tests_results.cpp
 *
 *   Section I -- DISPATCH AND RUN RESULTS.  Covers the two result aggregates:
 * DDispatchResult (the enriched (invoked, outcome) pair, with consumed() true

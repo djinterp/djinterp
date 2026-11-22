@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                           output_stream_std.hpp
+* djinterp [cpp][utility]                                  output_stream_std.hpp
 *
 *   The standard library meets the output stream, both ways, at every level
 * from C++98: a stream can write to a std::string or a std::ostream, and a

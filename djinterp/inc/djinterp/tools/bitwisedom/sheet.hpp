@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                              sheet.hpp
+* djinterp [cpp][tools]                                                sheet.hpp
 *
 * The sheet: a tree of symbols, each row one symbol mapped to a value.
 *   A sheet is the document bitwisedom edits and saves. It has a width -- the
@@ -34,6 +34,7 @@
 *   Rows have ids, unique within a sheet and never reused; everything that
 * refers to a row (a field_value's range, the selection, a drag) holds an
 * id, so rows can move without breaking references.
+*
 *
 * path:      /inc/djinterp/tools/bitwisedom/sheet.hpp
 * link(s):   TBA

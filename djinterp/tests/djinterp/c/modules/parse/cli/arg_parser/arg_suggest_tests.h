@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                         arg_suggest_tests.h
+* djinterp [c][parse]                                        arg_suggest_tests.h
 *
 * The suite of the parser's suggestions (arg_suggest.c), the line "Did you
 * mean '<name>'?" the message for arguments a parse did not expect gains

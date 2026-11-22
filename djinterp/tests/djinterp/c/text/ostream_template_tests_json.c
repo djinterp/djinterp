@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                  ostream_template_tests_json.c
+* djinterp [c][text]                               ostream_template_tests_json.c
 *
 *   JSON's groups of the template engine's suite: reals written with the
 * fewest digits that read back as the same double, checked by hand and on

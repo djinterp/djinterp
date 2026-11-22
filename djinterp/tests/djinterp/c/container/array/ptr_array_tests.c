@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [container]                                         ptr_array_tests.c
+* djinterp [c][container]                                      ptr_array_tests.c
 *
 *
 * path:      /tests/djinterp/c/container/array/ptr_array_tests.c

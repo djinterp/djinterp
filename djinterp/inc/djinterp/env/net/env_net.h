@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                       env_net.h
+* djinterp [c][env]                                                    env_net.h
 *
 * djinterp generic networking environment detection.
 *   Compile-time detection of the socket-level capabilities the net/ transport

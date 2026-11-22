@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                  ostream_format.c
+* djinterp [c][text]                                            ostream_format.c
 *
 *   The locale-independent double, the double in a caller's locale, and
 * printf, onto a stream.

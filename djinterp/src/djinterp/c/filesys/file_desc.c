@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                       file_desc.c
+* djinterp [c][filesys]                                              file_desc.c
 *
 * Implementation of the descriptor lifecycle declared in file_desc.h.
 *   One policy function, d_internal_desc_flags, keeps every descriptor

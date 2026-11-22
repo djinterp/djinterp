@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                      desc_macro.h
+* djinterp [c][desc]                                                desc_macro.h
 *
 *   desc's macro layer: descriptions the preprocessor makes, as string
 * literals, of what a type and the knobs fix. No code runs, so a description

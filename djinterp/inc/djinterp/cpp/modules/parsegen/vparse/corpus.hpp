@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parsegen]                                             corpus.hpp
+* djinterp [cpp][parsegen]                                            corpus.hpp
 *
 * Inputs made from a grammar, and two programs run over the same inputs and
 * compared.

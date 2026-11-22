@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                        output_stream_tests.cpp
+* djinterp [cpp][utility]                                output_stream_tests.cpp
 *
 *   The output stream's C++ suite: DOutputStream, DOutputCursor,
 * DBufferedOutputStream and the standard-library adapters

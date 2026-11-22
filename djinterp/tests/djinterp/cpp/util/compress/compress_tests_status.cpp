@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      compress_tests_status.cpp
+* djinterp [cpp][utility]                              compress_tests_status.cpp
 *
 *   Tests for the shared status vocabulary of the compression facade: the
 * status enum (compress.hpp section II) and the status_message() lookup

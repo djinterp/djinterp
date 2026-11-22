@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                           tcp_tests_sa_main.c
+* djinterp [c][net]                                          tcp_tests_sa_main.c
 *
 * The TCP transport's standalone test runner.
 *   Runs every test, reports each, and counts tests and assertions. A

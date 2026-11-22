@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [ui]                                                       code.cpp
+* djinterp [cpp][tools]                                                 code.cpp
 *
 * The code view, and the registration of the application's elements.
 *   The code view shows the generated header in the monospace font, lightly
@@ -15,6 +15,7 @@
 * windows. Each renderer finds the document it draws by the "document" its
 * element carries, as each frame is drawn -- several sheets are open at
 * once -- and skips one closed since its interface was built.
+*
 *
 * path:      /src/ui/bitwisedom/code.cpp
 * link(s):   TBA

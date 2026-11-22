@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                    cli_io.hpp
+* djinterp [cpp][tools]                                               cli_io.hpp
 *
 * The command-line kit's C++ face: streams, terminals and files.
 *   The C calls of cli_io.h for C++: the standard streams as sinks, whether a

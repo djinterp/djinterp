@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                 linked_list.hpp
+* djinterp [cpp][container]                                      linked_list.hpp
 *
 * Unified linked_list container covering every permutation:
 *   This header defines a single class template, linked_list, parameterized

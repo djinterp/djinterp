@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                 parse_substrate_tests.hpp
+* djinterp [cpp][parse]                                parse_substrate_tests.hpp
 *
 * The execution-substrate suite: the diagnostic channel, the machine and its
 * operator registry, and the claim that the C++ faces and the C types are the

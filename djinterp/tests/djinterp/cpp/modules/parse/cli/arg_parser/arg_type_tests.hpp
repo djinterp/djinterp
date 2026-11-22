@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/parse]                                        arg_type_tests.hpp
+* djinterp [cpp][parse]                                       arg_type_tests.hpp
 *
 * The argument parser's C++ type suite: C++ types as option values, through
 * the C++ face's type_traits.

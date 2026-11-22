@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                            event_registry_tests_fused_step.cpp
+* djinterp [cpp][event]                      event_registry_tests_fused_step.cpp
 *
 *   Section II -- FUSED STEP.  Drives DFusedStep directly with hand-built words
 * of erased verdict(void*) letters.  Covers the empty step (size zero, folds to

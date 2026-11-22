@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                             arg_formatter.c
+* djinterp [c][parse]                                            arg_formatter.c
 *
 * Help formatters, declared in arg_formatter.h (3, 4.1 and 5.1).
 *   A formatter's lifetime, settings and labels -- CLI11's FormatterBase --

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]            container_memory_traits_tests_classification.cpp
+* djinterp [cpp][container]     container_memory_traits_tests_classification.cpp
 *
 *   Section V - container_memory_class, the assembled memory snapshot (resolved
 * discipline and its name, the discipline predicates, the paired siting and its

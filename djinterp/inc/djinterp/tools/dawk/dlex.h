@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                        dlex.h
+* djinterp [c][tools]                                                     dlex.h
 *
 *   Tokeniser for POSIX awk.
 *     Two rules here are not obvious from the grammar. A slash begins a regular

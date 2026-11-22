@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                      tcp_tests_sa_transport.c
+* djinterp [c][net]                                     tcp_tests_sa_transport.c
 *
 * Standalone tests of TCP connections and listeners, one thread each.
 *   Everything here fits in one thread: a connect completes into the

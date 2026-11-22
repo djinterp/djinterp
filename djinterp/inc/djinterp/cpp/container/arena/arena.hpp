@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                       arena.hpp
+* djinterp [cpp][container]                                            arena.hpp
 *
 * Generalized Arena Container:
 *   A cache-friendly, index-based, policy-driven arena for contiguous

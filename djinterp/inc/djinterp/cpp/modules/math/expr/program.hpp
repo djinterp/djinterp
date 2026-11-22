@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                program.hpp
+* djinterp [cpp][math]                                               program.hpp
 *
 * A term compiled once, to be run many times: expr_evaluate<T>'s fold made a
 * flat program, its names resolved, its variables in slots (S395).

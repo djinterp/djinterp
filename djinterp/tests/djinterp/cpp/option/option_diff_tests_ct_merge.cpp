@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 option_diff_tests_ct_merge.cpp
+* djinterp [cpp][option]                          option_diff_tests_ct_merge.cpp
 *
 *   PART A / A.V - the merge bridge.  Covers the DMergeMode vocabulary, the
 * internal merge_mode_policy map (overwrite -> DOverrideReplace;

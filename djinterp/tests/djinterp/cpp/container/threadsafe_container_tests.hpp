@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                 threadsafe_container_tests.hpp
+* djinterp [cpp][container]                       threadsafe_container_tests.hpp
 *
 *   DTest suite for /core/container/threadsafe_container.hpp - the runtime
 * building blocks every threadsafe_<container> composes from: the CRTP mutex

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                   recursion.hpp
+* djinterp [cpp][functional]                                       recursion.hpp
 *
 * Recursion schemes over a Functor: mu, cata, ana, hylo.
 *   A recursive datatype is the least fixed point of a functor:

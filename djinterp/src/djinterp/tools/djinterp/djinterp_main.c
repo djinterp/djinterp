@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                               djinterp_main.c
+* djinterp [c][tools]                                            djinterp_main.c
 *
 * The djinterp program's main: its parser, its program
 * (djinterp_commands.h), and the kit's run of it.

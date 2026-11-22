@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                cfg_filesys.h
+* djinterp [cpp][container]                                        cfg_filesys.h
 *
 * Filesystem backend configuration:
 *   This header is the single control surface for which file_tree scan

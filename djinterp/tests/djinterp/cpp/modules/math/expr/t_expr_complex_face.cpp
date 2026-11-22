@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                    t_expr_complex_face.cpp
+* djinterp [cpp][math]                                   t_expr_complex_face.cpp
 *
 * Tests for math/expr/complex_kind.hpp, the language's complex numbers, and for
 * what step 23's first part (3e) made of them in the language: the kind and

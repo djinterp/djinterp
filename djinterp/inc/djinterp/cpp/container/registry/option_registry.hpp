@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                             option_registry.hpp
+* djinterp [cpp][container]                                  option_registry.hpp
 *
 *   The OPTION <-> REGISTRY bridge. Not "a registry can be built from options"
 * (though it can) but options as a MUTATION LANGUAGE over an existing

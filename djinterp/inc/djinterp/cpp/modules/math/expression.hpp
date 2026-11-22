@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                             expression.hpp
+* djinterp [cpp][math]                                            expression.hpp
 *
 * Unified compile-time / runtime mathematical expression core.
 *   Expression nodes hold their operands and literals BY VALUE and every

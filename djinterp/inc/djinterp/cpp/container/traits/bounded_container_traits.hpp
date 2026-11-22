@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                    bounded_container_traits.hpp
+* djinterp [cpp][container]                         bounded_container_traits.hpp
 *
 *   SFINAE structural traits for the BOUNDEDNESS axis.  A container may be
 * bounded along two independent sub-axes (the spec, Boundedness):

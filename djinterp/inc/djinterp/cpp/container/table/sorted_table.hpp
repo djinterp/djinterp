@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                sorted_table.hpp
+* djinterp [cpp][container]                                     sorted_table.hpp
 *
 *   sorted_table -- the first OVERLAY on the table backing (Overlays:
 * containers

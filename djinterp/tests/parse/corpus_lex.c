@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                   corpus_lex.c
+* djinterp [c][parse]                                               corpus_lex.c
 *
 * Corpus driver: lex every file given and report totals and defects.
 *

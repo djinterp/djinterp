@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                    detached.hpp
+* djinterp [cpp][text]                                              detached.hpp
 *
 *   An owning handle for a node made outside a tree. The markup modules'
 * factories (make_div, make_paragraph, make_style_rule and the rest) return

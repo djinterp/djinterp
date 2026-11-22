@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      compose_tests_memoize.cpp
+* djinterp [cpp][functional]                           compose_tests_memoize.cpp
 *
 *   Tests for compose.hpp Section VI: memoize, the caching wrapper for a
 * pure unary function.  Covers correct results, caching (the wrapped

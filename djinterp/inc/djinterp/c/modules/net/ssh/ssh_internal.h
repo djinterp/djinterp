@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                                ssh_internal.h
+* djinterp [c][net]                                               ssh_internal.h
 *
 * SSH module internals: what the module's source files share.
 *   No public symbols. Only the sources under src/djinterp/c/modules/net/ssh/

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                   charset.h
+* djinterp [c][parse]                                                  charset.h
 *
 * A set of byte values, as 256 bits.
 *   What a grammar writes as `[0-9A-F]` and what a recognizer needs at run time

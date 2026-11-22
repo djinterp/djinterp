@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                   dhost_sln.h
+* djinterp [c][tools]                                                dhost_sln.h
 *
 * The sln extension: Visual Studio's solutions, read, changed and made from
 * awk.
@@ -21,6 +21,7 @@
 * "*|x64"; a .sln takes either of those, or one configuration whole.
 *   One of the two parts of the msvs extension, which adds vcxproj besides;
 * each can be installed alone.
+*
 *
 * path:      /inc/djinterp/tools/dawk/ext/msvs/dhost_sln.h
 * link(s):   TBA

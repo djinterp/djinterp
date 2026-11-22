@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                                  solve.hpp
+* djinterp [cpp][math]                                                 solve.hpp
 *
 * Linear-system solvers for the linear-algebra subframework.
 *   High-level free function templates that turn the factorizations in

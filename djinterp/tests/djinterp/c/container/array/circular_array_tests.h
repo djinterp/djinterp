@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         circular_array_tests.h
+* djinterp [c][container]                                 circular_array_tests.h
 *
 *   Unit test declarations for `circular_array.h` module.
 *   Provides comprehensive testing of all dj_circular_array functions including

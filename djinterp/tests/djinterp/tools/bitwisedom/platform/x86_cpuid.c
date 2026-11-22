@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [tests]                                                 x86_cpuid.c
+* djinterp [c][tools]                                                x86_cpuid.c
 *
 * The x86_cpuid example against the compiler's <cpuid.h>: every bit
 * it names, its mask in its register compared with the compiler's at
@@ -10,6 +10,7 @@
 *   A <cpuid.h> names a bit's mask, not the register it is in, so the
 * register each bit is in is the example's word; the example's notes
 * say which register each word is.
+*
 *
 * path:      /tests/djinterp/tools/bitwisedom/platform/x86_cpuid.c
 * link(s):   TBA

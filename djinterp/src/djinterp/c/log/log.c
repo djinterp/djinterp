@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                             log.c
+* djinterp [c][log]                                                        log.c
 *
 *   The log's levels, codes, settings, records and destinations. The
 * writers are log_writers.c's. The threshold and each grade's level are

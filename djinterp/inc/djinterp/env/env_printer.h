@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                   env_printer.h
+* djinterp [c][env]                                                env_printer.h
 *
 * djinterp environment printer.
 *   The build environment env.h detected -- language, compiler, operating

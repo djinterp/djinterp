@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                  threadsafe.hpp
+* djinterp [cpp][sync]                                            threadsafe.hpp
 *
 * Umbrella header for the thread-safe foundation module.
 * Includes all container-agnostic threadsafe submodules:

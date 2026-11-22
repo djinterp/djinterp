@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [binary/test]                                decode_options_tests.hpp
+* djinterp [cpp][binary]                                decode_options_tests.hpp
 *
 *   Declarations, fixtures, and the per-suite assertion macro for the
 * decode_options.hpp unit tests.  decode_options.hpp owns the parameterised byte

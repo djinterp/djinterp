@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/jit]                                                     jit_arm.c
+* djinterp [c][jit]                                                    jit_arm.c
 *
 * djinterp AArch32 / ARM (A32) JIT encoder -- implementation (jit_arm.h).
 *   Each emitter packs register and immediate fields into a verified base

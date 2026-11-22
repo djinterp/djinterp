@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                                    cfg_mat.h
+* djinterp [c][math]                                                   cfg_mat.h
 *
 *   Build-time configuration of the fixed-size matrices' C core
 * (c/math/mat.h): how far d_mat_*_solve refines a solution. The solve takes

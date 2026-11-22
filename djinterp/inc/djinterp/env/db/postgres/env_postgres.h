@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                  env_postgres.h
+* djinterp [c][env]                                               env_postgres.h
 *
 * djinterp PostgreSQL environment detection.
 *   Compile-time detection of a PostgreSQL environment: the version, aware of

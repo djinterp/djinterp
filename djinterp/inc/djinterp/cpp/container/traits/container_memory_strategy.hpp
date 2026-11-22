@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                   container_memory_strategy.hpp
+* djinterp [cpp][container]                        container_memory_strategy.hpp
 *
 * Container-side binding for the memory-strategy axis  (Sub-option A).
 *   This is the ONLY module on the axis that is container-aware, and the
@@ -34,6 +34,7 @@
 * is defined below.
 *
 *   Both sit flat in inc/djinterp/cpp/memory, with the rest of the layer.
+*
 *
 * path:      /inc/djinterp/cpp/container/traits/container_memory_strategy.hpp
 * link(s):   TBA

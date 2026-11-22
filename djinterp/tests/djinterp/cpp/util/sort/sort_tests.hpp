@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                                 sort_tests.hpp
+* djinterp [cpp][utility]                                         sort_tests.hpp
 *
 *   unit-test suite for sort.hpp -- the integrated sort surface.
 * Declares every tests_sort_facade_* predicate.

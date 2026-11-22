@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                         color_tests_beside.cpp
+* djinterp [cpp][utility]                                 color_tests_beside.cpp
 *
 *   The color umbrella suite, block "beside": color.hpp in one translation
 * unit with the headers it gathers, some included before it and some after,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                           archive_tests_gz.cpp
+* djinterp [cpp][utility]                                   archive_tests_gz.cpp
 *
 *   Tests for gz and tar.gz: the gz single-member rule, the gz and tar.gz
 * round-trips, the empty tar.gz, and rejection of a corrupt gzip payload.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* bitwisedom [bitwisedom]                                               expr.hpp
+* djinterp [cpp][tools]                                                 expr.hpp
 *
 * Integer expressions over symbols, as a C macro body spells them.
 *   A symbol defined by an expression -- `READ | WRITE`, `~MODE & 0xFF`,

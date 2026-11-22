@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                         container_traits_tests_lifetime.cpp
+* djinterp [cpp][container]                  container_traits_tests_lifetime.cpp
 *
 *   Section V - lifetime classification.  is_compile_time_container is this
 * header's own narrow notion: an EMPTY, stateless type with a constexpr size()

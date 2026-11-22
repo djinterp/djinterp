@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                           cli_tests_support.c
+* djinterp [c][tools]                                        cli_tests_support.c
 *
 * What the command-line kit's C suites share, declared in
 * cli_tests_support.h.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                     cfg_mongodb_connection.h
+* djinterp [c][db]                                      cfg_mongodb_connection.h
 *
 * Build-time configuration for c/modules/db/mongodb/mongodb_connection.h: what a
 * connection d_mongodb_connect makes is set up with before it is handed back.

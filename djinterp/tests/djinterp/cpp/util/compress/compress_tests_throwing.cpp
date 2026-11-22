@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                    compress_tests_throwing.cpp
+* djinterp [cpp][utility]                            compress_tests_throwing.cpp
 *
 *   Tests for the throwing convenience API - compress<Codec> / decompress<Codec>
 * and the DCompressionError type (compress.hpp section, gated on

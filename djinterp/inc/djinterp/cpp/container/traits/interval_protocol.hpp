@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                           interval_protocol.hpp
+* djinterp [cpp][container]                                interval_protocol.hpp
 *
 * The interval protocol, checked by its shape.
 *   A container states a bound on its size, depth or multiplicity by naming a

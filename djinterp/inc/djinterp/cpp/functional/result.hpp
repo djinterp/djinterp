@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                      result.hpp
+* djinterp [cpp][functional]                                          result.hpp
 *
 * Result<T, E> -- a monadic success-or-error type (C++).
 *   Represents the outcome of a fallible computation: either a value of

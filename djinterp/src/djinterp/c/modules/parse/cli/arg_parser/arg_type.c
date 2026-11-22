@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                                  arg_type.c
+* djinterp [c][parse]                                                 arg_type.c
 *
 * Implementation of the value types declared in arg_type.h.
 *   The built-in descriptors, CLI11's conversions -- integers under either

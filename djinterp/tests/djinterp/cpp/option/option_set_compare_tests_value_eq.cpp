@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                          option_set_compare_tests_value_eq.cpp
+* djinterp [cpp][option]                   option_set_compare_tests_value_eq.cpp
 *
 *   Section V of the option_set_compare.hpp suite: option_set_value_eq, the
 * parameterized value-equality trait.

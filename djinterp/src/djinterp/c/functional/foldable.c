@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                                        foldable.c
+* djinterp [c][functional]                                            foldable.c
 *
 * TBA
 *

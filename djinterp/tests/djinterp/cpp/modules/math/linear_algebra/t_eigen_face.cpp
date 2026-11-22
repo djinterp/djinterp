@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/math]                                           t_eigen_face.cpp
+* djinterp [cpp][math]                                          t_eigen_face.cpp
 *
 *   Tests for linear_algebra/eigen.hpp, at every level from C++98, per
 * family: the symmetric eigendecomposition of a known matrix -- its

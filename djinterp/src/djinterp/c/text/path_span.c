@@ -1,11 +1,12 @@
 /*******************************************************************************
-* djinterp [c]                                                       path_span.c
+* djinterp [c][text]                                                 path_span.c
 *
 * A generic path, read from its rendering (path_span.h).
 *   Every operation walks the text with a cursor, so nothing is copied or
 * allocated. Rendering decides each label as it reaches it -- a ".." after
 * it, read as a closing bracket, can fold it away -- which is what lets it
 * write as snprintf does, into whatever room it has.
+*
 *
 * path:      /src/djinterp/c/text/path_span.c
 * link(s):   TBA

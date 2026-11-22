@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [tools]                                                         cli.h
+* djinterp [c][tools]                                                      cli.h
 *
 * The command-line kit's C umbrella: every header of the kit, and so the
 * argument parser's.

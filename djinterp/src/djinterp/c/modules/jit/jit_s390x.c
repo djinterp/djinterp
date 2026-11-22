@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/jit]                                                   jit_s390x.c
+* djinterp [c][jit]                                                  jit_s390x.c
 *
 * djinterp s390x (IBM z/Architecture) JIT encoder -- implementation.
 *   Instructions are variable length (2/4/6 bytes) and big-endian, so each form

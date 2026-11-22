@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c]                                              option_diff_common.c
+* djinterp [c][option]                                      option_diff_common.c
 *
 * The difference algebra over option sets: the key-set delta, changed and
 * unchanged keys, the full difference with and without exemption, its

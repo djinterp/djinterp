@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [ui]                                                         plugin.cpp
+* djinterp [cpp][tools]                                               plugin.cpp
 *
 * The window's module: what `vparse gui` loads (GRAMMAR.md, section 7) --
 * vparse's workbench, in a window.
@@ -25,6 +25,7 @@
 * here.
 *   LEVELS. The workbench's floor is uxoxo's, C++17; below it this file is
 * empty rather than an error.
+*
 *
 * path:      /src/ui/vparse/plugin.cpp
 * link(s):   TBA

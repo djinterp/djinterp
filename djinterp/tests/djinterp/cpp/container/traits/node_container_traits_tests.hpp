@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [testing]                             node_container_traits_tests.hpp
+* djinterp [cpp][container]                      node_container_traits_tests.hpp
 *
 * Unit tests for node_container_traits.hpp:
 *   Declarations, fixtures and assertion plumbing for the node container trait

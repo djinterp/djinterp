@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                      ptr_vector_tests_resize.c
+* djinterp [c][container]                              ptr_vector_tests_resize.c
 *
 *   Unit tests for ptr_vector resize functions.
 *

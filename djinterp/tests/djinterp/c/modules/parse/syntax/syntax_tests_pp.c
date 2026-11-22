@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/parse]                                           syntax_tests_pp.c
+* djinterp [c][parse]                                          syntax_tests_pp.c
 *
 * The syntax items' suite, block "pp": `pp_of`, for every token how many
 * preprocessor conditionals are open around it, the include guard excluded

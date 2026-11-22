@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [c/net]                                       codec_tests_sa_base64.c
+* djinterp [c][net]                                      codec_tests_sa_base64.c
 *
 * Standalone tests of codec_base64.h: RFC 4648's vectors in every variant,
 * the refusals of strict, unpadded and canonical decoding, PEM's whitespace,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp/net]                                               tcp_tests.cpp
+* djinterp [cpp][net]                                              tcp_tests.cpp
 *
 * Tests of the TCP transport's C++ layer.
 *   Every test opens its own sockets: an ephemeral loopback port, or a

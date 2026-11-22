@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [test]                                     text_buffer_tests_runner.c
+* djinterp [c][container]                             text_buffer_tests_runner.c
 *
 *   The runner for container/buffer/text_buffer.h's suite: options, then the
 * module, which its entry points build call by call (test_suite.h 3.2).

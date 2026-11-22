@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [config]                                    cfg_postgres_connection.h
+* djinterp [c][db]                                     cfg_postgres_connection.h
 *
 * Build-time configuration for c/modules/db/postgres/postgres_connection.h: what
 * a connection d_postgres_connect makes is set up with before it is handed back.

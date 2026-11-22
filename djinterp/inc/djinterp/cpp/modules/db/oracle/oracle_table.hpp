@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [cpp]                                                oracle_table.hpp
+* djinterp [cpp][db]                                            oracle_table.hpp
 *
 * djinterp Oracle table module:
 *   Oracle-specific database_table subclass providing vendor features

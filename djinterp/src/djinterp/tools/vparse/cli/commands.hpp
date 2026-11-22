@@ -1,5 +1,5 @@
 /*******************************************************************************
-* vparse [cli]                                                      commands.hpp
+* djinterp [cpp][tools]                                             commands.hpp
 *
 * The command line's subcommands: the options each one reads, and the
 * function that does what it asks. The handlers of check, compile, match,
@@ -17,6 +17,7 @@
 * grammar refused, a want of memory -- is said as the kit says one,
 * `vparse: error: MESSAGE` on the error stream, and is trouble, 2, so that
 * every way the command line can refuse to go on reads the same.
+*
 *
 * path:      /src/djinterp/tools/vparse/cli/commands.hpp
 * link(s):   TBA
