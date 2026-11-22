@@ -5,6 +5,9 @@
 # the changed files, the fixed-width includes, the roots' growth, the
 # version, and no lane named in an added line or a commit message), then a
 # build and the tests that need no server, with GCC, Clang and MSVC.
+#   One run says every failure it can: each gate runs whatever an earlier gate
+# found, the build keeps going past a unit that fails, and the tests run over
+# whatever was built (a test whose program didn't build fails as not run).
 #   The Windows job doesn't fail the run until it has passed once.
 
 name: ci
@@ -53,31 +56,37 @@ jobs:
           git log --format='%B' "$base..HEAD" > "$RUNNER_TEMP/messages.txt"
 
       - name: the ladder over the changed units
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         run: >
           python3 -I scripts/ci/ladder.py
           --changed "${{ steps.base.outputs.rev }}"
           --known scripts/ci/ladder_known.txt
 
       - name: the style of the changed files
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         run: >
           python3 -I scripts/ci/check_style.py
           --changed "${{ steps.base.outputs.rev }}"
           --known scripts/ci/style_known.txt
 
       - name: the fixed-width includes
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         run: >
           python3 -I scripts/ci/check_stdint_includes.py
           --known scripts/ci/stdint_known.txt
 
       - name: the roots only grow
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         run: >
           python3 -I scripts/ci/check_root_growth.py
           --base "${{ steps.base.outputs.rev }}"
 
       - name: the version
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         run: python3 -I scripts/ci/check_version.py
 
       - name: no lane named
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         run: >
           python3 -I scripts/ci/check_lane_names.py
           --base "${{ steps.base.outputs.rev }}"
@@ -88,9 +97,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: gcc,   os: ubuntu-24.04, cc: gcc,   cxx: g++ }
-          - { name: clang, os: ubuntu-24.04, cc: clang, cxx: clang++ }
-          - { name: msvc,  os: windows-2022, cc: cl,    cxx: cl }
+          # keep: the native tool's keep-going switch (MSBuild keeps going)
+          - { name: gcc,   os: ubuntu-24.04, cc: gcc,   cxx: g++,     keep: -k }
+          - { name: clang, os: ubuntu-24.04, cc: clang, cxx: clang++, keep: -k }
+          - { name: msvc,  os: windows-2022, cc: cl,    cxx: cl,      keep: '' }
     name: build (${{ matrix.name }})
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.name == 'msvc' }}
@@ -106,6 +116,7 @@ jobs:
                                   libssh2-1-dev zlib1g-dev
 
       - name: configure
+        id: configure
         env:
           CC: ${{ matrix.cc }}
           CXX: ${{ matrix.cxx }}
@@ -114,9 +125,14 @@ jobs:
           -DCMAKE_BUILD_TYPE=Debug
 
       - name: build
-        run: cmake --build "$RUNNER_TEMP/build" --config Debug --parallel 4
+        env:
+          KEEP: ${{ matrix.keep }}
+        run: >
+          cmake --build "$RUNNER_TEMP/build" --config Debug --parallel 4
+          ${KEEP:+-- $KEEP}
 
       - name: test
+        if: ${{ !cancelled() && steps.configure.outcome == 'success' }}
         run: >
           ctest --test-dir "$RUNNER_TEMP/build" -C Debug
           --label-exclude needs-server --output-on-failure --parallel 4

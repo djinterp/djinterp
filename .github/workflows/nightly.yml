@@ -3,7 +3,8 @@
 #   Every night, over the whole tree: the full ladder, every rung with GCC
 # and Clang, held to its punch list; the style of every file, held to its
 # punch list; and a report of the lane names the tree still holds, which
-# fails nothing until that count is 0. A run can also be started by hand.
+# fails nothing until that count is 0, and runs whatever the style found.
+# A run can also be started by hand.
 
 name: nightly
 
@@ -51,4 +52,5 @@ jobs:
           --known scripts/ci/style_known.txt
 
       - name: the lane names the tree still holds
+        if: ${{ !cancelled() }}
         run: python3 -I scripts/ci/check_lane_names.py --all | tail -n 1
