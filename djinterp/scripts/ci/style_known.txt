@@ -992,7 +992,6 @@ inc/djinterp/cpp/modules/net/sftp/sftp_client.hpp	H	1
 inc/djinterp/cpp/modules/net/smtp/smtp.hpp	H	1
 inc/djinterp/cpp/modules/net/tcp/tcp.hpp	H	1
 inc/djinterp/cpp/modules/net/tls/tls.hpp	H	1
-inc/djinterp/cpp/modules/net/web.hpp	H	1
 inc/djinterp/cpp/modules/parse/charset.hpp	H	1
 inc/djinterp/cpp/modules/parse/cli/arg_parser/arg_argv.hpp	H	1
 inc/djinterp/cpp/modules/parse/cli/arg_parser/arg_command.hpp	H	1

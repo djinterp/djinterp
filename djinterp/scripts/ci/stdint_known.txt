@@ -5,7 +5,6 @@ inc/djinterp/c/modules/test/test_event.h	stdint.h
 inc/djinterp/c/modules/test/test_metadata.h	stdint.h
 inc/djinterp/c/modules/test/test_object.h	stdint.h
 inc/djinterp/c/util/type_info_common.h	stdint.h
-inc/djinterp/cpp/modules/net/web.hpp	cstdint
 inc/djinterp/tools/dawk/dawk.h	stdint.h
 inc/djinterp/tools/dawk/dbanner.h	stdint.h
 inc/djinterp/tools/dawk/dcascade.h	stdint.h
