@@ -27,7 +27,7 @@
 * path:      /inc/djinterp/cpp/container/iterator/flat_iterator_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.24
-*                                                            revised: 2026.10.01
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -296,9 +296,10 @@ D_TYPE_TRAIT_DETECTED(has_is_root_method,
         std::declval<const Type&>().is_root()))
 
 // has_child_count_method
-D_TYPE_TRAIT_DETECTED(has_child_count_method,
-    decltype(
-        std::declval<const Type&>().child_count()))
+//   the canonical probe, from node_probes.hpp through container_traits.hpp:
+// one owner for each tree probe, under this namespace's name too.
+using ::djinterp::has_child_count_method;
+using ::djinterp::has_child_count_method_v;
 
 
 // ===========================================================================
