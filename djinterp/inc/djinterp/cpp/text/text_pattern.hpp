@@ -62,7 +62,7 @@
 * path:      /inc/djinterp/cpp/text/text_pattern.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.13
-*                                                            revised: 2026.11.13
+*                                                            revised: 2026.11.22
 *******************************************************************************/
 
 /*
@@ -109,7 +109,7 @@ V.    CONVENIENCE FACTORIES
 #include <vector>   // std::vector
 // djinterp
 #include "../djinterp.hpp"                  // framework root
-#include "../paradigm/pattern/pattern.hpp"  // pattern<>, DPattern*
+#include "../paradigm/pattern/pattern.hpp"  // DPattern<>, DPattern*
 // re_std
 #include "../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint8_t
 
@@ -180,11 +180,11 @@ NS_END  // internal
 
 // DTextPattern
 //   class: marker-aware text pattern engine deriving from the
-// generic pattern<> CRTP base.  Compiles a template literal once
+// generic DPattern<> CRTP base.  Compiles a template literal once
 // at construction; subsequent match / extract / render / rewrite
 // operations are O(n * s) where n is the input size and s is the
 // segment count.
-class DTextPattern : public pattern<DTextPattern>
+class DTextPattern : public DPattern<DTextPattern>
 {
 public:
     using input_type        = std::string;
