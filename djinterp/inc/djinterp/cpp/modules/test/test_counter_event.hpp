@@ -31,7 +31,7 @@
 * ----------
 *   Bind a tally key, or a test counter, to an event:
 *
-*     D_EVENT(on_retry, int);
+*     D_EVENT(on_retry, "app.retry", int);
 *     struct retried;
 *     DEventDispatcher d;
 *     test_tally<>     tally;

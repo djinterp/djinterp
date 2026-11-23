@@ -19,7 +19,7 @@
 * path:      /tests/djinterp/cpp/modules/test/test_event_tests_alphabet.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 // std
@@ -145,23 +145,24 @@ bool tests_event_on_listener_threw_carries_two_c_strings()
 
 // ---- alphabet-wide invariants ----------------------------------------------
 
-// tests_event_every_tag_names_its_own_identifier
-//   D_EVENT stringifies the tag name, so name() must echo the identifier
-// exactly.  A handler that logs or routes by name depends on this.
-bool tests_event_every_tag_names_its_own_identifier()
+// tests_event_every_tag_gives_its_table_name
+//   each tag's name() is its row of test_event_names.h, a dotted test.* name,
+// whatever the tag's identifier.  A handler that logs or routes by name, and
+// the event's key, depend on this.
+bool tests_event_every_tag_gives_its_table_name()
 {
-    D_TE_CHECK(std::strcmp(dt::DOnSessionStart::name(),  "DOnSessionStart")  == 0);
-    D_TE_CHECK(std::strcmp(dt::DOnSessionEnd::name(),    "DOnSessionEnd")    == 0);
-    D_TE_CHECK(std::strcmp(dt::DOnModuleStart::name(),   "DOnModuleStart")   == 0);
-    D_TE_CHECK(std::strcmp(dt::DOnModuleEnd::name(),     "DOnModuleEnd")     == 0);
-    D_TE_CHECK(std::strcmp(dt::DOnTestStart::name(),     "DOnTestStart")     == 0);
-    D_TE_CHECK(std::strcmp(dt::DOnTestEnd::name(),       "DOnTestEnd")       == 0);
-    D_TE_CHECK(std::strcmp(dt::DOnTestPassed::name(),    "DOnTestPassed")    == 0);
-    D_TE_CHECK(std::strcmp(dt::DOnTestFailed::name(),    "DOnTestFailed")    == 0);
-    D_TE_CHECK(std::strcmp(dt::DOnTestSkipped::name(),   "DOnTestSkipped")   == 0);
-    D_TE_CHECK(std::strcmp(dt::DOnTestError::name(),     "DOnTestError")     == 0);
-    D_TE_CHECK(std::strcmp(dt::DOnStatusChange::name(),  "DOnStatusChange")  == 0);
-    D_TE_CHECK(std::strcmp(dt::DOnListenerThrew::name(), "DOnListenerThrew") == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnSessionStart::name(),  "test.session_start") == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnSessionEnd::name(),    "test.session_end") == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnModuleStart::name(),   "test.module_start") == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnModuleEnd::name(),     "test.module_end") == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnTestStart::name(),     "test.test_start") == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnTestEnd::name(),       "test.test_end") == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnTestPassed::name(),    "test.test_passed") == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnTestFailed::name(),    "test.test_failed") == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnTestSkipped::name(),   "test.test_skipped") == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnTestError::name(),     "test.test_error") == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnStatusChange::name(),  "test.status_change") == 0);
+    D_TE_CHECK(std::strcmp(dt::DOnListenerThrew::name(), "test.listener_threw") == 0);
 
     return true;
 }
@@ -203,8 +204,8 @@ bool tests_event_every_tag_is_a_distinct_type()
     // ...and none of them is the empty one
     D_TE_CHECK(!(std::is_same<dt::DOnSessionStart, dt::DOnSessionEnd>::value));
 
-    // the exhaustive check: every name() string is unique, which can only hold
-    // if every tag is a distinct type (D_EVENT derives name() from the tag name)
+    // the exhaustive check: every name() string is unique, so no two tags
+    // share a key (each tag has its own row of test_event_names.h)
     const char* names[12] =
     {
         dt::DOnSessionStart::name(),  dt::DOnSessionEnd::name(),

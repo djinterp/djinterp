@@ -40,8 +40,8 @@
 *
 * CUSTOM EVENTS
 * -------------
-*   Users declare custom events anywhere with `D_EVENT(name, ...)` or
-* `D_EVENT_EMPTY(name)` from event.hpp.  No registration step is
+*   Users declare custom events anywhere with `D_EVENT(type, "name", ...)`
+* or `D_EVENT_EMPTY(type, "name")` from event.hpp.  No registration step is
 * required: the type is the registration.  The handler binds and fires
 * custom events through exactly the same `on<E>()` and `fire<E>()`
 * methods used for built-ins.
@@ -56,7 +56,7 @@
 * methods below surface only its `invoked` field.
 *
 *   Usage example - printing a custom-event warning:
-*     D_EVENT_EMPTY(on_unreachable_path);
+*     D_EVENT_EMPTY(on_unreachable_path, "app.unreachable_path");
 *
 *     test_handler handler;
 *     handler.on<on_unreachable_path>(

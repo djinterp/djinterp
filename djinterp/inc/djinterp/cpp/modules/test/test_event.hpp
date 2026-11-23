@@ -80,7 +80,7 @@
 * path:      /inc/djinterp/cpp/modules/test/test_event.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.17
-*                                                            revised: 2026.10.02
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -113,6 +113,7 @@ III.  CUSTOM EVENT DECLARATION    (D_TEST_EVENT family)
 #include "../../event/event_common.hpp"   // verdict, event_traits, D_EVENT[_EMPTY]
 #include "./test_common.hpp"         // test_status (status-change payload),
                                      // DTestMetadata alias (basic_test below)
+#include "../../../c/modules/test/test_event_names.h"  // the twelve names
 // re_std
 #include "../../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint8_t
 
@@ -161,16 +162,20 @@ using basic_test = DTestObject<re_std::uint8_t, DTestMetadata>;
 // shapes below match the framework's fire sites exactly.  Listeners bind to a
 // tag with `handler.on<TAG>(callable)` and the framework dispatches
 // with the corresponding payload.
+//
+//   Each tag's name comes from test_event_names.h, the table C's alphabet
+// reads too, so C and C++ print, bind and hash one name ("test.test_failed").
 
 // ---- session lifecycle ----
 
 // DOnSessionStart
 //   the run is beginning; counters have just been reset.  Empty payload.
-D_EVENT_EMPTY(DOnSessionStart);
+D_EVENT_EMPTY(DOnSessionStart, D_TEST_EVENT_NAME_SESSION_START);
 
 // DOnSessionEnd
 //   the run has finished.  Payload: (passed_count, failed_count).
-D_EVENT(DOnSessionEnd, std::size_t, std::size_t);
+D_EVENT(DOnSessionEnd, D_TEST_EVENT_NAME_SESSION_END,
+        std::size_t, std::size_t);
 
 
 // ---- module (interior node) lifecycle ----
@@ -178,11 +183,11 @@ D_EVENT(DOnSessionEnd, std::size_t, std::size_t);
 // DOnModuleStart
 //   an interior node (module / block / test group) is being entered.
 // Payload: the node.
-D_EVENT(DOnModuleStart, const basic_test*);
+D_EVENT(DOnModuleStart, D_TEST_EVENT_NAME_MODULE_START, const basic_test*);
 
 // DOnModuleEnd
 //   an interior node has been fully visited.  Payload: the node.
-D_EVENT(DOnModuleEnd, const basic_test*);
+D_EVENT(DOnModuleEnd, D_TEST_EVENT_NAME_MODULE_END, const basic_test*);
 
 
 // ---- test (leaf node) lifecycle ----
@@ -190,37 +195,40 @@ D_EVENT(DOnModuleEnd, const basic_test*);
 // DOnTestStart
 //   a leaf (assertion / test function) is being entered, before its
 // status-specific event.  Payload: the node.
-D_EVENT(DOnTestStart, const basic_test*);
+D_EVENT(DOnTestStart, D_TEST_EVENT_NAME_TEST_START, const basic_test*);
 
 // DOnTestEnd
 //   a leaf has been fully visited, after its status-specific event.
 // Payload: the node.
-D_EVENT(DOnTestEnd, const basic_test*);
+D_EVENT(DOnTestEnd, D_TEST_EVENT_NAME_TEST_END, const basic_test*);
 
 
 // ---- terminal status (leaf node) ----
 
 // DOnTestPassed
 //   a leaf resolved to test_status::passed.  Payload: the node.
-D_EVENT(DOnTestPassed, const basic_test*);
+D_EVENT(DOnTestPassed, D_TEST_EVENT_NAME_TEST_PASSED, const basic_test*);
 
 // DOnTestFailed
 //   a leaf resolved to test_status::failed.  Payload: the node.
-D_EVENT(DOnTestFailed, const basic_test*);
+D_EVENT(DOnTestFailed, D_TEST_EVENT_NAME_TEST_FAILED, const basic_test*);
 
 // DOnTestSkipped
 //   a leaf resolved to test_status::skipped.  Payload: the node.
-D_EVENT(DOnTestSkipped, const basic_test*);
+D_EVENT(DOnTestSkipped, D_TEST_EVENT_NAME_TEST_SKIPPED,
+        const basic_test*);
 
 // DOnTestError
 //   a leaf resolved to test_status::error.  Payload: (node, message),
 // where the message is an optional diagnostic string (may be null).
-D_EVENT(DOnTestError, const basic_test*, const char*);
+D_EVENT(DOnTestError, D_TEST_EVENT_NAME_TEST_ERROR,
+        const basic_test*, const char*);
 
 // DOnStatusChange
 //   a leaf's status changed during evaluation (e.g. a deferred leaf was
 // run).  Payload: (node, before, after).
-D_EVENT(DOnStatusChange, const basic_test*, test_status, test_status);
+D_EVENT(DOnStatusChange, D_TEST_EVENT_NAME_STATUS_CHANGE,
+        const basic_test*, test_status, test_status);
 
 
 // ---- diagnostics ----
@@ -230,7 +238,8 @@ D_EVENT(DOnStatusChange, const basic_test*, test_status, test_status);
 // framework caught it and re-reported it here rather than aborting the
 // run.  Payload: (event_name, what), both C-strings.  A handler for this
 // event must not itself throw.
-D_EVENT(DOnListenerThrew, const char*, const char*);
+D_EVENT(DOnListenerThrew, D_TEST_EVENT_NAME_LISTENER_THREW,
+        const char*, const char*);
 
 
 
@@ -252,30 +261,39 @@ NS_END  // djinterp
 // event may live in the user's own namespace, or in djinterp::test::events
 // alongside the built-ins.  Each expands to a struct, so a trailing semicolon
 // is supplied by the caller.
+//
+//   Each takes the event's name after its type, as D_EVENT does: a string
+// literal in dotted lower-case words ("myproj.flaky_retry").  The name is the
+// event's identity and the source of its key, so renaming the type keeps
+// the event.
 
 // D_TEST_EVENT
 //   declares a custom test event carrying the visited node, matching the
 // built-in lifecycle shape.  Payload: (const basic_test*).
 // Usage:
-//   D_TEST_EVENT(DOnFlakyRetry);
-#define D_TEST_EVENT(_name)                                                   \
-    D_EVENT(_name, const ::djinterp::test::basic_test*)
+//   D_TEST_EVENT(DOnFlakyRetry, "myproj.flaky_retry");
+#define D_TEST_EVENT(_type, _name)                                            \
+    D_EVENT(_type, _name, const ::djinterp::test::basic_test*)
 
 // D_TEST_EVENT_MSG
 //   declares a custom test event carrying the node plus a C-string message,
 // matching the DOnTestError shape.  Payload: (const basic_test*, const char*).
 // Usage:
-//   D_TEST_EVENT_MSG(DOnSoftWarning);
-#define D_TEST_EVENT_MSG(_name)                                               \
-    D_EVENT(_name, const ::djinterp::test::basic_test*, const char*)
+//   D_TEST_EVENT_MSG(DOnSoftWarning, "myproj.soft_warning");
+#define D_TEST_EVENT_MSG(_type, _name)                                        \
+    D_EVENT(_type, _name, const ::djinterp::test::basic_test*, const char*)
 
 // D_TEST_EVENT_X
 //   declares a custom test event carrying the node followed by caller-
 //   specified extra payload domains.  Payload: (const basic_test*, ...).
 // Usage:
-//   D_TEST_EVENT_X(DOnRetry, int /*attempt*/);
-#define D_TEST_EVENT_X(_name, ...)                                            \
-    D_EVENT(_name, const ::djinterp::test::basic_test*, __VA_ARGS__)
+//   D_TEST_EVENT_X(DOnRetry, "myproj.retry", int /*attempt*/);
+//   The definition is this header's own variadic macro, so the warning a
+// strict build gives for it is quieted here, and only here.
+D_ENV_PP_VARIADIC_QUIET_BEGIN
+#define D_TEST_EVENT_X(_type, _name, ...)                                     \
+    D_EVENT(_type, _name, const ::djinterp::test::basic_test*, __VA_ARGS__)
+D_ENV_PP_VARIADIC_QUIET_END
 
 #endif  // floor, for now
 

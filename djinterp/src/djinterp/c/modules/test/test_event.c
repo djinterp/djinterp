@@ -8,7 +8,7 @@
 * path:      /src/djinterp/c/modules/test/test_event.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.31
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #include "../../../../../inc/djinterp/c/modules/test/test_event.h"
@@ -62,22 +62,19 @@ struct dj_test_event_signature_
     int         arity;
 };
 
+/*   The rows come from test_event_names.h, the table the C++ tags read too,
+   so a row's name is its tag's name().  The list is in kind order; the parity
+   test checks every row against its enumerator. */
+#define D_INTERNAL_TEST_EVENT_ROW(_kind, _name)                               \
+    { _name, D_TEST_EVENT_ARITY_##_kind },
+
 static const struct dj_test_event_signature_
 d_test_event_table_[D_TEST_EVENT_KIND_COUNT] =
 {
-    { "on_session_start",  D_TEST_EVENT_ARITY_SESSION_START  },
-    { "on_session_end",    D_TEST_EVENT_ARITY_SESSION_END    },
-    { "on_module_start",   D_TEST_EVENT_ARITY_MODULE_START   },
-    { "on_module_end",     D_TEST_EVENT_ARITY_MODULE_END     },
-    { "on_test_start",     D_TEST_EVENT_ARITY_TEST_START     },
-    { "on_test_end",       D_TEST_EVENT_ARITY_TEST_END       },
-    { "on_test_passed",    D_TEST_EVENT_ARITY_TEST_PASSED    },
-    { "on_test_failed",    D_TEST_EVENT_ARITY_TEST_FAILED    },
-    { "on_test_skipped",   D_TEST_EVENT_ARITY_TEST_SKIPPED   },
-    { "on_test_error",     D_TEST_EVENT_ARITY_TEST_ERROR     },
-    { "on_status_change",  D_TEST_EVENT_ARITY_STATUS_CHANGE  },
-    { "on_listener_threw", D_TEST_EVENT_ARITY_LISTENER_THREW }
+    D_TEST_EVENT_NAMES(D_INTERNAL_TEST_EVENT_ROW)
 };
+
+#undef D_INTERNAL_TEST_EVENT_ROW
 
 /*   THE DOMAIN COLUMN IS GONE with the slots it described.  `arity` stays
    because the C++ face asserts each tag's std::tuple_size against the matching
@@ -91,7 +88,7 @@ d_test_event_table_[D_TEST_EVENT_KIND_COUNT] =
 D_STATIC_ASSERT(D_TEST_EVENT_LISTENER_THREW + 1 == D_TEST_EVENT_KIND_COUNT,
                 "test_event: the alphabet is not dense");
 D_STATIC_ASSERT(D_TEST_EVENT_ARITY_STATUS_CHANGE == 3,
-                "test_event: on_status_change's arity has drifted");
+                "test_event: status_change's arity has drifted");
 
 
 /* =============================================================================

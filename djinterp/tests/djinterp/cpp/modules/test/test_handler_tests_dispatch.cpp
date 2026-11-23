@@ -24,8 +24,8 @@ NS_DJINTERP
 NS_TESTING
 
 // custom event tags for the facade tests (kept off the lifecycle events).
-D_EVENT(DEvVal, int);      // one-int payload
-D_EVENT_EMPTY(DEvPing);    // empty payload
+D_EVENT(DEvVal, "t.test.handler.val", int);    // one-int payload
+D_EVENT_EMPTY(DEvPing, "t.test.handler.ping");  // empty payload
 
 
 // tests_dispatch_on_fire_invoked

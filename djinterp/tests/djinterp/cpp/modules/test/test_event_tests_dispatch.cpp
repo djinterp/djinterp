@@ -39,8 +39,8 @@
 // same terms as the built-ins
 namespace myapp
 {
-    D_TEST_EVENT(DOnCustomDispatch);
-    D_TEST_EVENT_X(DOnCustomRetry, int);
+    D_TEST_EVENT(DOnCustomDispatch, "t.test.event.custom_dispatch");
+    D_TEST_EVENT_X(DOnCustomRetry, "t.test.event.custom_retry", int);
 }
 
 
@@ -239,7 +239,7 @@ bool tests_event_dispatch_listener_threw_payload_arrives_intact()
                                           "std::bad_alloc");
 
     D_TE_CHECK(_log->calls == 1);
-    D_TE_CHECK(_log->text_1 == "DOnTestFailed");   // a tag's own name(), routed
+    D_TE_CHECK(_log->text_1 == "test.test_failed");  // its own name(), routed
     D_TE_CHECK(_log->text_2 == "std::bad_alloc");
 
     return true;

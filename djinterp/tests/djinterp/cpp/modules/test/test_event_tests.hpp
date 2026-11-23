@@ -3,7 +3,7 @@
 *
 *   Unit-test suite for test_event.hpp - the DTest event alphabet.  This header
 * is declarations + shared fixtures only; every test body lives in one of the
-* four section translation units:
+* five section translation units:
 *
 *     test_event_tests_node.cpp       I.   node forward declarations
 *                                          (basic_test; the incomplete-type
@@ -16,6 +16,8 @@
 *                                          built-in or custom - binds and fires
 *                                          through the event subsystem with the
 *                                          payload it declares
+*     test_event_tests_parity.cpp     V.   C and C++ name every built-in alike,
+*                                          from test_event_names.h
 *
 *   Every test is a `bool tests_*()` sitting flat in djinterp::testing.
 *
@@ -43,7 +45,7 @@
 * path:      /tests/djinterp/cpp/modules/test/test_event_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.06
-*                                                            revised: 2026.09.21
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #ifndef DJINTERP_TESTS_TEST_EVENT_TESTS_
@@ -216,7 +218,7 @@ bool tests_event_on_status_change_carries_node_and_both_statuses();
 
 bool tests_event_on_listener_threw_carries_two_c_strings();
 
-bool tests_event_every_tag_names_its_own_identifier();
+bool tests_event_every_tag_gives_its_table_name();
 
 bool tests_event_every_tag_is_a_distinct_type();
 
@@ -247,7 +249,7 @@ bool tests_event_d_test_event_x_appends_one_extra_domain();
 
 bool tests_event_d_test_event_x_appends_several_extra_domains();
 
-bool tests_event_custom_tags_name_their_own_identifiers();
+bool tests_event_custom_tags_give_their_declared_names();
 
 bool tests_event_custom_tags_are_distinct_from_builtins();
 
@@ -289,6 +291,21 @@ bool tests_event_dispatch_tags_are_independent_channels();
 bool tests_event_dispatch_unbound_tag_invokes_nothing();
 
 bool tests_event_dispatch_unbind_removes_the_listener();
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                V.   C AND C++ PARITY  (…_tests_parity.cpp)              ///
+///////////////////////////////////////////////////////////////////////////////
+
+bool tests_event_parity_each_kind_names_its_tag();
+
+bool tests_event_parity_table_follows_the_kinds();
+
+bool tests_event_parity_names_are_test_names();
+
+bool tests_event_parity_keys_are_distinct();
+
+bool tests_event_parity_custom_kind_is_not_named();
 
 
 #ifdef DTEST_SPEC_MODE
@@ -335,7 +352,7 @@ dt::module_spec event_spec()
                     { "tests_event_on_test_error_carries_node_and_message",          "DOnTestError carries the node plus an error message", &tests_event_on_test_error_carries_node_and_message },
                     { "tests_event_on_status_change_carries_node_and_both_statuses", "on_status_change carries the node and both the before and after statuses", &tests_event_on_status_change_carries_node_and_both_statuses },
                     { "tests_event_on_listener_threw_carries_two_c_strings",         "on_listener_threw carries two C-string arguments", &tests_event_on_listener_threw_carries_two_c_strings },
-                    { "tests_event_every_tag_names_its_own_identifier",              "every tag reports its own identifier via name()", &tests_event_every_tag_names_its_own_identifier },
+                    { "tests_event_every_tag_gives_its_table_name",                  "every tag's name() is its test.* row of test_event_names.h", &tests_event_every_tag_gives_its_table_name },
                     { "tests_event_every_tag_is_a_distinct_type",                    "the alphabet has twelve distinct tag types", &tests_event_every_tag_is_a_distinct_type },
                     { "tests_event_every_tag_satisfies_event_traits",                "every tag satisfies the event_traits contract (has a name)", &tests_event_every_tag_satisfies_event_traits },
                     { "tests_event_arity_agrees_with_payload_size",                  "each tag's arity agrees with its payload tuple size", &tests_event_arity_agrees_with_payload_size },
@@ -354,7 +371,7 @@ dt::module_spec event_spec()
                     { "tests_event_d_test_event_msg_matches_the_on_test_error_shape","a D_TEST_EVENT_MSG tag matches the DOnTestError payload shape", &tests_event_d_test_event_msg_matches_the_on_test_error_shape },
                     { "tests_event_d_test_event_x_appends_one_extra_domain",      "D_TEST_EVENT_X appends one extra payload domain", &tests_event_d_test_event_x_appends_one_extra_domain },
                     { "tests_event_d_test_event_x_appends_several_extra_domains", "D_TEST_EVENT_X appends several extra payload domains", &tests_event_d_test_event_x_appends_several_extra_domains },
-                    { "tests_event_custom_tags_name_their_own_identifiers",       "custom tags report their own identifiers via name()", &tests_event_custom_tags_name_their_own_identifiers },
+                    { "tests_event_custom_tags_give_their_declared_names",        "custom tags report the names they declare via name()", &tests_event_custom_tags_give_their_declared_names },
                     { "tests_event_custom_tags_are_distinct_from_builtins",       "custom tags are distinct types from the built-ins", &tests_event_custom_tags_are_distinct_from_builtins },
                     { "tests_event_custom_tags_are_distinct_from_each_other",     "distinct custom tags are distinct types", &tests_event_custom_tags_are_distinct_from_each_other },
                     { "tests_event_macros_are_namespace_agnostic",               "the event macros work in any namespace", &tests_event_macros_are_namespace_agnostic },
@@ -380,6 +397,18 @@ dt::module_spec event_spec()
                     { "tests_event_dispatch_tags_are_independent_channels",         "distinct tags are independent channels - firing one does not invoke another's listeners", &tests_event_dispatch_tags_are_independent_channels },
                     { "tests_event_dispatch_unbound_tag_invokes_nothing",          "firing an unbound tag invokes nothing", &tests_event_dispatch_unbound_tag_invokes_nothing },
                     { "tests_event_dispatch_unbind_removes_the_listener",          "unbind removes a previously-bound listener", &tests_event_dispatch_unbind_removes_the_listener },
+                }
+            },
+            dt::block_spec{
+                "parity",
+                "C and C++ name every built-in event alike: one table, "
+                "test_event_names.h, read by C's alphabet and C++'s tags.",
+                {
+                    { "tests_event_parity_each_kind_names_its_tag",     "each C kind's name is its C++ tag's name(), with one key", &tests_event_parity_each_kind_names_its_tag },
+                    { "tests_event_parity_table_follows_the_kinds",     "the table lists the built-ins once each, in kind order", &tests_event_parity_table_follows_the_kinds },
+                    { "tests_event_parity_names_are_test_names",        "every built-in name is test. and lower-case words", &tests_event_parity_names_are_test_names },
+                    { "tests_event_parity_keys_are_distinct",           "the twelve names hash to twelve distinct keys", &tests_event_parity_keys_are_distinct },
+                    { "tests_event_parity_custom_kind_is_not_named",    "a kind past the built-ins is \"custom\", not a table name", &tests_event_parity_custom_kind_is_not_named },
                 }
             },
         }

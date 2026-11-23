@@ -49,19 +49,22 @@
 // (a) a user's own namespace, outside djinterp entirely - the documented case
 namespace myproj
 {
-    D_TEST_EVENT(DOnFlakyRetry);              // node
-    D_TEST_EVENT_MSG(DOnSoftWarning);         // node + message
-    D_TEST_EVENT_X(DOnRetry, int);             // node + one extra domain
-    D_TEST_EVENT_X(DOnBudget, int, double);    // node + two extra domains
+    D_TEST_EVENT(DOnFlakyRetry, "t.test.event.flaky_retry");     // node
+    D_TEST_EVENT_MSG(DOnSoftWarning, "t.test.event.soft_warning");
+                                                // node + message
+    D_TEST_EVENT_X(DOnRetry, "t.test.event.retry", int);
+                                                // node + one extra domain
+    D_TEST_EVENT_X(DOnBudget, "t.test.event.budget", int, double);
+                                                // node + two extra domains
 }
 
 // (b) the global namespace
-D_TEST_EVENT(DOnGlobalProbe);
+D_TEST_EVENT(DOnGlobalProbe, "t.test.event.global_probe");
 
 // (c) alongside the built-ins, in djinterp::test itself
 NS_DJINTERP
 NS_TEST
-    D_TEST_EVENT(DOnAlongsideBuiltin);
+    D_TEST_EVENT(DOnAlongsideBuiltin, "t.test.event.alongside_builtin");
 NS_END
 NS_END
 
@@ -154,22 +157,28 @@ bool tests_event_d_test_event_x_appends_several_extra_domains()
 }
 
 
-// tests_event_custom_tags_name_their_own_identifiers
-//   D_TEST_EVENT forwards to D_EVENT, which stringifies the tag name - so the
-// name survives the extra macro hop rather than becoming "_name" or the
-// expansion text.
-bool tests_event_custom_tags_name_their_own_identifiers()
+// tests_event_custom_tags_give_their_declared_names
+//   D_TEST_EVENT forwards its name to D_EVENT, so name() is the literal the
+// declaration gives - it survives the extra macro hop rather than becoming
+// "_name", the expansion text, or the tag's identifier.
+bool tests_event_custom_tags_give_their_declared_names()
 {
-    D_TE_CHECK(std::strcmp(myproj::DOnFlakyRetry::name(),  "DOnFlakyRetry")  == 0);
-    D_TE_CHECK(std::strcmp(myproj::DOnSoftWarning::name(), "DOnSoftWarning") == 0);
-    D_TE_CHECK(std::strcmp(myproj::DOnRetry::name(),       "DOnRetry")       == 0);
-    D_TE_CHECK(std::strcmp(myproj::DOnBudget::name(),      "DOnBudget")      == 0);
-    D_TE_CHECK(std::strcmp(::DOnGlobalProbe::name(),       "DOnGlobalProbe") == 0);
+    D_TE_CHECK(std::strcmp(myproj::DOnFlakyRetry::name(),
+                           "t.test.event.flaky_retry") == 0);
+    D_TE_CHECK(std::strcmp(myproj::DOnSoftWarning::name(),
+                           "t.test.event.soft_warning") == 0);
+    D_TE_CHECK(std::strcmp(myproj::DOnRetry::name(),
+                           "t.test.event.retry") == 0);
+    D_TE_CHECK(std::strcmp(myproj::DOnBudget::name(),
+                           "t.test.event.budget") == 0);
+    D_TE_CHECK(std::strcmp(::DOnGlobalProbe::name(),
+                           "t.test.event.global_probe") == 0);
     D_TE_CHECK(std::strcmp(dt::DOnAlongsideBuiltin::name(),
-                           "DOnAlongsideBuiltin") == 0);
+                           "t.test.event.alongside_builtin") == 0);
 
-    // the name is the IDENTIFIER, not the qualified name - the same identifier
-    // declared in two scopes yields two types with the same name() string
+    // the name is the declared literal, so neither the identifier nor the
+    // qualified name leaks into it
+    D_TE_CHECK(std::strcmp(myproj::DOnFlakyRetry::name(), "DOnFlakyRetry") != 0);
     D_TE_CHECK(std::strcmp(myproj::DOnFlakyRetry::name(),
                            "myproj::DOnFlakyRetry") != 0);
 

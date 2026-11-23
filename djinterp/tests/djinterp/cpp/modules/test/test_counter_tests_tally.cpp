@@ -117,8 +117,8 @@ bool tests_test_tally_reset_and_clear()
     D_TC_CHECK(tally.count<DTcTick>() == 0);
     D_TC_CHECK(tally.count<DTcBytes>() == 0);
     D_TC_CHECK(tally.size() == 2);
-    D_TC_CHECK(std::strcmp(tally.name(0), "DTcTick") == 0);
-    D_TC_CHECK(std::strcmp(tally.name(1), "DTcBytes") == 0);
+    D_TC_CHECK(std::strcmp(tally.name(0), "t.test.counter.tick") == 0);
+    D_TC_CHECK(std::strcmp(tally.name(1), "t.test.counter.bytes") == 0);
     D_TC_CHECK(std::strcmp(tally.name(2), "") == 0);
 
     tally.clear();

@@ -152,11 +152,11 @@ using tt = test::DTestTimer<test_clock, DMsec>;
 
 // DTtOpen
 //   event: what starts a timer, through the start handler.
-D_EVENT_EMPTY(DTtOpen);
+D_EVENT_EMPTY(DTtOpen, "t.test.timer.open");
 
 // DTtClose
 //   event: what stops it.
-D_EVENT_EMPTY(DTtClose);
+D_EVENT_EMPTY(DTtClose, "t.test.timer.close");
 
 // reset_clock
 //   helper: returns the shared simulated clock to zero. Called at the start

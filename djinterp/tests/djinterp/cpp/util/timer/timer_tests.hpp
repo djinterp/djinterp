@@ -332,9 +332,9 @@ bool tests_timer_parity_scripts();
 
 // DEvTmOpen / DEvTmClose / DEvTmTook
 //   type: the start and end of a span, and an event carrying a duration.
-D_EVENT_EMPTY(DEvTmOpen);
-D_EVENT_EMPTY(DEvTmClose);
-D_EVENT(DEvTmTook, DMsec);
+D_EVENT_EMPTY(DEvTmOpen, "t.timer.open");
+D_EVENT_EMPTY(DEvTmClose, "t.timer.close");
+D_EVENT(DEvTmTook, "t.timer.took", DMsec);
 
 // event bindings (timer_tests_event.cpp)
 bool tests_timer_event_span();

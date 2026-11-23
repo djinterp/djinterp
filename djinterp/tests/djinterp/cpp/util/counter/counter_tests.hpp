@@ -224,9 +224,9 @@ bool tests_counter_parity_compare_reset();
 // DEvCtrTick / DEvCtrAmount / DEvCtrLabel
 //   type: an event with no payload, one carrying an amount, and one
 // carrying a value no counter can add.
-D_EVENT_EMPTY(DEvCtrTick);
-D_EVENT(DEvCtrAmount, std::int64_t);
-D_EVENT(DEvCtrLabel, const char*);
+D_EVENT_EMPTY(DEvCtrTick, "t.counter.tick");
+D_EVENT(DEvCtrAmount, "t.counter.amount", std::int64_t);
+D_EVENT(DEvCtrLabel, "t.counter.label", const char*);
 
 // event bindings (counter_tests_event.cpp)
 bool tests_counter_event_counts();

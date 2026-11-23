@@ -154,7 +154,7 @@
 * path:      /inc/djinterp/c/modules/test/test_event.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.31
-*                                                            revised: 2026.09.20
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 #ifndef DJINTERP_C_TEST_EVENT_H
@@ -168,6 +168,7 @@
 #include "../../djinterp.h"
 #include "../../../config/c/modules/test/cfg_test_event.h"  // D_CFG_TEST_EVENT_*
 #include "test_common.h"                  // dj_test_status, is_valid
+#include "test_event_names.h"             // D_TEST_EVENT_NAME_*
 
 
 //   THE INCLUDE ABOVE IS LOAD-BEARING, NOT CONVENTIONAL.  This header used to
@@ -306,12 +307,12 @@ struct dj_test_event
 // declares them.  Values are pinned: a kind is recorded in a parity stream and
 // crosses the DTest bridge, so a renumbering is a wire change.
 //
-//   The names below are the C spelling; d_test_event_kind_name returns the
-// C++ TAG spelling ("on_test_failed"), because that is the name the framework
-// already prints, binds by, and reports in DOnListenerThrew's first payload
-// slot.  Two spellings of one summand is a divergence waiting to happen, so
-// there is exactly one function that produces the printable form and both
-// languages call it.
+//   The enumerators below are the C spelling.  Each summand's NAME is the
+// one in test_event_names.h ("test.test_failed"): d_test_event_kind_name
+// returns it, and the C++ tag's name() is the same literal, so the two
+// languages print, bind and hash one name.  Two spellings of one summand
+// was a divergence waiting to happen; one table both faces read ends it, and
+// the parity test holds it.
 
 enum dj_test_event_kind
 {
@@ -729,9 +730,10 @@ struct dj_test_event d_test_event_make(
 // -----------------------------------------------------------------------------
 //   b.  THE ALPHABET
 // -----------------------------------------------------------------------------
-//   kind_name returns the C++ TAG spelling; a kind outside the built-in range
-// returns "custom", because a user tag's name lives with the user tag and the
-// kernel has nowhere to keep it.
+//   kind_name returns the summand's name from test_event_names.h, the one its
+// C++ tag gives; a kind outside the built-in range returns "custom", because
+// a user tag's name lives with the user tag and the kernel has nowhere to
+// keep it.
 
 const char* d_test_event_kind_name(
     enum dj_test_event_kind _kind

@@ -30,7 +30,7 @@ NS_TESTING
 // DProbeEvt
 //   a custom empty event used only to witness the printer listener bundle
 // (kept off the built-in lifecycle events).
-D_EVENT_EMPTY(DProbeEvt);
+D_EVENT_EMPTY(DProbeEvt, "t.test.handler.probe");
 
 // DProbeHandler
 //   a test_handler subclass whose install hook binds one DProbeEvt listener and

@@ -26,6 +26,9 @@ djinterp_add_test_executable(djinterp_tests_all
         ${_all_src}
         "${_util_dir}/compress/compress.cpp"  # internal::compress_buffer
         "${_util_dir}/archive/archive.cpp"    # internal::archive_create
+        "${DJINTERP_SRC_ROOT}/djinterp/c/modules/test/test_event.c"
+                                              # C's alphabet, for test_event's
+                                              # parity section
     INCLUDES
         "${DJINTERP_INC_ROOT}/djinterp/cpp/modules/test"
         "${DJINTERP_INC_ROOT}/djinterp/cpp/modules/test/output"

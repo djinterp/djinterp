@@ -1087,26 +1087,30 @@ D_STATIC const char* const D_TEST_FMT_PROGRESS_SECTION_END =
 // separate tag per integer width lets a caller bind listeners distinctly per
 // width.
 //
-//   The naming pattern is `on_test_event_N`, N the bit width (8, 16, 32, 64),
-// mirroring the integer's numeric suffix and keeping fire / bind sites
+//   The naming pattern is `test.test_event_N`, N the bit width (8, 16, 32,
+// 64), mirroring the integer's numeric suffix and keeping fire / bind sites
 // self-documenting.  These live in the same `events` namespace as the
 // built-in lifecycle alphabet declared in test_event.hpp.
 
 // DOnTestEvent8
 //   value-tagged event.  Payload: (value, name, message).
-D_EVENT(DOnTestEvent8,  re_std::int8_t,  const char*, const char*);
+D_EVENT(DOnTestEvent8,  "test.test_event_8",
+        re_std::int8_t,  const char*, const char*);
 
 // DOnTestEvent16
 //   value-tagged event.  Payload: (value, name, message).
-D_EVENT(DOnTestEvent16, re_std::int16_t, const char*, const char*);
+D_EVENT(DOnTestEvent16, "test.test_event_16",
+        re_std::int16_t, const char*, const char*);
 
 // DOnTestEvent32
 //   value-tagged event.  Payload: (value, name, message).
-D_EVENT(DOnTestEvent32, re_std::int32_t, const char*, const char*);
+D_EVENT(DOnTestEvent32, "test.test_event_32",
+        re_std::int32_t, const char*, const char*);
 
 // DOnTestEvent64
 //   value-tagged event.  Payload: (value, name, message).
-D_EVENT(DOnTestEvent64, re_std::int64_t, const char*, const char*);
+D_EVENT(DOnTestEvent64, "test.test_event_64",
+        re_std::int64_t, const char*, const char*);
 
 
 

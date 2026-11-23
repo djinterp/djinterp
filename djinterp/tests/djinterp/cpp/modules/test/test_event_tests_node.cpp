@@ -47,7 +47,8 @@ namespace
     struct incomplete_probe;          // declared, deliberately never defined
 }
 
-D_EVENT(DOnIncompleteProbe, const incomplete_probe*);
+D_EVENT(DOnIncompleteProbe, "t.test.event.incomplete_probe",
+        const incomplete_probe*);
 
 static_assert(
     std::is_same<

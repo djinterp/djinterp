@@ -33,7 +33,7 @@
 * ----------
 *   Make a handler and bind it where handlers are bound:
 *
-*     D_EVENT(on_bytes, int);
+*     D_EVENT(on_bytes, "app.bytes", int);
 *     DEventDispatcher d;
 *     counter<int>     bytes;
 *

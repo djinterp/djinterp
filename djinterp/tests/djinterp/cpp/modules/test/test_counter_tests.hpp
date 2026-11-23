@@ -103,15 +103,15 @@ using tl = test::test_tally<int>;
 
 // DTcTick
 //   event: an occurrence with no payload; what most tests count.
-D_EVENT_EMPTY(DTcTick);
+D_EVENT_EMPTY(DTcTick, "t.test.counter.tick");
 
 // DTcBytes
 //   event: an occurrence carrying an amount, for counting by payload.
-D_EVENT(DTcBytes, int);
+D_EVENT(DTcBytes, "t.test.counter.bytes", int);
 
 // DTcMiss
 //   event: an event nothing counts, to show a counter ignores it.
-D_EVENT_EMPTY(DTcMiss);
+D_EVENT_EMPTY(DTcMiss, "t.test.counter.miss");
 
 
 #endif  // !DTEST_SPEC_MODE  (fixtures)

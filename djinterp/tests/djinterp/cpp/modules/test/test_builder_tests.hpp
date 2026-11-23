@@ -221,7 +221,7 @@ struct DSessionEndRecorder
 // DOnCustomProbe
 //   a user-declared test event carrying the visited node - proves on<> and
 // fire<> work for events beyond the built-in lifecycle set.
-D_TEST_EVENT(DOnCustomProbe);
+D_TEST_EVENT(DOnCustomProbe, "t.test.builder.custom_probe");
 
 
 // =========================================================================
