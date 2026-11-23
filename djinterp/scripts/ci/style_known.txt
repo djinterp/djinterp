@@ -1260,14 +1260,7 @@ inc/djinterp/env/env_printer.h	H	1
 inc/djinterp/env/env_printer.hpp	H	1
 inc/djinterp/env/jit/env_jit.h	H	1
 inc/djinterp/env/net/curl/env_curl.h	H	1
-inc/djinterp/env/net/env_curl.h	H	1
-inc/djinterp/env/net/env_ftp.h	H	1
-inc/djinterp/env/net/env_imap.h	H	1
 inc/djinterp/env/net/env_net.h	H	1
-inc/djinterp/env/net/env_pop.h	H	1
-inc/djinterp/env/net/env_ssh.h	H	1
-inc/djinterp/env/net/env_ssl.h	H	1
-inc/djinterp/env/net/env_tls.h	H	1
 inc/djinterp/env/net/ftp/env_ftp.h	H	1
 inc/djinterp/env/net/ftps/env_ftps.h	H	1
 inc/djinterp/env/net/imap/env_imap.h	H	1
