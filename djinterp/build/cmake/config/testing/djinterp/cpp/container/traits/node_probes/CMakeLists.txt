@@ -20,18 +20,11 @@ file(GLOB _sources CONFIGURE_DEPENDS "${_tests_dir}/node_probes_tests_*.cpp")
 list(FILTER _sources EXCLUDE REGEX "_main\\.cpp$")
 
 foreach(_level IN LISTS DJINTERP_NODE_PROBES_CXX_LEVELS)
-    if (NOT "cxx_std_${_level}" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
-        message(STATUS "djinterp node_probes_tests: C++${_level} left out -- "
-                       "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} "
-                       "cannot select it")
-        continue()
-    endif()
-
-    # cl's lowest level is C++14, so its C++11 build would be the C++14 one
-    # under another name
-    if ( (MSVC) AND (_level EQUAL 11) )
-        message(STATUS "djinterp node_probes_tests: C++11 left out -- the "
-                       "lowest level a cl-style driver selects is C++14")
+    # a level the compiler cannot build as itself is left out
+    djinterp_standard_selectable(CXX ${_level} _selectable _why)
+    if (NOT _selectable)
+        message(STATUS "djinterp node_probes_tests: C++${_level} left out - "
+                       "${_why}")
         continue()
     endif()
 

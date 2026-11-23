@@ -27,7 +27,7 @@
 # path:      /build/cmake/config/testing/djinterp/cpp/modules/parsegen/vparse/CMakeLists.txt
 # link(s):   TBA
 # author(s): TBA                                                    created: TBA
-#                                                            revised: 2026.10.25
+#                                                            revised: 2026.11.23
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -50,6 +50,10 @@ set_property(GLOBAL PROPERTY DJINTERP_VPARSE_LEAF_ADDED TRUE)
 # leaf is seven levels below the repository root
 get_filename_component(_root "${CMAKE_CURRENT_LIST_DIR}/../../../../../../../../.."
                        ABSOLUTE)
+
+# whether the compiler builds a level as itself, asked of every level
+# below; the enclosing project has it already
+include("${_root}/build/cmake/djinterp/standards.cmake")
 
 if(NOT DEFINED DJINTERP_INC_ROOT)
     set(DJINTERP_INC_ROOT "${_root}/inc")
@@ -108,21 +112,10 @@ option(DJINTERP_VPARSE_STRICT
 set(_sections 32)
 
 foreach(_level IN LISTS DJINTERP_VPARSE_CXX_LEVELS)
-    if(NOT "cxx_std_${_level}" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
-        message(STATUS "djinterp vparse: C++${_level} left out -- "
-                       "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} "
-                       "cannot select it")
-
-        continue()
-    endif()
-
-    # cl's lowest level is C++14, so its C++11 build would be the C++14 one
-    # under another name
-    if( (MSVC)             AND
-        (_level EQUAL 11) )
-        message(STATUS "djinterp vparse: C++11 left out -- the lowest level "
-                       "a cl-style driver selects is C++14")
-
+    # a level the compiler cannot build as itself is left out
+    djinterp_standard_selectable(CXX ${_level} _selectable _why)
+    if(NOT _selectable)
+        message(STATUS "djinterp vparse: C++${_level} left out - ${_why}")
         continue()
     endif()
 

@@ -64,6 +64,10 @@ get_filename_component(_root
                        "${CMAKE_CURRENT_LIST_DIR}/../../../../../../../../.."
                        ABSOLUTE)
 
+# whether the compiler builds a level as itself, asked of every level
+# below; the enclosing project has it already
+include("${_root}/build/cmake/djinterp/standards.cmake")
+
 set(DJINTERP_PARSE_STRESS_C_LEVELS "99;11;17;23" CACHE STRING
     "C levels the expression core's stress suite is built and run at")
 option(DJINTERP_PARSE_STRESS_STRICT
@@ -144,20 +148,10 @@ endfunction()
 set(_first_level "")
 
 foreach(_level IN LISTS DJINTERP_PARSE_STRESS_C_LEVELS)
-    if(NOT "c_std_${_level}" IN_LIST CMAKE_C_COMPILE_FEATURES)
-        message(STATUS "djinterp parse stress: C${_level} left out -- "
-                       "${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION} "
-                       "cannot select it")
-        continue()
-    endif()
-
-    # a cl-style driver's switch for C23 is /std:clatest, its latest draft
-    # rather than the level
-    if("${CMAKE_C${_level}_STANDARD_COMPILE_OPTION}" MATCHES "latest")
-        message(STATUS "djinterp parse stress: C${_level} left out -- the "
-                       "compiler's switch for it is "
-                       "${CMAKE_C${_level}_STANDARD_COMPILE_OPTION}, its "
-                       "latest draft and not the level")
+    # a level the compiler cannot build as itself is left out
+    djinterp_standard_selectable(C ${_level} _selectable _why)
+    if(NOT _selectable)
+        message(STATUS "djinterp parse stress: C${_level} left out - ${_why}")
         continue()
     endif()
 

@@ -17,7 +17,7 @@
 # path:      /build/cmake/config/testing/djinterp/cpp/modules/interp/skeleton/CMakeLists.txt
 # link(s):   /docs/djinterp/interp/DESIGN.md
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.22
-#                                                            revised: 2026.11.22
+#                                                            revised: 2026.11.23
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -42,6 +42,10 @@ endif()
 get_filename_component(_root
                        "${CMAKE_CURRENT_LIST_DIR}/../../../../../../../../.."
                        ABSOLUTE)
+
+# whether the compiler builds a level as itself, asked of every level
+# below; the enclosing project has it already
+include("${_root}/build/cmake/djinterp/standards.cmake")
 
 set(DJINTERP_INTERP_SKELETON_CXX_LEVELS "11;14;17;20;23" CACHE STRING
     "C++ levels the interpreter's skeleton is built and run at")
@@ -92,10 +96,11 @@ if(UNIX)
 endif()
 
 foreach(_level IN LISTS DJINTERP_INTERP_SKELETON_CXX_LEVELS)
-    if(NOT "cxx_std_${_level}" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
-        message(STATUS "djinterp interpreter skeleton: C++${_level} left "
-                       "out -- ${CMAKE_CXX_COMPILER_ID} "
-                       "${CMAKE_CXX_COMPILER_VERSION} cannot select it")
+    # a level the compiler cannot build as itself is left out
+    djinterp_standard_selectable(CXX ${_level} _selectable _why)
+    if(NOT _selectable)
+        message(STATUS "djinterp interpreter skeleton: C++${_level} left out - "
+                       "${_why}")
         continue()
     endif()
 

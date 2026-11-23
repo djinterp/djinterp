@@ -129,6 +129,7 @@ include("${DJINTERP_LIBRARY_ROOT}/runtime.cmake")
 include("${DJINTERP_LIBRARY_ROOT}/sync.cmake")
 include("${DJINTERP_LIBRARY_ROOT}/test.cmake")
 include("${DJINTERP_LIBRARY_ROOT}/net.cmake")
+include("${DJINTERP_LIBRARY_ROOT}/standards.cmake")
 
 
 # -----------------------------------------------------------------------------

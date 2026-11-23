@@ -31,7 +31,7 @@
 # path:      /build/cmake/config/testing/djinterp/cpp/modules/parse/expr/CMakeLists.txt
 # link(s):   /docs/djinterp/parse/expression_core_v2.md
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.12
-#                                                            revised: 2026.11.12
+#                                                            revised: 2026.11.23
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -59,6 +59,10 @@ endif()
 get_filename_component(_root
                        "${CMAKE_CURRENT_LIST_DIR}/../../../../../../../../.."
                        ABSOLUTE)
+
+# whether the compiler builds a level as itself, asked of every level
+# below; the enclosing project has it already
+include("${_root}/build/cmake/djinterp/standards.cmake")
 
 set(DJINTERP_PARSE_EXPR_FACE_CXX_LEVELS "98s;98;11;14;17;20;23;26" CACHE
     STRING "C++ levels the face suite is built and run at")
@@ -110,20 +114,11 @@ foreach(_rung IN LISTS DJINTERP_PARSE_EXPR_FACE_CXX_LEVELS)
     # `98s` is C++98, ISO strict
     string(REGEX REPLACE "s$" "" _level "${_rung}")
 
-    if(NOT "cxx_std_${_level}" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
-        message(STATUS "djinterp parse expr face: C++${_rung} left out -- "
-                       "${CMAKE_CXX_COMPILER_ID} "
-                       "${CMAKE_CXX_COMPILER_VERSION} cannot select it")
-        continue()
-    endif()
-
-    # a cl-style driver's switch for the newest level is /std:c++latest, its
-    # latest draft rather than the level
-    if("${CMAKE_CXX${_level}_STANDARD_COMPILE_OPTION}" MATCHES "latest")
-        message(STATUS "djinterp parse expr face: C++${_rung} left out -- "
-                       "the compiler's switch for it is "
-                       "${CMAKE_CXX${_level}_STANDARD_COMPILE_OPTION}, its "
-                       "latest draft and not the level")
+    # a level the compiler cannot build as itself is left out
+    djinterp_standard_selectable(CXX ${_level} _selectable _why)
+    if(NOT _selectable)
+        message(STATUS "djinterp parse expr face: C++${_rung} left out - "
+                       "${_why}")
         continue()
     endif()
 

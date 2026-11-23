@@ -49,7 +49,7 @@
 # path:      /build/cmake/config/testing/djinterp/tools/cli/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.23
-#                                                            revised: 2026.11.18
+#                                                            revised: 2026.11.23
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -87,6 +87,10 @@ endif()
 get_filename_component(DJINTERP_CLI_ROOT
                        "${CMAKE_CURRENT_LIST_DIR}/../../../../../../.."
                        ABSOLUTE)
+
+# whether the compiler builds a level as itself, asked of every level
+# below; the enclosing project has it already
+include("${DJINTERP_CLI_ROOT}/build/cmake/djinterp/standards.cmake")
 
 set(DJINTERP_CLI_C_LEVELS "99;11;17;23" CACHE STRING
     "C levels the command-line kit's C suites are built and run at")
@@ -323,22 +327,10 @@ endforeach()
 # the same libraries
 #------------------------------------------------------------------------------
 foreach(_level IN LISTS DJINTERP_CLI_C_LEVELS)
-    if(NOT "c_std_${_level}" IN_LIST CMAKE_C_COMPILE_FEATURES)
-        message(STATUS "djinterp cli: C${_level} left out -- "
-                       "${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION} "
-                       "cannot select it")
-
-        continue()
-    endif()
-
-    # a switch for the compiler's latest draft is not a level a count can be
-    # held to
-    if("${CMAKE_C${_level}_STANDARD_COMPILE_OPTION}" MATCHES "latest")
-        message(STATUS "djinterp cli: C${_level} left out -- the "
-                       "compiler's switch for it is "
-                       "${CMAKE_C${_level}_STANDARD_COMPILE_OPTION}, its "
-                       "latest draft and not the level")
-
+    # a level the compiler cannot build as itself is left out
+    djinterp_standard_selectable(C ${_level} _selectable _why)
+    if(NOT _selectable)
+        message(STATUS "djinterp cli: C${_level} left out - ${_why}")
         continue()
     endif()
 
@@ -441,30 +433,10 @@ set(_cpp_sources
 set(_cpp_built "")
 
 foreach(_level IN LISTS DJINTERP_CLI_CXX_LEVELS)
-    if(NOT "cxx_std_${_level}" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
-        message(STATUS "djinterp cli: C++${_level} left out -- "
-                       "${CMAKE_CXX_COMPILER_ID} "
-                       "${CMAKE_CXX_COMPILER_VERSION} cannot select it")
-
-        continue()
-    endif()
-
-    # cl's lowest level is C++14, so its C++98 and C++11 builds would be the
-    # C++14 one under other names
-    if( (MSVC) AND
-        (_level LESS 14) )
-        message(STATUS "djinterp cli: C++${_level} left out -- the lowest "
-                       "level a cl-style driver selects is C++14")
-
-        continue()
-    endif()
-
-    if("${CMAKE_CXX${_level}_STANDARD_COMPILE_OPTION}" MATCHES "latest")
-        message(STATUS "djinterp cli: C++${_level} left out -- the "
-                       "compiler's switch for it is "
-                       "${CMAKE_CXX${_level}_STANDARD_COMPILE_OPTION}, its "
-                       "latest draft and not the level")
-
+    # a level the compiler cannot build as itself is left out
+    djinterp_standard_selectable(CXX ${_level} _selectable _why)
+    if(NOT _selectable)
+        message(STATUS "djinterp cli: C++${_level} left out - ${_why}")
         continue()
     endif()
 
