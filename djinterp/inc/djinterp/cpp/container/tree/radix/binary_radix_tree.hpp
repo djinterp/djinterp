@@ -159,8 +159,8 @@ struct DBinaryRadixNode
 // old name, until 0.9.0-rc.1
 template<typename Key,
          typename Value,
-         typename O2Param3 = enable_if_binary_key<Key>>
-using binary_radix_node = DBinaryRadixNode<Key, Value, O2Param3>;
+         typename AliasParam3 = enable_if_binary_key<Key>>
+using binary_radix_node = DBinaryRadixNode<Key, Value, AliasParam3>;
 
 
 // ==========================================================================

@@ -32,7 +32,7 @@
 * path:      /inc/djinterp/cpp/container/tree/nary/nary_tree_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.08
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -77,8 +77,8 @@ TABLE OF CONTENTS
 13.   combined classification
       -----------------------
 
-14.   C++20 concept wrappers (in nary_tree_concepts.hpp, W5)
-      ------------------------------------------------------
+14.   C++20 concept wrappers (in nary_tree_concepts.hpp)
+      --------------------------------------------------
 */
 
 #ifndef DJINTERP_CONTAINER_TREE_NARY_NARY_TREE_TRAITS_HPP
@@ -102,7 +102,8 @@ TABLE OF CONTENTS
 #include "../../../djinterp.hpp"
 #include "../../../meta/type_traits.hpp"
 #include "../../../meta/member_types.hpp"          // has_allocator_type
-#include "../../traits/container_traits.hpp"       // has_version_method
+#include "../../traits/node_probes.hpp"           // the node probes
+#include "../../traits/container_traits.hpp"       // container classification
 #include "../../traits/node_container_traits.hpp"  // the shared tree probes
 #include "../../node/node_common.hpp"              // the parent links
 
@@ -137,17 +138,7 @@ struct has_first_child_field<Type,
     : std::true_type
 {};
 
-template<typename Type,
-         typename = void>
-struct has_first_child_method : std::false_type
-{};
-
-template<typename Type>
-struct has_first_child_method<Type,
-    std::void_t<decltype(
-        std::declval<const Type&>().first_child())>>
-    : std::true_type
-{};
+// has_first_child_method: in node_probes.hpp, from C++11.
 
 template<typename Type>
 struct has_first_child_access
@@ -282,29 +273,7 @@ struct has_last_child_access
 
 // --- Container model: children() returning an iterable ---
 
-// has_children_method
-//   trait: true if Type has a children() method.
-template<typename Type,
-         typename = void>
-struct has_children_method : std::false_type
-{};
-
-// has_children_method<Type, std::void_t<decltype( std::declval<const
-// Type&>().children())>>
-//   trait: the `std::void_t<decltype( std::declval<const
-// Type&>().children())>` case; it reports true.
-template<typename Type>
-struct has_children_method<Type,
-    std::void_t<decltype(
-        std::declval<const Type&>().children())>>
-    : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename Type>
-    D_CONSTEXPR bool has_children_method_v =
-        has_children_method<Type>::value;
-#endif
+// has_children_method: in node_probes.hpp, from C++11.
 
 // has_iterable_children
 //   trait: true if children() returns something with begin()/end().
@@ -398,7 +367,7 @@ struct has_edge_count_method<Type,
 // it at the node level (node.first_child).
 
 // root() and has_root() on the container are node_container_traits.hpp's
-// has_root_method and has_has_root_method (decisions L1 and W5).
+// has_root_method and has_has_root_method, each probe with one owner.
 
 // has_parent_field
 //   trait: true if Type has a `parent` data member: node_common.hpp's
@@ -436,29 +405,7 @@ struct has_depth_method<Type,
         has_depth_method<Type>::value;
 #endif
 
-// has_child_count_method
-//   trait: detects child_count() on the container or node.
-template<typename Type,
-         typename = void>
-struct has_child_count_method : std::false_type
-{};
-
-// has_child_count_method<Type, std::void_t<decltype( std::declval<const
-// Type&>().child_count())>>
-//   trait: the `std::void_t<decltype( std::declval<const
-// Type&>().child_count())>` case; it reports true.
-template<typename Type>
-struct has_child_count_method<Type,
-    std::void_t<decltype(
-        std::declval<const Type&>().child_count())>>
-    : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<typename Type>
-    D_CONSTEXPR bool has_child_count_method_v =
-        has_child_count_method<Type>::value;
-#endif
+// has_child_count_method: in node_probes.hpp, from C++11.
 
 // has_is_leaf_method
 //   trait: detects is_leaf() method.
@@ -1565,11 +1512,11 @@ using nary_tree_class = DNaryTreeClass<Type>;
 //   The seven wrappers that stood here were exact twins of
 // nary_tree_concepts.hpp's nary_tree_container_type, nary_tree_node_like,
 // rooted_nary_tree_type, mutable_nary_tree_type, fully_navigable_nary_tree,
-// pool_backed_nary_tree and change_tracked_nary_tree (decision W5). Their old
-// names are aliases there, until 0.9.0-rc.1.
+// pool_backed_nary_tree and change_tracked_nary_tree. Their old names are
+// aliases there, until 0.9.0-rc.1.
 //   (arena_nary_tree, an arena-backed n-ary tree, went earlier: arena_tree.hpp's
 // arena_nary_tree names the arena tree type, and nary_tree_concepts.hpp's
-// arena_backed_nary_tree is the same constraint (decision L1).)
+// arena_backed_nary_tree is the same constraint.)
 
 
 NS_END  // djinterp

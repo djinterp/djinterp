@@ -40,7 +40,7 @@
 * path:      /inc/djinterp/cpp/container/traits/container_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2024.03.09
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -112,6 +112,7 @@ TABLE OF CONTENTS
 // djinterp
 #include "../../djinterp.hpp"
 #include "../../meta/trait_detect.hpp"
+#include "./node_probes.hpp"  // has_version_method
 #include "../../meta/type_traits.hpp"
 #include "../../meta/member_types.hpp"
 #include "./interval_protocol.hpp"  // is_interval_protocol
@@ -209,7 +210,7 @@ D_TYPE_TRAIT_TRUE(has_depth_type,
 
 // has_parent_accessor
 //   trait: has_parent_method<const Type&> (node_container_traits.hpp) under
-// its older name: the same question (decision W5).
+// its older name: the same question.
 // old name, until 0.9.0-rc.1
 template<typename Type,
          typename = void>
@@ -223,7 +224,7 @@ D_TYPE_TRAIT_TRUE(has_children_accessor,
 
 // has_root_accessor
 //   trait: has_root_method (node_container_traits.hpp) under its older name:
-// the same question (decision W5).
+// the same question.
 // old name, until 0.9.0-rc.1
 template<typename Type,
          typename = void>
@@ -242,12 +243,9 @@ D_TYPE_TRAIT_TRUE(has_depth_accessor,
     decltype(std::declval<const Type&>().depth()))
 
 // has_version_method
-//   trait: true if the container has a .version() const method returning a
-// version stamp. Owned here, below both of its readers: the thread-safe
-// containers' ABA stamp (threadsafe_container_traits.hpp) and the n-ary
-// trees' change tracking (nary_tree_traits.hpp) once defined it apart.
-D_TYPE_TRAIT_TRUE(has_version_method,
-    decltype(std::declval<const Type&>().version()))
+//   in node_probes.hpp, from C++11, below both of its readers:
+// the thread-safe containers' ABA stamp (threadsafe_container_traits.hpp) and
+// the n-ary trees' change tracking (nary_tree_traits.hpp).
 
 // --- multiplicity detection ---
 

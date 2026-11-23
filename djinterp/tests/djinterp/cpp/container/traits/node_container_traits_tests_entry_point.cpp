@@ -597,7 +597,7 @@ bool tests_entry_point_companions()
                    == has_entry_point_method<DNctGeneric>::value);
     D_NC_CHECK(has_root_method_v<DNctTree>
                    == has_root_method<DNctTree>::value);
-    // the old name (W5) agrees with the canonical one
+    // the old name agrees with the canonical one
     D_NC_CHECK(has_root_member_method_v<DNctTree>
                    == has_has_root_method<DNctTree>::value);
     D_NC_CHECK(has_head_method_v<DNctList>

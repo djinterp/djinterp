@@ -371,11 +371,11 @@ concept edge_children_nary_tree =
 
 
 // ===========================================================================
-// The old names of nary_tree_traits.hpp's concept wrappers (decision W5)
+// The old names of nary_tree_traits.hpp's concept wrappers
 // ===========================================================================
 //   Each of the seven was an exact twin of the concept it now names. They
 // stay until 0.9.0-rc.1. A concept takes no attribute, so they stay plain
-// when the other old names start to warn (W3) and go at rc.1.
+// when the other old names start to warn, on 12-11, and go at rc.1.
 
 // nary_tree_type -- old name, until 0.9.0-rc.1
 template<typename Type>

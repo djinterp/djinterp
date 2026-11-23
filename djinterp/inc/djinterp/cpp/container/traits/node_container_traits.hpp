@@ -26,7 +26,7 @@
 * path:      /inc/djinterp/cpp/container/traits/node_container_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.04.11
-*                                                            revised: 2026.11.11
+*                                                            revised: 2026.11.17
 *******************************************************************************/
 
 /*
@@ -71,6 +71,8 @@ VII.  C++20 Concepts (feature-gated)
 // djinterp
 #include "../../djinterp.hpp"
 #include "../../meta/trait_detect.hpp"
+#include "./node_probes.hpp"  // has_parent_method, has_add_child_method,
+                              // has_name_method, has_node_type
 #include "../../meta/type_traits.hpp"
 // re_std
 #include "../../../../re_std/cpp/cstdint/cstdint.hpp"  // re_std::uint8_t
@@ -146,7 +148,7 @@ D_TYPE_TRAIT_TRUE(has_has_root_method,
 
 // has_root_member_method
 //   trait: has_has_root_method under its older name. The trait engine's
-// has_<method>_method names are canonical (decision W5).
+// has_<method>_method names are canonical.
 // old name, until 0.9.0-rc.1
 template<typename Type,
          typename = void>
@@ -156,13 +158,8 @@ struct has_root_member_method : has_has_root_method<Type>
 D_TYPE_TRAIT_VALUE_BOOL(has_root_member_method)
 
 // has_parent_method
-//   trait: true if Type has a callable parent() method, asked of a Type
-// rvalue; has_parent_method<const T&> asks it of a const object. It lives
-// here, with the other tree probes (decision L1), so that container_traits'
-// has_parent_accessor can be its alias (decision W5); node_common.hpp, where
-// it was, reaches it through its includes.
-D_TYPE_TRAIT_TRUE(has_parent_method,
-    decltype(std::declval<Type>().parent()))
+//   in node_probes.hpp, from C++11, so that container_traits'
+// has_parent_accessor can still be its alias.
 
 // has_head_method
 //   trait: true if Type has a head() method.
@@ -213,9 +210,7 @@ D_TYPE_TRAIT_TRUE(has_release_entry_method,
 D_TYPE_TRAIT_HAS_METHOD_WITH(has_is_root_method, is_root)
 
 // has_add_child_method
-//   trait: has_add_child_method<Type, Args...> is true if
-// `add_child(Args...)` can be called on an lvalue Type.
-D_TYPE_TRAIT_HAS_METHOD_WITH(has_add_child_method, add_child)
+//   in node_probes.hpp, from C++11.
 
 // has_remove_subtree_method
 //   trait: has_remove_subtree_method<Type, Args...> is true if
@@ -223,10 +218,7 @@ D_TYPE_TRAIT_HAS_METHOD_WITH(has_add_child_method, add_child)
 D_TYPE_TRAIT_HAS_METHOD_WITH(has_remove_subtree_method, remove_subtree)
 
 // has_name_method
-//   trait: has_name_method<Type, Args...> is true if `name(Args...)` can be
-// called on an lvalue Type -- has_name_method<const Tree, file_node_id> for a
-// file tree, whose name takes a node id.
-D_TYPE_TRAIT_HAS_METHOD_WITH(has_name_method, name)
+//   in node_probes.hpp, from C++11.
 
 // has_any_entry_point
 //   trait: true if Type exposes any kind of entry reference -- a single
@@ -253,9 +245,7 @@ struct has_any_entry_point
 // ===========================================================================
 
 // has_node_type
-//   trait: true if Type has a nested `node_type` alias.
-D_TYPE_TRAIT_TRUE(has_node_type,
-    typename clean_t<Type>::node_type)
+//   in node_probes.hpp, from C++11.
 
 NS_INTERNAL
     // node_type_helper

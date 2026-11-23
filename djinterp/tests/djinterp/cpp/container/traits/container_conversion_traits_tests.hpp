@@ -172,7 +172,7 @@ struct DSortedVec
 // ===========================================================================
 // The D_CVT_ fixture (the paths, robustness, stdlib and view sections)
 // ===========================================================================
-//   Rebuilt on 2026.11.15 (ruling O5).  The four sections of 2026.10.15 were
+//   Rebuilt on 2026.11.15.  The four sections of 2026.10.15 were
 // written against a fixture header that never reached the tree; this is it,
 // reconstructed from what the sections ask of each name.  Every type below
 // states the axes it sits on, so a section's expectation can be read against

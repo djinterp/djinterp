@@ -623,9 +623,9 @@ struct has_right_method<N,
 #endif
 
 // has_parent_method (and has_parent_method_v)
-//   trait: in node_container_traits.hpp, with the other tree probes, since
-// decision W5 made container_traits' has_parent_accessor its alias. The
-// question is unchanged: a callable parent() on an N rvalue.
+//   trait: in node_container_traits.hpp, with the other tree probes, so that
+// container_traits' has_parent_accessor can be its alias. The question is
+// unchanged: a callable parent() on an N rvalue.
 
 // has_next_method
 //   trait: evaluates to true if N has a callable `next()` method.
