@@ -23,15 +23,18 @@
 *     - reads the user's settings file, a statement a line, as
 *       `cli.plugin_strict_version = false`: a statement that fails is said
 *       by its line, as a warning, and the rest are read on;
-*     - takes the command line's settings off it before the parser sees
-*       them: `--NAME=VALUE`, `--NAME` for a bool's true and `--no-NAME`
-*       for its false, NAME a full name, which always holds a '.'; and
-*       `--set NAME=VALUE` for any name. Never past `--`, and never the
-*       value an option before it takes, as `--level --x.y` gives `--level`
-*       the word `--x.y`.
+*     - sets its hook on the program's parser, which offers it the
+*       command line's settings where the parse reads them as options:
+*       `--NAME=VALUE`, `--NAME` for a bool's true and `--no-NAME` for its
+*       false, NAME a full name, which always holds a '.'; and `--set
+*       NAME=VALUE` for any name. A response file's are offered as if
+*       typed; never one past `--`, nor the value an option before it
+*       takes, as `--level --x.y` gives `--level` the word `--x.y`, nor one
+*       a plugin command's module is to read.
 *   A setting the command line names badly is a usage error, exit 2: a
-* name that names no setting, with the nearest that does; a value the
-* setting does not take; one this build does not have.
+* name that names no setting, with the nearest that does; a djin not
+* registered here, where none is near; a value the setting does not take;
+* one this build does not have.
 *   The settings are the program's, as its registry is: read and written
 * by one thread at a time, before the program starts its threads.
 *
@@ -41,7 +44,9 @@
 * the settings at its first parse. A program reads the kit's settings
 * through 1.3's queries, and names the user's file with d_cli_settings_file.
 * A program of its own djins registers them before the run, so that their
-* settings are read from the same three sources.
+* settings are read from the same three sources. A program that sets a
+* setting hook of its own on its parser before the run keeps it, and can
+* hand an argument on to the kit's, d_cli_settings_hook.
 *
 * OPTIONS
 * -------
@@ -67,7 +72,7 @@
 * path:      /inc/djinterp/tools/cli/c/cli_settings.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 
 /*
@@ -79,10 +84,11 @@ TABLE OF CONTENTS
          1.  d_cli_settings_djin
     2.  A run's settings
          1.  d_cli_settings_start
-         2.  d_cli_settings_take
-         3.  d_cli_settings_file
-         4.  d_cli_settings_why
-         5.  d_cli_settings_report
+         2.  d_cli_settings_hook
+         3.  d_cli_settings_refused
+         4.  d_cli_settings_file
+         5.  d_cli_settings_why
+         6.  d_cli_settings_report
     3.  What the kit reads
          1.  d_cli_settings_plugin_search
          2.  d_cli_settings_plugin_path
@@ -120,7 +126,7 @@ D_EXTERN_C_BEGIN
 //   query: the kit's djin, `cli`, its variables declared; registered in the
 // program's registry by the first d_cli_settings_start. NULL where the
 // option core is not built, as without a 64-bit integer.
-struct dj_option_env* d_cli_settings_djin(void);
+D_CLI_API struct dj_option_env* d_cli_settings_djin(void);
 
 
 // 1.2    A run's settings
@@ -143,35 +149,72 @@ struct dj_option_env* d_cli_settings_djin(void);
  * @return D_CLI_EXIT_OK; or D_CLI_EXIT_TROUBLE, said, when there was no
  *         memory to read the file with.
  */
-int d_cli_settings_start(
+D_CLI_API int d_cli_settings_start(
     const struct dj_cli_program* _program
 );
 
 // 1.2.2
-// d_cli_settings_take
+// d_cli_settings_hook
 /**
- * @brief Takes the settings off a command line, from COMMAND_LINE, and
- *        keeps every other argument, in order, for the parser.
+ * @brief The kit's setting hook (dj_arg_setting_fn): takes a setting the
+ *        parse offers it -- `--NAME=VALUE`, `--NAME`, `--no-NAME`, or
+ *        `--set` and the NAME=VALUE after it -- into the registry, from
+ *        COMMAND_LINE.
  *
- * @param[in]  _program     the program, whose parser says which options
- *                          take the argument after them.
- * @param[in]  _argc        the argument count.
- * @param[in]  _argv        the arguments, `_argv[0]` the program's path.
- * @param[out] _kept        receives the arguments kept, `_kept[0]` the
- *                          program's path; room for `_argc` and a NULL.
- * @param[out] _kept_count  receives how many were kept.
- * @return D_CLI_EXIT_OK; or D_CLI_EXIT_TROUBLE, said as a usage error, when
- *         the command line names a setting badly.
+ * @note d_cli_program_parse sets it on a program's parser before each
+ *       parse (d_arg_parser_set_setting_hook), unless the program has set
+ *       a hook of its own, which can call this one.
+ * @note Of the long options the parse does not know, only one shaped as a
+ *       setting -- `--set`, or a name holding a '.' after `no-` and before
+ *       `=` -- is the kit's; for any other it returns 0, so that the parse
+ *       goes on to its abbreviations and suggestions, `--out` becoming
+ *       `--output`. No option of a program's holds a '.' (R5).
+ * @note A setting it refuses ends the parse (D_ARG_ERROR_SETTING), its
+ *       words kept for d_cli_settings_refused.
+ *
+ * @param[in]     _ctx     the registry to take into; NULL for the
+ *                         program's (d_option_env_registry).
+ * @param[in]     _argc    the parser's argument count.
+ * @param[in]     _argv    the parser's arguments, `_argv[0]` the program's
+ *                         name.
+ * @param[in,out] _at      the offered argument's index; moved onto the
+ *                         last argument taken.
+ * @param[out]    _status  receives the registry's reason for a refusal
+ *                         (dj_option_status); may be NULL.
+ * @return how many arguments it took, the offered one first; 0 for an
+ *         argument not the kit's; negative for a refusal.
  */
-int d_cli_settings_take(
-    const struct dj_cli_program* _program,
-    int                          _argc,
-    const char* const*           _argv,
-    const char**                 _kept,
-    int*                         _kept_count
+D_CLI_API int d_cli_settings_hook(
+    void*        _ctx,
+    int          _argc,
+    char* const* _argv,
+    int*         _at,
+    int32_t*     _status
 );
 
 // 1.2.3
+// d_cli_settings_refused
+/**
+ * @brief Says the setting the kit's hook refused, when the program's last
+ *        parse ended with that refusal: a usage error that names the
+ *        option as typed and what was wrong with it, from the command the
+ *        parse failed in.
+ *
+ * @note d_cli_program_parse calls it for a parse that ended in
+ *       D_ARG_ERROR_SETTING; a refusal a program's own hook made is said
+ *       as the parser's failure message says it. What it held is let go of
+ *       either way.
+ *
+ * @param[in] _program  the program, for its parser's error and its
+ *                      reports.
+ * @return D_CLI_EXIT_TROUBLE, said, for the kit's refusal; D_CLI_EXIT_OK,
+ *         saying nothing, when the parse did not end with one.
+ */
+D_CLI_API int d_cli_settings_refused(
+    const struct dj_cli_program* _program
+);
+
+// 1.2.4
 // d_cli_settings_file
 /**
  * @brief The user's settings file: `$XDG_CONFIG_HOME/djinterp/settings`,
@@ -183,12 +226,12 @@ int d_cli_settings_take(
  * @return the path's length; 0 when the system names no home to put it in.
  *         A length not less than `_capacity` did not fit.
  */
-size_t d_cli_settings_file(
+D_CLI_API size_t d_cli_settings_file(
     char*  _buffer,
     size_t _capacity
 );
 
-// 1.2.4
+// 1.2.5
 // d_cli_settings_why
 /**
  * @brief Says what a binding's failure means, as the kit says it of a
@@ -203,7 +246,7 @@ size_t d_cli_settings_file(
  * @param[out] _buffer    receives the text, cut short to fit.
  * @param[in]  _capacity  the buffer's size.
  */
-void d_cli_settings_why(
+D_CLI_API void d_cli_settings_why(
     int32_t     _status,
     const char* _name,
     size_t      _size,
@@ -213,7 +256,7 @@ void d_cli_settings_why(
 );
 
 
-// 1.2.5
+// 1.2.6
 // d_cli_settings_report
 /**
  * @brief Says what the run's start held: each statement of the user's file
@@ -231,7 +274,7 @@ void d_cli_settings_why(
  * @return D_CLI_EXIT_OK; D_CLI_EXIT_TROUBLE when a setting made one an
  *         error.
  */
-int d_cli_settings_report(
+D_CLI_API int d_cli_settings_report(
     const struct dj_cli_program* _program
 );
 
@@ -242,14 +285,14 @@ int d_cli_settings_report(
 //   query: the directories a module is looked for in after the run's own
 // and `plugin_path`'s: `cli.plugin_search`, or D_CFG_CLI_PLUGIN_SEARCH
 // before the settings are started or where the variable is not declared.
-const char* d_cli_settings_plugin_search(void);
+D_CLI_API const char* d_cli_settings_plugin_search(void);
 
 // 1.3.2
 // d_cli_settings_plugin_path
 //   query: the program's `plugin_path`, read from PROGRAM_PLUGIN_PATH, the
 // file or the command line; where D_CFG_CLI_PLUGIN_VARIABLE is 0, from the
 // program and an override alone. NULL when unset.
-const char* d_cli_settings_plugin_path(void);
+D_CLI_API const char* d_cli_settings_plugin_path(void);
 
 // 1.3.3
 // d_cli_settings_plugin_strict_version
@@ -263,7 +306,7 @@ const char* d_cli_settings_plugin_path(void);
  *         where one was given, since each stands above the program's own
  *         say; else the program's; else D_CFG_CLI_PLUGIN_STRICT_VERSION.
  */
-bool d_cli_settings_plugin_strict_version(
+D_CLI_API bool d_cli_settings_plugin_strict_version(
     int _program_says
 );
 
@@ -278,7 +321,7 @@ bool d_cli_settings_plugin_strict_version(
 //   testing: lets go of the run's settings -- the kit's djin taken out of
 // the program's registry, its bindings and the root's gone -- so that the
 // next d_cli_settings_start starts them again, as a new run would.
-void d_cli_settings_reset(void);
+D_CLI_API void d_cli_settings_reset(void);
 
 #endif  // D_TESTING
 #endif  // defined(D_TESTING)

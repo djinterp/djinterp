@@ -8,12 +8,14 @@
 * is coloured as `--color` asked when it was given before the mistake. The
 * parse's own work is the argument parser's; the kit's is what comes before it
 * -- the true command line on Windows, `/?` as `--help`, the run's settings
-* started and the command line's taken off it (cli_settings.h) -- and after:
-* the exit status the grammar gives each ending, and the failure message in
-* the GNU shape, written by a failure function of the kit's that the parser
-* calls. After a parse that went well, at `-v`, where the run goes on to a
-* command's work, an option that keeps one value and was given values that
-* differ is said, with the one it took (GRAMMAR R8).
+* started and the kit's setting hook set, which the parse offers the command
+* line's settings (cli_settings.h) -- and after: a setting the hook refused,
+* said as the kit says it; the exit status the grammar gives each ending,
+* and the failure message in the GNU shape, written by a failure function
+* of the kit's that the parser calls. After a parse that went well, at `-v`,
+* where the run goes on to a command's work, an option that keeps one value
+* and was given values that differ is said, with the one it took (GRAMMAR
+* R8).
 *   Every diagnostic is composed in a buffer and written to the error output
 * in one write, so that two programs writing to one terminal do not
 * interleave within a line.
@@ -27,7 +29,7 @@
 * path:      /src/djinterp/tools/cli/c/cli_program.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.22
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 #include "../../../../../inc/djinterp/tools/cli/c/cli_program.h"  // corresponding header
 // std
@@ -51,6 +53,7 @@
 #include "../../../../../inc/djinterp/c/modules/parse/cli/arg_parser/arg_parser.h"  // the parser
 #include "../../../../../inc/djinterp/tools/cli/c/cli_format.h"  // d_cli_formatter_use
 #include "../../../../../inc/djinterp/tools/cli/c/cli_io.h"  // sinks, colour
+#include "../../../../../inc/djinterp/tools/cli/c/cli_help.h"  // d_cli_help_json
 #include "../../../../../inc/djinterp/tools/cli/c/cli_settings.h"  // settings
 #include "./cli_internal.h"  // copies, the system
 // re_std
@@ -1895,14 +1898,79 @@ int d_cli_internal_help_of(
 }
 
 /**
+ * @brief Writes a command's description, as JSON (cli_help.h), to a sink.
+ *
+ * @param[in] _program  the program.
+ * @param[in] _command  the command.
+ * @param[in] _sink     where it goes.
+ * @return D_ARG_OK, or the status that stopped it.
+ */
+static
+int d_cli_internal_help_json_of(
+    const struct dj_cli_program* _program,
+    const struct dj_arg_command* _command,
+    struct dj_pack_sink          _sink
+)
+{
+    struct dj_arg_buffer out    = D_ARG_BUFFER_INIT;
+    int                 status = d_cli_help_json(_program,
+                                                 _command,
+                                                 &out);
+
+    status = (status == D_ARG_OK)
+             ? d_cli_internal_to_sink(_sink,
+                                      &out)
+             : status;
+
+    d_arg_buffer_release(&out);
+
+    return status;
+}
+
+/**
+ * @brief The format `help --format` names: 0 for text, the default; 1 for
+ *        JSON; -1 for a word that names neither, `*_word` set to it.
+ *
+ * @param[in]  _command  the `help` command.
+ * @param[out] _word     receives the word given, or NULL for none.
+ * @return 0, 1 or -1.
+ */
+static
+int d_cli_internal_help_format(
+    const struct dj_arg_command* _command,
+    const struct dj_pack_text**  _word
+)
+{
+    size_t                     count  = 0u;
+    const struct dj_pack_text* values = d_arg_option_values(
+                                            d_arg_command_option(_command,
+                                                                 "--format"),
+                                            &count);
+
+    *_word = (count > 0u) ? &values[count - 1u] : NULL;
+
+    return (*_word == NULL)
+           ? 0
+           : (strcmp((*_word)->data,
+                     "text") == 0)
+             ? 0
+             : (strcmp((*_word)->data,
+                       "json") == 0)
+               ? 1
+               : -1;
+}
+
+/**
  * @brief The `help` command's work: the help of the command its words name,
- *        or the program's. A dj_cli_command_fn.
+ *        or the program's, as text or, with `--format=json`, as the
+ *        description. A dj_cli_command_fn.
  *
  * @param[in] _program  the program.
  * @param[in] _command  the `help` command.
  * @param[in] _context  unused.
  * @return D_CLI_EXIT_OK, or D_CLI_EXIT_TROUBLE for a word that names no
- *         command or help that cannot be written.
+ *         command, a format there is none of, or help that cannot be
+ *         written.
  */
 static
 int d_cli_internal_help_command(
@@ -1917,8 +1985,20 @@ int d_cli_internal_help_command(
     const struct dj_pack_text*  values = d_arg_option_values(words,
                                                             &count);
     struct dj_arg_command*      target = &_program->parser->command;
+    const struct dj_pack_text*  word   = NULL;
+    const int                  json   = d_cli_internal_help_format(_command,
+                                                                   &word);
 
     (void)_context;
+
+    // a format there is none of
+    if (json < 0)
+    {
+        return d_cli_usage_error(_program,
+                                 _command,
+                                 "'%s' is not a format: text or json",
+                                 word->data);
+    }
 
     // down the tree, a word at a time
     for (size_t index = 0u; index < count; ++index)
@@ -1941,10 +2021,16 @@ int d_cli_internal_help_command(
     }
 
     struct dj_cli_watch watch;
-    const int           written = d_cli_internal_help_of(
-                                      target,
-                                      d_cli_program_watched(_program,
-                                                            &watch));
+    const int           written = (json != 0)
+                                  ? d_cli_internal_help_json_of(
+                                        _program,
+                                        target,
+                                        d_cli_program_watched(_program,
+                                                              &watch))
+                                  : d_cli_internal_help_of(
+                                        target,
+                                        d_cli_program_watched(_program,
+                                                              &watch));
 
     return (written == D_ARG_OK)
            ? D_CLI_EXIT_OK
@@ -2046,6 +2132,21 @@ int d_cli_internal_standard_commands(
     d_arg_option_set_expected_range(words,
                                     0,
                                     2);
+
+    // the description, as JSON, for the tools built from it (cli_help.h)
+    struct dj_arg_option* const format =
+        d_arg_command_add_option(_program->help_command,
+                                 "--format",
+                                 "the format help is written in: text or "
+                                 "json");
+
+    if (!format)
+    {
+        return D_ARG_ERROR_OUT_OF_MEMORY;
+    }
+
+    d_arg_option_set_type_name(format,
+                               "FORMAT");
 
 #if (D_INTERNAL_ARG_PARSER_COMPLETION == 1)
     _program->completion_command =
@@ -3984,58 +4085,30 @@ const char* const* d_cli_internal_prepare(
 /**
  * @brief The run's settings: started at a program's first parse, the run
  *        then being its program's -- a module's program is told its run's
- *        settings by the program that loaded it -- and taken off the
- *        arguments, which the program keeps without them.
+ *        settings by the program that loaded it -- and the command line's
+ *        offered by the parser to the kit's hook as it reads them, unless
+ *        the program set a hook of its own.
  *
  * @param[in,out] _program  the program.
- * @param[in,out] _argc     the argument count; receives the count kept.
- * @param[in,out] _argv     the arguments; receives those kept.
  * @return D_CLI_EXIT_OK; or D_CLI_EXIT_TROUBLE, said, when the settings
- *         could not be read for want of memory, or the command line named
- *         one badly.
+ *         could not be read for want of memory.
  */
 static
 int d_cli_internal_settings(
-    struct dj_cli_program* _program,
-    int*                   _argc,
-    const char* const**    _argv
+    struct dj_cli_program* _program
 )
 {
-    const char** kept;
-    int          count  = 0;
-    int          status = (_program->host == NULL)
-                          ? d_cli_settings_start(_program)
-                          : D_CLI_EXIT_OK;
+    const int status = (_program->host == NULL)
+                       ? d_cli_settings_start(_program)
+                       : D_CLI_EXIT_OK;
 
-    if (status != D_CLI_EXIT_OK)
+    if ( (status == D_CLI_EXIT_OK) &&
+         (_program->parser->setting_hook == NULL) )
     {
-        return status;
+        d_arg_parser_set_setting_hook(_program->parser,
+                                      d_cli_settings_hook,
+                                      NULL);
     }
-
-    kept = (const char**)D_INTERNAL_CLI_MALLOC(((size_t)*_argc + 1u) *
-                                               sizeof(const char*));
-
-    if (!kept)
-    {
-        d_cli_report(_program,
-                     (int)D_CLI_SEVERITY_ERROR,
-                     "out of memory");
-
-        return D_CLI_EXIT_TROUBLE;
-    }
-
-    status = d_cli_settings_take(_program,
-                                 *_argc,
-                                 *_argv,
-                                 kept,
-                                 &count);
-
-    // kept in place of the copy the arguments may have been read from
-    D_INTERNAL_CLI_FREE((void*)_program->arguments);
-    _program->arguments      = kept;
-    _program->argument_count = (size_t)count;
-    *_argc                   = count;
-    *_argv                   = kept;
 
     return status;
 }
@@ -4068,13 +4141,10 @@ bool d_cli_program_parse(
     const char* const* argv = d_cli_internal_prepare(_program,
                                                      _argc,
                                                      _argv);
-    int                argc = _argc;
 
-    // no memory to parse with, or a setting named badly, said
+    // no memory to parse with, or to read the settings with, said
     if ( (!argv) ||
-         (d_cli_internal_settings(_program,
-                                  &argc,
-                                  &argv) != D_CLI_EXIT_OK) )
+         (d_cli_internal_settings(_program) != D_CLI_EXIT_OK) )
     {
         *_exit = D_CLI_EXIT_TROUBLE;
 
@@ -4082,10 +4152,19 @@ bool d_cli_program_parse(
     }
 
     const int status = d_arg_parser_parse(_program->parser,
-                                          argc,
+                                          _argc,
                                           (char* const*)argv);
 
     d_cli_internal_read_standard(_program);
+
+    // a setting the command line named badly, said as the kit says it
+    if ( (status == (int)D_ARG_ERROR_SETTING) &&
+         (d_cli_settings_refused(_program) != D_CLI_EXIT_OK) )
+    {
+        *_exit = D_CLI_EXIT_TROUBLE;
+
+        return true;
+    }
 
     // what the settings' start held, said now that -q, -v and the command
     // line's settings are known; one a setting made an error ends the run

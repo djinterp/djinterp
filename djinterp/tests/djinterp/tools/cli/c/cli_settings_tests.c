@@ -9,13 +9,15 @@
 * `cli.plugin_search` (`default` for the knob's), `plugin_path` (`-` for
 * none) -- and the values the parser gave the options and the operands.
 * Every case's program lets go of the run's settings first, so that each
-* starts them as a run of its own would.
+* starts them as a run of its own would. HOOKED is SHOWN as the parser's
+* hook is held to: response files and abbreviations read, a multi-letter
+* short option `-ab` on its root and `pre`, a plugin command.
 *
 *
 * path:      /tests/djinterp/tools/cli/c/cli_settings_tests.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.17
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 #include "./cli_settings_tests.h"  // corresponding header
 // std
@@ -329,7 +331,7 @@ bool d_tests_cli_settings_taken(void)
 static const struct dj_tests_cli_case REFUSED[] =
 {
     { "R01", "prog --a.b=1 show", 2, "",
-      "prog: error: --a.b: no setting is named 'a.b'\n"
+      "prog: error: --a.b: no djin is named 'a'\n"
       "Try 'prog --help' for more information.\n" },
     { "R02", "prog --cli.plugin_strict_versio=1 show", 2, "",
       "prog: error: --cli.plugin_strict_versio: no setting is named "
@@ -347,7 +349,7 @@ static const struct dj_tests_cli_case REFUSED[] =
       "prog: error: --set: NAME=VALUE is required\n"
       "Try 'prog --help' for more information.\n" },
     { "R06", "prog show --x.y=1", 2, "",
-      "prog: error: show: --x.y: no setting is named 'x.y'\n"
+      "prog: error: show: --x.y: no djin is named 'x'\n"
       "Try 'prog show --help' for more information.\n" },
     { "R07", "prog --set nosuch=1 show", 2, "",
       "prog: error: --set: no setting is named 'nosuch'\n"
@@ -655,7 +657,7 @@ d_tests_cli_settings_said(
 
     _buffer[0] = '\0';
     used += (_mask & 1u) ? (size_t)snprintf(_buffer + used, _capacity - used,
-        "%s:1: %s: no setting is named 'nosuch.depth'\n", _path, _unknown)
+        "%s:1: %s: no djin is named 'nosuch'\n", _path, _unknown)
         : 0u;
     used += (_mask & 2u) ? (size_t)snprintf(_buffer + used, _capacity - used,
         "%s:2: %s: no setting is named 'cli.plugin_serch'; did you mean "
@@ -845,6 +847,357 @@ bool d_tests_cli_settings_reads(void)
 
 
 //==============================================================================
+// 6.  THE PARSER'S HOOK
+//==============================================================================
+
+/**
+ * @brief HOOKED's `show`: what the kit reads, and what the parser gave
+ *        `--output`, `-ab` and the operands.
+ *
+ * @param[in] _program  the program.
+ * @param[in] _command  `show`.
+ * @param[in] _context  unused.
+ * @return D_CLI_EXIT_OK.
+ */
+static
+int d_tests_cli_settings_work_hooked(
+    struct dj_cli_program* _program,
+    struct dj_arg_command* _command,
+    void*                  _context
+)
+{
+    char output[64];
+    char ab[64];
+    char words[128];
+
+    (void)_context;
+
+    d_tests_cli_print(
+        _program,
+        "strict=%d output=%s ab=%s words=%s\n",
+        d_cli_settings_plugin_strict_version(_program->plugin_versions)
+            ? 1 : 0,
+        d_tests_cli_values(_command, "--output", output, sizeof(output)),
+        d_tests_cli_values(_command, "-ab", ab, sizeof(ab)),
+        d_tests_cli_values(_command, "WORD", words, sizeof(words)));
+
+    return D_CLI_EXIT_OK;
+}
+
+/**
+ * @brief HOOKED: `prog 1.2`, reading response files and abbreviations, with
+ *        `-o, --output` and a multi-letter short option `-ab` on its root,
+ *        `show [WORD]...`, and `pre`, a plugin command: the four places the
+ *        kit's own walk read otherwise than the parser before the hook.
+ *
+ * @param[out]    _program  the program.
+ * @param[in,out] _parser   its parser.
+ * @return whether it was made.
+ */
+static
+bool d_tests_cli_settings_make_hooked(
+    struct dj_cli_program* _program,
+    struct dj_arg_parser*  _parser
+)
+{
+    d_cli_settings_reset();
+
+    if (d_cli_program_init(_program,
+                           _parser,
+                           "prog",
+                           "1.2",
+                           D_CLI_PROGRAM_COMMANDS |
+                           D_CLI_PROGRAM_RESPONSE_FILES |
+                           D_CLI_PROGRAM_ABBREVIATIONS) != D_ARG_OK)
+    {
+        return false;
+    }
+
+    struct dj_arg_command* const root = &_parser->command;
+    struct dj_arg_command* const show = d_cli_program_add_command(
+                                           _program,
+                                           NULL,
+                                           "show",
+                                           "say what the kit reads",
+                                           d_tests_cli_settings_work_hooked,
+                                           NULL,
+                                           NULL);
+
+    root->flags |= D_ARG_COMMAND_NON_STANDARD_NAMES;
+
+    return ( (show != NULL) &&
+             (d_cli_program_add_plugin(_program, NULL, "pre",
+                                       "a plugin command") != NULL) &&
+             (d_arg_command_add_option(root, "-o,--output",
+                                       "a file") != NULL) &&
+             (d_arg_command_add_option(root, "-ab",
+                                       "a multi-letter short option") !=
+              NULL) &&
+             (d_arg_command_add_option(show, "WORD",
+                                       "words") != NULL) );
+}
+
+// HOOKED
+//   constant: the cases the parser's hook reads as the parser does, where
+// the kit's own walk read them otherwise: an abbreviated option's value, a
+// multi-letter short option's, and a setting after either.
+static const struct dj_tests_cli_case HOOKED[] =
+{
+    { "H02", "prog --out --cli.plugin_strict_version=false show", 0,
+      "strict=1 output=--cli.plugin_strict_version=false ab=- words=-\n",
+      "" },
+    { "H03", "prog -ab --no-cli.plugin_strict_version show", 0,
+      "strict=1 output=- ab=--no-cli.plugin_strict_version words=-\n",
+      "" },
+    { "H04", "prog --out=x --cli.plugin_strict_version=false show", 0,
+      "strict=0 output=x ab=- words=-\n",
+      "" },
+    { "H05", "prog -ab y show w --set cli.plugin_strict_version=0", 0,
+      "strict=0 output=- ab=y words=w\n",
+      "" },
+    { "H06", "prog --outp=x --a.b=1 show", 2, "",
+      "prog: error: --a.b: no djin is named 'a'\n"
+      "Try 'prog --help' for more information.\n" }
+};
+
+#if (D_INTERNAL_ARG_PARSER_RESPONSE_FILES == 1)
+
+/**
+ * @brief A response file's setting, as if typed: `prog @FILE show`, the
+ *        file in the current directory, named by the C level, as each
+ *        level's suite runs beside the others'.
+ *
+ * @return whether it held.
+ */
+static
+bool d_tests_cli_settings_hook_response(void)
+{
+    char                    folder[D_TESTS_CLI_SETTINGS_ROOM];
+    char                    path[D_TESTS_CLI_SETTINGS_ROOM + 32u];
+    char                    line[D_TESTS_CLI_SETTINGS_ROOM + 64u];
+    struct dj_tests_cli_case each =
+    {
+        "H01", NULL, 0,
+        "strict=0 output=- ab=- words=a\n",
+        ""
+    };
+    bool                    held;
+
+    held = (d_dir_get_current(folder, sizeof(folder)) != NULL);
+
+    if (held)
+    {
+        static const char TEXT[] = "--cli.plugin_strict_version=false\n";
+
+        (void)snprintf(path, sizeof(path), "%s/cli_settings_rf_%ld", folder,
+                       (long)__STDC_VERSION__);
+        (void)snprintf(line, sizeof(line), "prog '@%s' show a", path);
+        held = d_tests_cli_file_write(path, TEXT, sizeof(TEXT) - 1u);
+    }
+
+    if (!D_TESTS_CLI_CHECK(held, "H01", "a response file to read"))
+    {
+        return false;
+    }
+
+    each.line = line;
+    held      = d_tests_cli_case_run(&each, d_tests_cli_settings_make_hooked);
+    (void)remove(path);
+
+    return held;
+}
+
+#endif  // D_INTERNAL_ARG_PARSER_RESPONSE_FILES
+
+/**
+ * @brief A visit of a command's unused arguments: each appended to the text
+ *        `_context` holds, after a space, as far as it has room.
+ */
+static
+int d_tests_cli_settings_kept(
+    const struct dj_arg_extra* _extra,
+    void*                      _context
+)
+{
+    char* const  text = (char*)_context;
+    const size_t used = strlen(text);
+
+    (void)snprintf(text + used, D_TESTS_CLI_SETTINGS_ROOM - used, "%s%.*s",
+                   (used > 0u) ? " " : "", (int)_extra->text.length,
+                   _extra->text.data);
+
+    return D_ARG_OK;
+}
+
+/**
+ * @brief A setting after a plugin command's name is its module's, never
+ *        taken by the program that loads it: `prog pre --x.y=1
+ *        --cli.plugin_strict_version=false` parses, binds nothing, and
+ *        leaves both to `pre`.
+ *
+ * @return whether it held.
+ */
+static
+bool d_tests_cli_settings_hook_plugin(void)
+{
+    static const char* const LINE[] =
+    {
+        "prog", "pre", "--x.y=1", "--cli.plugin_strict_version=false", NULL
+    };
+    struct dj_cli_program     program;
+    struct dj_arg_parser      parser;
+    struct dj_arg_buffer      out  = D_ARG_BUFFER_INIT;
+    struct dj_arg_buffer      err  = D_ARG_BUFFER_INIT;
+    int                       exit = -1;
+    bool                      held;
+
+    held = d_tests_cli_start(&program, &parser,
+                             d_tests_cli_settings_make_hooked, &out, &err);
+
+    if (held)
+    {
+        struct dj_arg_command* const pre =
+            d_arg_command_subcommand(&parser.command, "pre");
+        char                         kept[D_TESTS_CLI_SETTINGS_ROOM] = "";
+
+        held = (!d_cli_program_parse(&program, 4, LINE, &exit)) &&
+               (pre != NULL) &&
+               (d_arg_command_each_remaining(pre, false,
+                                             d_tests_cli_settings_kept,
+                                             kept) == D_ARG_OK) &&
+               (strcmp(kept, "--x.y=1 --cli.plugin_strict_version=false") ==
+                0) &&
+               (d_cli_settings_plugin_strict_version(
+                    (int)D_CLI_PLUGIN_VERSIONS_DEFAULT) ==
+                (D_INTERNAL_CLI_PLUGIN_STRICT_VERSION == 1)) &&
+               (err.length == 0u);
+    }
+
+    d_tests_cli_finish(&program, &parser);
+    d_arg_buffer_release(&out);
+    d_arg_buffer_release(&err);
+
+    return D_TESTS_CLI_CHECK(held, "H07",
+                             "a plugin command keeps the settings after "
+                             "its name, the host binding none");
+}
+
+// d_tests_cli_settings_counted
+//   variable: how many arguments the program's own hook was offered.
+static int d_tests_cli_settings_counted;
+
+/**
+ * @brief A program's own hook, which counts what it is offered and hands
+ *        each argument on to the kit's.
+ */
+static
+int d_tests_cli_settings_own_hook(
+    void*        _ctx,
+    int          _argc,
+    char* const* _argv,
+    int*         _at,
+    int32_t*     _status
+)
+{
+    ++d_tests_cli_settings_counted;
+
+    return d_cli_settings_hook(_ctx, _argc, _argv, _at, _status);
+}
+
+/**
+ * @brief A program that sets a hook of its own keeps it: it is offered
+ *        each long option the parse does not know, and the kit's takes
+ *        what it hands on.
+ *
+ * @return whether it held.
+ */
+static
+bool d_tests_cli_settings_hook_own(void)
+{
+    static const char* const LINE[] =
+    {
+        "prog", "--cli.plugin_strict_version=false", "show", "--a.b=1", NULL
+    };
+    struct dj_cli_program     program;
+    struct dj_arg_parser      parser;
+    struct dj_arg_buffer      out  = D_ARG_BUFFER_INIT;
+    struct dj_arg_buffer      err  = D_ARG_BUFFER_INIT;
+    int                       exit = -1;
+    bool                      held;
+
+    d_tests_cli_settings_counted = 0;
+    held = d_tests_cli_start(&program, &parser,
+                             d_tests_cli_settings_make_hooked, &out, &err);
+
+    if (held)
+    {
+        d_arg_parser_set_setting_hook(&parser, d_tests_cli_settings_own_hook,
+                                      NULL);
+        held = (d_cli_program_parse(&program, 4, LINE, &exit)) &&
+               (exit == D_CLI_EXIT_TROUBLE) &&
+               (d_tests_cli_settings_counted == 2) &&
+               (parser.setting_hook == d_tests_cli_settings_own_hook) &&
+               (d_cli_settings_plugin_strict_version(
+                    (int)D_CLI_PLUGIN_VERSIONS_DEFAULT) == false);
+    }
+
+    d_tests_cli_finish(&program, &parser);
+    held = (d_tests_cli_same("H08", "err",
+                             "prog: error: show: --a.b: no djin is named "
+                             "'a'\n"
+                             "Try 'prog show --help' for more "
+                             "information.\n",
+                             err.data, err.length)) &&
+           (held);
+    d_arg_buffer_release(&out);
+    d_arg_buffer_release(&err);
+
+    return D_TESTS_CLI_CHECK(held, "H08",
+                             "a program's own hook kept, the kit's called "
+                             "from it");
+}
+
+/*
+d_tests_cli_settings_hooked
+  Tests the following:
+  - a response file's setting is taken, as if typed
+  - an abbreviated option's value, and a multi-letter short option's, are
+    kept for it, whatever they look like; a setting after either is taken
+  - a name the parse would abbreviate is not offered as a setting, and a
+    setting it names badly is refused by the option as typed
+  - a setting after a plugin command's name is left to the command
+  - a program's own hook is kept, and the kit's takes what it hands on
+*/
+bool d_tests_cli_settings_hooked(void)
+{
+    char path[D_TESTS_CLI_SETTINGS_ROOM];
+    bool held;
+
+    d_tests_cli_settings_unset();
+
+    held = D_TESTS_CLI_CHECK(d_tests_cli_settings_home(path, sizeof(path),
+                                                       NULL),
+                             "H00",
+                             "a scratch home for the user's settings");
+#if (D_INTERNAL_ARG_PARSER_RESPONSE_FILES == 1)
+    // a response file's setting, where the parser reads response files
+    held = (held) &&
+           (d_tests_cli_settings_hook_response());
+#endif
+    held = (d_tests_cli_cases_run(HOOKED,
+                                  D_TESTS_CLI_SETTINGS_COUNT(HOOKED),
+                                  d_tests_cli_settings_make_hooked)) &&
+           (held);
+    held = (d_tests_cli_settings_hook_plugin()) &&
+           (held);
+    held = (d_tests_cli_settings_hook_own()) &&
+           (held);
+
+    return held;
+}
+
+
+//==============================================================================
 // THE SUITE
 //==============================================================================
 
@@ -869,7 +1222,10 @@ const struct dj_test_case_spec d_tests_cli_settings[] =
       d_tests_cli_settings_shared },
     { "cli_settings_reads",
       "each setting's knob, the program's say, the sources",
-      d_tests_cli_settings_reads }
+      d_tests_cli_settings_reads },
+    { "cli_settings_hooked",
+      "settings as the parser reads them, through its hook",
+      d_tests_cli_settings_hooked }
 };
 
 // d_tests_cli_settings_block

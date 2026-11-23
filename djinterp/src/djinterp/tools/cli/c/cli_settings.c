@@ -4,16 +4,17 @@
 * The command-line kit's settings, declared in cli_settings.h.
 *   The kit's djin is made at its first use, over static storage: a run
 * makes it before it starts any thread, as it parses before it works. The
-* command line is walked as the parser will read it -- each option that
-* takes the argument after it is given that argument, and each subcommand
-* named is followed -- so that a setting is only ever taken where the parser
-* would have read an option.
+* command line's settings are the parser's to offer: its setting hook is
+* offered each long option the parse does not know, where the parse reads
+* it, so that a setting is only ever taken where an option could stand --
+* in a response file, after an abbreviated option's value, never in a
+* prefix command's arguments -- by the parser's own rules.
 *
 *
 * path:      /src/djinterp/tools/cli/c/cli_settings.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-*                                                            revised: 2026.11.19
+*                                                            revised: 2026.11.21
 *******************************************************************************/
 #include "../../../../../inc/djinterp/tools/cli/c/cli_settings.h"  // corresponding header
 // std
@@ -169,6 +170,16 @@ static size_t d_internal_cli_settings_count;
 static size_t d_internal_cli_settings_past;
 static char   d_internal_cli_settings_path[D_INTERNAL_CLI_SETTINGS_ROOM];
 
+// d_internal_cli_settings_refusal, _refused_argument, _refused_size
+//   variables: the words for the setting the hook last refused; the
+// argument it was offered, as typed, by which the parse's error is known
+// for the hook's, and its length; 0 when none is held.
+static char   d_internal_cli_settings_refusal[D_INTERNAL_CLI_SETTINGS_ROOM *
+                                              2u];
+static char   d_internal_cli_settings_refused_argument[
+                  D_INTERNAL_CLI_SETTINGS_ROOM];
+static size_t d_internal_cli_settings_refused_size;
+
 /*
 d_internal_cli_settings_hold
   A note kept for d_cli_settings_report; past the room, counted.
@@ -231,10 +242,46 @@ struct dj_option_env* d_cli_settings_djin(void)
 //==============================================================================
 
 /*
+d_internal_cli_settings_reason
+  Why the registry's check refuses `_name` given `_value` from `_source`
+(D_OPTION_ENV_REASON_*): FRAME for a dotted name whose first part names no
+djin, and that the root takes neither as a name nor as a scope; NONE where
+the check passes.
+*/
+static int32_t
+d_internal_cli_settings_reason(
+    const char* _name,
+    size_t      _size,
+    const char* _value,
+    int32_t     _source
+)
+{
+    struct dj_option_env_checked checked;
+    struct dj_option_result      result;
+
+    memset(&checked, 0, sizeof(checked));
+    checked.size   = (uint32_t)sizeof(checked);
+    checked.reason = (int32_t)D_OPTION_ENV_REASON_NONE;
+
+    if ( (_name == NULL) ||
+         (d_option_env_registry_check_from(
+              d_option_env_registry(), _name, _size,
+              (_value != NULL) ? _value : "",
+              (_value != NULL) ? strlen(_value) : 0u,
+              _source, NULL, 0u, &result, &checked) != (size_t)-1) )
+    {
+        return (int32_t)D_OPTION_ENV_REASON_NONE;
+    }
+
+    return checked.reason;
+}
+
+/*
 d_cli_settings_why
   What a binding's failure means, for a setting `_name` (of `_size` bytes)
 given `_value`, or none: written into `_buffer`. A name that names nothing
-is given the nearest that does, where there is one.
+is given the nearest that does, where there is one; one whose first part
+names no djin, where none is near, says so.
 */
 void d_cli_settings_why(
     int32_t     _status,
@@ -253,9 +300,28 @@ void d_cli_settings_why(
 
     if (_status == (int32_t)D_OPTION_STATUS_KEY_ABSENT)
     {
+        const char* const dot = (_name != NULL)
+                                ? (const char*)memchr(_name, '.', _size)
+                                : NULL;
+
         found = d_option_env_registry_suggest(d_option_env_registry(),
                                               _name, _size,
                                               near, sizeof(near));
+
+        // no djin by the first part, and none near: the djin is said
+        if ( (found == 0u) &&
+             (dot != NULL) &&
+             (d_internal_cli_settings_reason(
+                  _name, _size, _value,
+                  (int32_t)D_OPTION_ENV_SOURCE_FILE) ==
+              (int32_t)D_OPTION_ENV_REASON_FRAME) )
+        {
+            (void)snprintf(_buffer, _capacity, "no djin is named '%.*s'",
+                           (int)(dot - _name), _name);
+
+            return;
+        }
+
         (void)snprintf(_buffer, _capacity,
                        ( (found > 0u) &&
                          (found < sizeof(near)) )
@@ -438,9 +504,10 @@ d_internal_cli_settings_value_at(
 /*
 d_internal_cli_settings_kind_of
   What a statement's failure is about: a name no setting here has, from a
-djin not registered here, or near one or a djin's that is (the CLI kit's
-decision 35); a source the setting refuses; or a value it does not take.
-The words for a refused source go into `_why`.
+djin not registered here, or near one or a djin's that is, the two kinds
+`cli.unknown_settings` tells apart (cfg_cli.h, 1.5.1); a source the setting
+refuses; or a value it does not take. The words for a refused source go
+into `_why`.
 */
 static int
 d_internal_cli_settings_kind_of(
@@ -452,39 +519,30 @@ d_internal_cli_settings_kind_of(
     size_t      _capacity
 )
 {
-    struct dj_option_env_registry* const registry = d_option_env_registry();
-    const char* const                    dot      =
-        (_name != NULL) ? (const char*)memchr(_name, '.', _size) : NULL;
-    struct dj_option_env_checked         checked;
-    struct dj_option_result              result;
-    char                                 near[D_INTERNAL_CLI_SETTINGS_ROOM];
+    char near[D_INTERNAL_CLI_SETTINGS_ROOM];
 
+    // a djin not registered here: the registry's check says so, where no
+    // name is near (option_env's reason FRAME)
     if (_status == (int32_t)D_OPTION_STATUS_KEY_ABSENT)
     {
-        const size_t found = d_option_env_registry_suggest(registry, _name,
-                                                           _size, near,
-                                                           sizeof(near));
+        const size_t found = d_option_env_registry_suggest(
+                                 d_option_env_registry(), _name, _size,
+                                 near, sizeof(near));
 
         return ( (found == 0u) &&
-                 (dot != NULL) &&
-                 (d_option_env_registry_find(registry, _name,
-                                             (size_t)(dot - _name)) ==
-                  NULL) )
+                 (d_internal_cli_settings_reason(
+                      _name, _size, _value,
+                      (int32_t)D_OPTION_ENV_SOURCE_FILE) ==
+                  (int32_t)D_OPTION_ENV_REASON_FRAME) )
                ? (int)D_INTERNAL_CLI_HELD_FOREIGN
                : (int)D_INTERNAL_CLI_HELD_UNKNOWN;
     }
 
-    memset(&checked, 0, sizeof(checked));
-    checked.size = (uint32_t)sizeof(checked);
-
     if ( (_status == (int32_t)D_OPTION_STATUS_POLICY_REJECTED) &&
          (_value != NULL) &&
-         (d_option_env_registry_check_from(registry, _name, _size, _value,
-                                           strlen(_value),
-                                           D_OPTION_ENV_SOURCE_FILE, NULL,
-                                           0u, &result, &checked) ==
-          (size_t)-1) &&
-         (checked.reason == (int32_t)D_OPTION_ENV_REASON_SOURCE) )
+         (d_internal_cli_settings_reason(
+              _name, _size, _value, (int32_t)D_OPTION_ENV_SOURCE_FILE) ==
+          (int32_t)D_OPTION_ENV_REASON_SOURCE) )
     {
         (void)snprintf(_why, _capacity,
                        "'%.*s' is not taken from the user's settings file",
@@ -785,18 +843,19 @@ d_internal_cli_settings_shaped(
 }
 
 /*
-d_internal_cli_settings_said
-  A setting the command line named badly, said as a usage error: the
-option as typed, and what was wrong with it.
+d_internal_cli_settings_words
+  What is wrong with a setting the command line named badly, as the kit says
+it: the option as typed, and why. `_argv[_at]` is the option offered;
+`--set` names its setting in the argument after it.
 */
-static int
-d_internal_cli_settings_said(
-    const struct dj_cli_program* _program,
-    const struct dj_arg_command* _command,
-    int                          _argc,
-    const char* const*           _argv,
-    int                          _at,
-    int32_t                      _status
+static void
+d_internal_cli_settings_words(
+    int                _argc,
+    const char* const* _argv,
+    int                _at,
+    int32_t            _status,
+    char*              _buffer,
+    size_t             _capacity
 )
 {
     const bool  set   = (strcmp(_argv[_at], "--set") == 0);
@@ -811,8 +870,9 @@ d_internal_cli_settings_said(
          ( (set) &&
            (strchr(text, '=') == NULL) ) )
     {
-        return d_cli_usage_error(_program, _command,
-                                 "--set: NAME=VALUE is required");
+        (void)snprintf(_buffer, _capacity, "--set: NAME=VALUE is required");
+
+        return;
     }
 
     // a bool's --no-NAME names NAME
@@ -831,144 +891,119 @@ d_internal_cli_settings_said(
          (text[size] == '\0') &&
          (_status == (int32_t)D_OPTION_STATUS_INVALID_ARGUMENT) )
     {
-        return d_cli_usage_error(_program, _command,
-                                 "%s: '%s' is not a bool: give it a value, "
-                                 "as --%s=VALUE",
-                                 _argv[_at], text, text);
+        (void)snprintf(_buffer, _capacity,
+                       "%s: '%s' is not a bool: give it a value, as "
+                       "--%s=VALUE",
+                       _argv[_at], text, text);
+
+        return;
     }
 
     d_cli_settings_why(_status, text, size,
-                                (text[size] == '=') ? (text + size + 1u)
-                                                    : NULL,
-                                why, sizeof(why));
+                       (text[size] == '=') ? (text + size + 1u) : NULL,
+                       why, sizeof(why));
+    (void)snprintf(_buffer, _capacity, "%.*s: %s",
+                   (int)strcspn(_argv[_at], "="), _argv[_at], why);
 
-    return d_cli_usage_error(_program, _command, "%.*s: %s",
-                             (int)strcspn(_argv[_at], "="), _argv[_at],
-                             why);
+    return;
 }
 
 /*
-d_internal_cli_settings_value_next
-  Whether an argument the parser reads as an option takes the argument
-after it as its value: a long option with no '=' that takes a value, or a
-group of short ones whose last takes a value and holds none. A subcommand
-named is followed, into `*_command`.
+d_cli_settings_hook
+  The parser's offer: an argument not shaped as a setting is the parser's,
+so that `--out` goes on to become `--output`; one that is goes to the
+registry, which takes it with the argument `--set` names, or refuses it,
+the refusal's words kept for d_cli_settings_refused.
 */
-static bool
-d_internal_cli_settings_value_next(
-    const struct dj_arg_command** _command,
-    const char*                   _argument
+int d_cli_settings_hook(
+    void*        _ctx,
+    int          _argc,
+    char* const* _argv,
+    int*         _at,
+    int32_t*     _status
 )
 {
-    char                        name[3] = { '-', '\0', '\0' };
-    const struct dj_arg_option* option;
+    struct dj_option_env_registry* const registry =
+        (_ctx != NULL) ? (struct dj_option_env_registry*)_ctx
+                       : d_option_env_registry();
+    struct dj_option_result              result   = d_option_ok(0u);
+    int32_t                              taken;
+    int                                  first;
 
-    if (strncmp(_argument, "--", 2u) == 0)
+    if ( (_argv == NULL) ||
+         (_at == NULL) ||
+         (*_at < 1) ||
+         (*_at >= _argc) ||
+         (!d_internal_cli_settings_shaped(_argv[*_at])) )
     {
-        option = (strchr(_argument, '=') == NULL)
-                 ? d_arg_command_option(*_command, _argument)
-                 : NULL;
-
-        return (d_arg_option_items_expected_min(option) > 0);
+        return 0;
     }
 
-    if ( (_argument[0] == '-') &&
-         (_argument[1] != '\0') )
+    first = *_at;
+    taken = d_option_env_registry_take_option(registry, _argc, _argv, _at,
+                                              &result);
+
+    // refused: said once the parse has ended, by the option as typed
+    if (taken < 0)
     {
-        for (const char* each = _argument + 1; *each != '\0'; ++each)
+        d_internal_cli_settings_words(_argc, (const char* const*)_argv,
+                                      first, d_option_result_status(&result),
+                                      d_internal_cli_settings_refusal,
+                                      sizeof(d_internal_cli_settings_refusal));
+        (void)snprintf(d_internal_cli_settings_refused_argument,
+                       sizeof(d_internal_cli_settings_refused_argument),
+                       "%s", _argv[first]);
+        d_internal_cli_settings_refused_size = strlen(_argv[first]);
+
+        if (_status != NULL)
         {
-            name[1] = *each;
-            option  = d_arg_command_option(*_command, name);
-
-            if (d_arg_option_items_expected_min(option) > 0)
-            {
-                return (each[1] == '\0');
-            }
+            *_status = d_option_result_status(&result);
         }
-
-        return false;
     }
 
-    // a word: a subcommand's name takes the walk into it
-    {
-        const struct dj_arg_command* const inner =
-            d_arg_command_subcommand(*_command, _argument);
-
-        *_command = (inner != NULL) ? inner : *_command;
-    }
-
-    return false;
+    return (int)taken;
 }
 
 /*
-d_cli_settings_take
-  The walk: past `--` everything is kept; a setting is offered to the
-registry; an option that takes the next argument keeps it with itself.
+d_cli_settings_refused
+  The refusal the parse ended with, if the kit's hook made it -- the
+parser's message is the argument as typed -- said as a usage error from
+the command the parse failed in, and let go of.
 */
-int d_cli_settings_take(
-    const struct dj_cli_program* _program,
-    int                          _argc,
-    const char* const*           _argv,
-    const char**                 _kept,
-    int*                         _kept_count
+int d_cli_settings_refused(
+    const struct dj_cli_program* _program
 )
 {
-    const struct dj_arg_command* command = &_program->parser->command;
-    int                          kept    = 0;
-    bool                         ended   = false;
+    const struct dj_arg_parser* const parser  = (_program != NULL)
+                                                ? _program->parser
+                                                : NULL;
+    const char* const                 message = (parser != NULL)
+                                                ? parser->error.message
+                                                : NULL;
+    const size_t                      kept    =
+        strlen(d_internal_cli_settings_refused_argument);
+    const struct dj_arg_command*      command;
+    bool                              ours;
 
-    for (int at = 0; at < _argc; ++at)
+    ours = ( (message != NULL) &&
+             (d_internal_cli_settings_refused_size > 0u) &&
+             (parser->error.status == (int)D_ARG_ERROR_SETTING) &&
+             (strlen(message) == d_internal_cli_settings_refused_size) &&
+             (strncmp(message, d_internal_cli_settings_refused_argument,
+                      kept) == 0) );
+
+    d_internal_cli_settings_refused_size = 0u;
+
+    if (!ours)
     {
-        const char* const        argument = _argv[at];
-        const int                first    = at;
-        int                      taken    = 0;
-        struct dj_option_result  result   = d_option_ok(0u);
-
-        if ( (at > 0) &&
-             (!ended) &&
-             (d_internal_cli_settings_shaped(argument)) )
-        {
-            taken = d_option_env_registry_take_option(
-                        d_option_env_registry(), _argc,
-                        (char* const*)_argv, &at, &result);
-        }
-
-        if (taken < 0)
-        {
-            *_kept_count = kept;
-
-            // said by the option as typed, wherever the walk stopped
-            return d_internal_cli_settings_said(
-                       _program,
-                       (command != &_program->parser->command) ? command
-                                                               : NULL,
-                       _argc, _argv, first,
-                       d_option_result_status(&result));
-        }
-
-        if (taken > 0)
-        {
-            continue;
-        }
-
-        _kept[kept++] = argument;
-        ended         = ( (ended) ||
-                          (strcmp(argument, "--") == 0) );
-
-        // the value an option before it takes is kept with it, unread
-        if ( (at > 0) &&
-             (!ended) &&
-             (at + 1 < _argc) &&
-             (d_internal_cli_settings_value_next(&command, argument)) )
-        {
-            _kept[kept++] = _argv[++at];
-        }
+        return D_CLI_EXIT_OK;
     }
 
-    _kept[kept]  = NULL;
-    *_kept_count = kept;
+    command = parser->error.command;
 
-    return D_CLI_EXIT_OK;
+    return d_cli_usage_error(_program,
+                             (command != &parser->command) ? command : NULL,
+                             "%s", d_internal_cli_settings_refusal);
 }
 
 
@@ -1208,9 +1243,10 @@ void d_cli_settings_reset(void)
     }
 
     d_option_env_clear(d_option_env_registry_frame(registry));
-    d_internal_cli_settings_started = false;
-    d_internal_cli_settings_count   = 0u;
-    d_internal_cli_settings_past    = 0u;
+    d_internal_cli_settings_started      = false;
+    d_internal_cli_settings_count        = 0u;
+    d_internal_cli_settings_past         = 0u;
+    d_internal_cli_settings_refused_size = 0u;
 
     return;
 }
@@ -1239,23 +1275,28 @@ int d_cli_settings_start(
     return D_CLI_EXIT_OK;
 }
 
-int d_cli_settings_take(
-    const struct dj_cli_program* _program,
-    int                          _argc,
-    const char* const*           _argv,
-    const char**                 _kept,
-    int*                         _kept_count
+int d_cli_settings_hook(
+    void*        _ctx,
+    int          _argc,
+    char* const* _argv,
+    int*         _at,
+    int32_t*     _status
+)
+{
+    (void)_ctx;
+    (void)_argc;
+    (void)_argv;
+    (void)_at;
+    (void)_status;
+
+    return 0;
+}
+
+int d_cli_settings_refused(
+    const struct dj_cli_program* _program
 )
 {
     (void)_program;
-
-    for (int at = 0; at < _argc; ++at)
-    {
-        _kept[at] = _argv[at];
-    }
-
-    _kept[_argc] = NULL;
-    *_kept_count = _argc;
 
     return D_CLI_EXIT_OK;
 }

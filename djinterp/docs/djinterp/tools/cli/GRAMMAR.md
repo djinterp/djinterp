@@ -203,7 +203,7 @@ The kit installs these; a program's own options never reuse their names.
 
 | command | does |
 |---|---|
-| `help [COMMAND]` | the same as `[COMMAND] --help` |
+| `help [COMMAND]` | the same as `[COMMAND] --help`. *(added 11-23)* With `--format=json`, the program's description instead, from the command down, as tools that build its pages read it (HELP_JSON.md) |
 | `completion SHELL` | a completion script for `bash`, `zsh`, `fish` or `powershell`, to standard output |
 | `gui [ARGUMENT]...` | the program's window, where it has one (section 7) |
 
@@ -411,28 +411,23 @@ global ones:
   nearest command is suggested.
 - **R25.** After `--`, every argument is an operand (R3); `@FILE` and `/?`
   are read as themselves there.
-- **R26.** *(added 11-13)* A **setting** (section 6) is taken off the
-  command line before the rest is read, wherever an option could stand:
-  before the command, after it, among its operands. An argument that is an
-  option's value is never one (R22, R23), so in `--level --x.y` the word
-  `--x.y` is `--level`'s value; nor is one after `--`. No option of a
-  program's has a `.` in its name (R5), so none is ever taken for a
-  setting.
+- **R26.** *(added 11-13)* A **setting** (section 6) is taken from the
+  command line wherever an option could stand: before the command, after
+  it, among its operands. An argument that is an option's value is never
+  one (R22, R23), so in `--level --x.y` the word `--x.y` is `--level`'s
+  value; nor is one after `--`. No option of a program's has a `.` in its
+  name (R5), so none is ever taken for a setting.
 
-  *(added 11-18)* Until the argument parser hands settings to the kit
-  during its parse, the kit finds them with a walk of its own, which
-  follows R22, R23 and R25 but not four rules the parser keeps, so that
-  in these cases what this rule says is not yet what a run does:
-  - **A setting in a response file** (`@FILE`) is not taken: the parser
-    meets it as an argument nothing expects, a usage error.
+  *(revised 11-23)* The argument parser offers each to the kit where it
+  reads an option -- the long option it does not know, before it tries an
+  abbreviation -- so the parser's own rules decide:
+  - **A setting in a response file** (`@FILE`) is taken, as if typed.
   - **An abbreviated option's value** (`--out --x.y`, `--out` short for
-    `--output`): the walk does not know `--out` takes a value, so it takes
-    `--x.y` as a setting, and `--output` takes the next word.
-  - **A multi-letter short option's value** (`-ab --x.y`, where `-ab` takes
-    one): likewise.
-  - **A setting after a plugin command's name** (`gui --x.y=1`) is taken
-    by the program that loads the module, where the module should take it,
-    and refused when the program has no such setting.
+    `--output`) and **a multi-letter short option's** (`-ab --x.y`, where
+    `-ab` takes one) are the option's, as R22 and R23 say.
+  - **A setting after a plugin command's name** (`gui --x.y=1`) is the
+    module's, with every argument after the command's name (section
+    7).
 
 The standard options of section 6, in the same notation:
 
@@ -444,10 +439,11 @@ version-option  = %s"--version"
 quiet-option    = %s"-q" / %s"--quiet"
 verbose-option  = %s"-v" / %s"--verbose"
 colour-option   = ( %s"--color" / %s"--colour" ) [ "=" when ]
-standard-command = %s"help" [ END command-name ]
+standard-command = %s"help" [ END format-option ] [ END command-name ]
                  / %s"completion" END shell
                  / %s"gui" *( END argument )
 shell           = %s"bash" / %s"zsh" / %s"fish" / %s"powershell"
+format-option   = %s"--format" ( "=" / END ) ( %s"text" / %s"json" )
 ```
 
 ## 10. bitwisedom

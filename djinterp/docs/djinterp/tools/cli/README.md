@@ -41,6 +41,7 @@ own: a `kit::program` *is* the parser and holds the kit's C record.
 |---|---|
 | `c/cli_program.h` | the program: making one, its commands and their work, the run and its halves, the reports |
 | `c/cli_format.h` | help's layout, as the parser's formatter |
+| `c/cli_help.h` | *(added 11-23)* the program's description as JSON, `help --format=json` (HELP_JSON.md), and the small writer it is written with, which a program's hook adds its own members with |
 | `c/cli_io.h` | the standard streams, terminals, colour, and files read and written whole |
 | `c/cli_plugin.h` | the plugin interface, finding and loading a command's module, both sides of a plugin |
 | `c/cli_settings.h` | the run's settings on the knob-and-option pattern: the kit's own, the user's file, the environment, those the command line gives *(added 11-13)*. *(added 11-20)* What the file and the environment could not set is held, and said once the parse ends, as `cli.unknown_settings` and `cli.shared_refusals` say; a variable set empty is taken as not set |
@@ -208,12 +209,14 @@ the link kept; a link it cannot follow, for any reason but that it leads
 nowhere, fails the write rather than be replaced. `d_cli_read_file` reads
 a file whole -- `-` is standard input.
 
-**Settings on the command line** *(added 11-18)*. The kit takes a run's
-settings off its command line before the parser reads the rest
-(GRAMMAR.md, R26). Until the parser hands them to the kit during its parse,
-the kit's own walk misses four cases that R26 lists: a setting in a
-response file, the value of an abbreviated option or of a multi-letter
-short option, and a setting after a plugin command's name.
+**Settings on the command line** *(added 11-18, revised 11-23)*. The
+parser offers the kit each long option it does not know, where it reads it,
+through its setting hook (`d_arg_parser_set_setting_hook`); the kit takes
+those shaped as a setting, and leaves the rest to the parser (GRAMMAR.md,
+R26). So a response file's settings are taken as if typed, an abbreviated
+option keeps its value, and a plugin command's arguments are its module's.
+A program that sets a hook of its own before the run keeps it, and can hand
+an argument on to the kit's, `d_cli_settings_hook`.
 
 ---
 

@@ -18,7 +18,7 @@
 # path:      /build/cmake/config/djinterp/tools/djinterp/CMakeLists.txt
 # link(s):   TBA
 # author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.13
-#                                                            revised: 2026.11.17
+#                                                            revised: 2026.11.22
 #*******************************************************************************
 cmake_minimum_required(VERSION 3.16)
 
@@ -208,6 +208,15 @@ if(DJINTERP_PROGRAM_BUILD_TESTS)
         COMMAND describe parse run STATUS 2
         MATCHES "describe: 'parse' has no command 'run'")
 
+    # the description, as JSON, for the man pages and the wiki: the kit's
+    # members, a core djin's setting among them, then the program's own
+    djinterp_program_test(djinterp_help_json plain
+        COMMAND help --format=json STATUS 0
+        MATCHES "^[{]\n  \"format\": \"djinterp[.]help/1[.]0\",\n  \"program\": \"djinterp\",\n.*\"name\": \"parse[.]expr_max_depth\",\n.*  \"djins\": [[]\n.*\"name\": \"cli\",\n      \"settings_only\": true\n.*  \"reserved\": [[]\n    \"list\",\n.*\n  []]\n[}]\n$")
+    djinterp_program_test(djinterp_help_json_command plain
+        COMMAND help set --format=json STATUS 0
+        MATCHES "  \"command\": [{]\n    \"name\": \"set\",\n    \"path\": \"djinterp set\",\n")
+
     djinterp_program_test(djinterp_get plain
         COMMAND get cli.plugin_strict_version STATUS 0
         MATCHES "^cli[.]plugin_strict_version = true\n$")
@@ -228,6 +237,18 @@ if(DJINTERP_PROGRAM_BUILD_TESTS)
     djinterp_program_test(djinterp_set_shape plain
         COMMAND set nothing STATUS 2
         MATCHES "set: 'nothing' is not NAME=VALUE")
+
+    # a name whose first part names no djin, said so, by set and by the
+    # command line, the latter through the argument parser's setting hook
+    djinterp_program_test(djinterp_set_djin plain
+        COMMAND set nosuch.depth=1 STATUS 2
+        MATCHES "error: no djin is named 'nosuch'")
+    djinterp_program_test(djinterp_setting_djin plain
+        COMMAND --nosuch.depth=1 list STATUS 2
+        MATCHES "^djinterp: error: --nosuch[.]depth: no djin is named 'nosuch'\n")
+    djinterp_program_test(djinterp_setting_after plain
+        COMMAND list --parse.expr_max_depth=7 STATUS 0
+        MATCHES "parse +- +settings only")
 
     # set, then read back from the file; then set again over it
     djinterp_program_test(djinterp_set written
@@ -255,13 +276,15 @@ if(DJINTERP_PROGRAM_BUILD_TESTS)
 
     # an output that refuses what a command writes, said with its reason
     if(EXISTS "/dev/full")
-        foreach(_command IN ITEMS list describe get json)
+        foreach(_command IN ITEMS list describe get json help)
             set(_arguments ${_command})
 
             if(_command STREQUAL "describe")
                 set(_arguments describe cli)
             elseif(_command STREQUAL "json")
                 set(_arguments describe cli --format=json)
+            elseif(_command STREQUAL "help")
+                set(_arguments help --format=json)
             endif()
 
             djinterp_program_test(djinterp_${_command}_full plain
