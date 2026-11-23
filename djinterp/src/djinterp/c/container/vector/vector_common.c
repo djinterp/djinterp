@@ -639,25 +639,24 @@ bool d_vector_common_ensure_capacity(
         return D_SUCCESS;
     }
 
-    // calculate new capacity using growth factor
+    // grow by the ratio until the requirement fits
     new_capacity = *(_capacity);
-
-    if (new_capacity == 0)
-    {
-        new_capacity = D_VECTOR_DEFAULT_CAPACITY;
-    }
 
     while (new_capacity < _required)
     {
-        // check for overflow before multiplying
-        if (new_capacity > SIZE_MAX / D_VECTOR_GROWTH_FACTOR)
+        const size_t next = d_vector_common_next_capacity(new_capacity,
+                                                          _element_size);
+
+        // no larger capacity fits: ask for the requirement itself, which
+        // reserve refuses if its size in bytes doesn't fit
+        if (next == new_capacity)
         {
             new_capacity = _required;
 
             break;
         }
 
-        new_capacity = (size_t)(new_capacity * D_VECTOR_GROWTH_FACTOR);
+        new_capacity = next;
     }
 
     return d_vector_common_reserve(_elements,
@@ -668,8 +667,80 @@ bool d_vector_common_ensure_capacity(
 }
 
 /*
+d_vector_common_next_capacity
+  The capacity a vector grows to from _current: _current * D_VECTOR_GROWTH_NUM /
+D_VECTOR_GROWTH_DEN in checked integer arithmetic, at least one more than
+_current, and at most the largest capacity whose size in bytes fits a size_t.
+
+Parameter(s):
+  _current:      the capacity now; 0 grows to D_VECTOR_DEFAULT_CAPACITY.
+  _element_size: size in bytes of each element.
+Return:
+  The grown capacity, or _current if no larger capacity fits or
+  _element_size is 0.
+*/
+size_t d_vector_common_next_capacity(
+    size_t _current,
+    size_t _element_size
+)
+{
+    size_t max_capacity;
+    size_t high;
+    size_t low;
+    size_t grown;
+
+    if (!_element_size)
+    {
+        return _current;
+    }
+
+    // the largest capacity whose size in bytes fits a size_t
+    max_capacity = SIZE_MAX / _element_size;
+
+    if (_current >= max_capacity)
+    {
+        return _current;
+    }
+
+    if (_current == 0)
+    {
+        grown = D_VECTOR_DEFAULT_CAPACITY;
+    }
+    // _current * NUM / DEN, exact (rounded down), without an intermediate
+    // product: the quotient and the remainder by DEN are scaled apart, so
+    // only a true result past SIZE_MAX counts as an overflow
+    else if ( d_ckd_mul(&high,
+                        (_current / (size_t)(D_VECTOR_GROWTH_DEN)),
+                        (size_t)(D_VECTOR_GROWTH_NUM)) ||
+              d_ckd_mul(&low,
+                        (_current % (size_t)(D_VECTOR_GROWTH_DEN)),
+                        (size_t)(D_VECTOR_GROWTH_NUM)) ||
+              d_ckd_add(&grown,
+                        high,
+                        (low / (size_t)(D_VECTOR_GROWTH_DEN))) )
+    {
+        // the result doesn't fit: grow as far as fits
+        grown = max_capacity;
+    }
+
+    // always grow, even when the ratio rounds back down (1 * 3 / 2 == 1)
+    if (grown <= _current)
+    {
+        grown = (_current + 1);
+    }
+
+    if (grown > max_capacity)
+    {
+        grown = max_capacity;
+    }
+
+    return grown;
+}
+
+/*
 d_vector_common_grow
-  Increases the vector's capacity by the growth factor.
+  Increases the vector's capacity by the growth ratio (see
+d_vector_common_next_capacity).
 
 Parameter(s):
   _elements:     pointer to elements pointer (may be reallocated)
@@ -697,19 +768,12 @@ bool d_vector_common_grow(
         return D_FAILURE;
     }
 
-    if (*(_capacity) == 0)
-    {
-        new_capacity = D_VECTOR_DEFAULT_CAPACITY;
-    }
-    else
-    {
-        // check for overflow
-        if (*(_capacity) > SIZE_MAX / D_VECTOR_GROWTH_FACTOR)
-        {
-            return D_FAILURE;
-        }
+    new_capacity = d_vector_common_next_capacity(*(_capacity), _element_size);
 
-        new_capacity = (size_t)(*(_capacity) * D_VECTOR_GROWTH_FACTOR);
+    // no larger capacity fits
+    if (new_capacity == *(_capacity))
+    {
+        return D_FAILURE;
     }
 
     return d_vector_common_reserve(_elements,

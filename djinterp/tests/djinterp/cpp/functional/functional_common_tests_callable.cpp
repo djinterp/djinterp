@@ -245,13 +245,22 @@ bool tests_is_callable_reuses_invocable_with()
                                   is_callable<not_callable, int> >::value,
                   "derives, negative case too");
 
+    // each side read into its own name: is_callable inherits ::value from
+    // is_invocable_with, so comparing the two spellings directly compares one
+    // member with itself (Clang's -Wtautological-compare)
     bool ok = true;
-    ok = ok && (is_callable<const_fn, int>::value ==
-                is_invocable_with<const_fn, int>::value);
-    ok = ok && (is_callable<nonconst_fn, int>::value ==
-                is_invocable_with<nonconst_fn, int>::value);
-    ok = ok && (is_callable<generic_fn, std::string>::value ==
-                is_invocable_with<generic_fn, std::string>::value);
+
+    const bool const_callable     = is_callable<const_fn, int>::value;
+    const bool const_invocable    = is_invocable_with<const_fn, int>::value;
+    const bool nonconst_callable  = is_callable<nonconst_fn, int>::value;
+    const bool nonconst_invocable = is_invocable_with<nonconst_fn, int>::value;
+    const bool generic_callable   = is_callable<generic_fn, std::string>::value;
+    const bool generic_invocable  =
+        is_invocable_with<generic_fn, std::string>::value;
+
+    ok = ok && (const_callable    == const_invocable);
+    ok = ok && (nonconst_callable == nonconst_invocable);
+    ok = ok && (generic_callable  == generic_invocable);
 
     return ok;
 }

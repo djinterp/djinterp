@@ -264,7 +264,7 @@ d_tests_vector_common_ensure_capacity
   - NULL parameter handling
   - zero element_size rejection
   - no-op when sufficient capacity exists
-  - growth with proper growth factor
+  - growth by the growth ratio, whatever it is set to
   - capacity never less than required
 */
 bool d_tests_vector_common_ensure_capacity(
@@ -275,6 +275,8 @@ bool d_tests_vector_common_ensure_capacity(
     void*  elements;
     size_t count;
     size_t capacity;
+    size_t expected;
+    size_t step;
 
     d_test_suite_test(_suite, "vector_common_ensure_capacity");
 
@@ -360,11 +362,22 @@ bool d_tests_vector_common_ensure_capacity(
                               capacity >= 15,
                               "Capacity should meet required amount") && result;
 
-    // growth factor is 2.0, so 10 * 2 = 20 >= 15
+    // the capacity is the first step of the ratio from 10 that reaches 15,
+    // each step adding at least one: 20 at the default 2/1, 15 at 3/2
+    expected = 10;
+
+    while (expected < 15)
+    {
+        step     = ((expected * (size_t)D_VECTOR_GROWTH_NUM) /
+                    (size_t)D_VECTOR_GROWTH_DEN);
+        expected = (step > expected) ? step : (expected + 1);
+    }
+
     result = D_TEST_CHECK_MSG(_suite,
                               "ensure_growth_factor_applied",
-                              capacity >= 20,
-                              "Growth factor should be applied (capacity >= 20)") && result;
+                              (capacity == expected),
+                              "Capacity grows by the ratio until it fits") &&
+             result;
 
     if (elements)
     {
@@ -377,12 +390,13 @@ bool d_tests_vector_common_ensure_capacity(
 
 /*
 d_tests_vector_common_grow
-  Tests the d_vector_common_grow function for doubling capacity.
+  Tests the d_vector_common_grow function, which grows capacity by the
+  growth ratio (doubling it at the default 2/1).
   Tests the following:
   - NULL parameter handling
   - zero element_size rejection
   - growth from zero capacity (uses default)
-  - growth with growth factor applied
+  - growth by the growth ratio, whatever it is set to
   - existing elements preserved
 */
 bool d_tests_vector_common_grow(
@@ -393,6 +407,7 @@ bool d_tests_vector_common_grow(
     void*  elements;
     size_t count;
     size_t capacity;
+    size_t expected;
 
     d_test_suite_test(_suite, "vector_common_grow");
 
@@ -462,11 +477,15 @@ bool d_tests_vector_common_grow(
                               d_vector_common_grow(&elements, count, &capacity, sizeof(int)) == D_SUCCESS,
                               "Growing with factor should succeed") && result;
 
-    // growth factor is 2.0, so 16 * 2 = 32
-    result = D_TEST_CHECK_MSG(_suite,
-                              "grow_factor_doubled",
-                              capacity == 32,
-                              "Capacity should be doubled (16 -> 32)") && result;
+    // 16 grows by the ratio, and by at least one: to 32 at the default 2/1,
+    // 24 at 3/2
+    expected = ((16 * (size_t)D_VECTOR_GROWTH_NUM) /
+                (size_t)D_VECTOR_GROWTH_DEN);
+    expected = (expected > 16) ? expected : 17;
+    result   = D_TEST_CHECK_MSG(_suite,
+                                "grow_factor_doubled",
+                                (capacity == expected),
+                                "Capacity grows by the ratio") && result;
 
     // test 6: verify elements preserved
     {
@@ -683,6 +702,123 @@ bool d_tests_vector_common_available(
 
 
 /*
+d_tests_vector_common_next_capacity
+  Tests d_vector_common_next_capacity, the growth ratio's arithmetic.
+  Tests the following:
+  - zero capacity grows to the default
+  - a capacity grows by D_VECTOR_GROWTH_NUM / D_VECTOR_GROWTH_DEN, and always
+    by at least one
+  - growth stops at the largest capacity whose size in bytes fits a size_t
+  - a product that overflows grows as far as fits, without wrapping
+  - a product past SIZE_MAX whose true result fits isn't capped
+  - in the factor leaf, the factor is derived in 1024ths
+  - a zero element size, and grow() at the cap, refuse to grow
+*/
+bool d_tests_vector_common_next_capacity(
+    struct dj_test_suite* _suite
+)
+{
+    bool   result;
+    size_t big;
+    size_t capacity;
+    size_t expected;
+    void*  elements;
+
+    d_test_suite_test(_suite, "vector_common_next_capacity");
+
+    result = true;
+
+    result = D_TEST_CHECK_MSG(_suite,
+                              "next_from_zero",
+                              (d_vector_common_next_capacity(0, sizeof(int)) ==
+                               D_VECTOR_DEFAULT_CAPACITY),
+                              "Zero capacity grows to the default") && result;
+
+    expected = ((8 * (size_t)D_VECTOR_GROWTH_NUM) /
+                (size_t)D_VECTOR_GROWTH_DEN);
+    result   = D_TEST_CHECK_MSG(_suite,
+                                "next_by_ratio",
+                                (d_vector_common_next_capacity(8,
+                                                               sizeof(int)) ==
+                                 expected),
+                                "A capacity grows by the ratio") && result;
+
+    result = D_TEST_CHECK_MSG(_suite,
+                              "next_always_grows",
+                              (d_vector_common_next_capacity(1,
+                                                             sizeof(int)) >= 2),
+                              "Growth adds at least one") && result;
+
+    result = D_TEST_CHECK_MSG(_suite,
+                              "next_zero_element_size",
+                              (d_vector_common_next_capacity(5, 0) == 5),
+                              "A zero element size doesn't grow") && result;
+
+    // with this element size, at most 4 elements fit a size_t's bytes
+    big = SIZE_MAX / 4;
+
+    result = D_TEST_CHECK_MSG(_suite,
+                              "next_capped",
+                              (d_vector_common_next_capacity(3, big) == 4),
+                              "Growth stops at the cap") && result;
+
+    result = D_TEST_CHECK_MSG(_suite,
+                              "next_at_cap",
+                              (d_vector_common_next_capacity(4, big) == 4),
+                              "At the cap, nothing changes") && result;
+
+    // one short of SIZE_MAX, any ratio over 1 passes it
+    result = D_TEST_CHECK_MSG(_suite,
+                              "next_overflow",
+                              (d_vector_common_next_capacity(SIZE_MAX - 1,
+                                                             1) == SIZE_MAX),
+                              "An overflow grows as far as fits") && result;
+
+    // _current * NUM passes SIZE_MAX here whenever DEN > 1, though the
+    // grown capacity fits for any ratio under 4; the remainder is 1000
+    capacity = (SIZE_MAX / 4) + 1 + 1000;
+    expected = ( ((capacity / (size_t)D_VECTOR_GROWTH_DEN) *
+                  (size_t)D_VECTOR_GROWTH_NUM) +
+                 (((capacity % (size_t)D_VECTOR_GROWTH_DEN) *
+                   (size_t)D_VECTOR_GROWTH_NUM) /
+                  (size_t)D_VECTOR_GROWTH_DEN) );
+    result   = D_TEST_CHECK_MSG(_suite,
+                                "next_exact",
+                                ( (((size_t)D_VECTOR_GROWTH_NUM /
+                                    (size_t)D_VECTOR_GROWTH_DEN) >= 4) ||
+                                  (d_vector_common_next_capacity(capacity,
+                                                                 1) ==
+                                   expected) ),
+                                "A true result that fits isn't capped") &&
+               result;
+
+#ifdef D_TESTS_VECTOR_GROWTH_EXPECT
+    result = D_TEST_CHECK_MSG(_suite,
+                              "factor_derived",
+                              ( ((size_t)D_VECTOR_GROWTH_NUM ==
+                                 (size_t)(D_TESTS_VECTOR_GROWTH_EXPECT)) &&
+                                ((size_t)D_VECTOR_GROWTH_DEN == 1024) ),
+                              "The factor is derived in 1024ths") && result;
+#endif  // D_TESTS_VECTOR_GROWTH_EXPECT
+
+    // grow() at the cap refuses before it allocates anything
+    elements = &capacity;
+    capacity = 4;
+    result   = D_TEST_CHECK_MSG(_suite,
+                                "grow_at_cap",
+                                ( (d_vector_common_grow(&elements, 0,
+                                                        &capacity, big) ==
+                                   D_FAILURE) &&
+                                  (capacity == 4) &&
+                                  (elements == &capacity) ),
+                                "grow() at the cap fails, changing nothing") &&
+               result;
+
+    return result;
+}
+
+
+/*
 d_tests_vector_common_capacity_all
   Aggregation function that runs all capacity management tests.
   Tests the following:
@@ -707,6 +843,7 @@ bool d_tests_vector_common_capacity_all(
     result = d_tests_vector_common_shrink_to_fit(_suite) && result;
     result = d_tests_vector_common_ensure_capacity(_suite) && result;
     result = d_tests_vector_common_grow(_suite) && result;
+    result = d_tests_vector_common_next_capacity(_suite) && result;
     result = d_tests_vector_common_maybe_shrink(_suite) && result;
     result = d_tests_vector_common_available(_suite) && result;
 

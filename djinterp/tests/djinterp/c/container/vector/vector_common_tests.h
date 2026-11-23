@@ -68,6 +68,9 @@ bool d_tests_vector_common_ensure_capacity(
 bool d_tests_vector_common_grow(
     struct dj_test_suite* _suite
 );
+bool d_tests_vector_common_next_capacity(
+    struct dj_test_suite* _suite
+);
 bool d_tests_vector_common_maybe_shrink(
     struct dj_test_suite* _suite
 );

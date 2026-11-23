@@ -241,11 +241,20 @@ bool tests_is_predicate_reuses_invocable_r_with()
                                   is_predicate<pred_str, int> >::value,
                   "derives, negative case too");
 
+    // each side read into its own name: is_predicate inherits ::value from
+    // is_invocable_r_with, so comparing the two spellings directly compares
+    // one member with itself (Clang's -Wtautological-compare)
     bool ok = true;
-    ok = ok && (is_predicate<pred_bool, const int&>::value ==
-                is_invocable_r_with<bool, pred_bool, const int&>::value);
-    ok = ok && (is_predicate<pred_explicit, int>::value ==
-                is_invocable_r_with<bool, pred_explicit, int>::value);
+
+    const bool bool_predicate     = is_predicate<pred_bool, const int&>::value;
+    const bool bool_invocable     =
+        is_invocable_r_with<bool, pred_bool, const int&>::value;
+    const bool explicit_predicate = is_predicate<pred_explicit, int>::value;
+    const bool explicit_invocable =
+        is_invocable_r_with<bool, pred_explicit, int>::value;
+
+    ok = ok && (bool_predicate     == bool_invocable);
+    ok = ok && (explicit_predicate == explicit_invocable);
 
     return ok;
 }
