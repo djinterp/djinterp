@@ -101,8 +101,8 @@ done.
 From chunk 28 the lane works on the owner's tree of 2026.10.23, from
 chunk 37 on his tree of 2026.10.27, from chunk 45b on his tree of
 2026.11.07, and from chunk 51 on his tree of 2026.11.16, which holds
-chunks 44 to 50 as he committed them (S423), with the lane's files laid
-over it (the README's section 8).
+chunks 44 to 50 as he committed them (S423, S427), with the lane's files
+laid over it (the README's section 8).
 
 ---
 
@@ -953,9 +953,10 @@ of a term, `str()` writes as the renderer does, `x ^ 2 * sin(x)`.
   than CORE-MATH's (rulings 1, 2 and 5 of 2026.11.16), so that one answer
   is bit-identity everywhere (row G6): exp in chunk 51 (S416), on `dd.h`'s pairs
   (S417), its exact products immune to fusing (S414), with a start-up
-  self-test (S419); log in chunk 52; then, after 0.8's items and core v2,
-  sin, cos, tan, atan, pow and the hyperbolic functions. Float follows from
-  the double kernels; long double keeps its own.
+  self-test (S419); log in chunk 52 (S424 to S426), 4.7 times the C
+  library's time, its speed outstanding (S424); then, after 0.8's items and
+  core v2, sin, cos, tan, atan, pow and the hyperbolic functions. Float
+  follows from the double kernels; long double keeps its own.
 - [ ] **6b** (step 37) The speed of `sqrt_c` in 32-bit builds (chunk 10's
   options), and `binade_of`'s table.
 - [ ] **6c** (step 38) The generator's 189 misaligned parameter lists
@@ -1089,7 +1090,11 @@ contract (S415), `exp_c` correctly rounded in double arithmetic alone
 (S416), the public pair type `dd.h` (S417), the x87 refused (S418) and
 `self_test.h` (S419), with the table's storage, the harnesses where a build
 fuses and the exponential's references (S420 to S422); its delivery is over
-the owner's tree of 2026.11.16 (S423). Log is chunk 52. Step 29, 5a,
+the owner's tree of 2026.11.16 (S423). Chunk 52 made the second: `log_c`
+correctly rounded in double arithmetic alone, in three phases with bounds
+proven in each of three cases (S424), its references and the self-test's
+logarithm (S425), and the x87 refused for it as for `exp_c` (S426); its
+delivery is over the same tree, with chunk 51's (S427). Step 29, 5a,
 follows, as asked, with 0.8's items the owner ruled on 2026.11.16
 (S413, S391, S403), before 0.8 on 2026.11.30. The owner's question of
 2026.11.19, whether to split math into modules, goes to the owner's decisions

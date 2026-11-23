@@ -16,7 +16,11 @@
 * thresholds -- and its three phases checked alone at each: a value the first
 * or the second decides is the reference, and the third's is at every point.
 * How many each decides is printed; the second and the third must each be
-* reached. The family's self-test must give 0 (self_test.h). Ten million
+* reached. log_c likewise (S424), at the 2,354 arguments of
+* math_tests_log_refs.h -- random ones over the whole range, subnormals and
+* arguments near 1 among them, ones within 2^-66 and 2^-99 of a midpoint,
+* the edges -- its phases each checked alone. The family's self-test must
+* give 0 (self_test.h). Ten million
 * random arguments each: exp_c over its whole finite range and past both
 * ends, log_c over random positive patterns (the subnormals included) and
 * over 1 + d, d down to 2^-53. Both must be within an ulp of exp and log, the
@@ -25,8 +29,8 @@
 * the specials must be exact, and so must the values a long double's double
 * rounding would get wrong, such as exp(2^-53) and log(1 - 2^-53). Where
 * double is evaluated wider than double, a 32-bit x87, the double family's
-* exp_c refuses to compile (S418): its checks are skipped, and the harness
-* says so. exp2_c, log2_c and log10_c, three million
+* exp_c and log_c refuse to compile (S418): their checks are skipped, and the
+* harness says so. exp2_c, log2_c and log10_c, three million
 * arguments each, must be within three ulps of exp2, log2 and log10 (glibc's
 * log10 is up to two from the correctly rounded value); exact against values
 * from a 400-bit computation -- the ends of exp2's range and the tie at half
@@ -51,7 +55,8 @@
 *   With the argument "exhaustive" it checks every float, all 2^32 patterns
 * (its count wants a 64-bit long). Compiled as C++ from C++14, it checks too
 * that all seven functions are constant expressions, for every family, with
-* the bits they have at run time, double exp_c through each of its phases.
+* the bits they have at run time, double exp_c and log_c through each of
+* their phases.
 * It needs no 64-bit integer -- its random
 * numbers come from math_tests_random.h, the same in every build -- so that
 * ISO-strict C++98 on a 32-bit target, where dj_math_umax has 32 bits, builds
@@ -65,7 +70,7 @@
 * path:      /tests/djinterp/c/modules/math/t_exponential.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.08
-*                                                            revised: 2026.11.16
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 // std
 #include <float.h>   // FLT_MAX, DBL_MAX, LDBL_MANT_DIG
@@ -80,6 +85,7 @@
 #include "../../../../../inc/re_std/c/cstdint/dstdint.h"  // uint32_t
 // tests
 #include "./math_tests_exp_refs.h"   // g_ref_exp_d_random ... _edges
+#include "./math_tests_log_refs.h"   // g_ref_log_d_random ... _edges
 #include "./math_tests_random.h"     // d_tests_seed, d_tests_below ...
 #include "./math_tests_real_refs.h"  // g_ref_log1p ... g_wide_exp
 
@@ -434,7 +440,9 @@ d_tests_double(void)
         (void)x;
 #endif  // !D_MATH_DBL_EVAL_WIDE
 
-        // NaN past DBL_MAX: the specials are checked below
+        // NaN past DBL_MAX: the specials are checked below; log_c, as
+        // exp_c, refuses to compile where double is evaluated wider (S418)
+#if !D_MATH_DBL_EVAL_WIDE
         if (p <= DBL_MAX)
         {
             e = D_TESTS_ULPS_D(d_math_d_log_c(p), g_log(p));
@@ -442,6 +450,10 @@ d_tests_double(void)
             diff_log += (e > 0.0) ? 1 : 0;
             D_TESTS_EXPECT(e <= 1.0, "d log_c within an ulp of log", p);
         }
+#else
+        (void)p;
+        (void)e;
+#endif  // !D_MATH_DBL_EVAL_WIDE
     }
 
 #if !D_MATH_DBL_EVAL_WIDE
@@ -449,20 +461,26 @@ d_tests_double(void)
            "by %.3g ulps at most; log_c from log at %ld, by %.3g\n",
            diff_exp, worst_exp, diff_log, worst_log);
 #else
-    printf("double: exp_c skipped, double evaluated wider than double "
-           "(S418); log_c differs from log at %ld of 10000000 arguments, by "
-           "%.3g ulps at most\n", diff_log, worst_log);
+    printf("double: exp_c and log_c skipped, double evaluated wider than "
+           "double (S418)\n");
     (void)worst_exp;
     (void)diff_exp;
+    (void)worst_log;
+    (void)diff_log;
 #endif  // !D_MATH_DBL_EVAL_WIDE
 
     return;
 }
 
+// where double is evaluated wider than double, a 32-bit x87, the double
+// family's exp_c and log_c refuse to compile (S418): their checks are left
+// out
+#if !D_MATH_DBL_EVAL_WIDE
+
 // d_tests_double_edges
 //   the logarithm's correctly rounded values, from a 300-bit computation, at
 // its edges and the values whose long double result lies on a double's
-// rounding midpoint.
+// rounding midpoint; and its specials.
 static void
 d_tests_double_edges(void)
 {
@@ -479,7 +497,8 @@ d_tests_double_edges(void)
         { 2.0,                      0.69314718055994529     },
         { 10.0,                     2.3025850929940459      }
     };
-    size_t i = 0;
+    const double inf = (double)HUGE_VAL;
+    size_t       i   = 0;
 
     for (i = 0; i < (sizeof(logs) / sizeof(logs[0])); ++i)
     {
@@ -487,12 +506,20 @@ d_tests_double_edges(void)
                        "d log_c correctly rounded at an edge", logs[i][0]);
     }
 
+    // the specials: NaN and the negatives to NaN, the zeros to -inf, +inf
+    // to +inf, 1 to +0
+    D_TESTS_EXPECT( (isnan(d_math_d_log_c(nan("")))) &&
+                    (isnan(d_math_d_log_c(-1.0))) &&
+                    (isnan(d_math_d_log_c(-inf))) &&
+                    (isnan(d_math_d_log_c(-4.9406564584124654e-324))) &&
+                    (d_tests_same_d(d_math_d_log_c(0.0), -inf)) &&
+                    (d_tests_same_d(d_math_d_log_c(-0.0), -inf)) &&
+                    (d_tests_same_d(d_math_d_log_c(inf), inf)) &&
+                    (d_tests_same_d(d_math_d_log_c(1.0), 0.0)),
+                    "d log_c's specials", 0);
+
     return;
 }
-
-// where double is evaluated wider than double, a 32-bit x87, the double
-// family's exp_c refuses to compile (S418): its checks are left out
-#if !D_MATH_DBL_EVAL_WIDE
 
 // d_tests_double_exp_edges
 //   the exponential's correctly rounded values, from a 300-bit computation:
@@ -675,6 +702,86 @@ d_tests_double_exp_refs(void)
     printf("double: d_math_self_test gives %u; this build %s the plain "
            "formulas' multiplies and adds\n", d_math_self_test(),
            d_math_formulas_fuse() ? "fuses" : "does not fuse");
+
+    return;
+}
+
+// d_tests_log_group
+//   one group of math_tests_log_refs.h: log_c exactly the reference at each
+// point; and its phases one by one: a value the first or the second decides
+// is the reference, and the third's is at every point, whether the first two
+// decide or not. Counts in _phases[0 .. 2] the points each phase decides, as
+// log_c takes them, and prints them.
+static void
+d_tests_log_group(
+    const char*                    _name,
+    const struct dj_tests_log_ref* _refs,
+    size_t                         _count,
+    long*                          _phases
+)
+{
+    size_t i = 0;
+
+    _phases[0] = 0;
+    _phases[1] = 0;
+    _phases[2] = 0;
+
+    for (i = 0; i < _count; ++i)
+    {
+        // stored, so that no compiler sees x and folds log_c's work
+        volatile double x_v = d_tests_exp_value(_refs[i].x, _refs[i].x_e);
+        const double    x   = x_v;
+        const double    y   = d_tests_exp_value(_refs[i].y, _refs[i].y_e);
+        const struct dj_internal_math_d_ln_arg a =
+            d_internal_math_d_ln_arg_of(x);
+        const struct dj_internal_math_d_exp_result one =
+            d_internal_math_d_ln_phase1(a);
+        const struct dj_internal_math_d_exp_result two =
+            d_internal_math_d_ln_phase2(a);
+
+        D_TESTS_EXPECT(d_tests_same_d(d_math_d_log_c(x), y),
+                       "d log_c correctly rounded at a reference", x);
+        D_TESTS_EXPECT( (!one.decided) ||
+                        (d_tests_same_d(one.value, y)),
+                        "d log_c's first phase, where it decides", x);
+        D_TESTS_EXPECT( (!two.decided) ||
+                        (d_tests_same_d(two.value, y)),
+                        "d log_c's second phase, where it decides", x);
+        D_TESTS_EXPECT(d_tests_same_d(d_internal_math_d_ln_phase3(a), y),
+                       "d log_c's third phase, at every point", x);
+        ++_phases[one.decided ? 0 : (two.decided ? 1 : 2)];
+    }
+
+    printf("double: log_c at %lu %s references: the first phase decides "
+           "%ld, the second %ld, the third %ld\n", (unsigned long)_count,
+           _name, _phases[0], _phases[1], _phases[2]);
+
+    return;
+}
+
+// d_tests_double_log_refs
+//   log_c at every reference of math_tests_log_refs.h, its phases each
+// reached.
+static void
+d_tests_double_log_refs(void)
+{
+    long random[3] = { 0, 0, 0 };
+    long near[3]   = { 0, 0, 0 };
+    long hard[3]   = { 0, 0, 0 };
+    long edges[3]  = { 0, 0, 0 };
+
+    d_tests_log_group("random", g_ref_log_d_random,
+                      D_TESTS_COUNT(g_ref_log_d_random), random);
+    d_tests_log_group("near-midpoint", g_ref_log_d_near,
+                      D_TESTS_COUNT(g_ref_log_d_near), near);
+    d_tests_log_group("hard", g_ref_log_d_hard,
+                      D_TESTS_COUNT(g_ref_log_d_hard), hard);
+    d_tests_log_group("edge", g_ref_log_d_edges,
+                      D_TESTS_COUNT(g_ref_log_d_edges), edges);
+
+    // the second phase decides the near ones, the third the hard ones
+    D_TESTS_EXPECT(near[1] > 0, "d log_c's second phase is reached", 0);
+    D_TESTS_EXPECT(hard[2] > 0, "d log_c's third phase is reached", 0);
 
     return;
 }
@@ -1067,28 +1174,20 @@ d_tests_specials(void)
                     "exp_c far past either end", 0);
 
     // log: NaN and the negatives to NaN, the zeros to -inf, +inf to +inf,
-    // 1 to +0
-    D_TESTS_EXPECT( (isnan(d_math_d_log_c(nan("")))) &&
-                    (isnan(d_math_d_log_c(-1.0))) &&
-                    (isnan(d_math_d_log_c(-inf))) &&
-                    (isnan(d_math_d_log_c(-4.9406564584124654e-324))) &&
-                    (isnan(d_math_f_log_c(-1.0f))) &&
+    // 1 to +0; the double family's with its edges (S418)
+    D_TESTS_EXPECT( (isnan(d_math_f_log_c(-1.0f))) &&
                     (isnan(d_math_ld_log_c(-1.0L))),
                     "log_c of NaN and of a negative is NaN", 0);
-    D_TESTS_EXPECT( (d_tests_same_d(d_math_d_log_c(0.0), -inf)) &&
-                    (d_tests_same_d(d_math_d_log_c(-0.0), -inf)) &&
-                    (d_tests_same_f(d_math_f_log_c(0.0f), -(float)inf)) &&
+    D_TESTS_EXPECT( (d_tests_same_f(d_math_f_log_c(0.0f), -(float)inf)) &&
                     (d_tests_same_ld(d_math_ld_log_c(-0.0L),
                                      -(long double)inf)),
                     "log_c of the zeros is -inf", 0);
-    D_TESTS_EXPECT( (d_tests_same_d(d_math_d_log_c(inf), inf)) &&
-                    (d_tests_same_f(d_math_f_log_c((float)inf),
+    D_TESTS_EXPECT( (d_tests_same_f(d_math_f_log_c((float)inf),
                                     (float)inf)) &&
                     (d_tests_same_ld(d_math_ld_log_c((long double)inf),
                                      (long double)inf)),
                     "log_c(+inf) is +inf", 0);
-    D_TESTS_EXPECT( (d_tests_same_d(d_math_d_log_c(1.0), 0.0)) &&
-                    (d_tests_same_f(d_math_f_log_c(1.0f), 0.0f)) &&
+    D_TESTS_EXPECT( (d_tests_same_f(d_math_f_log_c(1.0f), 0.0f)) &&
                     (d_tests_same_ld(d_math_ld_log_c(1.0L), 0.0L)),
                     "log_c(1) is +0", 0);
 
@@ -1648,10 +1747,13 @@ d_tests_log1p_expm1_specials(void)
 static void
 d_tests_overloads(void)
 {
-    // the double family's exp_c where it builds (S418)
+    // the double family's exp_c and log_c where they build (S418)
 #if !D_MATH_DBL_EVAL_WIDE
-    D_TESTS_EXPECT(d_tests_same_d(d_math_exp_c(0.25), d_math_d_exp_c(0.25)),
-                   "the overloads: d exp_c", 0);
+    D_TESTS_EXPECT( (d_tests_same_d(d_math_exp_c(0.25),
+                                    d_math_d_exp_c(0.25))) &&
+                    (d_tests_same_d(d_math_log_c(3.0),
+                                    d_math_d_log_c(3.0))),
+                    "the overloads: d exp_c and log_c", 0);
 #endif  // !D_MATH_DBL_EVAL_WIDE
     D_TESTS_EXPECT( (d_tests_same_f(d_math_exp_c(0.25f),
                                     d_math_f_exp_c(0.25f))) &&
@@ -1659,8 +1761,6 @@ d_tests_overloads(void)
                                      d_math_ld_exp_c(0.25L))) &&
                     (d_tests_same_f(d_math_log_c(3.0f),
                                     d_math_f_log_c(3.0f))) &&
-                    (d_tests_same_d(d_math_log_c(3.0),
-                                    d_math_d_log_c(3.0))) &&
                     (d_tests_same_ld(d_math_log_c(3.0L),
                                      d_math_ld_log_c(3.0L))) &&
                     (d_tests_same_d(d_math_exp(0.25), g_exp(0.25))) &&
@@ -1720,11 +1820,7 @@ d_tests_overloads(void)
 static constexpr float       g_cexp_f    = d_math_f_exp_c(1.0f);
 static constexpr long double g_cexp_ld   = d_math_ld_exp_c(1.0L);
 static constexpr float       g_clog_f    = d_math_f_log_c(10.0f);
-static constexpr double      g_clog_d    = d_math_d_log_c(10.0);
 static constexpr long double g_clog_ld   = d_math_ld_log_c(10.0L);
-static constexpr double      g_clog_mid  = d_math_d_log_c(0.99999999999999989);
-static constexpr double      g_clog_sub  =
-    d_math_d_log_c(4.9406564584124654e-324);
 static constexpr long double g_cexp_ldsub = d_math_ld_exp_c(-11390.0L);
 static constexpr float       g_cexp2_f   = d_math_f_exp2_c(-0.5f);
 static constexpr double      g_cexp2_top = d_math_d_exp2_c(1023.9999999999999);
@@ -1802,6 +1898,30 @@ static_assert(g_cexp_three == 1.0000000007541754,
 static_assert(g_cexp_three_below == 0.9999999910405761,
               "exp_c below 1 where only its third phase decides");
 
+// and log_c (S424): math_tests_log_refs.h's near, which the second phase
+// decides, and hard, which only the third does
+static constexpr double g_clog_d    = d_math_d_log_c(10.0);
+static constexpr double g_clog_mid  = d_math_d_log_c(0.99999999999999989);
+static constexpr double g_clog_sub  =
+    d_math_d_log_c(4.9406564584124654e-324);
+static constexpr double g_clog_two  = d_math_d_log_c(556902.1755923942);
+static constexpr double g_clog_two_small =
+    d_math_d_log_c(1.1076818399960603e-199);
+static constexpr double g_clog_three = d_math_d_log_c(1.0000000000000013);
+static constexpr double g_clog_three_below =
+    d_math_d_log_c(0.9999999999999998);
+
+static_assert(d_math_d_log_c(1.0) == 0.0, "log_c(1) is +0");
+static_assert(d_math_d_log_c(0.0) < -DBL_MAX, "log_c(0) is -inf");
+static_assert(g_clog_two == 13.230144876182438,
+              "log_c where its second phase decides");
+static_assert(g_clog_two_small == -458.1121641067429,
+              "log_c where its second phase decides, far below 1");
+static_assert(g_clog_three == 1.332267629550187e-15,
+              "log_c above 1 where only its third phase decides");
+static_assert(g_clog_three_below == -2.2204460492503136e-16,
+              "log_c below 1 where only its third phase decides");
+
 // d_tests_constant_evaluation_exp_d
 //   the double exp_c's constants are the run time's results, bit for bit,
 // through each of its phases: the arguments are read through volatiles, so
@@ -1834,6 +1954,35 @@ d_tests_constant_evaluation_exp_d(void)
     return;
 }
 
+// d_tests_constant_evaluation_log_d
+//   the double log_c's constants are the run time's results, bit for bit,
+// through each of its phases, as exp_c's are.
+static void
+d_tests_constant_evaluation_log_d(void)
+{
+    volatile double ten_d   = 10.0;
+    volatile double below   = 0.99999999999999989;
+    volatile double least   = 4.9406564584124654e-324;
+    volatile double two     = 556902.1755923942;
+    volatile double small   = 1.1076818399960603e-199;
+    volatile double hard    = 1.0000000000000013;
+    volatile double hard_lo = 0.9999999999999998;
+
+    D_TESTS_EXPECT( (d_tests_same_d(g_clog_d, d_math_d_log_c(ten_d))) &&
+                    (d_tests_same_d(g_clog_mid, d_math_d_log_c(below))) &&
+                    (d_tests_same_d(g_clog_sub, d_math_d_log_c(least))) &&
+                    (d_tests_same_d(g_clog_two, d_math_d_log_c(two))) &&
+                    (d_tests_same_d(g_clog_two_small,
+                                    d_math_d_log_c(small))) &&
+                    (d_tests_same_d(g_clog_three, d_math_d_log_c(hard))) &&
+                    (d_tests_same_d(g_clog_three_below,
+                                    d_math_d_log_c(hard_lo))),
+                    "constant evaluation agrees with the run time: d "
+                    "log_c, through each of its phases", 0);
+
+    return;
+}
+
 #endif  // !D_MATH_DBL_EVAL_WIDE
 
 // d_tests_constant_evaluation
@@ -1845,9 +1994,7 @@ d_tests_constant_evaluation(void)
     volatile float       one_f  = 1.0f;
     volatile long double one_ld = 1.0L;
     volatile float       ten_f  = 10.0f;
-    volatile double      ten_d  = 10.0;
     volatile long double ten_ld = 10.0L;
-    volatile double      below  = 0.99999999999999989;
     volatile double      least  = 4.9406564584124654e-324;
     volatile long double ldsub  = -11390.0L;
     volatile float       mhalf  = -0.5f;
@@ -1864,15 +2011,13 @@ d_tests_constant_evaluation(void)
 
 #if !D_MATH_DBL_EVAL_WIDE
     d_tests_constant_evaluation_exp_d();
+    d_tests_constant_evaluation_log_d();
 #endif  // !D_MATH_DBL_EVAL_WIDE
 
     D_TESTS_EXPECT( (d_tests_same_f(g_cexp_f, d_math_f_exp_c(one_f))) &&
                     (d_tests_same_ld(g_cexp_ld, d_math_ld_exp_c(one_ld))) &&
                     (d_tests_same_f(g_clog_f, d_math_f_log_c(ten_f))) &&
-                    (d_tests_same_d(g_clog_d, d_math_d_log_c(ten_d))) &&
                     (d_tests_same_ld(g_clog_ld, d_math_ld_log_c(ten_ld))) &&
-                    (d_tests_same_d(g_clog_mid, d_math_d_log_c(below))) &&
-                    (d_tests_same_d(g_clog_sub, d_math_d_log_c(least))) &&
                     (d_tests_same_ld(g_cexp_ldsub,
                                      d_math_ld_exp_c(ldsub))),
                     "constant evaluation agrees with the run time", 0);
@@ -1934,10 +2079,11 @@ main(int _argc, char** _argv)
     d_tests_float(exhaustive);
     d_tests_float_bases(exhaustive);
     d_tests_double();
-    d_tests_double_edges();
 #if !D_MATH_DBL_EVAL_WIDE
+    d_tests_double_edges();
     d_tests_double_exp_edges();
     d_tests_double_exp_refs();
+    d_tests_double_log_refs();
 #endif  // !D_MATH_DBL_EVAL_WIDE
     d_tests_double_bases();
     d_tests_double_base_edges();

@@ -1,11 +1,11 @@
-# djinterp math: the lane's decisions, S1 to S423
+# djinterp math: the lane's decisions, S1 to S427
 
 Every decision the math lane has taken, in the words of the record that took
 it, with the alternative it set aside. The numbers run across the lane's
 records from S1 (slice 3, 2026.10.08); each record's section of decisions is
 here as its README has it, its own first lines among it. A decision was the
 lane's to take within the owner's rulings, and stands once his next word on
-its delivery, his "continue", has accepted it: S1 to S413 stand, his own
+its delivery, his "continue", has accepted it: S1 to S423 stand, his own
 rulings of 2026.10.27 on complex numbers and quaternions, S265 to S278, the
 design of steps 22 to 24, and his choice of 2026.11.07, S383, among them.
 His rulings of 2026.11.03 and 2026.11.04 on the flagged decisions are in the
@@ -13,13 +13,13 @@ reviews they rule, each "Ruled 2026.11.04", two of them, S336 and S340, his
 own choice of an alternative the review had set aside, made in chunk 46
 (S384, S385). His rulings of 2026.11.16 on the decisions of 2026.11.15 are
 in chunk 51's opening lines and, for S391, S403 and S413, in their reviews,
-each "Ruled 2026.11.16". S414 to S423 are chunk 51's, open until his word on
-it: the first of the double family's rewrite as he ruled it -- every exact
-product immune to a compiler that fuses, the family's contract of one
-result, the correctly rounded one, on every platform, `exp_c` so in double
-arithmetic alone, the public pair type `dd.h`, the x87 refused and the
-start-up self-test -- and the delivery over his tree of 2026.11.16. His word
-of 2026.11.14 on the language's names, which kept them flat in
+each "Ruled 2026.11.16"; chunk 51's decisions, the first of the double
+family's rewrite as he ruled it, stand by his "continue for now" of
+2026.11.20. S424 to S427 are chunk 52's, open until his word on it: the
+second, `log_c` correctly rounded in double arithmetic alone as `exp_c` is,
+its references and the self-test's logarithm, the x87 refused for it too,
+and the delivery over his tree of 2026.11.16 with chunks 51 and 52 together.
+His word of 2026.11.14 on the language's names, which kept them flat in
 `djinterp::math`, is S397's. Where a later decision changes an earlier one,
 the later one says so; the earlier one stays here as it was taken.
 
@@ -40,7 +40,7 @@ judged on accuracy and functionality, the best solution rather than the
 cheapest. A review ends "Taken" where the path taken is the one it
 recommends, or "Ruled" where the owner ruled it; it ends in a flag where the
 path taken is not the one it recommends, or has a significant drawback. The
-23 flagged decisions, the outstanding ones, come first, in six groups by
+24 flagged decisions, the outstanding ones, come first, in six groups by
 what they concern, the most urgent first in each (section 1); then every
 decision, by record (section 2).
 
@@ -50,15 +50,15 @@ C6 and N1 to N6, are in the consolidation's record
 followed it; his rulings on them are the roadmap's principles and items
 (`roadmap.md`). From chunk 34 on, each chunk's delivery brings this file,
 its own decisions added at the end. This file is made by
-`_handoffs/math98_chunk51_2026.11.16/tools/decisions_c51.py`.
+`_handoffs/math98_chunk52_2026.11.20/tools/decisions_c52.py`.
 
 ## 1. Outstanding decisions
 
-The 23 flagged decisions: those whose review recommends what is not yet
+The 24 flagged decisions: those whose review recommends what is not yet
 done, or names a significant drawback of what was. Each gives when it is
 due, by the roadmap's steps, its flag and its review's recommendation; the
 decision itself and its whole review are in its record's part of section 2.
-The groups and the steps are `decisions_outstanding_c51.md`'s, in chunk 51's
+The groups and the steps are `decisions_outstanding_c52.md`'s, in chunk 52's
 record.
 
 ### 1.1 The expression language
@@ -192,6 +192,13 @@ record.
   the library's functions wherever `<math.h>` declares them, the `_c` forms
   only where it does not. Ruled 2026.11.04 (the owner's, settled): as
   recommended, one answer per platform, at step 36 (6a).
+- S424. When: at the next step of 6a, before the plain double `log` follows
+  ruling 12 in early December: inverses of 8 bits. `log_c` is 4.7 times the
+  C library's speed, past the twice that ruling 12's recommendation asks
+  before the plain form becomes the correctly rounded one. Recommended: as
+  taken, then inverses of 8 bits, so that r is exact in one double, before
+  the plain double `log` follows ruling 12; an outside review of the proofs
+  when one can be had.
 - S9. When: step 39 (6d), with MSVC. Significant drawback on compilers
   without the builtin. Recommended: as taken, plus `std::bit_cast` from
   C++20 where the builtin is missing, so every C++20 compiler gets it. Taken
@@ -9022,3 +9029,176 @@ other lanes' work, are his.
 > again; the scratch repository keeps it as a tag, from which the cumulative
 > zip can be made. The alternatives: cumulative over 11-07, which would put
 > back three shared files; every lane file. Recommended: as taken. Taken.
+
+### S424 to S427: chunk 52, 2026.11.20
+
+The record: `_handoffs/math98_chunk52_2026.11.20/README.md`.
+
+Chunk 52's decisions, S424 to S427: the second of the double family's
+rewrite, under the owner's rulings of 2026.11.16 -- exp and log first,
+each in three phases with proven bounds, by the lane's own algorithms
+(1, B; 3, B; 5, B), the x87 refused (4, B), kernels immune to fusing
+(7, B). Chunk 51's decisions, S414 to S423, stand: the owner's "continue
+for now" of 2026.11.20 at 06:59 followed its delivery. His question of
+2026.11.19, whether to split math into modules, is on the owner's
+decisions page; on 2026.11.19 he asked the lane to go on as it is.
+
+**S424. `d_math_d_log_c` is the natural logarithm correctly rounded, in
+double arithmetic alone, by three phases each with a proven bound, as
+`exp_c` is (S416; rulings 1, B, and 5, B): x = m 2^e, m in [1, 2), from its
+bits where the language can read them and by `float_order.h`'s binade
+search elsewhere, a subnormal first lifted by 2^54; i, the integer nearest
+128 (m - 1), picks c = 1 + i/128, and from i = 53, c > sqrt(2), m and c are
+halved and e raised by 1; inv the double nearest 1/c, 1 at i = 0 and 128,
+and L = -log(inv) from a table of 129 triples, its pair within 2^-107.07 of
+L relatively; r = m inv - 1 exactly as a pair, |r| < 2^-8, by an exact
+product, Sterbenz's lemma and Fast2Sum. Phase 1, in doubles: e LN2H exact,
+LN2H of 42 bits, L's high part and r taken by three Fast2Sums, r^2/2 split
+exactly, q of degree 5 by Sollya: within 2^-67.17 of log(x) relatively,
+tested against 2^-64; phase 2, in `dd.h`'s pairs, P of degree 10, its
+first five coefficients pairs, ln2 in three parts, the first two of 42
+bits: within 2^-101.48, tested against 2^-100; phase 3, in `exp_c`'s
+fixed point and with its operations: e ln2 from `exp_c`'s 240-bit digits
+of ln2/128, |L| from 224-bit digits, log1p(r) by its series, the positive
+parts and the negative ones apart: within 36.1 units of 2^-224, 2^-165.83
+relatively, then rounded at 53 bits. Each phase gives its result where the
+interval its bound allows rounds one way, as Ziv's method has it.** The
+bounds are proven in the record's `proofs/`: Sollya's `supnorm` for the
+polynomials, against their Taylor polynomials of degree 40; Gappa for
+phases 1 and 2 in each of three cases -- e not 0; e = 0 and i neither 0 nor
+128, where L and log1p(r) may partly cancel; e = 0 and i 0 or 128, where r
+= x - 1 -- every value divided by |log(x)|, the magnitudes each case allows
+proven by `log_consts.py` against mpmath at 600 bits, every product a
+compiler may fuse modelled both ways; exact rational arithmetic for phase
+3. `log_gappa.py` checks in exact arithmetic that each phase's test is
+sound: the proven bound and the rounding of lo -+ err within err. The
+hardest case known, Lefevre and Muller's 0x1.62a88613629b6p+678, lies
+2^-118.03 relatively from a 54-bit number, far outside phase 3's bound.
+NaN and +inf give themselves, +-0 gives -inf, a negative x NaN, and 1 +0.
+A constant expression from C++14 through all three phases. The generator
+makes the table and the digits from integers alone, by ln's series of
+atanh, checking that each rounding is the same at both ends of an interval
+that holds the exact value; `log_consts.py` checks them again against
+mpmath. Measured (`raw/timing.txt`, gcc -O2): 18.2 ns a call over every
+binade against the C library's 3.9, 19.5 over [1/2, 2] against 4.0, 16.6
+near 1 against 3.5, 17.6 over [1, 1e6] against 3.8; 117 ns where phase 2
+decides; 2,940 ns where phase 3 does, at 1 + 6 2^-52; 8.0 to 9.6 times
+faster than the long double kernel's `log_c`; phase 1 decides 99.92% to
+99.93% of ten million arguments in each of the four ranges, phase 2 the
+rest, phase 3 none. The plain `d_math_d_log` stays the C library's
+(S415).
+- Alternative: inverses of 8 bits, so that r = m inv - 1 is one double,
+  exact by one fused multiply-add or by a split of m at 45 bits, as
+  CORE-MATH's logarithm has it: no exact product of two full doubles and no
+  low part of r, perhaps 3 to 5 ns a call less, for a longer polynomial,
+  |r| then up to 2^-7.2; a design and proofs of their own.
+- Alternative: the long double kernel with a rounding test: correctly
+  rounded too, at 148 to 175 ns a call, and slower where long double is 64
+  bits or 128 in software.
+- Alternative: phase 1 with r^2/2 rounded, not split: its rounding, 2^-61
+  of log(x) where L and log1p(r) nearly cancel, is past the test's 2^-64.
+- Alternative: a table of 256 triples: |r| < 2^-9 and q of degree 4, for a
+  table of 6 KB.
+
+> **Review.** Taken: for, the logarithm correctly rounded on every platform
+> in double arithmetic alone, each phase's bound proven from the code's own
+> operations in each of three cases, fused or not, and each phase's test
+> shown sound in exact arithmetic; 8 to 10 times faster than the long double
+> kernel's `log_c`; a constant expression from C++14 through all three
+> phases; no 64-bit integer needed. Against: 18.2 ns a call, 4.7 times the C
+> library's, where `exp_c` is 1.5 times: the exact product of m and inv,
+> Dekker's where the target has no fused multiply-add, and phase 1's chain
+> of three exact sums; phase 3's 2.9 us at the arguments that need it, none
+> of forty million random ones; a 3 KB table; proofs the lane wrote, which
+> no specialist has reviewed, their risk held by Gappa's and Sollya's
+> certificates, run again in this session (`raw/proofs.txt`), and by 2,354
+> references with every phase checked alone. The alternatives: inverses of 8
+> bits, r one exact double; the long double kernel with a rounding test;
+> phase 1 with r^2/2 rounded; a table of 256. Recommended: as taken, then
+> inverses of 8 bits, so that r is exact in one double, before the plain
+> double `log` follows ruling 12; an outside review of the proofs when one
+> can be had. **Flag:** `log_c` is 4.7 times the C library's speed, past the
+> twice that ruling 12's recommendation asks before the plain form becomes
+> the correctly rounded one.
+
+**S425. `log_c` is checked against references made by mpmath at 400 bits, as
+`exp_c` is (S422): `math_tests_log_refs.h`, made by `tools/refs_log_c52.py`,
+holds 2,048 random arguments of eight classes -- every binade, the
+subnormals among them, [1/2, 2], 1 +- tiny, 1 + k 2^-52 and 1 - k 2^-53,
+random patterns, powers of 2 and their neighbours, the table's turns, [1,
+1e6] --, 256 whose logarithm lies within 2^-66 of a rounding midpoint and
+farther than 2^-99, which phase 1 cannot decide and phase 2 can, the hard
+ones within 2^-99 and Lefevre and Muller's argument, and 46 edges.
+`t_exponential.c` checks `log_c` exactly at each, and each phase alone: a
+value phase 1 or 2 decides is the reference, and phase 3's is at every
+point; phases 2 and 3 must each be reached. `self_test.h`'s
+`d_math_self_test` takes the logarithm at four arguments, one for each of
+phases 1 and 2 and two for phase 3, its new bit `D_MATH_SELF_TEST_LOG` 4: it
+gives 7 under `-ffast-math`, by gcc and clang alike, and 0 in every tier.**
+The hard ones come from `tools/hard_log_c52.c`, which takes every x = 1 + j
+2^-52 and 1 - j 2^-53, j below 2^22, through log1p's first four terms in
+128-bit integers: the place of a logarithm's fraction past its last bit
+follows from j's square, which for j = 2^a o, o odd of a + 1 bits, falls on
+a midpoint exactly, leaving the distance to j's cube, some j^3 2^(-51-b)/3
+of an ulp, b the bits of j. Three lie within 2^-99: 1 - 2^-52 at 2^-105.58,
+and 1 + 6 2^-52 and 1 - 12 2^-53 at 2^-100.42. 1 + 2^-52's logarithm lies
+near a double, not a midpoint, and the same holds of Lefevre and Muller's
+argument, so that phase 1 decides both. Phase 3 is reached at 7 of the 2,354
+references; each of its values is checked at all.
+- Alternative: random arguments alone: phase 3 never reached, and phase 2
+  at one argument in fourteen hundred.
+- Alternative: the window search of `hard_exp_c51.c`: it needs the place
+  nearly linear across 2^26 arguments, as the exponential's is near 0, and
+  the logarithm's near 1 is quadratic in j.
+
+> **Review.** Taken: for, every phase reached and checked alone at every
+> argument, phase 3 at seven of them, the hard ones found by a search whose
+> screen mpmath checks; the references made at 400 bits by mpmath, not by
+> the code's method, and kept in step by `--check`; the self-test's points
+> widened to the logarithm, as S419's review recommended. Against: three
+> arguments within 2^-99 of a midpoint, all within 2^-52 of 1; the proofs,
+> not the references, carry the guarantee. The alternatives: random
+> arguments alone; `hard_exp_c51.c`'s window search. Recommended: as taken,
+> the search widened past 1's neighbourhood as time allows. Taken.
+
+**S426. `log_c` refuses a build whose double arithmetic is not plain double,
+as `exp_c` does (S418, ruling 4, B): it begins with `D_MATH_DBL_REFUSE`,
+and the tests that call the double `log_c` leave it out where double is
+evaluated wider, saying so: `t_exponential.c`'s random, edge, special,
+overload and constant-evaluation checks of it, and `t_constants_face.cpp`'s
+ln2 and ln10 against it.** Nothing else in the tree calls the double
+`log_c`; the faces that use the `_c` forms -- the expression language's,
+the complex and quaternion faces, the constants -- build and pass at
+`-m32` on the x87, as they did. `tools/refusal_c52.sh` checks both ways: a
+program that calls the double `exp_c` and `log_c`, a pair's sum and the
+self-test is refused on the x87 with the message, by gcc, clang, g++ and
+clang++ at C99, ISO strict C++98 and C++14, and builds and runs on SSE; one
+that calls only the float and long double forms builds on both.
+- Alternative: on the x87, `log_c` falls back to the long double kernel, as
+  `expm1_c`'s far path does: no refusal for log, but two answers for one
+  function, which ruling 4 refused.
+
+> **Review.** Taken: for, no silently wrong logarithm from the double family
+> on any build, the same rule as `exp_c`'s, and every test that calls it
+> saying where it leaves it out. Against: an x87 build that calls the double
+> `log_c` stops, where chunk 51's built with the long double kernel. The
+> alternative: the long double kernel on the x87, two answers for one
+> function. Recommended: as taken. Taken.
+
+**S427. The delivery is over the owner's tree of 2026.11.16 16:00, his
+repository's `7de55b67`, as chunk 51's was (S423), and holds chunks 51 and
+52 together: every file of the lane's working tree that his tree has not
+or holds otherwise, as S394's rule has it, with the records, `NOTE.md`,
+`MANIFEST.md` and `HANDOFF.md` beside the `djinterp/` folder and
+`decisions.md` and `zip_check.txt` apart.** The lane has had no word that
+chunk 51's zip is in his repository; copied over the tree that holds it,
+this zip changes only chunk 52's files, chunk 51's being byte for byte
+what he has, and copied over his 11-16 tree, without it, it brings both.
+- Alternative: chunk 52's files alone: smaller, and broken over the 11-16
+  tree, where `exponential.h` would need chunk 51's `dd.h`.
+
+> **Review.** Taken: for, one zip right over the tree the owner has, whether
+> or not he has copied chunk 51's in: it changes chunk 52's files and, where
+> his tree lacks them, chunk 51's, and nothing of his or other lanes'.
+> Against: chunk 51's 36 files sent again. The alternative: chunk 52's files
+> alone, broken over the 11-16 tree. Recommended: as taken. Taken.

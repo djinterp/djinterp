@@ -11,16 +11,17 @@
 * arithmetic alone, the same bits on every platform (S415). A header
 * cannot see the build: flags that break IEEE arithmetic, such as
 * -ffast-math, or a target that rounds otherwise. d_math_self_test
-* checks exact products and sums and the exponential against known
-* results, at run time; d_math_formulas_fuse says whether the build
-* fuses a multiply and an add, which changes the plain formulas' bits,
-* the _fast forms' among them, but not the correctly rounded functions'.
+* checks exact products and sums, the exponential and the logarithm
+* against known results, at run time; d_math_formulas_fuse says whether
+* the build fuses a multiply and an add, which changes the plain
+* formulas' bits, the _fast forms' among them, but not the correctly
+* rounded functions'.
 *
 *
 * path:      /inc/djinterp/c/modules/math/self_test.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.11.16
-*                                                            revised: 2026.11.16
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 
 /*
@@ -37,7 +38,7 @@ TABLE OF CONTENTS
 
 // djinterp
 #include "./dd.h"            // d_math_dd_two_product, d_math_dd_two_sum
-#include "./exponential.h"   // d_math_d_exp_c
+#include "./exponential.h"   // d_math_d_exp_c, d_math_d_log_c
 #include "./math_common.h"   // D_MATH_FN_RT
 
 // no multiply and add fused by the compiler in this header, where it can be
@@ -98,14 +99,19 @@ d_math_formulas_fuse(void)
 //   constant: d_math_self_test's bit for an exponential not correctly rounded.
 #define D_MATH_SELF_TEST_EXP        2u
 
+// D_MATH_SELF_TEST_LOG
+//   constant: d_math_self_test's bit for a logarithm not correctly rounded.
+#define D_MATH_SELF_TEST_LOG        4u
+
 // d_math_self_test
 //   0 where the double family's guarantees hold in this translation unit's
 // build, as far as known results show; otherwise D_MATH_SELF_TEST_PRODUCTS,
-// D_MATH_SELF_TEST_EXP or both: exact products and a sum against their known
-// parts, and the exponential at arguments each of its three phases decides,
-// the hardest known among them, against their correctly rounded values. Its
-// arguments are volatile, so that each is computed at run time. Where double
-// is evaluated wider than double, a 32-bit x87, it refuses to compile, as the
+// D_MATH_SELF_TEST_EXP, D_MATH_SELF_TEST_LOG or more than one: exact products
+// and a sum against their known parts, and the exponential and the logarithm
+// at arguments each of their three phases decides, the exponential's hardest
+// known among them, against their correctly rounded values. Its arguments
+// are volatile, so that each is computed at run time. Where double is
+// evaluated wider than double, a 32-bit x87, it refuses to compile, as the
 // functions it tests do.
 D_MATH_FN_RT unsigned
 d_math_self_test(void)
@@ -136,6 +142,17 @@ d_math_self_test(void)
         { -0.5,
           (2731571253070597.0 / 4503599627370496.0) }
     };
+    // x and log(x), correctly rounded
+    static const double logs[4][2] = {
+        { 10.0,
+          (2592480341699211.0 / 1125899906842624.0) },
+        { (4783753262481165.0 / 8589934592.0),
+          (7447909441804113.0 / 562949953421312.0) },
+        { (2251799813685251.0 / 2251799813685248.0),
+          (1688849860263935.0 / 1267650600228229401496703205376.0) },
+        { (4503599627370495.0 / 4503599627370496.0),
+          (-4503599627370497.0 / 20282409603651670423947251286016.0) }
+    };
     unsigned result = 0u;
     int      i      = 0;
 
@@ -162,6 +179,16 @@ d_math_self_test(void)
         if (d_math_d_exp_c(x) != exps[i][1])
         {
             result |= D_MATH_SELF_TEST_EXP;
+        }
+    }
+
+    for (i = 0; i < 4; ++i)
+    {
+        volatile double x = logs[i][0];
+
+        if (d_math_d_log_c(x) != logs[i][1])
+        {
+            result |= D_MATH_SELF_TEST_LOG;
         }
     }
 

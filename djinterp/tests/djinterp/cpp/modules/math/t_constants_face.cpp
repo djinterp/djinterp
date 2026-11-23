@@ -6,8 +6,9 @@
 * from a 120-digit computation, and in long double too where it has 64 bits;
 * the exact relations among them hold (two_pi is 2 pi, inv_sqrt2 sqrt2 / 2);
 * e, ln2, ln10, sqrt2 and sqrt3 are what the C core's correctly rounded
-* exp_c, log_c and sqrt_c give for 1, 2, 10, 2 and 3 (the double exp_c where
-* double is evaluated as double: on the x87 it refuses to compile, S418).
+* exp_c, log_c and sqrt_c give for 1, 2, 10, 2 and 3 (the double exp_c and
+* log_c where double is evaluated as double: on the x87 they refuse to
+* compile, S418).
 * number_base's members
 * and the number traits, over the library's types and a user's, at every
 * level -- the values the header gave before its port, at C++14 and up,
@@ -24,7 +25,7 @@
 * path:      /tests/djinterp/cpp/modules/math/t_constants_face.cpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.10.08
-*                                                            revised: 2026.11.16
+*                                                            revised: 2026.11.20
 *******************************************************************************/
 #include "../../../../../inc/djinterp/cpp/modules/math/constants.hpp"  // tested
 // djinterp
@@ -213,21 +214,22 @@ namespace
         d_tests_relations<long double>("long double relations");
 
         // the C core's correctly rounded kernels at 1, 2, 10, 2 and 3; the
-        // double exp_c where it builds, not where double is evaluated wider
-        // (S418)
+        // double exp_c and log_c where they build, not where double is
+        // evaluated wider (S418)
 #if !D_MATH_DBL_EVAL_WIDE
-        D_TESTS_EXPECT(d_tests_same(dk::of<double>::e(), d_math_d_exp_c(1.0)),
-                       "double: e as the C core's");
-#endif  // !D_MATH_DBL_EVAL_WIDE
-        D_TESTS_EXPECT( (d_tests_same(dk::of<double>::ln2(),
+        D_TESTS_EXPECT( (d_tests_same(dk::of<double>::e(),
+                                      d_math_d_exp_c(1.0))) &&
+                        (d_tests_same(dk::of<double>::ln2(),
                                       d_math_d_log_c(2.0))) &&
                         (d_tests_same(dk::of<double>::ln10(),
-                                      d_math_d_log_c(10.0))) &&
-                        (d_tests_same(dk::of<double>::sqrt2(),
+                                      d_math_d_log_c(10.0))),
+                        "double: e, ln2, ln10 as the C core's");
+#endif  // !D_MATH_DBL_EVAL_WIDE
+        D_TESTS_EXPECT( (d_tests_same(dk::of<double>::sqrt2(),
                                       d_math_d_sqrt_c(2.0))) &&
                         (d_tests_same(dk::of<double>::sqrt3(),
                                       d_math_d_sqrt_c(3.0))),
-                        "double: ln2, ln10, sqrt2, sqrt3 as the C core's");
+                        "double: sqrt2, sqrt3 as the C core's");
         D_TESTS_EXPECT( (d_tests_same(dk::of<float>::e(),
                                       d_math_f_exp_c(1.0f))) &&
                         (d_tests_same(dk::of<float>::ln2(),
