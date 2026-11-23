@@ -162,10 +162,10 @@ typedef ::dj_net_port port_type;
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
 // 2.1.3
 // byte_buffer
-//   type: the framework's growable byte buffer; C++17 and later, its own
-// floor. Below that, the algorithms take a std::vector<byte> or a
+//   type: the framework's growable byte buffer, DByteBuffer; C++17 and later,
+// its own floor. Below that, the algorithms take a std::vector<byte> or a
 // std::string instead.
-typedef ::djinterp::byte_buffer<> byte_buffer;
+typedef ::djinterp::DByteBuffer<> byte_buffer;
 
 // 2.1.4
 // bytes
