@@ -419,8 +419,9 @@ def gates(written, head, messages=()):
         # the checks beside this script, over the scratch tree, each held to
         # the punch list the window's result has (or, failing that, this
         # tree's): the ladder and the style over the changed files, the
-        # fixed-width includes, the roots' growth, the version, and the lines
-        # the window adds and its messages, which name no lane
+        # fixed-width includes, the C runtime's calls MSVC refuses, the roots'
+        # growth, the version, and the lines the window adds and its messages,
+        # which name no lane
         here = os.path.dirname(os.path.abspath(__file__))
 
         def known(name):
@@ -432,6 +433,15 @@ def gates(written, head, messages=()):
             return [sys.executable, '-I', os.path.join(here, name),
                     '--tree', root]
 
+        def own(name):
+            """A check the window's result has, where this tree has none
+            yet: the result's copy, or else this tree's, or else none."""
+            for folder in (os.path.join(root, 'scripts', 'ci'), here):
+                path = os.path.join(folder, name)
+                if os.path.isfile(path):
+                    return [sys.executable, '-I', path, '--tree', root]
+            return None
+
         checks = [
             ('the ladder over the changed units',
              script('ladder.py') + ['--changed', 'HEAD'] +
@@ -442,6 +452,9 @@ def gates(written, head, messages=()):
             ('the fixed-width includes',
              script('check_stdint_includes.py') +
              known('stdint_known.txt')),
+            ('the C runtime\'s calls MSVC refuses',
+             own('check_crt_calls.py') and
+             own('check_crt_calls.py') + known('crt_known.txt')),
             ('the roots only grow',
              script('check_root_growth.py') + ['--base', 'HEAD']),
             ('the version', script('check_version.py')),
@@ -452,6 +465,8 @@ def gates(written, head, messages=()):
         ]
         failed = False
         for title, command in checks:
+            if not command:
+                continue
             print('gates: %s' % title)
             result = subprocess.run(command, cwd=root, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE,
